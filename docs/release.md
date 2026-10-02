@@ -22,7 +22,7 @@ Nothing below is ever committed or written to Hive. If the machine is replaced, 
 | `~/.appstoreconnect/mindmap.env` | `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH` | 600 |
 | `~/.appstoreconnect/signing/` | Private keys of the two distribution certificates, the keychain password | 700 / 600 |
 | `~/Library/Keychains/mindmap-build.keychain-db` | Keychain with the Apple Distribution and Mac Installer Distribution identities and the Apple WWDR G3 intermediate | — |
-| `~/Library/Developer/Xcode/UserData/Provisioning Profiles/` | Profile "MindMap AI Mac App Store" (MAC_APP_STORE) | — |
+| `~/Library/Developer/Xcode/UserData/Provisioning Profiles/` | Profiles "MindMap AI Mac App Store" (app) and "MindMap AI Share Mac App Store" (Share Extension, bundle ID `asia.xdev.mindmapai.share`, created 2026-10-02 with the same Apple Distribution certificate as the app, expires 2027-10-02), both MAC_APP_STORE | — |
 
 The API key has the App Manager role, which cannot use Xcode's cloud-managed distribution certificates. So the certificates were created through the API from locally generated keys, and the export signs manually. A key with the Admin role would allow cloud signing instead; it was not created, to keep the key's rights small.
 
@@ -43,4 +43,4 @@ It unlocks the build keychain, archives the Release configuration for macOS with
 1. In App Store Connect, Users and Access › Integrations › Team Keys: generate a key with the App Manager role, download the `.p8` once into `~/.appstoreconnect/private_keys/`, and write `mindmap.env`.
 2. Generate two RSA keys and CSRs with `openssl`, then create a `DISTRIBUTION` and a `MAC_INSTALLER_DISTRIBUTION` certificate with `POST /v1/certificates`.
 3. Create the keychain, import both identities with access for `codesign` and `productbuild`, run `security set-key-partition-list`, add the keychain to the user search list, and import `AppleWWDRCAG3.cer` from apple.com/certificateauthority.
-4. Create the MAC_APP_STORE profile for the bundle ID and the distribution certificate with `POST /v1/profiles` and save it into the profiles folder.
+4. Create a MAC_APP_STORE profile for each bundle ID (`asia.xdev.mindmapai` and `asia.xdev.mindmapai.share`, registered with `POST /v1/bundleIds`) and the distribution certificate with `POST /v1/profiles`, and save them into the profiles folder. Every new extension needs its own bundle ID, profile and a line in the export options of `scripts/upload-testflight.sh`.
