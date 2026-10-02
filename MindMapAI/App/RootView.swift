@@ -27,7 +27,7 @@ struct RootView: View {
         _router = State(initialValue: router)
         _library = State(initialValue: library)
         _transfer = State(initialValue: FileTransfer(
-            createMap: { await library.createMap($0) },
+            createMap: { await library.createMap($0, imageData: $1) },
             openMap: { router.selectedMapID = $0 }
         ))
     }

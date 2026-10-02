@@ -38,7 +38,8 @@ extension TopicTextSpecs {
             topGap: CanvasMetrics.tagChipTopGap,
             symbolWidth: (CanvasMetrics.tagChipSymbolWidth * chipSize / badge.size).rounded(.up)
         )
-        return TopicTextSpecs(levels: levels, placeholder: String(localized: "Untitled Topic"), chip: chip)
+        let image = TopicImageSpec(maximumAspect: CanvasMetrics.imageMaxAspect, gap: CanvasMetrics.imageGap)
+        return TopicTextSpecs(levels: levels, placeholder: String(localized: "Untitled Topic"), chip: chip, image: image)
     }
 
     /// Design sizes, without Dynamic Type: the Mac, and tests.

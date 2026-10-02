@@ -44,6 +44,8 @@ public enum GraphError: Error, Hashable, Sendable {
     case imageAlreadyExists(ImageID)
     /// A topic has at most one image; this one is already on it.
     case nodeHasImage(ImageID)
+    /// A new image must come with its bytes, or it would be stored with no file.
+    case imageHasNoData(ImageID)
     /// A floating topic needs the central topic to be placed beside.
     case noCentralTopic
     /// Only a floating topic has a position to move.

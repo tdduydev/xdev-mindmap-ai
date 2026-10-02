@@ -54,7 +54,7 @@ struct MapBackupTests {
         let url = try write(data, as: "Trip.\(ExportFormat.backup.fileExtension)")
         let library = LibraryModel(repository: repository)
         var opened: MapID?
-        let transfer = FileTransfer(createMap: { await library.createMap($0) }, openMap: { opened = $0 })
+        let transfer = FileTransfer(createMap: { await library.createMap($0, imageData: $1) }, openMap: { opened = $0 })
 
         await transfer.importFile(at: url, into: .newMap)
 
@@ -78,6 +78,38 @@ struct MapBackupTests {
         #expect(try await repository.fetchMaps().count == 2)
     }
 
+    /// The picture on a topic goes into the backup and is stored again on import (MM-63).
+    @Test func aBackupKeepsTopicImages() async throws {
+        var engine = try GraphEngine(state: try await storedMap())
+        let flightsID = try #require(engine.state.firstNodeTitled("Flights")?.id)
+        let bytes = Data((0..<2_000).map { UInt8(truncatingIfNeeded: $0) })
+        let image = MindImage(mapID: engine.state.map.id, nodeID: flightsID, data: bytes, pixelWidth: 40, pixelHeight: 30, altText: "Boarding pass")
+        try await repository.save(try engine.execute(SetNodeImageCommand(nodeID: flightsID, image: image)), map: engine.state.map)
+        let original = try #require(try await repository.loadGraph(for: engine.state.map.id))
+
+        var options = ExportOptions()
+        options.format = .backup
+        let data = try await MapExporter.data(
+            for: original, options: options, colorScheme: .light,
+            imageData: try await repository.imageData(of: original)
+        )
+        let url = try write(data, as: "Trip.\(ExportFormat.backup.fileExtension)")
+        let library = LibraryModel(repository: repository)
+        var opened: MapID?
+        let transfer = FileTransfer(createMap: { await library.createMap($0, imageData: $1) }, openMap: { opened = $0 })
+
+        await transfer.importFile(at: url, into: .newMap)
+
+        let id = try #require(opened)
+        let copy = try #require(try await repository.loadGraph(for: id))
+        let flights = try #require(copy.firstNodeTitled("Flights"))
+        let copiedImage = try #require(copy.image(of: flights.id))
+        #expect(copiedImage.id != image.id)
+        #expect(copiedImage.altText == "Boarding pass")
+        #expect(copiedImage.pixelWidth == 40)
+        #expect(try await repository.imageData(for: copiedImage.id) == bytes)
+    }
+
     @Test func aBackupDoesNotGoIntoAnOpenMap() async throws {
         let original = try await storedMap()
         guard case .ready(let session) = await EditorSession.open(mapID: original.map.id, repository: repository, onMapChange: { _ in }) else {
@@ -85,7 +117,7 @@ struct MapBackupTests {
             return
         }
         let url = try write(try await MapArchive.exportData(original), as: "Trip.json")
-        let transfer = FileTransfer(createMap: { _ in nil }, openMap: { _ in })
+        let transfer = FileTransfer(createMap: { _, _ in nil }, openMap: { _ in })
 
         await transfer.importFile(at: url, into: .openMap(session))
 
@@ -95,7 +127,7 @@ struct MapBackupTests {
 
     @Test func otherJSONIsNotABackup() async throws {
         let url = try write(Data(#"{"name": "Trip"}"#.utf8), as: "Trip.json")
-        let transfer = FileTransfer(createMap: { _ in nil }, openMap: { _ in })
+        let transfer = FileTransfer(createMap: { _, _ in nil }, openMap: { _ in })
 
         await transfer.importFile(at: url, into: .newMap)
 
@@ -104,7 +136,7 @@ struct MapBackupTests {
 
     @Test func aBackupFromANewerVersionSaysSo() async throws {
         let url = try write(Data(#"{"format": "asia.xdev.mindmapai.map", "version": 99}"#.utf8), as: "Trip.json")
-        let transfer = FileTransfer(createMap: { _ in nil }, openMap: { _ in })
+        let transfer = FileTransfer(createMap: { _, _ in nil }, openMap: { _ in })
 
         await transfer.importFile(at: url, into: .newMap)
 

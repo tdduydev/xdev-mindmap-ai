@@ -89,6 +89,17 @@ enum CanvasMetrics {
     /// layout pass, hence `nonisolated`.
     nonisolated static let maximumTopicTagChips = 3
 
+    /// A picture on a topic (MM-63), above the title: its widths for Image
+    /// Size ▸ Small, Medium (the default, `MindImage.defaultDisplayWidth`)
+    /// and Large, never wider than the box's content.
+    static let imageWidthSmall: Double = 96
+    static let imageWidthMedium: Double = 160
+    static let imageWidthLarge: Double = 240
+    /// Height ÷ width; a taller picture is cropped to fill.
+    static let imageMaxAspect: Double = 1.5
+    /// Between the picture and the title.
+    static let imageGap: CGFloat = 8
+
     /// The pointer hit area is the visual box, at least this tall.
     static let minimumPointerHeight: CGFloat = 28
 
