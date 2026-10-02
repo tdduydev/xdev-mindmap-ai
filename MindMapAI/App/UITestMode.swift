@@ -1,6 +1,7 @@
 import Foundation
 import MindMapDomain
 import MindMapGraph
+import MindMapIntents
 
 /// The launch mode UI tests start the app in (docs/testing.md): an in-memory
 /// store seeded with a fixture, preferences that start empty each launch, and
@@ -91,4 +92,11 @@ extension UITestFixture {
         try build(&engine, root)
         return engine.state
     }
+}
+
+/// Indexes nothing: UI test maps stay out of Spotlight.
+struct NoSearchIndex: MapSearchIndex {
+    func replaceAll(with maps: [MindMap]) async {}
+    func update(_ map: MindMap) async {}
+    func remove(_ mapID: MapID) async {}
 }

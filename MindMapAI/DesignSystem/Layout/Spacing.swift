@@ -40,9 +40,16 @@ enum Metrics {
     /// Width of the Mac Settings window.
     static let settingsWidth: CGFloat = 480
 
+    /// Width of the paywall sheet on the Mac.
+    static let paywallWidth: CGFloat = 420
     /// The AI suggestion review popover.
     static let suggestionListWidth: CGFloat = 320
     static let suggestionListHeight: CGFloat = 280
     /// AI sheets on the Mac, where a sheet takes its content's size.
     static let aiSheetWidth: CGFloat = 440
+    /// The Mac's Keyboard Shortcuts sheet.
+    static let shortcutsSheetSize = CGSize(width: 480, height: 560)
+
+    /// File ▸ Export… on the Mac.
+    static let exportSheetWidth: CGFloat = 440
 }

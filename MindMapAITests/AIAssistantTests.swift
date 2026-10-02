@@ -301,6 +301,10 @@ struct AIAssistantTests {
     private struct OpenFailed: Error {}
 }
 
+private struct AllFeaturesUnlocked: ProEntitlements {
+    func allows(_ feature: ProFeature) -> Bool { true }
+}
+
 private struct NothingUnlocked: ProEntitlements {
-    func isUnlocked(_ feature: ProFeature) -> Bool { false }
+    func allows(_ feature: ProFeature) -> Bool { false }
 }

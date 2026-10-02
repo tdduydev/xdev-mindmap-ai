@@ -21,7 +21,7 @@ final class AIService {
 
     init(
         provider: @escaping () -> any AIProvider = { AppleFoundationModelProvider() },
-        entitlements: any ProEntitlements = AllFeaturesUnlocked()
+        entitlements: any ProEntitlements
     ) {
         makeProvider = provider
         self.entitlements = entitlements

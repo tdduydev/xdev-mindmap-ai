@@ -11,6 +11,9 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 | Account | None required |
 | AI processing | On-device (Apple Foundation Models) where the device supports it |
 | Analytics | None in V1 |
+| Share Extension | Writes shared text and links into the store in the App Group container on the device; images and PDFs are copied there to wait for the app |
+| Spotlight | Map titles only, in the device's own index; deleted maps are removed |
+| Clipboard | Read only when the user runs Map from Clipboard |
 
 ## Rules for the code
 

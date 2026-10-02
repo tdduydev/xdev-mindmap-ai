@@ -13,7 +13,11 @@ struct SettingsView: View {
                 Form {
                     GeneralSettingsSection()
                     AISettingsSection()
+                    ExportSettingsSection()
                 }
+            }
+            Tab("Pro", systemImage: "star") {
+                Form { ProSettingsSection() }
             }
             Tab("Privacy", systemImage: "hand.raised") {
                 Form { PrivacySettingsSection() }
@@ -28,7 +32,9 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 GeneralSettingsSection()
+                ProSettingsSection()
                 AISettingsSection()
+                ExportSettingsSection()
                 PrivacySettingsSection()
                 AboutSettingsSection()
             }

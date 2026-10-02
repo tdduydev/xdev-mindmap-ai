@@ -129,7 +129,7 @@ final class AIAssistant {
         let text = description.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let rootID = session.rootID else { return }
         lastPrompt = .generateMap(draft: text)
-        if text.count > AIRequestDefaults.longDescriptionLength, !isUnlocked(.longMapDescription) { return }
+        if text.count > AIRequestDefaults.longDescriptionLength, !isUnlocked(.generateMapFromDescription) { return }
         namesMapOnAccept = session.engine.state.childIDs(of: rootID).isEmpty
         let request = GenerateMapRequest(
             prompt: text,
@@ -174,7 +174,7 @@ final class AIAssistant {
     func findMissingTopics(_ nodeID: NodeID? = nil) {
         guard canRun(.findMissingTopics, on: nodeID), let id = target(nodeID) else { return }
         afterNotice { [weak self] in
-            guard let self, self.isUnlocked(.missingTopics), let context = self.context(for: id) else { return }
+            guard let self, self.isUnlocked(.findMissingIdeas), let context = self.context(for: id) else { return }
             self.stream(.findMissingTopics(MissingTopicsRequest(context: context, maximumTopics: AIRequestDefaults.missingTopics)), anchor: id)
         }
     }
@@ -200,7 +200,7 @@ final class AIAssistant {
         guard canRun(.summarize, on: nodeID), let id = target(nodeID) else { return }
         afterNotice { [weak self] in
             guard let self else { return }
-            if id == self.session.rootID, !self.isUnlocked(.wholeMapSummary) { return }
+            if id == self.session.rootID, !self.isUnlocked(.summarizeWholeMap) { return }
             let state = self.session.engine.state
             let limits = AIContextLimits(contextSize: self.service.capabilities?.contextSize)
             let language = self.language(for: id)
@@ -443,7 +443,7 @@ final class AIAssistant {
     }
 
     private func isUnlocked(_ feature: ProFeature) -> Bool {
-        guard service.entitlements.isUnlocked(feature) else {
+        guard service.entitlements.allows(feature) else {
             show(.requiresPro)
             return false
         }

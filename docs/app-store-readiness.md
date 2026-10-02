@@ -65,7 +65,7 @@ JPEG or PNG, no transparency, 1 to 10 per set ([screenshot specifications](https
 
 | Item | Requirement | Status |
 | --- | --- | --- |
-| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`. Import and export (MM-10) need user-selected file access, so add `ENABLE_USER_SELECTED_FILES = readwrite` (or the matching entitlement) then. |
+| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). |
 | 2.4.5(ii) | Packaged and submitted with Xcode, one self-contained bundle | Met: single app target |
 | 2.4.5(iii) | No launch at login and no processes left after quit without consent | Met: none planned |
 | 2.4.5(iv) | No downloading apps, code or resources that add features | Applies to any later downloadable local model; see 2.5.2 below |
@@ -111,7 +111,7 @@ App Store Connect rejects uploads that use a required-reason API without a decla
 | API | Codes that fit this app | Status |
 | --- | --- | --- |
 | UserDefaults (`@AppStorage`) | CA92.1 (the app's own defaults); 1C8F.1 once the Share Extension shares defaults through an App Group | CA92.1 declared in `MindMapAI/Resources/PrivacyInfo.xcprivacy` |
-| File timestamp | C617.1 (files in the app or CloudKit container), DDA9.1 (dates shown to the user), 3B52.1 (files the user picked) | Not used yet. Add when import, export or file dates arrive (MM-10). |
+| File timestamp | C617.1 (files in the app or CloudKit container), DDA9.1 (dates shown to the user), 3B52.1 (files the user picked) | Not used: import reads a picked file's contents only and export writes through the save panel (MM-10). Add 3B52.1 if a file's dates or size are ever read. |
 | System boot time, disk space, active keyboards | — | Not used |
 
 The manifest also sets `NSPrivacyTracking = false` with no tracking domains and no collected data types, which matches Data Not Collected. *[Inference, not verified]* Each extension carries its own `PrivacyInfo.xcprivacy`.
@@ -150,7 +150,7 @@ Declared per platform in App Store Connect: VoiceOver, Voice Control, Larger Tex
 ## Share Extension and App Intents
 
 - 2.5.16: the extension relates to the app's content. It adds text, links, images or PDFs to a map and does nothing else.
-- The extension and the app share the SwiftData store through an App Group ([module structure](module-structure.md)). That needs the App Group entitlement on both targets, reason 1C8F.1 for shared defaults, and its own privacy manifest *[Inference]*.
+- The extension and the app share the SwiftData store through an App Group ([system integration](system-integration.md)). Both targets carry the App Group entitlement; the extension has its own privacy manifest. No defaults are shared, so 1C8F.1 is not declared. Signing the App Group needs a development team (see the signing steps there).
 - App Intents: no guideline beyond 2.5.11 found (not verified). The intents run on the device and send nothing anywhere.
 
 ## StoreKit (3.1)
@@ -194,7 +194,7 @@ As of commit `1e18d58`:
 | Website link | `https://xdev.asia/mindmap` in Help and Settings ▸ About | `MindMapAI/App/AppLinks.swift` |
 | Privacy policy link | `https://xdev.asia/mindmap/privacy` in Settings ▸ Privacy and Help; page **not yet published** (text in `docs/web/privacy-policy.md`) | `MindMapAI/App/AppLinks.swift` |
 | Support link | `https://xdev.asia/mindmap/support` in Help ▸ MindMap AI Help, Settings ▸ About and the startup failure screen; page **not yet published**, contact method not decided (text in `docs/web/support.md`) | `MindMapAI/App/AppLinks.swift` |
-| Restore purchases | Not applicable until StoreKit | — |
+| Restore purchases | Settings ▸ MindMap AI Pro and the paywall; StoreKit 2 entitlements at launch and on activation | `MindMapAI/Features/Store/` |
 | Permission usage strings | None needed yet | — |
 
 ## Do now

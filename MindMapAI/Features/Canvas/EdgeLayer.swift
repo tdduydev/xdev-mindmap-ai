@@ -29,9 +29,26 @@ struct CanvasDrawing {
         colorScheme: ColorScheme,
         contrast: ColorSchemeContrast
     ) -> CanvasDrawing {
+        make(
+            scene: model.scene,
+            rect: model.cullingRect,
+            shapes: model.isDetailed ? nil : model.visibleTopics,
+            selection: model.session.selection
+        ) { model.style(for: $0, colorScheme: colorScheme, contrast: contrast) }
+    }
+
+    /// The same drawing from plain values, which export uses for the whole map.
+    ///
+    /// - Parameter shapes: Topics to draw as shapes, below the detail zoom;
+    ///   nil where topic views draw them.
+    static func make(
+        scene: CanvasScene,
+        rect: CGRect,
+        shapes: [CanvasTopic]?,
+        selection selected: NodeID?,
+        style: (CanvasTopic) -> TopicStyle
+    ) -> CanvasDrawing {
         var drawing = CanvasDrawing()
-        let scene = model.scene
-        let rect = model.cullingRect
 
         for (child, path) in scene.connectors(in: rect) {
             guard let topic = scene.topic(child) else { continue }
@@ -39,7 +56,7 @@ struct CanvasDrawing {
                 drawing.suggestionEdges.addCurve(path)
                 continue
             }
-            let style = model.style(for: topic, colorScheme: colorScheme, contrast: contrast)
+            let style = style(topic)
             drawing.edges[Stroke(color: style.edgeColor, width: style.edgeWidth), default: Path()].addCurve(path)
         }
 
@@ -50,10 +67,9 @@ struct CanvasDrawing {
             }
         }
 
-        guard !model.isDetailed else { return drawing }
-        let selected = model.session.selection
-        for topic in model.visibleTopics {
-            let style = model.style(for: topic, colorScheme: colorScheme, contrast: contrast)
+        guard let shapes else { return drawing }
+        for topic in shapes {
+            let style = style(topic)
             let shape = Path(roundedRect: topic.frame, cornerRadius: style.box.cornerRadius, style: .continuous)
             if topic.isSuggestion {
                 drawing.suggestionShapes.addPath(shape)

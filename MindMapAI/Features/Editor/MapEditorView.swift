@@ -9,6 +9,8 @@ struct MapEditorView: View {
     let canvas: CanvasModel
     @Bindable var assistant: AIAssistant
     @Environment(\.undoManager) private var undoManager
+    @State private var showsKeyboardShortcuts = false
+    @Environment(FileTransfer.self) private var transfer: FileTransfer?
 
     var body: some View {
         Group {
@@ -20,7 +22,19 @@ struct MapEditorView: View {
             }
         }
         .safeAreaInset(edge: .top) {
-            AISuggestionBar(assistant: assistant)
+            VStack(spacing: 0) {
+                if session.isFinding {
+                    FindBar(session: session)
+                }
+                AISuggestionBar(assistant: assistant)
+            }
+        }
+        // The outline scrolls to a match itself; the canvas waits for the
+        // layout, which a branch Find just opened may not have yet.
+        .onChange(of: session.scrollRequest) { _, request in
+            guard request != nil, session.presentation == .canvas else { return }
+            canvas.revealSelection()
+            session.scrollRequest = nil
         }
         .safeAreaInset(edge: .bottom) {
             if session.saveFailed {
@@ -53,6 +67,8 @@ struct MapEditorView: View {
         .toolbar { toolbar }
         .focusedSceneValue(\.editorSession, session)
         .focusedSceneValue(\.aiAssistant, assistant)
+        .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
+        .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
@@ -70,6 +86,14 @@ struct MapEditorView: View {
             .help(Text("View As"))
             .accessibilityIdentifier(AccessibilityID.Editor.presentation)
         }
+        // Design system: a multi-selection shows its count in the toolbar.
+        ToolbarItem {
+            if session.selectedIDs.count > 1 {
+                Text("\(session.selectedIDs.count) topics selected")
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
+        }
         ToolbarItemGroup {
             Button(action: session.undo) {
                 Label("Undo", systemImage: "arrow.uturn.backward")
@@ -83,6 +107,9 @@ struct MapEditorView: View {
             .disabled(!session.canRedo)
         }
         ToolbarItemGroup(placement: .primaryAction) {
+            Button(action: session.showFind) {
+                Label("Find", systemImage: "magnifyingglass")
+            }
             Button(action: session.addChild) {
                 Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }
@@ -100,6 +127,15 @@ struct MapEditorView: View {
         if assistant.service.showsEntryPoints {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
+            }
+        }
+        if let transfer {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    transfer.beginExport(session)
+                } label: {
+                    Label("Export…", systemImage: "square.and.arrow.up")
+                }
             }
         }
         // After the primary actions, so it sits at the trailing edge above the inspector.
