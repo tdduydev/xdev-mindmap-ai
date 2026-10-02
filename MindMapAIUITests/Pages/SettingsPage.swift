@@ -4,8 +4,8 @@ import XCTest
 /// pane on iPad and iPhone (docs/settings.md).
 @MainActor
 struct SettingsPage {
-    /// `SettingsPane` raw values.
-    enum Pane: String {
+    /// `SettingsPane` raw values, in the app's order of panes.
+    enum Pane: String, CaseIterable {
         case general
         case export
         case ai
@@ -18,8 +18,24 @@ struct SettingsPage {
 
     let app: XCUIApplication
 
+    #if os(macOS)
+    /// SwiftUI names the Mac's Settings window itself.
+    var window: XCUIElement { app.windows["com_apple_SwiftUI_Settings_window"].firstMatch }
+    #endif
+
     func paneButton(_ pane: Pane) -> XCUIElement {
+        #if os(macOS)
+        // On macOS 27 the identifier set on a Tab never reaches its toolbar
+        // button, which has only its title, so panes are found by position;
+        // that works in every language. A Mac without Apple Intelligence has no AI pane.
+        let buttons = window.toolbars.buttons
+        var panes = Pane.allCases
+        if buttons.count == panes.count - 1 { panes.removeAll { $0 == .ai } }
+        // An index past the last button matches nothing, as a missing pane should.
+        return buttons.element(boundBy: panes.firstIndex(of: pane) ?? Pane.allCases.count)
+        #else
         app.descendants(matching: .any)[AccessibilityID.Settings.pane(pane.rawValue)].firstMatch
+        #endif
     }
 
     /// A pop-up button on the Mac, a menu button on iOS; its value is the chosen option.
@@ -43,6 +59,9 @@ struct SettingsPage {
         button.waitToExist(file: file, line: line).tapOrClick()
         #endif
         let page = SettingsPage(app: app)
+        #if os(macOS)
+        page.window.waitToExist(file: file, line: line)
+        #endif
         page.paneButton(.general).waitToExist(file: file, line: line)
         return page
     }
