@@ -7,6 +7,16 @@ import UIKit
 #endif
 
 enum SystemImageClipboard {
+    static func seedForUITests() {
+        #if os(iOS)
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 24, height: 24))
+        UIPasteboard.general.image = renderer.image { context in
+            UIColor.systemRed.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 24, height: 24))
+        }
+        #endif
+    }
+
     static var hasImage: Bool {
         #if os(macOS)
         NSPasteboard.general.canReadObject(forClasses: [NSImage.self], options: nil)

@@ -1,18 +1,11 @@
 #if os(iOS)
-import UIKit
 import XCTest
 
 final class TopicImageUITests: XCTestCase {
     @MainActor
     func testPasteImageInspectRemoveAndUndo() {
-        let bitmap = UIGraphicsImageRenderer(size: CGSize(width: 24, height: 24)).image { context in
-            UIColor.systemRed.setFill()
-            context.fill(CGRect(x: 0, y: 0, width: 24, height: 24))
-        }
-        UIPasteboard.general.image = bitmap
-        defer { UIPasteboard.general.items = [] }
-
-        let editor = MindMapApp.launch(fixture: .sample).library.show()
+        let editor = MindMapApp.launch(fixture: .sample,
+            arguments: [UITestLaunch.imageClipboard]).library.show()
             .open(UITestFixture.Title.plan).show(.canvas)
         let topic = editor.canvasTopics.matching(NSPredicate(format: "label == %@", UITestFixture.Title.plan)).firstMatch
             .waitToExist()

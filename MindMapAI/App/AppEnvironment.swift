@@ -107,6 +107,9 @@ final class AppEnvironment {
     /// An in-memory store, so UI tests never see or touch the person's maps,
     /// and no Spotlight index, so fixture maps never show in the Mac's search.
     private static func uiTest(_ mode: UITestMode) throws -> AppEnvironment {
+        if ProcessInfo.processInfo.arguments.contains(UITestLaunch.imageClipboard) {
+            SystemImageClipboard.seedForUITests()
+        }
         let repository = try PersistenceController.makeRepository(at: .inMemory)
         let maps = try mode.fixture.makeMaps()
         let seeding = Task {
