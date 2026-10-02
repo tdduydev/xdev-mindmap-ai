@@ -77,6 +77,21 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 - **MM-14** App Store submission kit for the Mac-only first release: metadata in English and Vietnamese, screenshots, Review Notes on AI availability, privacy and accessibility labels, age rating, TestFlight builds as 0.x, 1.0.0 for the public release.
 
+## 15. Node organization
+
+Ways to sort, mark and group topics beyond the tree, designed in [node-organization.md](node-organization.md) from the research page on Hive (`research-node-features`, 14 apps). MM-31 comes first; MM-32 to MM-35 and MM-37 can then run in parallel; MM-36 waits for tags and tasks.
+
+- **MM-30** Design: the document above and the schema V2 plan in [data-model.md](data-model.md).
+- **MM-31** Schema V2 in one migration: `MapRecord.deletedAt` (for MM-19), the optional node and link fields, `MindTag`, `MindNodeTag` and `MindGroup` records, their commands with undo and redo tests, and the repair rules. No UI.
+- **MM-32** Topic colour and symbol, never colour alone (Differentiate Without Color).
+- **MM-33** Cross-links in the UI: make, label, line style, arrowheads and colour; links into collapsed branches drawn to the visible ancestor.
+- **MM-34** Tags: map and shared tags, chips on the canvas and in the outline, Manage Tags, search by tag, AI Suggest Tags.
+- **MM-35** Tasks: checkbox, priority, start and due days, progress computed from subtopics, Markdown task boxes.
+- **MM-36** Filter bar (dim or hide) and Focus on Branch, device-local view state.
+- **MM-37** Boundaries around a branch or a run of siblings, in layout and export, with AI Summarize Boundary and Suggest Groups.
+
+Not in V2, in order of likely value: summary topics, floating topics, saved views, links between maps, structure per branch, numbering, presentation mode, attachments ([node-organization.md](node-organization.md), *Not in V2*).
+
 ## UI tests
 
 UI tests (XCUITest) run on macOS and the iOS Simulator through `scripts/ui-tests.sh`; `scripts/ci.sh` stays fast and does not run them. A feature with new UI ships with its UI tests once MM-22 is in.
@@ -98,6 +113,6 @@ These run beside the phases above once their dependency is done.
 - **MM-16** Topic inspector: notes and details, toggled from the toolbar and the View menu.
 - **MM-17** Multiple windows: one session per map shared by its windows, one window per map on iPad, state restoration at relaunch.
 - **MM-18** Map themes: Standard, xDev Blue and Graphite branch palettes, chosen per map as an undoable command.
-- **MM-19** Recently Deleted: deleted maps kept for 30 days and restorable, with schema V2 and its migration test.
+- **MM-19** Recently Deleted: deleted maps kept for 30 days and restorable, using `MapRecord.deletedAt` from schema V2 (MM-31).
 - **MM-20** Voice input: dictate topics in Vietnamese (`DictationTranscriber`) or English (`SpeechTranscriber`), on the device.
 - **MM-21** Intel Mac support: universal build for macOS 26, AI hidden on Intel, checked under Rosetta or on an Intel Mac.
