@@ -2,7 +2,7 @@
 
 How people sort, mark and group topics beyond the tree: tags, colour and symbol, tasks, styled cross-links, boundaries, and the filter bar with Focus on Branch. This is the design for MM-31 to MM-37 (MM-30). The stored fields are in [[data-model]] (*Schema V2*); the research behind it, 14 apps compared on 2026-10-02, is the Hive page [[research-node-features]].
 
-Status: design only. No app code exists for any of this yet, except where *What exists today* says so.
+Status: the stored fields, domain values, commands and repair rules are built (MM-31, see [[data-model]] *Schema V2* and [[graph-engine]]); no UI exists for any of this yet, except where *What exists today* says so.
 
 ## Principles
 
@@ -41,7 +41,7 @@ Checked against `main` at `8f28e35`:
 - **Scope.** A tag belongs to one map (`MindTag.mapID` set) or to the library (`mapID` nil, a "shared tag", offered in every map). New tags are map tags; Make Shared and Make Map Tag move a tag between the two.
 - **Fields.** Name, optional colour token and symbol, `sortOrder` for the tag list. A topic's tags are `MindNodeTag` links (node, tag, origin), one record each, so two devices adding different tags to one topic both keep theirs. A list of tag IDs on the node would lose one of them to last-writer-wins.
 - **Names.** Trimmed, inner whitespace collapsed to one space, a leading `#` dropped, 1 to 40 characters [Đề xuất]. Two names are the same tag when their **tag key** is equal: Unicode NFC, then case folding without a locale (`folding(options: .caseInsensitive, locale: nil)`), keeping every diacritic. So "Việc", "VIỆC" and a decomposed "việc" are one tag; "việc", "viếc" and "viec" are three, and "đ" is not "d". This is deliberately stricter than search folding: tags are identities, search is forgiving.
-- **Commands** (map tags): `CreateTagCommand`, `UpdateTagCommand` (rename, colour, symbol, order), `DeleteTagCommand` (the tag and every link to it), `MergeTagsCommand(into:merging:)` (links move to the survivor, duplicates dropped), `TagNodesCommand(nodeIDs:add:remove:)`. Creating a tag whose key matches an existing one in the same scope uses the existing tag instead.
+- **Commands** (map tags): `CreateTagCommand`, `UpdateTagCommand` (rename, colour, symbol, order), `DeleteTagCommand` (the tag and every link to it), `MergeTagsCommand(into:merging:)` (links move to the survivor, duplicates dropped), `TagNodesCommand(nodeIDs:add:remove:origin:)`. Creating a tag whose key matches an existing one in the same scope uses the existing tag instead. `TagNodesCommand` takes `TagReference.existing(id)` or `.named(text, newTagID:)`, so typing a new name, or accepting AI tags, creates and links in one undo step.
 - **Shared tags** are library data, like `isFavorite`: rename, recolour, merge and delete go through the repository's library actions, not a map's undo history. Delete Shared Tag asks first and says how many maps use it. Open maps pick up the change from the repository's change stream. Tagging a topic with a shared tag is still a map command.
 - **Search.** Find and library search match tag names with the search folding, so "viec" finds the tag "việc". Typing `#name` in the filter's text field filters by that tag.
 - **AI Suggest Tags** (see *AI*).
@@ -78,7 +78,8 @@ A boundary is a frame around a run of adjacent siblings and everything under the
 - **Kept valid in the same transaction.** `GraphTransaction` fixes boundaries whenever a node is deleted, reparented or reordered, so every command (delete, move, promote, demote, merge, split, drag, cut, AI accept) keeps them valid and undo restores them with the node:
   - an endpoint deleted or moved away: the endpoint moves inward to the nearest sibling that is still in the run;
   - every member gone: the boundary is deleted;
-  - an endpoint reordered past the other: the run becomes the siblings now between them.
+  - an endpoint reordered past the other: the run becomes the siblings now between them;
+  - an endpoint reordered within its own run: the boundary keeps the same members, and the outermost of them become the ends (MM-31: without this rule, moving the first topic one place down would drop the topic it passed).
 - **Duplicate Branch** copies boundaries whose parent is inside the copied branch; a boundary around the copied topic itself stays with the original.
 - **On the canvas.** The frame is the union of the members' laid-out frames (topics and visible descendants) plus `CanvasMetrics.boundaryPadding`, a rounded rectangle with a solid 1.5 pt stroke in the boundary colour (2 pt with Increase Contrast) and a fill at the sub-topic fill opacity, behind edges and topics. Solid on purpose: dashed outlines already mean "AI suggestion" and "drop target". The default colour is `graphite`. The title is a capsule at the frame's top leading corner, `badge` text. The layout engine reserves the padding and title height between the run and its neighbours, so `HorizontalTreeLayout` takes the boundaries as input and returns their frames in `MapLayout.boundaries`. PNG and PDF export draw them through the same layout.
 - **Collapse and filter.** A boundary whose parent is collapsed is hidden with it. Members that are collapsed keep the frame around the collapsed cards. Under a filter, the frame shrinks to the visible members and disappears when none are visible.
