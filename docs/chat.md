@@ -171,6 +171,7 @@ MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51) and the libr
 | `MockChatProvider` | `MindMapTestSupport` | Scripted answers, failures and a hang |
 | `MapChat` | `MindMapAI/Features/Chat` | One per `OpenMap`, so every window on the map shares it. Asks after the AI privacy notice, stops, clears, opens citations through `EditorSession.showTopic` (Reveal Topic as in Find) |
 | `ChatPanel` | `MindMapAI/Features/Chat` | Shares the editor's `.inspector` with the topic inspector (one or the other); on iPhone `.inspector` is a sheet, which closes when a citation is opened |
+| `ChatBranch`, `ChatMessage.branch`, `ChatTurn.branch` | `MindMapAICore/Chat.swift` | The scope of one question (MM-78, [Suggested questions and scope](#suggested-questions-and-scope-mm-78)) |
 | `AppEnvironment.mapQueries` | `MindMapAI/Features/Chat/AppEnvironment+Chat.swift` | The chat's `MapQueries` over the AI apps' `OpenMapsGraphSource` (`AIAppsHost.swift`, MM-46): open maps read from the editor's live graph, the rest from the store |
 
 Differences from the design above:
@@ -180,6 +181,19 @@ Differences from the design above:
 - **Menu:** AI ▸ Ask About This Map… (⌃⌘A, approved 2026-10-02) and Clear Chat; Cancel AI Request (⌘.) stops a chat answer too, so the chat has no Stop item of its own. Toolbar: Ask About This Map, beside the AI menu.
 - **Use AI Features** (MM-44): the chat is hidden exactly where the other AI controls are (`AIService.showsControls`: an ineligible device, or the switch off in Settings), and when the app has no store. A panel already open when the switch goes off keeps its answers but cannot ask again.
 - **UI test mode:** `-uitest-ai ready|ineligible` puts a scripted model in place of Apple Intelligence (Debug only, `UITestAIService.swift`): the chat cites the first topic whose title matches a word of the question.
+
+## Suggested questions and scope (MM-78)
+
+Chosen by the product owner on 2026-10-03 (FR-AI-09, FR-AI-11).
+
+- **Suggested questions:** an empty chat shows three buttons under the intro: "Summarize this map", "What is missing?", "What are the next steps?" (vi: "Tóm tắt sơ đồ này", "Còn thiếu gì?", "Các bước tiếp theo là gì?"). Tapping one asks it at once and leaves the draft alone; they are disabled while an answer comes or the model is not ready. When the scope is a branch they ask about the branch instead ("Summarize this branch", "What is missing in this branch?", "What are the next steps for this branch?") [Đề xuất]. They are in the app's language, so the answer is too.
+- **Scope picker** above the question field (a standard menu `Picker`): **Whole Map** (default) or **Selected Branch: <title>**. The branch is offered only while exactly one topic other than the central one is selected (the central topic's branch is the map). The choice holds only while that topic stays selected: selecting nothing or another topic goes back to the whole map, and selecting the topic again does not bring it back quietly (`MapChat.branchChoice`, `selectionChanged()`).
+- **Per question, not per conversation:** the scope rides on `ChatMessage.branch` (`ChatBranch`: node and title), taken when the question is asked (before the privacy notice), so one conversation can mix whole-map and branch questions.
+- **Tools inside the branch:** `ChatMapReader.setBranch` before each question. `searchTopics` searches only the branch (`MapQueries.search(_:in:under:limit:)`); `readTopic` and `readBranch` refuse a handle outside it, including one an earlier whole-map turn handed out ("Topic T5 is outside the branch this question is about…"); `readBranch` with an empty handle starts at the branch topic. Every handle a tool hands out is therefore in the branch, and so is every citation.
+- **The answer says so:** the prompt gets "Scope: only the branch “…”. The tools read only this branch. Begin the answer by saying it covers this branch." The instructions stay fixed; the title is map content and goes in the prompt only. The panel also shows "Branch: <title>" above the answer, so the scope is stated even if the model leaves it out.
+- **Saved with the turn, no schema change:** `ChatTurn.branch`, kept in the existing `citationsData` of `ChatTurnRecord` (SchemaV3 unchanged). A whole-map turn still stores MM-55's plain citation array; a branch turn stores `{ "citations": […], "branch": { "nodeID", "title" } }` (`SavedCitations`). A build that reads only the array keeps the turn and loses that turn's chips.
+- **Menu bar:** no new command. The picker and the suggestions are controls in the panel, like the question field; the scope follows the canvas selection.
+- **Not built:** buttons on an answer and asking by voice, the other two of the product owner's four (separate tasks).
 
 ## Testing
 

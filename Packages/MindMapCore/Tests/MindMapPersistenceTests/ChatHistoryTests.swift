@@ -42,6 +42,24 @@ struct ChatHistoryTests {
         #expect(try await reopened.chatTurns(for: graph.map.id) == [first, second])
     }
 
+    /// MM-78 keeps the scope in `citationsData`, so the released schema stays.
+    @Test func aBranchTurnKeepsItsScopeAndAWholeMapTurnStaysAPlainArray() async throws {
+        let graph = GraphState.newMap(title: "Map")
+        try await repository.create(graph)
+        let rootID = try #require(graph.map.rootNodeID)
+        var branchTurn = try turn("Branch?", in: graph)
+        branchTurn.branch = ChatBranch(nodeID: rootID, title: "Plan")
+        let wholeMap = try turn("Map?", in: graph)
+
+        try await repository.appendChatTurn(branchTurn, to: graph.map.id, at: now)
+        try await repository.appendChatTurn(wholeMap, to: graph.map.id, at: now.addingTimeInterval(1))
+
+        #expect(try await repository.chatTurns(for: graph.map.id) == [branchTurn, wholeMap])
+        let record = try #require(try ModelContext(container).fetch(ChatTurnRecord.withID(wholeMap.id)).first)
+        let data = try #require(record.citationsData)
+        #expect(try JSONDecoder().decode([ChatCitation].self, from: data) == wholeMap.citations, "MM-55 builds still read it")
+    }
+
     @Test func eachMapKeepsItsOwnChat() async throws {
         let one = GraphState.newMap(title: "One")
         let two = GraphState.newMap(title: "Two")

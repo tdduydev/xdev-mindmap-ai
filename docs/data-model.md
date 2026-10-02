@@ -232,7 +232,7 @@ V2 shipped to TestFlight before the chat was saved, so the chat is a new schema 
 | `mapID` | `UUID` | The map the chat belongs to, by UUID like every record |
 | `question` | `String` | As asked |
 | `answer` | `String` | As the model wrote it, handles in brackets (`[T3]`) included, so it goes back to the model unchanged |
-| `citationsData` | `Data?` | `[ChatCitation]` as JSON; nil when the answer cites nothing. Unreadable JSON loses the chips, not the turn |
+| `citationsData` | `Data?` | `[ChatCitation]` as JSON; nil when the answer cites nothing. A question limited to a branch (MM-78) stores `{ "citations": […], "branch": { "nodeID", "title" } }` instead (`SavedCitations`), so the scope needed no schema change. Unreadable JSON loses the chips, not the turn |
 | `createdAt` | `Date` | When the answer finished; orders the conversation (then `turnID`) |
 
 - **One record per turn, not one per conversation:** two devices that ask at the same time each add a record, and no record grows with the conversation. *[Inference]* A conversation blob would be one CloudKit record rewritten on every answer, and the last writer would drop the other device's turns.

@@ -89,9 +89,10 @@ final class AppleChatConversation: ChatConversation {
         guard status == .ready else { throw failure(.unavailable(status)) }
         let budget = ChatBudget(contextSize: capabilities.contextSize)
         reader.setToolOutput(budget.toolOutput)
+        reader.setBranch(message.branch?.nodeID)
 
         let mapTitle = await reader.mapTitle()
-        let prompt = catalog.chatPrompt(question: message.text, mapTitle: mapTitle, language: message.language)
+        let prompt = catalog.chatPrompt(question: message.text, mapTitle: mapTitle, language: message.language, branchTitle: message.branch?.title)
         let questionCost = TokenEstimator.estimate(prompt)
         let tools = Self.tools(reader: reader, events: events)
 
@@ -137,7 +138,7 @@ final class AppleChatConversation: ChatConversation {
         }
 
         let citations = reader.citationTable.citations(in: text)
-        let turn = ChatTurn(question: message.text, answer: text, citations: citations)
+        let turn = ChatTurn(question: message.text, answer: text, citations: citations, branch: message.branch)
         state.withLock { current in
             current.turns.append(turn)
             current.used += questionCost + current.toolCost + TokenEstimator.estimate(text)

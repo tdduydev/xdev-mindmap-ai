@@ -38,13 +38,36 @@ extension ChatTurnRecord {
 
     var domainValue: ChatTurn {
         // Unreadable citations, say from a newer build, lose their chips, not the turn.
-        let citations = citationsData.flatMap { try? JSONDecoder().decode([ChatCitation].self, from: $0) } ?? []
-        return ChatTurn(id: turnID, question: question, answer: answer, citations: citations)
+        let saved = citationsData.flatMap(SavedCitations.decode)
+        return ChatTurn(id: turnID, question: question, answer: answer, citations: saved?.citations ?? [], branch: saved?.branch)
     }
 
     func update(from turn: ChatTurn) throws {
         question = turn.question
         answer = turn.answer
-        citationsData = turn.citations.isEmpty ? nil : try JSONEncoder().encode(turn.citations)
+        citationsData = try SavedCitations(citations: turn.citations, branch: turn.branch).encoded()
+    }
+}
+
+/// What `citationsData` holds. A whole-map turn keeps MM-55's plain array of
+/// citations; a turn limited to a branch (MM-78) holds an object with the
+/// branch beside them. The schema stays as released: the scope rides in the
+/// JSON, and a build that knows only the array loses that turn's chips, not
+/// the turn.
+struct SavedCitations: Codable {
+    var citations: [ChatCitation]
+    var branch: ChatBranch?
+
+    static func decode(_ data: Data) -> SavedCitations? {
+        let decoder = JSONDecoder()
+        if let citations = try? decoder.decode([ChatCitation].self, from: data) {
+            return SavedCitations(citations: citations, branch: nil)
+        }
+        return try? decoder.decode(SavedCitations.self, from: data)
+    }
+
+    func encoded() throws -> Data? {
+        guard let branch else { return citations.isEmpty ? nil : try JSONEncoder().encode(citations) }
+        return try JSONEncoder().encode(SavedCitations(citations: citations, branch: branch))
     }
 }

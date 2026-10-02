@@ -74,6 +74,9 @@ nonisolated enum AccessibilityID {
         static let answer = "chat.answer"
         static let citation = "chat.citation"
         static let toolbar = "chat.toolbar"
+        static let scope = "chat.scope"
+        static let suggestion = "chat.suggestion"
+        static let answerScope = "chat.answerScope"
     }
 
     enum Settings {
