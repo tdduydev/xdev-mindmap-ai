@@ -1,0 +1,19 @@
+[mcp_servers.codegraph]
+command = "npx"
+args = [
+    "-y",
+    "@colbymchenry/codegraph@1.6.0",
+    "serve",
+    "--mcp",
+]
+
+[mcp_servers.codegraph.env]
+CODEGRAPH_TELEMETRY = "0"
+CODEGRAPH_NO_UPDATE_CHECK = "1"
+
+[mcp_servers.xdev-hive]
+command = "hive-mcp"
+
+[mcp_servers.xdev-hive.env]
+HIVE_AGENT = "claude"
+HIVE_PROJECT = "xdev-mindmap-ai-ios"
