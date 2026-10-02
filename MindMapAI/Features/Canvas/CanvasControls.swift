@@ -9,7 +9,7 @@ struct CanvasControls: View {
     var body: some View {
         GlassEffectContainer(spacing: Spacing.sm) {
             HStack(spacing: Spacing.xs) {
-                control("Zoom Out", systemImage: "minus.magnifyingglass", enabled: model.canZoomOut, action: model.zoomOut)
+                control("Zoom Out", systemImage: "minus.magnifyingglass", identifier: AccessibilityID.Canvas.zoomOut, enabled: model.canZoomOut, action: model.zoomOut)
                 Button(action: model.zoomToActualSize) {
                     Text(Double(model.viewport.scale), format: .percent.precision(.fractionLength(0)))
                         .monospacedDigit()
@@ -18,8 +18,9 @@ struct CanvasControls: View {
                 .help(Text("Actual Size"))
                 .accessibilityLabel(Text("Actual Size"))
                 .accessibilityValue(Text(Double(model.viewport.scale), format: .percent.precision(.fractionLength(0))))
-                control("Zoom In", systemImage: "plus.magnifyingglass", enabled: model.canZoomIn, action: model.zoomIn)
-                control("Zoom to Fit", systemImage: "arrow.up.left.and.arrow.down.right", enabled: model.canZoomToFit, action: model.zoomToFit)
+                .accessibilityIdentifier(AccessibilityID.Canvas.actualSize)
+                control("Zoom In", systemImage: "plus.magnifyingglass", identifier: AccessibilityID.Canvas.zoomIn, enabled: model.canZoomIn, action: model.zoomIn)
+                control("Zoom to Fit", systemImage: "arrow.up.left.and.arrow.down.right", identifier: AccessibilityID.Canvas.zoomToFit, enabled: model.canZoomToFit, action: model.zoomToFit)
                 control("Add Child Topic", systemImage: "arrow.turn.down.right", enabled: true, action: model.session.addChild)
                 if let assistant = model.assistant, assistant.service.showsControls {
                     Menu {
@@ -41,7 +42,13 @@ struct CanvasControls: View {
         }
     }
 
-    private func control(_ title: LocalizedStringKey, systemImage: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+    private func control(
+        _ title: LocalizedStringKey,
+        systemImage: String,
+        identifier: String? = nil,
+        enabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Label(title, systemImage: systemImage)
                 .labelStyle(.iconOnly)
@@ -49,5 +56,6 @@ struct CanvasControls: View {
         }
         .disabled(!enabled)
         .help(Text(title))
+        .accessibilityIdentifier(identifier ?? "")
     }
 }

@@ -13,6 +13,7 @@ How the app is tested, from the package up to the UI. The table per layer is in 
 | Core and app tests as x86_64 under Rosetta | `scripts/rosetta-tests.sh` | Before merging a change to the AI gate, build settings or code under `#if arch` ([[architecture]], Platforms) |
 | `MindMapAIUITests` (XCUITest, macOS and iOS Simulator) | `scripts/ui-tests.sh` | Before merging a change to the interface |
 | `MacSnapshotTests` (the Mac interface drawn off screen, compared with reference PNGs) | `scripts/snapshot-tests.sh` | Before merging a change to the Mac interface; runs while the screen is locked |
+| `FeatureTourUITests` (every feature, one screenshot per step) | `scripts/feature-tour.sh [ios\|macos] [en\|vi]` | When someone wants to see every feature, such as before a release; skipped by `scripts/ui-tests.sh` |
 
 `scripts/ci.sh` stays fast and does not run UI tests (NFR-TEST-03). Warnings are errors in both scripts.
 
@@ -65,6 +66,18 @@ The script prints whether the screen was locked, so a run's log says which case 
 
 **Snapshot or UI test.** A snapshot says how a screen looks: layout, colours in each appearance, Increase Contrast, Vietnamese text that no longer fits. It does not click, type or open menus. A flow (rename then undo, ⌘ shortcuts, the menu bar, focus, drag and drop, sheets opening) needs a UI test: on the iOS Simulator any time, and on macOS when someone has unlocked the Mac (`scripts/ui-tests.sh macos`). A change to the Mac interface runs both: snapshots right away, the macOS UI tests the next time the Mac is unlocked.
 
+## Feature tour
+
+`FeatureTourUITests` walks through every feature on main (library, canvas, outline, inspector, Find, Pro and the paywall, AI suggestions, chat, theme, export, import, voice, each Settings pane) and keeps a screenshot of each step, named `NN-feature`. Each step checks one thing and the tour goes on after a failed step, so one run shows everything that works. It is skipped unless `MINDMAP_FEATURE_TOUR=1` reaches the test runner, which `scripts/feature-tour.sh` sets:
+
+```sh
+scripts/feature-tour.sh ios en                                  # iPhone 17 simulator
+IOS_SIMULATOR="iPad Pro 11-inch (M5)" scripts/feature-tour.sh ios vi
+scripts/feature-tour.sh macos en                                # takes the mouse and keyboard
+```
+
+The script takes the screenshots out of the result bundle into `scripts/out/feature-tour/<platform>-<language>/` and prints a table of the steps with PASS, FAIL or NOT RUN. Test methods run in name order and each launches the app again; the paywall test buys Pro before the AI and voice tests, which need it. A new feature adds a step (next free number) to the matching test method, or a new `testNN…` method.
+
 ## The UI test mode
 
 UI tests launch the app with `-uitest` (`Shared/UITestLaunch.swift`). The mode is read in Debug builds only (`UITestMode`); a Release build ignores the arguments, and without `-uitest` the app behaves exactly as shipped. In the mode:
@@ -89,6 +102,8 @@ New state that persists across launches (a file, a preference, a first-run flag)
 | `large` | "Large Map": a central topic and 9 branches of 110 topics, 1,000 topics in all |
 
 `-uitest-ai <mode>` (`UITestAI`) replaces Apple Intelligence with a scripted model, so AI screens can be tested on a machine without it: `ready` (English and Vietnamese; the chat answers with the first topic whose title matches a word of the question, and cites it) or `ineligible` (every AI entry point hidden). Without it the real model is used.
+
+In the `ready` mode Suggest Subtopics answers with `UITestAI.subtopics` (Budget, Timeline, Risks) under the focus topic; the other suggestion features still fail like a bad answer. Voice input in the mode hears `UITestVoice.heard` (two sentences, two topics) instead of using the Speech framework, which the Simulator does not have. The `MindMapAIUITests` scheme runs the app with `MindMapAITests/MindMapAI.storekit`, so the paywall shows a price and a purchase goes through StoreKit Testing; a purchase stays on that simulator until the test transactions are deleted.
 
 Titles are data, not interface text, so they are the same in every language. Tests refer to them through `UITestFixture.Title`, never as string literals. A new fixture is a new case and a `makeMaps()` branch; keep existing ones unchanged, because other suites count their topics.
 

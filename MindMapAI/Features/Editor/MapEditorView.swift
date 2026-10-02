@@ -194,10 +194,12 @@ struct MapEditorView: View {
                 Label("Add Topics by Voice", systemImage: "mic")
             }
             .help(Text("Add Topics by Voice"))
+            .accessibilityIdentifier(AccessibilityID.Editor.voice)
         }
         if assistant.service.showsControls {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
+                    .accessibilityIdentifier(AccessibilityID.Editor.ai)
             }
         }
         if chat.showsEntryPoints {
@@ -218,6 +220,7 @@ struct MapEditorView: View {
                 } label: {
                     Label("Export…", systemImage: "square.and.arrow.up")
                 }
+                .accessibilityIdentifier(AccessibilityID.Editor.export)
             }
         }
         // After the primary actions, so it sits at the trailing edge above the inspector.

@@ -79,6 +79,7 @@ struct AISuggestionBar: View {
         } else if assistant.hasSuggestions {
             Button("Review…") { isReviewing = true }
                 .buttonStyle(.glass)
+                .accessibilityIdentifier(AccessibilityID.Suggestions.review)
                 .popover(isPresented: $isReviewing) {
                     if assistant.hasTagSuggestions {
                         AITagSuggestionList(assistant: assistant)
@@ -88,9 +89,11 @@ struct AISuggestionBar: View {
                 }
             Button("Discard", action: assistant.discardAll)
                 .buttonStyle(.glass)
+                .accessibilityIdentifier(AccessibilityID.Suggestions.discardAll)
             Button("Accept All", action: assistant.acceptAll)
                 .buttonStyle(.glassProminent)
                 .disabled(!assistant.canAcceptSuggestions)
+                .accessibilityIdentifier(AccessibilityID.Suggestions.acceptAll)
         }
     }
 }
@@ -177,12 +180,14 @@ private struct AISuggestionRow: View {
             }
             .disabled(!canAccept)
             .help(Text("Accept Suggestion"))
+            .accessibilityIdentifier(AccessibilityID.Suggestions.accept)
             Button(action: onDiscard) {
                 Label("Discard Suggestion", systemImage: "xmark.circle")
                     .labelStyle(.iconOnly)
                     .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
             }
             .help(Text("Discard Suggestion"))
+            .accessibilityIdentifier(AccessibilityID.Suggestions.discard)
         }
         .buttonStyle(.borderless)
         .padding(.leading, CGFloat(depth) * Spacing.outlineIndent)
