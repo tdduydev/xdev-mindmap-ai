@@ -5,8 +5,9 @@ import StoreKitTest
 import Testing
 
 /// Purchases against the local StoreKit configuration (MindMapAI.storekit).
-/// Serialized: an `SKTestSession` changes StoreKit for the whole process.
-@Suite("Pro entitlement", .serialized)
+/// Serialized: an `SKTestSession` changes StoreKit for the whole process, and
+/// other test runs of the app share its transactions (`StoreKitTestLock`).
+@Suite("Pro entitlement", .serialized, .storeKitTestLock)
 struct ProEntitlementTests {
     let session: SKTestSession
 
@@ -19,8 +20,11 @@ struct ProEntitlementTests {
         session.disableDialogs = true
         session.askToBuyEnabled = false
         session.clearTransactions()
-        // StoreKit applies the clear asynchronously; start each test from nothing bought.
-        _ = await Self.eventually { await !Self.hasProEntitlement() }
+        // StoreKit applies the clear asynchronously; start each test from nothing
+        // bought. A refunded transaction is no entitlement but still listed, and
+        // the Ask to Buy test must not find an earlier test's one.
+        let session = session
+        _ = await Self.eventually { await !Self.hasProEntitlement() && session.allTransactions().isEmpty }
     }
 
     @Test func loadsTheProProductWithItsPrice() async throws {
@@ -102,7 +106,9 @@ struct ProEntitlementTests {
         #expect(store.purchaseState == .pending)
         #expect(!store.isUnlocked)
 
-        let pending = try #require(session.allTransactions().first { $0.productIdentifier == ProEntitlement.productID })
+        let pending = try #require(session.allTransactions().first {
+            $0.productIdentifier == ProEntitlement.productID && $0.pendingAskToBuyConfirmation
+        })
         try session.approveAskToBuyTransaction(identifier: pending.identifier)
 
         #expect(await eventually { store.isUnlocked })

@@ -42,6 +42,9 @@ final class ChatUITests: XCTestCase {
         let answer = chat.answers.firstMatch.waitToExist()
         XCTAssertEqual(answer.shownText, "The map does not seem to cover that.")
         XCTAssertFalse(chat.citations.firstMatch.exists)
+        // MM-82: reading the question's label crashed the Mac app (an
+        // accessibility recursion between SwiftUI and AppKit).
+        XCTAssertTrue(chat.question(containing: "Weather?").exists)
     }
 
     /// MM-78: an empty chat offers questions that ask at once, and the scope
@@ -55,7 +58,7 @@ final class ChatUITests: XCTestCase {
         XCTAssertTrue(chat.scope.waitToExist().exists)
         let suggestion = chat.suggestions.firstMatch.waitToExist()
         XCTAssertEqual(chat.suggestions.count, 3)
-        suggestion.tap()
+        suggestion.tapOrClick()
 
         chat.answers.firstMatch.waitToExist()
         XCTAssertFalse(chat.suggestions.firstMatch.exists, "suggestions are for an empty chat")
@@ -102,6 +105,13 @@ struct ChatPage {
     var citations: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.citation) }
     var suggestions: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.suggestion) }
     var scope: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Chat.scope].firstMatch }
+
+    /// A question bubble, which VoiceOver reads as "You asked: …". The Mac
+    /// puts that text in `value`, iOS in `label`.
+    func question(containing text: String) -> XCUIElement {
+        let asked = "You asked: \(text)"
+        return app.staticTexts.matching(NSPredicate(format: "label == %@ OR value == %@", asked, asked)).firstMatch
+    }
 
     func citation(titled title: String) -> XCUIElement {
         citations.matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
