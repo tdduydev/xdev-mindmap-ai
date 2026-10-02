@@ -30,7 +30,7 @@ The certificates and the profile expire on 2027-10-02.
 
 ## iCloud before it can ship
 
-The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). Two steps remain before `MINDMAP_ICLOUD=YES` can go into the upload script, and both need a Mac signed in to iCloud (the Mac mini is not):
+The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). MM-45 added the iCloud key-value store identifier to the app's iCloud entitlements for theme and export preferences; confirm the app profile permits it before an iCloud-signed archive. Two steps remain before `MINDMAP_ICLOUD=YES` can go into the upload script, and both need a Mac signed in to iCloud (the Mac mini is not):
 
 1. Run `scripts/init-cloudkit-schema.sh` (a Debug build with `MINDMAP_ICLOUD=YES`, launched once with `-InitializeCloudKitSchema`; docs/cloudkit-sync.md) after the node-type fields of MM-59 are on `main`, check the record types in CloudKit Console, then **Deploy Schema Changes** to production. TestFlight and App Store builds use only the production schema.
 2. Test two devices as in docs/cloudkit-sync.md *Testing*.
