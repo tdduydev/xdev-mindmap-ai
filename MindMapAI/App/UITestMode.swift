@@ -82,6 +82,30 @@ extension UITestFixture {
                 }
             }
             return ([large], [])
+        case .showcaseEn, .showcaseVi:
+            let vietnamese = self == .showcaseVi
+            let title = Title.showcase(vietnamese ? "vi" : "en")
+            let branches: [(String, [String])] = vietnamese ? [
+                ("Khám phá", ["Phỏng vấn người dùng", "Nhu cầu chính", "Cơ hội mới"]),
+                ("Thiết kế", ["Luồng trải nghiệm", "Bộ nhận diện", "Thử nghiệm mẫu"]),
+                ("Ra mắt", ["Trang giới thiệu", "Thông điệp", "Cộng đồng"]),
+                ("Đo lường", ["Phản hồi", "Mức độ gắn bó", "Bước tiếp theo"]),
+            ] : [
+                ("Discover", ["User interviews", "Key needs", "New opportunities"]),
+                ("Design", ["Experience flow", "Visual identity", "Prototype testing"]),
+                ("Launch", ["Landing page", "Messaging", "Community"]),
+                ("Measure", ["Feedback", "Engagement", "Next steps"]),
+            ]
+            let graph = try Self.graph(title, editedAt: start) { engine, root in
+                for (heading, children) in branches {
+                    let branch = NodeID()
+                    try engine.execute(AddNodeCommand(nodeID: branch, .child(of: root), title: heading))
+                    for child in children {
+                        try engine.execute(AddNodeCommand(.child(of: branch), title: child))
+                    }
+                }
+            }
+            return ([graph], [])
         }
     }
 

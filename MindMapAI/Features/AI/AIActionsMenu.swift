@@ -70,6 +70,7 @@ struct AIToolbarMenu: View {
             }
         }
         .help(Text("AI"))
+        .accessibilityIdentifier(AccessibilityID.ScreenshotAI.menu)
     }
 }
 

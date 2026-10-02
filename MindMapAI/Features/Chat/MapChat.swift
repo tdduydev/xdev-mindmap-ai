@@ -65,7 +65,8 @@ final class MapChat {
     private(set) var branchChoice: NodeID?
 
     @ObservationIgnored private var conversation: (any ChatConversation)?
-    @ObservationIgnored private var task: Task<Void, Never>?
+    /// Observed: `isAnswering` reads it, and the composer swaps Stop back to Ask when it ends.
+    private var task: Task<Void, Never>?
     @ObservationIgnored private var hasNoticedLeftOut = false
     @ObservationIgnored private let locale: Locale
     /// Copy on an answer; tests pass their own so they leave the pasteboard alone.

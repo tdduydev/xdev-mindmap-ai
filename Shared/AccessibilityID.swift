@@ -128,6 +128,10 @@ nonisolated enum AccessibilityID {
         static let cancelVoice = "chat.cancelVoice"
     }
 
+    enum ScreenshotAI {
+        static let menu = "screenshot.ai.menu"
+    }
+
     enum Settings {
         static let appearance = "settings.appearance"
         static let newMapTheme = "settings.newMapTheme"
