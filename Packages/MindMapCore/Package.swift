@@ -22,6 +22,7 @@ let package = Package(
         .library(name: "MindMapSharing", targets: ["MindMapSharing"]),
         .library(name: "MindMapIntents", targets: ["MindMapIntents"]),
         .library(name: "MindMapCapture", targets: ["MindMapCapture"]),
+        .library(name: "MindMapQuery", targets: ["MindMapQuery"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -73,5 +74,15 @@ let package = Package(
         // the Simulator use `FakeVoiceTranscriber` instead of the device models.
         .target(name: "MindMapCapture", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapCaptureTests", dependencies: ["MindMapCapture", "MindMapGraph", "MindMapTestSupport"]),
+        // Reads shared by the MCP server and the chat (docs/mcp.md). No AI and
+        // no network, so both consumers and `swift test` link it as is.
+        .target(
+            name: "MindMapQuery",
+            dependencies: ["MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapSearch"]
+        ),
+        .testTarget(
+            name: "MindMapQueryTests",
+            dependencies: ["MindMapQuery", "MindMapDomain", "MindMapGraph", "MindMapPersistence"]
+        ),
     ]
 )
