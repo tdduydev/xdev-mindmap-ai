@@ -10,7 +10,7 @@ import Testing
 struct ProEntitlementTests {
     let session: SKTestSession
 
-    init() throws {
+    init() async throws {
         // The file is a resource of this test bundle, not of the shipped app.
         let url = try #require(
             Bundle.allBundles.lazy.compactMap { $0.url(forResource: "MindMapAI", withExtension: "storekit") }.first
@@ -19,6 +19,8 @@ struct ProEntitlementTests {
         session.disableDialogs = true
         session.askToBuyEnabled = false
         session.clearTransactions()
+        // StoreKit applies the clear asynchronously; start each test from nothing bought.
+        _ = await Self.eventually { await !Self.hasProEntitlement() }
     }
 
     @Test func loadsTheProProductWithItsPrice() async throws {
@@ -28,7 +30,8 @@ struct ProEntitlementTests {
         let product = try #require(store.product)
         #expect(product.id == ProEntitlement.productID)
         #expect(product.type == .nonConsumable)
-        #expect(product.price == Decimal(string: "14.99"))
+        // The configuration's price comes back through a Double, so compare the amount, not the Decimal's digits.
+        #expect(abs(NSDecimalNumber(decimal: product.price).doubleValue - 14.99) < 0.0001)
         #expect(product.displayPrice.contains("14.99"))
     }
 
@@ -48,7 +51,7 @@ struct ProEntitlementTests {
 
         await store.purchase { try await $0.purchase() }
 
-        #expect(store.isUnlocked)
+        #expect(await Self.eventually { await store.refresh(); return store.isUnlocked })
         #expect(store.purchaseState == .idle)
         for feature in ProFeature.allCases {
             #expect(store.allows(feature))
@@ -58,11 +61,12 @@ struct ProEntitlementTests {
     /// The launch check: a new process sees a purchase made earlier.
     @Test func launchFindsAnEarlierPurchase() async throws {
         _ = try await session.buyProduct(identifier: ProEntitlement.productID)
+        #expect(await Self.eventually { await Self.hasProEntitlement() })
 
         let store = ProEntitlement()
         await store.start()
 
-        #expect(store.isUnlocked)
+        #expect(await Self.eventually { await store.refresh(); return store.isUnlocked })
     }
 
     /// A purchase from outside the app (another device, Ask to Buy approval)
@@ -81,13 +85,11 @@ struct ProEntitlementTests {
         let store = ProEntitlement()
         await store.start()
         let transaction = try await session.buyProduct(identifier: ProEntitlement.productID)
-        await store.refresh()
-        #expect(store.isUnlocked)
+        #expect(await Self.eventually { await store.refresh(); return store.isUnlocked })
 
         try session.refundTransaction(identifier: UInt(transaction.id))
-        await store.refresh()
 
-        #expect(!store.isUnlocked)
+        #expect(await Self.eventually { await store.refresh(); return !store.isUnlocked })
     }
 
     @Test func askToBuyStaysPendingAndUnlocksOnApproval() async throws {
@@ -128,6 +130,7 @@ struct ProEntitlementTests {
 
     @Test func restoreFindsAnEarlierPurchase() async throws {
         _ = try await session.buyProduct(identifier: ProEntitlement.productID)
+        #expect(await Self.eventually { await Self.hasProEntitlement() })
         let store = ProEntitlement(syncWithAppStore: {})
 
         await store.restorePurchases()
@@ -158,12 +161,25 @@ struct ProEntitlementTests {
     }
 
     /// Waits for a change that arrives asynchronously through `Transaction.updates`.
-    private func eventually(_ condition: () -> Bool) async -> Bool {
+    /// StoreKit delivers purchases, refunds and clears asynchronously, and later
+    /// still on a busy machine, so state is polled for up to five seconds.
+    private static func eventually(_ condition: () async -> Bool) async -> Bool {
         for _ in 0..<50 {
-            if condition() { return true }
+            if await condition() { return true }
             try? await Task.sleep(for: .milliseconds(100))
         }
-        return condition()
+        return await condition()
+    }
+
+    private func eventually(_ condition: () async -> Bool) async -> Bool {
+        await Self.eventually(condition)
+    }
+
+    private static func hasProEntitlement() async -> Bool {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result, transaction.productID == ProEntitlement.productID { return true }
+        }
+        return false
     }
 }
 
