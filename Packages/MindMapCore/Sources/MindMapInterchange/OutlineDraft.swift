@@ -1,4 +1,5 @@
 import Foundation
+import MindMapDomain
 
 /// Topics read from a file or the clipboard, before they are in any map.
 ///
@@ -11,11 +12,14 @@ public struct OutlineDraft: Hashable, Sendable {
         public var depth: Int
         public var title: String
         public var note: String?
+        /// A Markdown title that was one inline link, or a plain-text `<url>` (FR-ORG-26).
+        public var link: TopicLink?
 
-        public init(depth: Int, title: String, note: String? = nil) {
+        public init(depth: Int, title: String, note: String? = nil, link: TopicLink? = nil) {
             self.depth = depth
             self.title = title
             self.note = note
+            self.link = link
         }
     }
 

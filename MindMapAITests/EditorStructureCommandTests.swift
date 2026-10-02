@@ -60,8 +60,8 @@ struct EditorStructureCommandTests {
             ("Promote Topic", { session.selection = nested; session.promoteSelection() }),
             ("Merge Topics", { session.merge([first, second]) }),
             ("Split Topic", { session.rename(first, to: "One\nTwo"); session.selection = first; session.splitSelection() }),
-            ("Add Link", { _ = session.connect(first, to: second) }),
-            ("Remove Link", { session.removeLink(link) }),
+            ("Add Connection", { _ = session.connect(first, to: second) }),
+            ("Remove Connection", { session.removeConnection(link) }),
             ("Collapse All", { session.collapseAll() }),
             // Something has to be collapsed for Expand All to change anything.
             ("Expand All", { session.toggleCollapsed(second); session.expandAll() }),
@@ -148,7 +148,7 @@ struct EditorStructureCommandTests {
         await session.flush()
         #expect(try await open().engine.state.edges[link]?.label == "see")
 
-        session.removeLink(link)
+        session.removeConnection(link)
         await session.flush()
         #expect(try await open().engine.state.edges.isEmpty)
     }

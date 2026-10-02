@@ -24,6 +24,8 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     var isSuggestion = false
     /// Marked on the card and read by VoiceOver (FR-EDT-13).
     var hasNote = false
+    /// Only a link this build can open; drawn on the corner, so not measured.
+    var link: TopicLink?
     /// Tag chips under the title: up to `maximumTopicTagChips` tags, "+n",
     /// then suggested tags. Part of the measured size.
     var chips: [TopicChip] = []
@@ -269,6 +271,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 hiddenDescendantCount: placed.hiddenDescendantCount,
                 isSuggestion: suggestions.contains(node.id),
                 hasNote: node.hasNote,
+                link: node.link?.url == nil ? nil : node.link,
                 chips: chips[node.id] ?? [],
                 tagNames: tags[node.id]?.map(\.name) ?? []
             ))

@@ -60,3 +60,23 @@ public struct SetTaskCommand: GraphCommand {
         }
     }
 }
+
+/// Sets or removes the URL link of one or many topics (FR-ORG-26): one undo
+/// step, "Add Link", "Edit Link" or "Remove Link" as the session names it.
+/// Takes a value already checked with `TopicLink.validated`; setting the same
+/// value changes nothing.
+public struct SetNodeLinkCommand: GraphCommand {
+    public let nodeIDs: [NodeID]
+    public let link: TopicLink?
+
+    public init(nodeIDs: [NodeID], link: TopicLink?) {
+        self.nodeIDs = nodeIDs
+        self.link = link
+    }
+
+    public func execute(in transaction: inout GraphTransaction) throws {
+        for id in nodeIDs {
+            try transaction.updateNode(id) { $0.link = link }
+        }
+    }
+}

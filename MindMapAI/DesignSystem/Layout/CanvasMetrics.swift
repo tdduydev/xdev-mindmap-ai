@@ -73,6 +73,9 @@ enum CanvasMetrics {
     /// Size of the note symbol after a title.
     static let noteSymbolSize: CGFloat = 11
 
+    /// The link symbol on a topic (FR-ORG-26), the size of the note mark.
+    static let linkSymbolSize: CGFloat = noteSymbolSize
+
     /// Tag chips in a row under the title (MM-34), measured with it.
     static let tagChipHeight: CGFloat = 16
     static let tagChipHorizontalPadding: CGFloat = 6
