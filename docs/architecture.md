@@ -44,6 +44,7 @@ flowchart LR
 | `MindMapSearch` | Domain, Graph: folding (case, Vietnamese marks, đ), library index and ranking, Find in a map | SwiftUI, SwiftData, AI |
 | `MindMapSharing` | Domain, Graph, Persistence, Interchange | SwiftUI, AI ([[system-integration]]) |
 | `MindMapIntents` | Sharing, Persistence, AppIntents, CoreSpotlight | SwiftUI, AI |
+| `MindMapQuery` | Domain, Graph, Persistence (the `MapRepository` protocol), Search: read-only queries for MCP and the chat ([[mcp]]) | SwiftUI, AI, Network |
 | Share Extension | Domain, Graph, Persistence, Interchange, Sharing, SwiftUI | AI, AppIntents |
 | App target | All of the above, SwiftUI | SwiftData records directly |
 
