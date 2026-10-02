@@ -28,6 +28,8 @@ In the app target, `Features/Canvas`, not yet the `MindMapUI/MindMapCanvas` pack
 2. calls `engine.update` with the previous layout, or `engine.layout` the first time and when Dynamic Type changes;
 3. builds the scene and hands it back to the main actor.
 
+While AI suggestions exist (MM-8), the pass lays out `SuggestionState.preview(in:)` instead of the map's graph and marks the suggested topics, so they take their place in the tree without being part of the map; every such pass is a full layout. See [[ai-architecture]].
+
 A topic added from anywhere sets `EditorSession.focusRequest`; the canvas takes it, waits for the pass that lays the topic out, scrolls it into view and opens its title (FR-CNV-05).
 
 ## Measuring

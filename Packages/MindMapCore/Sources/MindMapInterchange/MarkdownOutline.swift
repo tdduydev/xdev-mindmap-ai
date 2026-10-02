@@ -1,0 +1,362 @@
+import Foundation
+import MindMapDomain
+import MindMapGraph
+
+/// Markdown read as an outline: headings and nested list items are topics,
+/// everything else is a note.
+///
+/// - Headings nest by level; a skipped level (`#` then `###`) still nests one deep.
+/// - List items nest under the heading above them and under each other by
+///   indentation, as CommonMark does: an item indented to its parent's text is a child.
+/// - Paragraphs, quotes, tables and code fences become the note of the nearest
+///   topic: the list item they are indented under (or continue without a blank
+///   line), otherwise the heading of their section. Text before the first
+///   topic goes into the first topic's note.
+/// - Inline markup is kept as written, so a title or note comes back unchanged.
+/// - Front matter and thematic breaks are skipped.
+/// - A file with no headings or lists is read as plain text, one topic per line.
+public enum MarkdownOutline {
+    public static func parse(_ text: String) -> OutlineDraft {
+        var parser = Parser()
+        for line in withoutFrontMatter(TextLines.split(text)) {
+            parser.read(line)
+        }
+        let draft = parser.builder.finish()
+        return draft.isEmpty ? PlainTextOutline.parse(text) : draft
+    }
+
+    public struct ExportOptions: Hashable, Sendable {
+        public var includeNotes: Bool
+        /// How many levels, from the top topic down, are headings (`#`, `##`…);
+        /// deeper topics are a nested list. Clamped to 0...6.
+        public var headingLevels: Int
+
+        public init(includeNotes: Bool = true, headingLevels: Int = 2) {
+            self.includeNotes = includeNotes
+            self.headingLevels = min(max(0, headingLevels), 6)
+        }
+    }
+
+    /// The map, or the branch under `branchID`, as Markdown with a trailing
+    /// line break. Reading the result back gives the same topics and notes.
+    public static func export(
+        _ state: GraphState,
+        branch branchID: NodeID? = nil,
+        options: ExportOptions = ExportOptions()
+    ) throws -> String {
+        var writer = Writer()
+        for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
+            let title = TextLines.singleLine(node.title)
+            let note = options.includeNotes ? TextLines.noteLines(node.note) : nil
+            if depth < options.headingLevels {
+                writer.heading(level: depth + 1, title: title, note: note)
+            } else {
+                writer.listItem(indent: (depth - options.headingLevels) * 2, title: title, note: note)
+            }
+        }
+        return writer.text
+    }
+
+    private static func withoutFrontMatter(_ lines: [Substring]) -> ArraySlice<Substring> {
+        guard lines.first?.trimmingTrailingWhitespace() == "---" else { return lines[...] }
+        let end = lines.dropFirst().firstIndex { ["---", "..."].contains($0.trimmingTrailingWhitespace()) }
+        return end.map { lines[($0 + 1)...] } ?? lines[...]
+    }
+}
+
+// MARK: - Reading
+
+private struct Parser {
+    struct OpenHeading {
+        let level: Int
+        let depth: Int
+        let index: Int
+    }
+
+    struct OpenItem {
+        /// Where the item's text starts; lines indented this far belong to it.
+        let contentColumn: Int
+        let depth: Int
+        let index: Int
+    }
+
+    struct Fence {
+        let marker: Character
+        let length: Int
+        let target: DraftBuilder.NoteTarget
+        let stripColumns: Int
+    }
+
+    var builder = DraftBuilder()
+    private var headings: [OpenHeading] = []
+    private var items: [OpenItem] = []
+    private var fence: Fence?
+    private var previousBlank = false
+    /// The previous line was a list item or its text, so an unindented line
+    /// right after it continues that item, as in CommonMark.
+    private var inListText = false
+
+    mutating func read(_ line: Substring) {
+        let (column, rest) = TextLines.indentation(of: line)
+        let content = rest.trimmingTrailingWhitespace()
+
+        if let open = fence {
+            // Code is kept byte for byte, blank lines and all.
+            builder.appendNote(TextLines.dropIndentation(line, columns: open.stripColumns), to: open.target, afterBlank: false)
+            if Self.closes(content, open) { fence = nil }
+            previousBlank = false
+            return
+        }
+
+        if content.isEmpty {
+            previousBlank = true
+            return
+        }
+        defer { previousBlank = false }
+
+        if column <= 3, let (level, title) = Self.heading(content) {
+            items.removeAll()
+            inListText = false
+            while let last = headings.last, last.level >= level { headings.removeLast() }
+            let depth = headings.last.map { $0.depth + 1 } ?? 0
+            let index = builder.add(depth: depth, title: title)
+            headings.append(OpenHeading(level: level, depth: depth, index: index))
+            return
+        }
+
+        if column <= 3, Self.isThematicBreak(content) {
+            inListText = false
+            return
+        }
+
+        if let (markerWidth, title) = Self.listItem(content) {
+            // A sibling or a shallower item closes every item it does not reach into.
+            while let last = items.last, column < last.contentColumn { items.removeLast() }
+            let depth = items.last.map { $0.depth + 1 } ?? headings.last.map { $0.depth + 1 } ?? 0
+            let index = builder.add(depth: depth, title: title)
+            items.append(OpenItem(contentColumn: column + markerWidth, depth: depth, index: index))
+            inListText = true
+            return
+        }
+
+        let (target, stripColumns) = noteTarget(column: column)
+        if let (marker, length) = Self.fenceOpening(content) {
+            fence = Fence(marker: marker, length: length, target: target, stripColumns: stripColumns)
+            builder.appendNote(TextLines.dropIndentation(line, columns: stripColumns), to: target, afterBlank: previousBlank)
+            return
+        }
+        let text = Self.unescaped(TextLines.dropIndentation(line, columns: stripColumns).trimmingTrailingWhitespace())
+        builder.appendNote(text, to: target, afterBlank: previousBlank)
+    }
+
+    /// Who owns a line of text, and how much indentation is the list's rather than the text's.
+    private mutating func noteTarget(column: Int) -> (DraftBuilder.NoteTarget, Int) {
+        if let last = items.last {
+            // Unindented continuation lines drop all their indentation; lines
+            // indented under the item keep whatever goes past its text.
+            if inListText, !previousBlank { return (.item(last.index), min(column, last.contentColumn)) }
+            while let last = items.last, column < last.contentColumn { items.removeLast() }
+            if let owner = items.last {
+                inListText = true
+                return (.item(owner.index), owner.contentColumn)
+            }
+        }
+        inListText = false
+        if let heading = headings.last { return (.item(heading.index), 0) }
+        // Unindented text after a top-level list, with no heading above it.
+        if let last = builder.lastIndex { return (.item(last), 0) }
+        return (.preamble, 0)
+    }
+
+    // MARK: Line kinds
+
+    /// `#` to `######` followed by a space or nothing. An optional closing run
+    /// of `#` is dropped, as in CommonMark.
+    static func heading(_ content: Substring) -> (Int, String)? {
+        let hashes = content.prefix { $0 == "#" }.count
+        guard (1...6).contains(hashes) else { return nil }
+        var title = content.dropFirst(hashes)
+        guard title.isEmpty || title.first == " " || title.first == "\t" else { return nil }
+        title = title.drop { $0 == " " || $0 == "\t" }
+
+        let closing = title.reversed().prefix { $0 == "#" }.count
+        if closing > 0 {
+            let beforeClosing = title.dropLast(closing)
+            if beforeClosing.isEmpty || beforeClosing.last == " " || beforeClosing.last == "\t" {
+                title = beforeClosing.trimmingTrailingWhitespace()
+            }
+        }
+        return (hashes, unescaped(title, trailingHash: true))
+    }
+
+    /// A bullet (`-`, `*`, `+`) or a number (`1.`, `1)`) followed by a space or
+    /// nothing. Returns the marker's width including one space, and the title
+    /// without a task box.
+    static func listItem(_ content: Substring) -> (Int, String)? {
+        var markerLength: Int
+        if let first = content.first, "-*+".contains(first) {
+            markerLength = 1
+        } else {
+            let digits = content.prefix { $0.isASCII && $0.isNumber }.count
+            guard (1...9).contains(digits) else { return nil }
+            let delimiter = content.dropFirst(digits).first
+            guard delimiter == "." || delimiter == ")" else { return nil }
+            markerLength = digits + 1
+        }
+        let afterMarker = content.dropFirst(markerLength)
+        guard afterMarker.isEmpty || afterMarker.first == " " || afterMarker.first == "\t" else { return nil }
+
+        var title = afterMarker.drop { $0 == " " || $0 == "\t" }
+        for box in ["[ ] ", "[x] ", "[X] "] where title.hasPrefix(box) {
+            title = title.dropFirst(box.count)
+        }
+        return (markerLength + 1, unescaped(title))
+    }
+
+    /// Three or more `-`, `*` or `_`, optionally spaced.
+    static func isThematicBreak(_ content: Substring) -> Bool {
+        let marks = content.filter { $0 != " " && $0 != "\t" }
+        guard let first = marks.first, "-*_".contains(first), marks.count >= 3 else { return false }
+        return marks.allSatisfy { $0 == first }
+    }
+
+    static func fenceOpening(_ content: Substring) -> (Character, Int)? {
+        guard let first = content.first, first == "`" || first == "~" else { return nil }
+        let length = content.prefix { $0 == first }.count
+        return length >= 3 ? (first, length) : nil
+    }
+
+    static func closes(_ content: Substring, _ fence: Fence) -> Bool {
+        let trimmed = content.drop { $0 == " " || $0 == "\t" }
+        return trimmed.count >= fence.length && trimmed.allSatisfy { $0 == fence.marker }
+    }
+
+    // MARK: Escapes
+
+    /// Undoes the escapes `Writer` adds at the start of a line (and, for
+    /// headings, before a trailing `#`). Other backslashes are content.
+    static func unescaped(_ text: Substring, trailingHash: Bool = false) -> String {
+        var text = String(text)
+        if text.hasSuffix("\\#"), trailingHash {
+            text.remove(at: text.index(text.endIndex, offsetBy: -2))
+        }
+        let leading = text.prefix { $0 == " " || $0 == "\t" }
+        let body = text.dropFirst(leading.count)
+        if body.count >= 2, body.first == "\\", let next = body.dropFirst().first, Writer.escapable.contains(next) {
+            return String(leading + body.dropFirst())
+        }
+        // `12\.` is how a numbered-list lookalike is escaped.
+        let digits = body.prefix { $0.isASCII && $0.isNumber }
+        if !digits.isEmpty, body.dropFirst(digits.count).hasPrefix("\\.") || body.dropFirst(digits.count).hasPrefix("\\)") {
+            return String(leading + digits + body.dropFirst(digits.count + 1))
+        }
+        return text
+    }
+}
+
+// MARK: - Writing
+
+private struct Writer {
+    /// Characters a leading backslash protects. All are ASCII punctuation, so
+    /// any Markdown viewer hides the backslash too.
+    static let escapable: Set<Character> = ["\\", "#", "-", "*", "+", ">", "_", "`", "~", "["]
+
+    private enum Block { case none, heading, headingNote, item, itemNote }
+
+    private var lines: [String] = []
+    private var last = Block.none
+
+    var text: String { lines.isEmpty ? "" : lines.joined(separator: "\n") + "\n" }
+
+    mutating func heading(level: Int, title: String, note: [Substring]?) {
+        if last != .none { lines.append("") }
+        var title = Self.escapedLine(title)
+        // A closing `#` run would be read as decoration and dropped. The reader
+        // takes one backslash off before a final `#`, so a title that already
+        // has one there gets another.
+        if title.hasSuffix("#"),
+           title.dropLast().last == "\\"
+            || title.dropLast(title.reversed().prefix { $0 == "#" }.count).last.map({ $0 == " " || $0 == "\t" }) ?? true {
+            title.insert("\\", at: title.index(before: title.endIndex))
+        }
+        lines.append(String(repeating: "#", count: level) + (title.isEmpty ? "" : " " + title))
+        last = .heading
+        guard let note else { return }
+        lines.append("")
+        lines.append(contentsOf: Self.escapedNote(note, indent: ""))
+        last = .headingNote
+    }
+
+    mutating func listItem(indent: Int, title: String, note: [Substring]?) {
+        if last == .heading || last == .headingNote { lines.append("") }
+        let padding = String(repeating: " ", count: indent)
+        lines.append(padding + "-" + (title.isEmpty ? "" : " " + Self.escapedTitle(title)))
+        last = .item
+        guard let note else { return }
+        lines.append("")
+        lines.append(contentsOf: Self.escapedNote(note, indent: padding + "  "))
+        last = .itemNote
+    }
+
+    private static func escapedTitle(_ title: String) -> String {
+        for box in ["[ ] ", "[x] ", "[X] "] where title.hasPrefix(box) {
+            return "\\" + title
+        }
+        return escapedLine(title)
+    }
+
+    /// Note lines that would read as structure get a backslash. Lines inside a
+    /// complete code fence are left alone; an unclosed fence is escaped, or it
+    /// would swallow the rest of the file.
+    private static func escapedNote(_ note: [Substring], indent: String) -> [String] {
+        let fenceLines = balancedFenceLines(note)
+        return note.indices.map { index in
+            let line = note[index].trimmingTrailingWhitespace()
+            if line.isEmpty { return "" }
+            return indent + (fenceLines.contains(index) ? String(line) : escapedLine(String(line)))
+        }
+    }
+
+    /// Indices of lines inside, or opening and closing, a fence that closes.
+    private static func balancedFenceLines(_ note: [Substring]) -> Set<Int> {
+        var result: Set<Int> = []
+        var index = 0
+        while index < note.count {
+            let content = note[index].drop { $0 == " " || $0 == "\t" }
+            guard let (marker, length) = Parser.fenceOpening(content) else {
+                index += 1
+                continue
+            }
+            let fence = Parser.Fence(marker: marker, length: length, target: .preamble, stripColumns: 0)
+            if let end = note[(index + 1)...].firstIndex(where: { Parser.closes($0.trimmingTrailingWhitespace(), fence) }) {
+                result.formUnion(index...end)
+                index = end + 1
+            } else {
+                index += 1
+            }
+        }
+        return result
+    }
+
+    /// Escapes a line that starts like a heading, list item, quote, break, fence
+    /// or escape, so it reads back as text.
+    private static func escapedLine(_ line: String) -> String {
+        let leading = line.prefix { $0 == " " || $0 == "\t" }
+        let body = Substring(line.dropFirst(leading.count))
+        guard let first = body.first else { return line }
+
+        let isListItem = Parser.listItem(body) != nil
+        if isListItem, first.isNumber {
+            // A backslash before a digit is not an escape; `12\.` is.
+            let digits = body.prefix { $0.isASCII && $0.isNumber }
+            return leading + digits + "\\" + body.dropFirst(digits.count)
+        }
+
+        let startsStructure = isListItem
+            || Parser.heading(body) != nil
+            || Parser.isThematicBreak(body)
+            || Parser.fenceOpening(body) != nil
+            || first == ">" || first == "\\"
+        return startsStructure && escapable.contains(first) ? leading + "\\" + body : line
+    }
+}

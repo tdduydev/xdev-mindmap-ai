@@ -17,6 +17,7 @@ let package = Package(
         .library(name: "MindMapAICore", targets: ["MindMapAICore"]),
         .library(name: "MindMapAIApple", targets: ["MindMapAIApple"]),
         .library(name: "MindMapTestSupport", targets: ["MindMapTestSupport"]),
+        .library(name: "MindMapInterchange", targets: ["MindMapInterchange"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -40,5 +41,7 @@ let package = Package(
             name: "MindMapAIAppleTests",
             dependencies: ["MindMapAIApple", "MindMapAICore", "MindMapGraph", "MindMapTestSupport"]
         ),
+        .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),
     ]
 )

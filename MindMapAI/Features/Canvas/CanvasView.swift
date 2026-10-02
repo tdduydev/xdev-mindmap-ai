@@ -15,6 +15,7 @@ struct CanvasView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
@@ -28,7 +29,11 @@ struct CanvasView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             background
-            EdgeLayer(drawing: CanvasDrawing.make(model: model, colorScheme: colorScheme, contrast: contrast), viewport: model.viewport)
+            EdgeLayer(
+                drawing: CanvasDrawing.make(model: model, colorScheme: colorScheme, contrast: contrast),
+                viewport: model.viewport,
+                aiStyle: Palette.ai(colorScheme: colorScheme, contrast: contrast, reduceTransparency: reduceTransparency)
+            )
                 .allowsHitTesting(false)
             if model.isDetailed {
                 topics
@@ -119,7 +124,12 @@ struct CanvasView: View {
     }
 
     private var topics: some View {
+<<<<<<< HEAD
         let selection = session.selectedIDs
+=======
+        let selection = session.selection
+        let selectedSuggestion = model.selectedSuggestionPreviewID
+>>>>>>> main
         let rootID = session.rootID
         let dragged = model.drag.map { Set($0.ids) } ?? []
         return ForEach(model.visibleTopics) { topic in
@@ -129,7 +139,11 @@ struct CanvasView: View {
                     style: model.style(for: topic, colorScheme: colorScheme, contrast: contrast),
                     spec: spec,
                     isRoot: topic.id == rootID,
+<<<<<<< HEAD
                     isSelected: selection.contains(topic.id),
+=======
+                    isSelected: topic.id == (topic.isSuggestion ? selectedSuggestion : selection),
+>>>>>>> main
                     isEditing: topic.id == model.editingID,
                     isDragSource: dragged.contains(topic.id),
                     model: model,

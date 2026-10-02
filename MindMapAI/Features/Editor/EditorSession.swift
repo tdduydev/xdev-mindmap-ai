@@ -34,6 +34,8 @@ final class EditorSession {
     private(set) var saveFailed = false
     /// Canvas or outline; both show the same map and selection (FR-CNV-12).
     var presentation: EditorPresentation = .canvas
+    /// Whether the inspector shows beside the map.
+    var isInspectorPresented = false
 
     /// Called with every change the map goes through (command, undo, redo),
     /// so the canvas lays out only what changed.
@@ -401,6 +403,11 @@ final class EditorSession {
         perform(RenameMapCommand(title: title), named: String(localized: "Rename Map"))
     }
 
+    /// Only branch colours change, so the layout and selection stay as they are (FR-THM-03).
+    func changeTheme(to theme: MindMapTheme) {
+        perform(ChangeThemeCommand(theme: theme), named: String(localized: "Change Theme"))
+    }
+
     func undo() {
         if let undoManager, undoManager.canUndo {
             undoManager.undo()
@@ -419,8 +426,10 @@ final class EditorSession {
 
     // MARK: Engine and history
 
+    /// Runs a command as one named undo step. Intents above use it; so does
+    /// `AIAssistant` for accepted suggestions, which are commands like any other.
     @discardableResult
-    private func perform(_ command: any GraphCommand, named name: String) -> Bool {
+    func perform(_ command: any GraphCommand, named name: String) -> Bool {
         do {
             let changes = try engine.execute(command)
             guard !changes.isEmpty else { return true }

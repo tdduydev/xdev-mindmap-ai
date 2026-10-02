@@ -1,3 +1,5 @@
+import MindMapAICore
+import MindMapDomain
 import SwiftUI
 
 /// What the menus can act on in the frontmost window.
@@ -6,7 +8,13 @@ extension FocusedValues {
     @Entry var newMapAction: NewMapAction?
     /// Set while the canvas shows; the zoom commands act on it.
     @Entry var canvasModel: CanvasModel?
+<<<<<<< HEAD
     @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
+=======
+    /// The AI side of the frontmost map, for the AI menu.
+    @Entry var aiAssistant: AIAssistant?
+    @Entry var newMapWithAIAction: NewMapAction?
+>>>>>>> main
 }
 
 struct NewMapAction {
@@ -21,7 +29,10 @@ struct KeyboardShortcutsAction {
 /// guidelines ask; on iPad the same commands fill the menu bar and the
 /// keyboard shortcut overlay.
 struct MapCommands: Commands {
+    let ai: AIService
     @FocusedValue(\.editorSession) private var editor
+    @FocusedValue(\.aiAssistant) private var assistant
+    @FocusedValue(\.newMapWithAIAction) private var newMapWithAI
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
     @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
@@ -59,6 +70,13 @@ struct MapCommands: Commands {
                 .keyboardShortcut("0", modifiers: [.command, .option])
                 .disabled(canvas?.canZoomToFit != true)
             Divider()
+            Picker("Theme", selection: themeBinding) {
+                ForEach(MindMapTheme.allCases) { theme in
+                    Text(theme.title).tag(theme)
+                }
+            }
+            .disabled(editor == nil)
+            Divider()
         }
 
         CommandMenu("Topic") {
@@ -92,11 +110,73 @@ struct MapCommands: Commands {
                 .disabled(editor?.canDeleteSelection != true)
         }
 
+<<<<<<< HEAD
         CommandGroup(replacing: .help) {
             Button("Keyboard Shortcuts") { keyboardShortcuts?.perform() }
                 .disabled(keyboardShortcuts == nil)
             Link("MindMap AI Website", destination: AppLinks.website)
+=======
+        // Hidden, like every AI entry point, where the device can never run
+        // Apple Intelligence (FR-AI-02); otherwise disabled with one line of why.
+        if ai.showsEntryPoints {
+            CommandMenu("AI") { aiMenu }
+>>>>>>> main
         }
+
+        CommandGroup(replacing: .help) {
+            Link("MindMap AI Help", destination: AppLinks.support)
+            Link("MindMap AI Website", destination: AppLinks.website)
+            Link("Privacy Policy", destination: AppLinks.privacyPolicy)
+        }
+    }
+
+    @ViewBuilder
+    private var aiMenu: some View {
+        if let note = AIAvailabilityText.explanation(for: ai.modelState) {
+            Text(note)
+        }
+        Button("New Map with AI…") { newMapWithAI?.perform() }
+            .disabled(newMapWithAI == nil || !ai.modelState.isReady)
+        Button("Generate Map…") { assistant?.requestGenerateMap() }
+            .keyboardShortcut("g", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.generateMap) != true)
+        Divider()
+        Button("Suggest Subtopics") { assistant?.expand() }
+            .keyboardShortcut("e", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.expandTopic) != true)
+        Button("Brainstorm Ideas…") { assistant?.requestBrainstorm() }
+            .keyboardShortcut("b", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.brainstorm) != true)
+        Menu("Rewrite Topic") {
+            ForEach(RewriteStyle.allCases, id: \.self) { style in
+                Button(style.title) { assistant?.rewrite(style: style) }
+            }
+        }
+        .disabled(assistant?.canRun(.rewrite) != true)
+        Button("Summarize Branch") { assistant?.summarize() }
+            .keyboardShortcut("u", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.summarize) != true)
+        Button("Find Missing Topics") { assistant?.findMissingTopics() }
+            .keyboardShortcut("m", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.findMissingTopics) != true)
+        Divider()
+        Button("Accept All Suggestions") { assistant?.acceptAll() }
+            .keyboardShortcut(.return, modifiers: [.command, .control])
+            .disabled(assistant?.canAcceptSuggestions != true)
+        Button("Discard Suggestions") { assistant?.discardAll() }
+            .keyboardShortcut(.delete, modifiers: [.command, .control])
+            .disabled(assistant?.hasSuggestions != true)
+        // ⌘. is the Mac's key for stopping an operation.
+        Button("Cancel AI Request") { assistant?.cancel() }
+            .keyboardShortcut(".")
+            .disabled(assistant?.isWorking != true)
+    }
+
+    private var themeBinding: Binding<MindMapTheme> {
+        Binding(
+            get: { editor?.map.theme ?? .standard },
+            set: { editor?.changeTheme(to: $0) }
+        )
     }
 
     private func presentationBinding(_ presentation: EditorPresentation) -> Binding<Bool> {

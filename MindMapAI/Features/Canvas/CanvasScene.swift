@@ -20,6 +20,8 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     let isCollapsed: Bool
     /// Topics a collapsed branch hides, for the badge.
     let hiddenDescendantCount: Int
+    /// An AI suggestion drawn from the preview graph, not a topic of the map.
+    var isSuggestion = false
 }
 
 /// Everything the canvas draws for one state of the map: the layout and the
@@ -124,6 +126,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
     let changed: Set<NodeID>
     let specs: TopicTextSpecs
     let options: LayoutOptions
+    /// Topics of `graph` that are AI suggestions (`SuggestionState.preview`).
+    var suggestions: Set<NodeID> = []
 
     struct Output: Sendable {
         let scene: CanvasScene
@@ -167,10 +171,10 @@ nonisolated struct CanvasLayoutPass: Sendable {
         } else {
             engine.layout(graph, sizes: sizes, options: options)
         }
-        return Output(scene: Self.scene(outline: outline, graph: graph, layout: layout), measures: measures)
+        return Output(scene: Self.scene(outline: outline, graph: graph, layout: layout, suggestions: suggestions), measures: measures)
     }
 
-    private static func scene(outline: [OutlineItem], graph: GraphState, layout: MapLayout) -> CanvasScene {
+    private static func scene(outline: [OutlineItem], graph: GraphState, layout: MapLayout, suggestions: Set<NodeID>) -> CanvasScene {
         var topics: [CanvasTopic] = []
         topics.reserveCapacity(outline.count)
         var branch = -1
@@ -187,7 +191,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 side: placed.side,
                 childCount: graph.childIDs(of: node.id).count,
                 isCollapsed: node.isCollapsed,
-                hiddenDescendantCount: placed.hiddenDescendantCount
+                hiddenDescendantCount: placed.hiddenDescendantCount,
+                isSuggestion: suggestions.contains(node.id)
             ))
         }
         let types = layout.crossLinks.keys.reduce(into: [EdgeID: EdgeType]()) { types, id in

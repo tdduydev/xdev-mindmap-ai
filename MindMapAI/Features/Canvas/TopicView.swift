@@ -17,24 +17,40 @@ struct TopicView: View {
     let model: CanvasModel
     let rotorNamespace: Namespace.ID
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var isHovering = false
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: style.box.cornerRadius, style: .continuous)
         ZStack {
-            shape.fill((isHovering ? style.hoverFill : style.fill).color)
-            if let stroke = style.stroke {
-                shape.strokeBorder(stroke.color, lineWidth: style.strokeWidth)
+            if topic.isSuggestion {
+                // A suggestion is drawn apart from real topics without looking
+                // like an error: canvas-coloured card, dashed AI outline.
+                shape.fill(Palette.canvasBackground)
+                shape.strokeBorder(aiStyle, style: StrokeStyle(lineWidth: CanvasMetrics.suggestionEdgeWidth, dash: CanvasMetrics.suggestionDash))
+            } else {
+                shape.fill((isHovering ? style.hoverFill : style.fill).color)
+                if let stroke = style.stroke {
+                    shape.strokeBorder(stroke.color, lineWidth: style.strokeWidth)
+                }
             }
             if isEditing {
-                TopicTitleEditor(model: model, spec: spec, color: style.textColor.color, width: textWidth)
+                TopicTitleEditor(model: model, spec: spec, color: textColor, width: textWidth)
             } else {
                 title
             }
         }
         .frame(width: topic.frame.width, height: topic.frame.height)
+        .overlay(alignment: .topLeading) {
+            if topic.isSuggestion { suggestionBadge }
+        }
         .overlay {
             if isSelected { selectionRing }
+        }
+        .overlay(alignment: .bottom) {
+            if topic.isSuggestion, isSelected || isHovering, !isEditing { suggestionActions }
         }
         .animation(Motion.selection(reduceMotion: reduceMotion), value: isSelected)
         .overlay(alignment: topic.side == .left ? .leading : .trailing) {
@@ -50,10 +66,12 @@ struct TopicView: View {
         .gesture(moveDrag, including: isEditing ? .subviews : .all)
         .contextMenu { TopicContextMenu(topic: topic, isRoot: isRoot, model: model) }
         .onHover { isHovering = $0 }
+        .contextMenu { contextMenu }
         .modifier(TopicAccessibility(topic: topic, isRoot: isRoot, isSelected: isSelected, isEditing: isEditing, model: model))
         .accessibilityRotorEntry(id: topic.id, in: rotorNamespace)
     }
 
+<<<<<<< HEAD
     #if os(macOS)
     /// ⌘-click toggles, ⇧-click adds, a plain click selects the topic alone
     /// (FR-CNV-03). A modifier tap fails without its key, so the next one runs.
@@ -79,6 +97,66 @@ struct TopicView: View {
                 model.updateDrag(to: value.location)
             }
             .onEnded { _ in model.endDrag() }
+=======
+    /// Suggestions use the secondary text colour, so they read as not yet part of the map.
+    private var textColor: Color {
+        (topic.isSuggestion ? style.secondaryTextColor : style.textColor).color
+    }
+
+    private var aiStyle: AnyShapeStyle {
+        Palette.ai(colorScheme: colorScheme, contrast: contrast, reduceTransparency: reduceTransparency)
+    }
+
+    /// The AI mark on the corner, so a suggestion is not told apart by colour
+    /// alone (NFR-A11Y-07); outside the title, so it does not change the measure.
+    private var suggestionBadge: some View {
+        AISymbol()
+            .font(Typography.Content.badge.font)
+            .padding(Spacing.xxs)
+            .background(Palette.canvasBackground, in: Circle())
+            .alignmentGuide(.top) { $0[VerticalAlignment.center] }
+            .alignmentGuide(.leading) { $0[HorizontalAlignment.center] }
+            .accessibilityHidden(true)
+    }
+
+    /// Accept and Discard under a hovered or selected suggestion.
+    private var suggestionActions: some View {
+        let gap = CanvasMetrics.collapseBadgeGap
+        return HStack(spacing: Spacing.xs) {
+            Button { model.acceptSuggestion(topic.id) } label: {
+                Label("Accept Suggestion", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(aiStyle)
+            }
+            .disabled(model.assistant?.canAcceptSuggestions != true)
+            Button { model.discardSuggestion(topic.id) } label: {
+                Label("Discard Suggestion", systemImage: "xmark.circle")
+                    .foregroundStyle(style.secondaryTextColor.color)
+            }
+        }
+        .labelStyle(.iconOnly)
+        .buttonStyle(.plain)
+        .font(Typography.Content.badge.font)
+        .frame(minHeight: Metrics.minimumHitTarget)
+        .padding(.horizontal, Spacing.xs)
+        .background(Palette.canvasBackground, in: Capsule())
+        .onHover { if $0 { isHovering = true } }
+        .alignmentGuide(.bottom) { $0[.top] - gap }
+        // The topic element already offers Accept and Discard.
+        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private var contextMenu: some View {
+        if topic.isSuggestion {
+            Button("Accept Suggestion") { model.acceptSuggestion(topic.id) }
+                .disabled(model.assistant?.canAcceptSuggestions != true)
+            Button("Edit Suggestion") { model.beginEditing(topic.id) }
+            Divider()
+            Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
+        } else if let assistant = model.assistant, assistant.service.showsEntryPoints {
+            AIActionsMenu(assistant: assistant, nodeID: topic.id)
+        }
+>>>>>>> main
     }
 
     private var textWidth: CGFloat {
@@ -90,7 +168,7 @@ struct TopicView: View {
             if topic.title.isEmpty {
                 Text("Untitled Topic").foregroundStyle(style.secondaryTextColor.color)
             } else {
-                Text(verbatim: topic.title).foregroundStyle(style.textColor.color)
+                Text(verbatim: topic.title).foregroundStyle(textColor)
             }
         }
         .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
@@ -227,20 +305,36 @@ struct TopicAccessibility: ViewModifier {
     func body(content: Content) -> some View {
         content
             .accessibilityElement(children: isEditing ? .contain : .ignore)
-            .accessibilityLabel(topic.title.isEmpty ? Text("Untitled Topic") : Text(verbatim: topic.title))
+            .accessibilityLabel(label)
             .accessibilityValue(Text(verbatim: value))
             .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityAction { model.select(topic.id) }
             .accessibilityActions {
-                if topic.childCount > 0 {
-                    Button(topic.isCollapsed ? "Expand Topic" : "Collapse Topic") { model.toggleCollapsed(topic.id) }
-                }
-                Button("Add Child Topic") { model.addChild(of: topic.id) }
-                Button("Rename Topic") { model.beginEditing(topic.id) }
-                if !isRoot {
-                    Button("Delete Topic") { model.delete(topic.id) }
+                if topic.isSuggestion {
+                    Button("Accept Suggestion") { model.acceptSuggestion(topic.id) }
+                    Button("Edit Suggestion") { model.beginEditing(topic.id) }
+                    Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
+                } else {
+                    topicActions
                 }
             }
+    }
+
+    private var label: Text {
+        if topic.isSuggestion { return Text("AI suggestion, \(topic.title)") }
+        return topic.title.isEmpty ? Text("Untitled Topic") : Text(verbatim: topic.title)
+    }
+
+    @ViewBuilder
+    private var topicActions: some View {
+        if topic.childCount > 0 {
+            Button(topic.isCollapsed ? "Expand Topic" : "Collapse Topic") { model.toggleCollapsed(topic.id) }
+        }
+        Button("Add Child Topic") { model.addChild(of: topic.id) }
+        Button("Rename Topic") { model.beginEditing(topic.id) }
+        if !isRoot {
+            Button("Delete Topic") { model.delete(topic.id) }
+        }
     }
 
     /// Levels count from 1 below the central topic, as the outline reads them.
