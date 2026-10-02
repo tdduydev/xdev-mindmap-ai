@@ -77,15 +77,32 @@ private struct UITestChatProvider: ChatProvider {
                     continuation.yield(ChatUpdate(isReadingMap: true))
                     var table = CitationTable()
                     var hit: TopicHit?
-                    for word in message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber }) where hit == nil {
-                        hit = try? await queries.search(String(word), in: mapID, limit: 1).first
+                    // Longest words first, so "Design" wins over "is", which "Discover" also holds.
+                    let words = message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+                        .map(String.init).sorted { $0.count > $1.count }
+                    for word in words where hit == nil {
+                        hit = try? await queries.search(word, in: mapID, limit: 1).first
                     }
+                    let vietnamese = message.language == .vietnamese
                     let text: String
                     if let hit {
                         let handle = table.handle(for: hit.ref.nodeID, in: mapID, title: hit.title)
-                        text = "\(hit.title) is in the map [\(handle)]."
+                        let children = (try? await queries.topic(hit.ref))?.children ?? []
+                        let cited = children.map { child in
+                            "\(child.title) [\(table.handle(for: child.nodeID, in: mapID, title: child.title))]"
+                        }
+                        // The screenshots show this answer, so it reads like one about the topic's branch.
+                        if cited.isEmpty {
+                            text = vietnamese ? "\(hit.title) có trong sơ đồ [\(handle)]." : "\(hit.title) is in the map [\(handle)]."
+                        } else {
+                            let last = cited.count > 1 ? (vietnamese ? " và " : " and ") + cited[cited.count - 1] : ""
+                            let list = cited.dropLast(cited.count > 1 ? 1 : 0).joined(separator: ", ") + last
+                            text = vietnamese
+                                ? "\(hit.title) [\(handle)] gồm \(list)."
+                                : "\(hit.title) is in the map [\(handle)]. It covers \(list)."
+                        }
                     } else {
-                        text = "The map does not seem to cover that."
+                        text = vietnamese ? "Sơ đồ có vẻ không nói tới điều này." : "The map does not seem to cover that."
                     }
                     continuation.yield(ChatUpdate(text: text, citations: table.citations(in: text), isComplete: true))
                     continuation.finish()

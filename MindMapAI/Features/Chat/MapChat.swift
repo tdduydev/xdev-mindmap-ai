@@ -54,7 +54,8 @@ final class MapChat {
     private(set) var showsLeftOutNotice = false
 
     @ObservationIgnored private var conversation: (any ChatConversation)?
-    @ObservationIgnored private var task: Task<Void, Never>?
+    /// Observed: `isAnswering` reads it, and the composer swaps Stop back to Ask when it ends.
+    private var task: Task<Void, Never>?
     @ObservationIgnored private var hasNoticedLeftOut = false
     @ObservationIgnored private let locale: Locale
 

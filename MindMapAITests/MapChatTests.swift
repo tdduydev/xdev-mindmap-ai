@@ -5,6 +5,7 @@ import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
 import MindMapTestSupport
+import Observation
 import Testing
 
 /// Ask in a map end to end without a model: `MockChatProvider` answers, a real
@@ -77,6 +78,20 @@ struct MapChatTests {
         #expect(chat.turns.map(\.answer) == ["The beta comes first [T2]."])
         #expect(!chat.session.canUndo, "asking never edits the map")
         #expect(chatProvider.questions.first?.scope == .map(chat.session.map.id))
+    }
+
+    @Test func theComposerHearsWhenAnAnswerEnds() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("The beta comes first.", citations: []))
+        chat.draft = "What comes first?"
+        chat.ask()
+        let ended = Flag()
+        withObservationTracking { _ = chat.isAnswering } onChange: { ended.set() }
+
+        await chat.answerSettled()
+
+        #expect(!chat.isAnswering)
+        #expect(ended.value, "Stop stays on screen unless isAnswering is observable")
     }
 
     @Test func theAnswerFollowsTheLanguageOfTheQuestion() async throws {
@@ -240,4 +255,10 @@ struct MapChatTests {
 /// Ask in a map is free; nothing here should ask, but the service needs an answer.
 private struct NothingLocked: ProEntitlements {
     func allows(_ feature: ProFeature) -> Bool { true }
+}
+
+/// Set from an observation callback, read after the answer settles.
+nonisolated private final class Flag: @unchecked Sendable {
+    private(set) var value = false
+    func set() { value = true }
 }

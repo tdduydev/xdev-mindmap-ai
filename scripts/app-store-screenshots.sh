@@ -55,7 +55,7 @@ for lang in "${languages[@]}"; do
       TEST_RUNNER_MINDMAP_SCREENSHOT_LANGUAGE="$lang" \
       TEST_RUNNER_MINDMAP_SCREENSHOT_APPEARANCE="$mode" \
       xcodebuild test -quiet -project MindMapAI.xcodeproj -scheme MindMapAIUITests \
-        -destination "$destination" -derivedDataPath scripts/out/DerivedData \
+        -destination "$destination" -derivedDataPath "${MINDMAP_SCREENSHOT_DERIVED_DATA:-scripts/out/DerivedData}" \
         -resultBundlePath "$result" -parallel-testing-enabled NO \
         -collect-test-diagnostics never \
         -only-testing:MindMapAIUITests/AppStoreScreenshotUITests \
