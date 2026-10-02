@@ -182,7 +182,8 @@ struct MapCommands: Commands {
         }
 
         // Hidden, like every AI entry point, where the device can never run
-        // Apple Intelligence (FR-AI-02); otherwise disabled with one line of why.
+        // Apple Intelligence (FR-AI-02); otherwise disabled with one line of
+        // why, including when Use AI Features is off.
         if ai.showsEntryPoints {
             CommandMenu("AI") { aiMenu }
         }
@@ -198,7 +199,7 @@ struct MapCommands: Commands {
 
     @ViewBuilder
     private var aiMenu: some View {
-        if let note = AIAvailabilityText.explanation(for: ai.modelState) {
+        if let note = ai.unavailableReason {
             Text(note)
         }
         Button("New Map with AI…") { newMapWithAI?.perform() }

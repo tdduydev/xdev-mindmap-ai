@@ -27,7 +27,7 @@ struct AIActionsMenu: View {
     var includesGenerateMap = false
 
     var body: some View {
-        if let note = AIAvailabilityText.explanation(for: assistant.modelAvailability) {
+        if let note = assistant.service.unavailableReason {
             // One line on why AI is not ready, in place of an alert (FR-AI-02).
             Text(note)
         }

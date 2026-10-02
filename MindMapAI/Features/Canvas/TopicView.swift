@@ -187,7 +187,7 @@ struct TopicView: View {
             Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
         } else {
             TopicContextMenu(topic: topic, isRoot: isRoot, model: model)
-            if let assistant = model.assistant, assistant.service.showsEntryPoints {
+            if let assistant = model.assistant, assistant.service.showsControls {
                 Divider()
                 AIActionsMenu(assistant: assistant, nodeID: topic.id)
             }

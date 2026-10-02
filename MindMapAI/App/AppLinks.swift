@@ -7,6 +7,12 @@ enum AppLinks {
     static let privacyPolicy = URL(literal: "https://xdev.asia/mindmap/privacy")
     /// Also the target of Help ▸ MindMap AI Help: the app has no help book.
     static let support = URL(literal: "https://xdev.asia/mindmap/support")
+    #if os(macOS)
+    /// System Settings ▸ Apple Intelligence & Siri. The pane's extension
+    /// (`com.apple.Siri-Settings.extension`) declares that it opens from this
+    /// scheme; checked in its Info.plist on macOS 27.0.1, not on macOS 26.
+    static let appleIntelligenceSettings = URL(literal: "x-apple.systempreferences:com.apple.Siri-Settings.extension")
+    #endif
 }
 
 extension URL {
