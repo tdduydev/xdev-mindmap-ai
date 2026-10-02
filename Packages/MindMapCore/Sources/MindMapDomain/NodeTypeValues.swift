@@ -129,6 +129,12 @@ public struct MindImage: Identifiable, Hashable, Sendable, Codable {
         return copy
     }
 
+    /// Nil (Medium) for a width that is not finite or not positive.
+    public static func normalizedDisplayWidth(_ width: Double?) -> Double? {
+        guard let width, width.isFinite, width > 0 else { return nil }
+        return width
+    }
+
     /// Trimmed and cut to `maximumAltTextLength` characters; nil for blank text.
     public static func normalizedAltText(_ text: String) -> String? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
