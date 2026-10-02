@@ -32,6 +32,9 @@ struct UITestMode {
     func makeDefaults() -> UserDefaults {
         guard let defaults = UserDefaults(suiteName: Self.defaultsSuite) else { return .standard }
         defaults.removePersistentDomain(forName: Self.defaultsSuite)
+        // No first-run screens in the way of a test; one that checks the AI
+        // privacy notice passes `-ai.privacyNoticeShown NO`.
+        defaults.set(true, forKey: AIAssistant.privacyNoticeKey)
         for (key, value) in UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain) {
             defaults.set(value, forKey: key)
         }

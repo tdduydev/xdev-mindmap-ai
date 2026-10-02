@@ -16,6 +16,7 @@
     {"file": "docs/design-guidelines.md", "key": "design-guidelines", "title": "Design guidelines"},
     {"file": "docs/app-store-readiness.md", "key": "app-store-readiness", "title": "App Store readiness"},
     {"file": "docs/design-system.md", "key": "design-system", "title": "Design system"},
+    {"file": "docs/testing.md", "key": "testing", "title": "Testing"},
     {"file": "docs/pricing.md", "key": "pricing", "title": "Pricing"},
     {"file": "docs/web/privacy-policy.md", "key": "web-privacy-policy", "title": "Privacy policy page"},
     {"file": "docs/web/support.md", "key": "web-support", "title": "Support page"},

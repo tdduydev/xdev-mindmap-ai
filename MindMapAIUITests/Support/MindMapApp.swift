@@ -18,8 +18,8 @@ struct MindMapApp {
     }
 
     /// How long a query waits for the app before failing. Generous, because a
-    /// cold simulator or a busy Mac is slow to show the first window.
-    static let timeout: TimeInterval = 15
+    /// cold simulator or a Mac running several builds can take this long.
+    static let timeout: TimeInterval = 30
 
     let app: XCUIApplication
 
@@ -41,6 +41,13 @@ struct MindMapApp {
             "-ApplePersistenceIgnoreState", "YES",
         ] + arguments
         app.launch()
+        #if os(macOS)
+        // Launched by XCUITest on macOS 27 the app often opens no window at
+        // all, with or without saved state; File ▸ New Window opens the same one.
+        if !app.windows.firstMatch.waitForExistence(timeout: timeout / 3) {
+            app.typeKey("n", modifierFlags: [.command, .option])
+        }
+        #endif
         return MindMapApp(app: app)
     }
 

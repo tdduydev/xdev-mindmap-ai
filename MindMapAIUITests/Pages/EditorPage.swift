@@ -15,14 +15,15 @@ struct EditorPage {
     var undoButton: XCUIElement { app.buttons[AccessibilityID.Editor.undo].firstMatch }
     var redoButton: XCUIElement { app.buttons[AccessibilityID.Editor.redo].firstMatch }
     var addChildButton: XCUIElement { app.buttons[AccessibilityID.Editor.addChild].firstMatch }
+    /// On iPhone this and Delete sit in the toolbar's More menu; open it first there.
     var addSiblingButton: XCUIElement { app.buttons[AccessibilityID.Editor.addSibling].firstMatch }
     var deleteButton: XCUIElement { app.buttons[AccessibilityID.Editor.delete].firstMatch }
 
-    var canvas: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Canvas.canvas] }
+    var canvas: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Canvas.canvas].firstMatch }
     /// Topics drawn on the canvas, in view. A topic's label is its title.
     var canvasTopics: XCUIElementQuery { app.descendants(matching: .any).matching(identifier: AccessibilityID.Canvas.topic) }
 
-    var outline: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Outline.list] }
+    var outline: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Outline.list].firstMatch }
     /// One text field per visible outline row; its value is the topic title.
     var outlineTopics: XCUIElementQuery { app.textFields.matching(identifier: AccessibilityID.Outline.topic) }
 
@@ -45,11 +46,15 @@ struct EditorPage {
         #else
         let segments = picker.buttons
         #endif
-        segments.element(boundBy: presentation.rawValue).waitToExist(file: file, line: line).tap()
-        switch presentation {
-        case .canvas: canvas.waitToExist(file: file, line: line)
-        case .outline: outline.waitToExist(file: file, line: line)
+        let segment = segments.element(boundBy: presentation.rawValue).waitToExist(file: file, line: line)
+        let content = presentation == .canvas ? canvas : outline
+        segment.tap()
+        // A tap that lands while a busy machine is still settling the editor is
+        // sometimes dropped; one more is harmless, since the segment only selects.
+        if !content.waitForExistence(timeout: MindMapApp.timeout / 3) {
+            segment.tap()
         }
+        content.waitToExist(file: file, line: line)
         return self
     }
 }

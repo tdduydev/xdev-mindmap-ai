@@ -97,6 +97,7 @@ Errors that reach the user are categories with plain messages (could not save, c
 | Persistence | Swift Testing with in-memory and on-disk stores |
 | AI | `MindMapAICoreTests` with `MockAIProvider`; `MindMapAIAppleTests` run the real model only where `SystemLanguageModel.default.isAvailable` |
 | App | `MindMapAITests`, hosted on macOS: library and editor sessions end to end on an in-memory store |
-| Platforms | `scripts/ci.sh` also builds for the iOS Simulator; UI tests arrive with the canvas |
+| Platforms | `scripts/ci.sh` also builds for the iOS Simulator |
+| UI | `MindMapAIUITests` (XCUITest) on macOS and the iOS Simulator with `scripts/ui-tests.sh`, in the `-uitest` mode with fixture maps; see [[testing]] |
 
 There is no hosted CI. `scripts/ci.sh` is the gate before merging.
