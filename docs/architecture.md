@@ -32,6 +32,7 @@ flowchart LR
 | `MindMapGraph` | Domain | SwiftUI, SwiftData, CloudKit, AI, screen coordinates |
 | `MindMapPersistence` | Domain, Graph, SwiftData | SwiftUI |
 | `MindMapLayout` | Domain, Graph, Foundation geometry types | SwiftUI, SwiftData ([[layout-engine]]) |
+| `MindMapInterchange` | Domain, Graph | SwiftUI, SwiftData, AI ([[interchange]]) |
 | App target | All of the above, SwiftUI | SwiftData records directly |
 
 The package boundary enforces these rules at compile time (ADR 0002). Later phases add packages the same way: layout, AI, import, export.
