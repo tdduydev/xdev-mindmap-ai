@@ -15,7 +15,8 @@ flowchart LR
     Persistence["MindMapPersistence<br/>SwiftData, repository"]
     Layout["MindMapLayout<br/>sizes in, frames out"]
     AICore["MindMapAICore<br/>provider protocol, context, proposals"]
-    AIApple["MindMapAIApple<br/>Foundation Models provider, prompts"]
+    AIApple["MindMapAIApple<br/>Foundation Models provider, prompts, chat"]
+    Query["MindMapQuery<br/>read-only queries"]
   end
   Features --> Graph
   Features --> Persistence
@@ -29,6 +30,8 @@ flowchart LR
   Persistence -.sync on.-> CloudKit[(iCloud / CloudKit)]
   AICore --> Graph
   AIApple --> AICore
+  AIApple --> Query
+  Query --> Persistence
   AIApple --> FM[(Foundation Models, on device)]
 ```
 
@@ -39,7 +42,7 @@ flowchart LR
 | `MindMapPersistence` | Domain, Graph, SwiftData; Core Data only for its remote-change notification | SwiftUI |
 | `MindMapLayout` | Domain, Graph, Foundation geometry types | SwiftUI, SwiftData ([[layout-engine]]) |
 | `MindMapAICore` | Domain, Graph, NaturalLanguage | FoundationModels, SwiftUI, SwiftData |
-| `MindMapAIApple` | AICore, FoundationModels (on-device model only) | Private Cloud Compute, SwiftUI, SwiftData |
+| `MindMapAIApple` | AICore, FoundationModels (on-device model only); Query for the chat's tools ([[chat]]) | Private Cloud Compute, SwiftUI, SwiftData records (it reads maps only through `MapQueries`) |
 | `MindMapInterchange` | Domain, Graph | SwiftUI, SwiftData, AI ([[interchange]]) |
 | `MindMapSearch` | Domain, Graph: folding (case, Vietnamese marks, đ), library index and ranking, Find in a map | SwiftUI, SwiftData, AI |
 | `MindMapSharing` | Domain, Graph, Persistence, Interchange | SwiftUI, AI ([[system-integration]]) |

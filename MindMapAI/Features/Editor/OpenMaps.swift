@@ -17,11 +17,15 @@ final class OpenMap {
     let session: EditorSession
     let canvas: CanvasModel
     let assistant: AIAssistant
+    /// Ask in a map: one conversation per open map, so a second window on the
+    /// map shows the same chat (docs/chat.md).
+    let chat: MapChat
 
     init(session: EditorSession, assistant: AIAssistant) {
         self.session = session
         self.assistant = assistant
         canvas = CanvasModel(session: session, assistant: assistant)
+        chat = MapChat(session: session, assistant: assistant)
     }
 }
 

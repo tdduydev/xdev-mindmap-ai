@@ -31,7 +31,7 @@ struct EditorView: View {
                     // Deleted on another device while open here (FR-SYN-04).
                     Self.unavailable(gone == .deleted ? .missing : .recentlyDeleted)
                 } else if let voice {
-                    MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, voice: voice)
+                    MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, chat: map.chat, voice: voice)
                         .onChange(of: EditorRestoration(map.session)) { _, state in
                             restoration = state
                         }

@@ -5,6 +5,18 @@ nonisolated enum UITestLaunch {
     static let flag = "-uitest"
     /// Followed by a `UITestFixture` raw value. Without it the library starts empty.
     static let fixture = "-uitest-fixture"
+    /// Followed by a `UITestAI` raw value: a scripted model in place of Apple
+    /// Intelligence, so AI screens can be tested on any machine.
+    static let ai = "-uitest-ai"
+}
+
+/// How the scripted model of the UI test mode behaves.
+nonisolated enum UITestAI: String, CaseIterable {
+    /// Ready in English and Vietnamese. The chat answers with the first topic
+    /// whose title matches a word of the question, and cites it.
+    case ready
+    /// A device that can never run Apple Intelligence: every AI entry point is hidden.
+    case ineligible
 }
 
 /// The maps a UI test can start with. Titles are data, not interface text,
