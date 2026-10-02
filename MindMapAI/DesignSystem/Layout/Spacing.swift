@@ -52,4 +52,7 @@ enum Metrics {
 
     /// File ▸ Export… on the Mac.
     static let exportSheetWidth: CGFloat = 440
+
+    /// Room for a few lines of note in the inspector before it grows.
+    static let noteEditorMinHeight: CGFloat = 120
 }

@@ -48,6 +48,9 @@ struct TopicView: View {
         .overlay(alignment: .topLeading) {
             if topic.isSuggestion { suggestionBadge }
         }
+        .overlay(alignment: .topTrailing) {
+            if topic.hasNote, !topic.isSuggestion { noteMark }
+        }
         .overlay {
             if isSelected { selectionRing }
         }
@@ -117,6 +120,22 @@ struct TopicView: View {
             .background(Palette.canvasBackground, in: Circle())
             .alignmentGuide(.top) { $0[VerticalAlignment.center] }
             .alignmentGuide(.leading) { $0[HorizontalAlignment.center] }
+            .accessibilityHidden(true)
+    }
+
+    /// The note mark on the top-trailing corner. On the corner rather than after
+    /// the title, as the AI mark is, so a note never changes the measured box
+    /// and adding one does not move the map.
+    private var noteMark: some View {
+        Image(systemName: "note.text")
+            .font(.system(size: CanvasMetrics.noteSymbolSize))
+            .foregroundStyle(style.secondaryTextColor.color)
+            .padding(Spacing.xxs)
+            .background(Palette.canvasBackground, in: Circle())
+            .alignmentGuide(.top) { $0[VerticalAlignment.center] }
+            .alignmentGuide(.trailing) { $0[HorizontalAlignment.center] }
+            .allowsHitTesting(false)
+            // The topic element says "has note" in its value.
             .accessibilityHidden(true)
     }
 
@@ -226,6 +245,7 @@ struct TopicContextMenu: View {
         Button("Add Sibling Topic") { perform { $0.addSibling() } }
             .disabled(isRoot)
         Button("Rename Topic") { model.beginEditing(topic.id) }
+        Button("Edit Note") { model.editNote(topic.id) }
         #if os(iOS)
         // Touch has no ⌘-click.
         Button(model.session.isSelected(topic.id) ? "Remove from Selection" : "Add to Selection") {
@@ -379,6 +399,7 @@ struct TopicAccessibility: ViewModifier {
         }
         Button("Add Child Topic") { model.addChild(of: topic.id) }
         Button("Rename Topic") { model.beginEditing(topic.id) }
+        Button("Edit Note") { model.editNote(topic.id) }
         if !isRoot {
             Button("Delete Topic") { model.delete(topic.id) }
         }
@@ -387,7 +408,10 @@ struct TopicAccessibility: ViewModifier {
     /// Levels count from 1 below the central topic, as the outline reads them.
     private var value: String {
         let level = isRoot ? String(localized: "Central Topic") : String(localized: "Level \(topic.level + 1)")
-        let summary = "\(level), \(String(localized: "\(topic.childCount) subtopics"))"
-        return isFindMatch ? "\(summary), \(String(localized: "Find Match"))" : summary
+        let subtopics = String(localized: "\(topic.childCount) subtopics")
+        var parts = [level, subtopics]
+        if topic.hasNote { parts.append(String(localized: "has note")) }
+        if isFindMatch { parts.append(String(localized: "Find Match")) }
+        return parts.joined(separator: ", ")
     }
 }

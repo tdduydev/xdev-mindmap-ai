@@ -46,6 +46,7 @@ struct KeyboardShortcutsView: View {
         ShortcutGroup(title: "Topics", shortcuts: [
             Shortcut(keys: "⌘↩", action: "Add Sibling Topic"),
             Shortcut(keys: "⇧⌘↩", action: "Add Child Topic"),
+            Shortcut(keys: "⇧⌘E", action: "Edit Note"),
             Shortcut(keys: "⌘D", action: "Duplicate Topic"),
             Shortcut(keys: "⌫", action: "Delete Topic"),
         ]),

@@ -407,6 +407,11 @@ final class CanvasModel {
         session.deleteSelection()
     }
 
+    func editNote(_ id: NodeID) {
+        select(id)
+        session.editSelectionNote()
+    }
+
     // MARK: Multi-selection
 
     /// How a click or tap on a topic changes the selection.

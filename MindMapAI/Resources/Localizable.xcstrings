@@ -369,6 +369,16 @@
         }
       }
     },
+    "Add a note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ghi chú"
+          }
+        }
+      }
+    },
     "Add a topic" : {
       "localizations" : {
         "vi" : {
@@ -435,6 +445,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm các chủ đề trong khung"
+          }
+        }
+      }
+    },
+    "Added By" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm bởi"
           }
         }
       }
@@ -884,6 +904,16 @@
         }
       }
     },
+    "Created" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày tạo"
+          }
+        }
+      }
+    },
     "Creates an empty map and opens it." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -1112,6 +1142,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sửa"
+          }
+        }
+      }
+    },
+    "Edit Note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa ghi chú"
           }
         }
       }
@@ -1629,6 +1669,16 @@
         }
       }
     },
+    "Level" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cấp"
+          }
+        }
+      }
+    },
     "Level %lld" : {
       "localizations" : {
         "vi" : {
@@ -1872,6 +1922,16 @@
         }
       }
     },
+    "Modified" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày sửa"
+          }
+        }
+      }
+    },
     "More Formal" : {
       "localizations" : {
         "vi" : {
@@ -2088,6 +2148,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa mở khoá"
+          }
+        }
+      }
+    },
+    "Note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ghi chú"
           }
         }
       }
@@ -2533,6 +2603,16 @@
         }
       }
     },
+    "Select a topic to see its note." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn một chủ đề để xem ghi chú."
+          }
+        }
+      }
+    },
     "Select the next topic" : {
       "localizations" : {
         "vi" : {
@@ -2670,6 +2750,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trạng thái"
+          }
+        }
+      }
+    },
+    "Subtopics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề con"
           }
         }
       }
@@ -3295,6 +3385,16 @@
         }
       }
     },
+    "You" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn"
+          }
+        }
+      }
+    },
     "Your purchase is waiting for approval. Pro unlocks as soon as it’s approved." : {
       "localizations" : {
         "vi" : {
@@ -3341,6 +3441,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld kết quả"
+          }
+        }
+      }
+    },
+    "has note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "có ghi chú"
           }
         }
       }

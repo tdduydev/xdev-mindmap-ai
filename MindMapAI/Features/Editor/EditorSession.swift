@@ -44,6 +44,8 @@ final class EditorSession {
     }
     /// Whether the inspector shows beside the map.
     var isInspectorPresented = false
+    /// A topic whose note field in the inspector should take focus (Topic ▸ Edit Note).
+    var noteFocusRequest: NodeID?
 
     /// Called with every change the map goes through (command, undo, redo),
     /// so the canvas lays out only what changed.
@@ -127,7 +129,10 @@ final class EditorSession {
     var canUndo: Bool { engine.canUndo }
     var canRedo: Bool { engine.canRedo }
     var canDeleteSelection: Bool { !movableBranchRoots.isEmpty }
-    var canRenameSelection: Bool { selection.flatMap { engine.state.node($0) } != nil }
+    var canRenameSelection: Bool { selectedNode != nil }
+    var canEditSelectionNote: Bool { selectedNode != nil }
+
+    var selectedNode: MindNode? { selection.flatMap { engine.state.node($0) } }
 
     /// A bare Delete in the menu bar is matched before the focused view sees
     /// the key, so it is the Delete Topic shortcut only while the editor holds
@@ -236,6 +241,21 @@ final class EditorSession {
 
     func rename(_ id: NodeID, to title: String) {
         perform(UpdateNodeCommand(nodeID: id, .title(title)), named: String(localized: "Rename Topic"))
+    }
+
+    /// Blank text clears the note, so the topic loses its note mark rather than
+    /// keeping an empty note it would be flagged for (FR-EDT-13).
+    func setNote(_ note: String, for id: NodeID) {
+        guard engine.state.node(id) != nil else { return }
+        let value = note.allSatisfy(\.isWhitespace) ? nil : note
+        perform(UpdateNodeCommand(nodeID: id, .note(value)), named: String(localized: "Edit Note"))
+    }
+
+    /// Shows the inspector and puts the cursor in the selected topic's note.
+    func editSelectionNote() {
+        guard let selection, canEditSelectionNote else { return }
+        isInspectorPresented = true
+        noteFocusRequest = selection
     }
 
     func toggleCollapsed(_ id: NodeID) {

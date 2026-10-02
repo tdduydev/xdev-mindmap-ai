@@ -22,6 +22,8 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     let hiddenDescendantCount: Int
     /// An AI suggestion drawn from the preview graph, not a topic of the map.
     var isSuggestion = false
+    /// Marked on the card and read by VoiceOver (FR-EDT-13).
+    var hasNote = false
 }
 
 /// Everything the canvas draws for one state of the map: the layout and the
@@ -192,7 +194,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 childCount: graph.childIDs(of: node.id).count,
                 isCollapsed: node.isCollapsed,
                 hiddenDescendantCount: placed.hiddenDescendantCount,
-                isSuggestion: suggestions.contains(node.id)
+                isSuggestion: suggestions.contains(node.id),
+                hasNote: node.hasNote
             ))
         }
         let types = layout.crossLinks.keys.reduce(into: [EdgeID: EdgeType]()) { types, id in
