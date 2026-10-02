@@ -17,6 +17,14 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
     case unreadableText(fileName: String)
     case emptyDocument(fileName: String)
     case couldNotRead(fileName: String)
+    /// A `.json` file that is not a MindMap AI backup.
+    case notABackup(fileName: String)
+    /// A backup written by a newer version of the app.
+    case newerBackup(fileName: String)
+    /// A backup with a record that is missing or wrong.
+    case damagedBackup(fileName: String)
+    /// Import into Map… was given a backup, which is a whole map.
+    case backupIntoMap(fileName: String)
     /// The open panel reported an error instead of a file.
     case couldNotOpenPanel
     /// The map or the new topics could not be saved.
@@ -24,7 +32,8 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
 
     var title: String {
         switch self {
-        case .unsupportedType(let name), .unreadableText(let name), .emptyDocument(let name), .couldNotRead(let name):
+        case .unsupportedType(let name), .unreadableText(let name), .emptyDocument(let name), .couldNotRead(let name),
+             .notABackup(let name), .newerBackup(let name), .damagedBackup(let name), .backupIntoMap(let name):
             String(localized: "Can’t Import “\(name)”")
         case .couldNotOpenPanel, .couldNotSave:
             String(localized: "Couldn’t Import File")
@@ -34,13 +43,21 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
     var message: String {
         switch self {
         case .unsupportedType:
-            String(localized: "MindMap AI imports Markdown (.md) and plain text (.txt) files.")
+            String(localized: "MindMap AI imports Markdown (.md) and plain text (.txt) files, and its own backups (.json).")
         case .unreadableText:
             String(localized: "The file isn’t UTF-8 or UTF-16 text. Save it as UTF-8 Markdown or plain text, then try again.")
         case .emptyDocument:
             String(localized: "The file has no topics in it. MindMap AI reads headings and list items in Markdown, and one topic per line in plain text.")
         case .couldNotRead:
             String(localized: "MindMap AI couldn’t read the file. Check that it opens in another app, then try again.")
+        case .notABackup:
+            String(localized: "The file is JSON but not a MindMap AI backup. MindMap AI imports backups made with File ▸ Export… ▸ MindMap AI Backup.")
+        case .newerBackup:
+            String(localized: "The backup was made by a newer version of MindMap AI. Update the app, then try again.")
+        case .damagedBackup:
+            String(localized: "The backup is damaged and can’t be read. Try another copy of it.")
+        case .backupIntoMap:
+            String(localized: "A backup is a whole map. Choose File ▸ Import… to open it as a new map.")
         case .couldNotOpenPanel:
             String(localized: "The file couldn’t be opened. Try again.")
         case .couldNotSave:
@@ -54,7 +71,7 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
 nonisolated enum MapImporter {
     /// What the open panel offers. Rich text and other text files stay
     /// pickable so the user gets the message of FR-IO-09 rather than a greyed-out file.
-    static let contentTypes: [UTType] = [.markdownText, .plainText, .text]
+    static let contentTypes: [UTType] = [.markdownText, .plainText, .text, .json]
 
     /// Decoding and parsing run off the main actor, so a large file does not stall the window.
     @concurrent
@@ -81,6 +98,36 @@ nonisolated enum MapImporter {
         }
         guard !draft.isEmpty else { throw .emptyDocument(fileName: fileName) }
         return ImportedFile(name: url.deletingPathExtension().lastPathComponent, format: format, draft: draft)
+    }
+
+    /// Whether the file is read as a backup (`MapArchive`) instead of as text.
+    static func isBackup(_ url: URL) -> Bool {
+        url.pathExtension.lowercased() == MapArchive.fileExtension
+    }
+
+    /// A backup becomes a new map with new IDs, so it never replaces a map in
+    /// the library (docs/interchange.md, Map archive).
+    @concurrent
+    static func readBackup(_ url: URL) async throws(ImportFailure) -> MapArchive {
+        let fileName = url.lastPathComponent
+        let isScoped = url.startAccessingSecurityScopedResource()
+        defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
+
+        let data: Data
+        do {
+            data = try Data(contentsOf: url)
+        } catch {
+            throw .couldNotRead(fileName: fileName)
+        }
+        do {
+            return try await MapArchive.decode(data)
+        } catch {
+            switch error {
+            case .notAnArchive: throw .notABackup(fileName: fileName)
+            case .newerVersion: throw .newerBackup(fileName: fileName)
+            case .damaged: throw .damagedBackup(fileName: fileName)
+            }
+        }
     }
 
     /// By extension first; then any other plain text (a `.text` or `.log`

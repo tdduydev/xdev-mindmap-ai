@@ -65,6 +65,10 @@ final class FileTransfer {
     }
 
     func importFile(at url: URL, into destination: ImportDestination) async {
+        if MapImporter.isBackup(url) {
+            await importBackup(at: url, into: destination)
+            return
+        }
         let file: ImportedFile
         do {
             file = try await MapImporter.read(url)
@@ -92,5 +96,28 @@ final class FileTransfer {
         }
         // Counts only: titles and file names are the user's content (docs/privacy.md).
         Log.interchange.info("Imported \(file.draft.items.count, privacy: .public) topics from \(file.format.rawValue, privacy: .public)")
+    }
+
+    private func importBackup(at url: URL, into destination: ImportDestination) async {
+        guard case .newMap = destination else {
+            failure = .backupIntoMap(fileName: url.lastPathComponent)
+            return
+        }
+        let archive: MapArchive
+        do {
+            archive = try await MapImporter.readBackup(url)
+        } catch {
+            failure = error
+            return
+        }
+        // Shared tags of the file become tags of the new map: the library's
+        // shared tags are not loaded here (docs/interchange.md).
+        let graph = archive.importedGraph()
+        guard let id = await createMap(graph) else {
+            failure = .couldNotSave
+            return
+        }
+        openMap(id)
+        Log.interchange.info("Imported a backup of \(graph.nodes.count, privacy: .public) topics, version \(archive.version, privacy: .public)")
     }
 }
