@@ -1,6 +1,6 @@
 # Pricing
 
-Decided 2026-10-02: MindMap AI is free, with one **Pro** unlock at **USD 14.99**, bought once (non-consumable, StoreKit 2) and shared by Mac, iPad and iPhone through universal purchase. Core mind mapping is never locked and there are no ads.
+Decided 2026-10-02: MindMap AI is free, with one **Pro** unlock at **USD 14.99**, bought once (non-consumable, StoreKit 2), shared by Mac, iPad and iPhone through universal purchase, and with Family Sharing on (decided 2026-10-02; once on in App Store Connect it cannot be turned off). Core mind mapping is never locked and there are no ads.
 
 ## What Pro unlocks
 
