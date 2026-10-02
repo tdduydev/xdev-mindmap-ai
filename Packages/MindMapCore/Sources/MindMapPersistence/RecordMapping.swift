@@ -48,7 +48,7 @@ extension NodeRecord {
             note: note,
             sortOrder: sortOrder,
             isCollapsed: isCollapsed,
-            nodeType: NodeType(rawValue: nodeTypeRaw) ?? .topic,
+            nodeType: NodeType(rawValue: nodeTypeRaw),
             metadata: NodeMetadata(origin: NodeOrigin(rawValue: originRaw) ?? .user),
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -57,8 +57,17 @@ extension NodeRecord {
             taskState: taskStateRaw.map(TaskState.init),
             priority: priority.map(TaskPriority.init),
             startDate: startDate.flatMap(CalendarDay.init(isoString:)),
-            dueDate: dueDate.flatMap(CalendarDay.init(isoString:))
+            dueDate: dueDate.flatMap(CalendarDay.init(isoString:)),
+            link: linkURL.map(TopicLink.init(string:)),
+            position: storedPosition,
+            callout: calloutText
         )
+    }
+
+    /// One coordinate alone, from a half-synced or damaged record, is no position.
+    private var storedPosition: TopicPosition? {
+        guard let positionX, let positionY else { return nil }
+        return TopicPosition(x: positionX, y: positionY)
     }
 
     func update(from node: MindNode) {
@@ -77,6 +86,13 @@ extension NodeRecord {
         priority = node.priority?.rawValue
         Self.store(node.startDate, in: &startDate)
         Self.store(node.dueDate, in: &dueDate)
+        linkURL = node.link?.string
+        // A clamped or zeroed read of the same stored pair is not an edit.
+        if storedPosition != node.position {
+            positionX = node.position?.x
+            positionY = node.position?.y
+        }
+        calloutText = node.callout
     }
 
     /// A stored day this build cannot read showed as nil; it is kept unless
@@ -180,7 +196,8 @@ extension GroupRecord {
             color: colorToken.map(TopicColor.init),
             origin: NodeOrigin(rawValue: originRaw) ?? .user,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            summaryNodeID: summaryNodeID.map(NodeID.init)
         )
     }
 
@@ -194,5 +211,40 @@ extension GroupRecord {
         originRaw = group.origin.rawValue
         createdAt = group.createdAt
         updatedAt = group.updatedAt
+        summaryNodeID = group.summaryNodeID?.rawValue
+    }
+}
+
+extension ImageRecord {
+    /// Without `data`: reading it would load the file of every image in the map.
+    var domainValue: MindImage {
+        MindImage(
+            id: ImageID(imageID),
+            mapID: MapID(mapID),
+            nodeID: NodeID(nodeID),
+            uniformType: uniformType,
+            pixelWidth: pixelWidth,
+            pixelHeight: pixelHeight,
+            byteCount: byteCount,
+            displayWidth: displayWidth,
+            altText: altText,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    /// Bytes are written only when the value carries them, so a size or
+    /// description edit never rewrites the file.
+    func update(from image: MindImage) {
+        nodeID = image.nodeID.rawValue
+        if let bytes = image.data { data = bytes }
+        uniformType = image.uniformType
+        pixelWidth = image.pixelWidth
+        pixelHeight = image.pixelHeight
+        byteCount = image.byteCount
+        displayWidth = image.displayWidth
+        altText = image.altText
+        createdAt = image.createdAt
+        updatedAt = image.updatedAt
     }
 }

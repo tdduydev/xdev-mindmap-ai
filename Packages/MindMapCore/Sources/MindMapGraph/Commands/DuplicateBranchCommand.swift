@@ -78,7 +78,8 @@ public struct DuplicateBranchCommand: GraphCommand {
                 title: group.title,
                 color: group.color,
                 origin: group.origin,
-                createdAt: transaction.now
+                createdAt: transaction.now,
+                summaryNodeID: group.summaryNodeID.flatMap { newIDs[$0] }
             ))
         }
     }
@@ -100,7 +101,9 @@ public struct DuplicateBranchCommand: GraphCommand {
             taskState: node.taskState,
             priority: node.priority,
             startDate: node.startDate,
-            dueDate: node.dueDate
+            dueDate: node.dueDate,
+            link: node.link,
+            callout: node.callout
         )
     }
 }

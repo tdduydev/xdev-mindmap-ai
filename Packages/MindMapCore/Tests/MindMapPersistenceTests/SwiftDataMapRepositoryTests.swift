@@ -162,7 +162,8 @@ struct SwiftDataMapRepositoryTests {
         let loaded = try #require(try await repository.loadGraph(for: graph.map.id))
 
         let loadedChild = try #require(loaded.node(NodeID(child.nodeID)))
-        #expect(loadedChild.nodeType == .topic)
+        // Kept as written, so saving this topic again does not erase the newer kind.
+        #expect(loadedChild.nodeType == NodeType(rawValue: "kanbanCard"))
         #expect(loadedChild.metadata.origin == .user)
         #expect(loaded.edges.isEmpty)
     }

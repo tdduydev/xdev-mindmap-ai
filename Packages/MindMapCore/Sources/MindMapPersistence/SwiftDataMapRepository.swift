@@ -120,8 +120,15 @@ public actor SwiftDataMapRepository: MapRepository {
             edges: try modelContext.fetch(EdgeRecord.inMap(id)).compactMap(\.domainValue),
             tags: try modelContext.fetch(TagRecord.available(in: id)).map(\.domainValue),
             nodeTags: try modelContext.fetch(NodeTagRecord.inMap(id)).map(\.domainValue),
-            groups: try modelContext.fetch(GroupRecord.inMap(id)).map(\.domainValue)
+            groups: try modelContext.fetch(GroupRecord.inMap(id)).map(\.domainValue),
+            images: try modelContext.fetch(ImageRecord.inMap(id)).map(\.domainValue)
         )
+    }
+
+    public func imageData(for imageID: ImageID) async throws -> Data? {
+        let records = try modelContext.fetch(ImageRecord.withIDs([imageID.rawValue]))
+        // Sync duplicates are folded on the next save; any copy with bytes will do.
+        return records.lazy.compactMap(\.data).first
     }
 
     public func create(_ graph: GraphState) async throws {
@@ -134,6 +141,8 @@ public actor SwiftDataMapRepository: MapRepository {
         insert(graph.tags.values.filter { $0.mapID == graph.map.id }, as: TagRecord.self)
         insert(Array(graph.nodeTags.values), as: NodeTagRecord.self)
         insert(Array(graph.groups.values), as: GroupRecord.self)
+        // The graph holds no bytes, so a new graph's images are stored without them.
+        insert(Array(graph.images.values), as: ImageRecord.self)
         try commit()
         publish(.saved(mapRecord.domainValue))
     }
@@ -151,6 +160,8 @@ public actor SwiftDataMapRepository: MapRepository {
         try delete(changes.deletedNodeTagIDs.map(\.rawValue), as: NodeTagRecord.self)
         try upsert(changes.savedGroups, as: GroupRecord.self)
         try delete(changes.deletedGroupIDs.map(\.rawValue), as: GroupRecord.self)
+        try upsert(changes.savedImages, as: ImageRecord.self)
+        try delete(changes.deletedImageIDs.map(\.rawValue), as: ImageRecord.self)
         try commit()
         publish(.saved(record.domainValue))
     }
@@ -211,6 +222,8 @@ public actor SwiftDataMapRepository: MapRepository {
         try deleteAll(TagRecord.inMap(id))
         try deleteAll(NodeTagRecord.inMap(id))
         try deleteAll(GroupRecord.inMap(id))
+        // One by one also removes each image's external file.
+        try deleteAll(ImageRecord.inMap(id))
     }
 
     public func fetchTopicTexts() async throws -> [MapID: [String]] {

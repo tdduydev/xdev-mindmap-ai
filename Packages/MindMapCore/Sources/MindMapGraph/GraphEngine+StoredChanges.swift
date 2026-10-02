@@ -10,6 +10,7 @@ public enum GraphRecordKey: Hashable, Sendable {
     case tag(TagID)
     case nodeTag(NodeTagID)
     case group(GroupID)
+    case image(ImageID)
 }
 
 extension GraphChangeSet {
@@ -32,6 +33,9 @@ extension GraphChangeSet {
         for id in Set(old.groups.keys).union(new.groups.keys) where old.groups[id] != new.groups[id] {
             changes.recordGroup(id, before: old.groups[id], after: new.groups[id])
         }
+        for id in Set(old.images.keys).union(new.images.keys) where old.images[id] != new.images[id] {
+            changes.recordImage(id, before: old.images[id], after: new.images[id])
+        }
         if old.map != new.map {
             changes.recordMap(before: old.map, after: new.map)
         }
@@ -48,6 +52,7 @@ extension GraphChangeSet {
         keys.formUnion(tags.keys.map(GraphRecordKey.tag))
         keys.formUnion(nodeTags.keys.map(GraphRecordKey.nodeTag))
         keys.formUnion(groups.keys.map(GraphRecordKey.group))
+        keys.formUnion(images.keys.map(GraphRecordKey.image))
         if let map, map.before?.graphFields != map.after?.graphFields { keys.insert(.map) }
         return keys
     }
@@ -60,11 +65,13 @@ extension GraphChangeSet {
         keys.formUnion(tags.filter { $0.value.after == nil }.keys.map(GraphRecordKey.tag))
         keys.formUnion(nodeTags.filter { $0.value.after == nil }.keys.map(GraphRecordKey.nodeTag))
         keys.formUnion(groups.filter { $0.value.after == nil }.keys.map(GraphRecordKey.group))
+        keys.formUnion(images.filter { $0.value.after == nil }.keys.map(GraphRecordKey.image))
         return keys
     }
 
     /// The records this change writes plus those its values point at (parent,
-    /// link ends, tagged topic and tag, boundary ends). Replaying it is only
+    /// link ends, tagged topic and tag, group ends and summary topic, an
+    /// image's topic). Replaying it is only
     /// safe while those still are as they were.
     var referencedRecords: Set<GraphRecordKey> {
         var keys = writtenRecords
@@ -87,9 +94,14 @@ extension GraphChangeSet {
         }
         for change in groups.values {
             for group in [change.before, change.after].compactMap(\.self) {
-                for id in [group.parentNodeID, group.firstNodeID, group.lastNodeID].compactMap(\.self) {
+                for id in [group.parentNodeID, group.firstNodeID, group.lastNodeID, group.summaryNodeID].compactMap(\.self) {
                     keys.insert(.node(id))
                 }
+            }
+        }
+        for change in images.values {
+            for image in [change.before, change.after].compactMap(\.self) {
+                keys.insert(.node(image.nodeID))
             }
         }
         return keys
