@@ -21,14 +21,25 @@ enum UITestAIService {
     }
 }
 
-/// Reports the mode's capabilities; the suggestion features are not
-/// scripted yet, so each one fails the way a bad answer would.
+/// Reports the mode's capabilities. Screenshot capture gets a deterministic
+/// proposal so it never depends on an installed language model.
 private struct UITestAIProvider: AIProvider {
     let current: AICapabilities
 
     func capabilities() async -> AICapabilities { current }
     func generateMap(_ request: GenerateMapRequest) async throws -> AIProposal { throw AIError.generationFailed }
-    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal { throw AIError.generationFailed }
+    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
+        let titles = request.context.language == .vietnamese
+            ? ["Lắng nghe người dùng", "Phác thảo ý tưởng", "Thử nghiệm nhanh"]
+            : ["Listen to users", "Sketch ideas", "Test early"]
+        return AIProposal(
+            feature: .expandTopic,
+            anchor: .node(request.context.focus.nodeID),
+            topics: titles.enumerated().map { index, title in
+                ProposedTopic(temporaryID: "screenshot-\(index)", title: title)
+            }
+        )
+    }
     func brainstorm(_ request: BrainstormRequest) async throws -> AIProposal { throw AIError.generationFailed }
     func rewrite(_ request: RewriteRequest) async throws -> AIRewrite { throw AIError.generationFailed }
     func summarize(_ request: SummarizeRequest) async throws -> AISummary { throw AIError.generationFailed }

@@ -23,9 +23,8 @@ final class AppStoreScreenshotUITests: XCTestCase {
 
         // Review the mock model's proposed topics without changing the map.
         editor.show(.outline)
-        editor.selectOutlineTopic(title)
-        let aiMenu = launched.app.buttons[AccessibilityID.ScreenshotAI.menu].firstMatch
-        aiMenu.waitToExist().tap()
+        editor.selectOutlineTopic(title).typeText("\n")
+        openAIMenu(in: launched.app)
         let suggest = launched.app.buttons.matching(NSPredicate(format: "label == %@", language == .vietnamese ? "Đề xuất chủ đề con" : "Suggest Subtopics")).firstMatch
         suggest.waitToExist().tap()
         launched.app.buttons[AccessibilityID.ScreenshotAI.review].firstMatch.waitToExist().tap()
@@ -36,10 +35,8 @@ final class AppStoreScreenshotUITests: XCTestCase {
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
         let outline = second.library.show().open(title).show(.outline)
         let design = language == .vietnamese ? "Thiết kế" : "Design"
-        outline.selectOutlineTopic(design)
-        outline.tap(.inspector)
-        second.app.buttons[AccessibilityID.Editor.inspector].firstMatch.waitToExist()
-        capture("03-outline-inspector", in: second.app)
+        outline.selectOutlineTopic(design).typeText("\n")
+        capture("03-outline", in: second.app)
 
         let third = MindMapApp.launch(fixture: fixture, language: language,
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
@@ -63,5 +60,18 @@ final class AppStoreScreenshotUITests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+
+    @MainActor
+    private func openAIMenu(in app: XCUIApplication) {
+        let menu = app.buttons[AccessibilityID.ScreenshotAI.menu].firstMatch
+        #if os(iOS)
+        if !menu.waitForExistence(timeout: MindMapApp.timeout / 6) {
+            app.buttons["OverflowBarButtonItem"].firstMatch.waitToExist().tap()
+            app.collectionViews.buttons.matching(NSPredicate(format: "label == 'AI'")).firstMatch.waitToExist().tap()
+            return
+        }
+        #endif
+        menu.waitToExist().tap()
     }
 }

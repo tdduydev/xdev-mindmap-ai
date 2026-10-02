@@ -43,17 +43,23 @@ for lang in "${languages[@]}"; do
     label="$platform-$lang-$mode"
     result="$work/$label.xcresult"
     attachments="$work/$label-attachments"
-    rm -rf "$result" "$attachments"
+    if [[ "${MINDMAP_SCREENSHOT_REUSE_RESULTS:-0}" != 1 ]]; then
+      rm -rf "$result"
+    fi
+    rm -rf "$attachments"
     mkdir -p "$attachments"
     echo "==> Capture $label"
-    TEST_RUNNER_MINDMAP_STORE_SCREENSHOTS=1 \
-    TEST_RUNNER_MINDMAP_SCREENSHOT_LANGUAGE="$lang" \
-    TEST_RUNNER_MINDMAP_SCREENSHOT_APPEARANCE="$mode" \
-    xcodebuild test -quiet -project MindMapAI.xcodeproj -scheme MindMapAIUITests \
-      -destination "$destination" -derivedDataPath scripts/out/DerivedData \
-      -resultBundlePath "$result" -parallel-testing-enabled NO \
-      -only-testing:MindMapAIUITests/AppStoreScreenshotUITests \
-      SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+    if [[ "${MINDMAP_SCREENSHOT_REUSE_RESULTS:-0}" != 1 ]]; then
+      TEST_RUNNER_MINDMAP_STORE_SCREENSHOTS=1 \
+      TEST_RUNNER_MINDMAP_SCREENSHOT_LANGUAGE="$lang" \
+      TEST_RUNNER_MINDMAP_SCREENSHOT_APPEARANCE="$mode" \
+      xcodebuild test -quiet -project MindMapAI.xcodeproj -scheme MindMapAIUITests \
+        -destination "$destination" -derivedDataPath scripts/out/DerivedData \
+        -resultBundlePath "$result" -parallel-testing-enabled NO \
+        -collect-test-diagnostics never \
+        -only-testing:MindMapAIUITests/AppStoreScreenshotUITests \
+        SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+    fi
     xcrun xcresulttool export attachments --path "$result" --output-path "$attachments" >/dev/null
     raw="$output/raw/$platform/$lang"
     [[ "$mode" == dark ]] && raw="$raw/dark"
@@ -65,8 +71,8 @@ records = json.loads((source / 'manifest.json').read_text())
 found = {}
 for record in records:
     for attachment in record['attachments']:
-        name = attachment['suggestedHumanReadableName']
-        if name in {'01-canvas', '02-ai-suggestions', '03-outline-inspector', '04-ask-map', '05-privacy'}:
+        name = attachment['suggestedHumanReadableName'].split('_0_', 1)[0]
+        if name in {'01-canvas', '02-ai-suggestions', '03-outline', '04-ask-map', '05-privacy'}:
             shutil.copyfile(source / attachment['exportedFileName'], target / (name + '.png'))
             found[name] = True
 if len(found) != 5:
