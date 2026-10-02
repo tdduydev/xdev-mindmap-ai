@@ -49,6 +49,7 @@ struct FloatingTopicEditorTests {
         undo.redo()
         #expect(session.engine.state.node(floating)?.position == moved)
 
+        session.selection = floating
         #expect(session.canAttachSelection)
         undo.beginUndoGrouping()
         session.attach(floating, to: root)
@@ -90,5 +91,37 @@ struct FloatingTopicEditorTests {
         undo.redo()
         #expect(session.engine.state.node(branch)?.parentID == nil)
         #expect(session.engine.state.node(branch)?.position == position)
+    }
+
+    @Test func floatingTopicHasNoSiblingActions() async throws {
+        let session = try await open()
+        let root = try #require(session.rootID)
+        let floating = try #require(session.addFloatingTopic(at: TopicPosition(x: 0, y: 200)))
+        #expect(session.selection == floating)
+        session.selection = floating
+        #expect(session.canAttachSelection)
+        #expect(!session.canDetachSelection)
+        #expect(!session.canDuplicateSelection)
+        #expect(!session.canPromoteSelection)
+        #expect(!session.canDemoteSelection)
+
+        // Add Sibling on a floating topic adds a child, as on the central topic.
+        session.addSibling()
+        let child = try #require(session.selection)
+        #expect(session.engine.state.node(child)?.parentID == floating)
+        #expect(session.canDetachSelection)
+        #expect(!session.canAttachSelection)
+
+        session.selection = root
+        #expect(!session.canDetachSelection)
+        #expect(!session.canAttachSelection)
+    }
+
+    @Test func menuPlacementWithoutCanvasGoesBelowTheCentralTopic() async throws {
+        let session = try await open()
+        session.addFloatingTopic()
+        let floating = try #require(session.selection)
+        #expect(session.isFloating(floating))
+        #expect(session.engine.state.node(floating)?.position == TopicPosition(x: 0, y: Double(CanvasMetrics.floatingTopicFallbackOffset)))
     }
 }

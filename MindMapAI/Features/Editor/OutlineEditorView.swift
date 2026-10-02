@@ -64,8 +64,16 @@ struct OutlineEditorView: View {
             isFindMatch: session.findMatchSet.contains(row.id),
             focus: $focusedNode,
             onRename: { session.rename(row.id, to: $0) },
-            onToggle: { session.toggleCollapsed(row.id) }
+            onToggle: { session.toggleCollapsed(row.id) },
+            onAttachOrDetach: attachOrDetach(row)
         )
+    }
+
+    /// The outline's way to the same commands as the Topic menu, for VoiceOver.
+    private func attachOrDetach(_ row: EditorSession.Row) -> (() -> Void)? {
+        if row.node.isFloating(rootID: session.rootID) { return { session.beginAttaching(row.id) } }
+        guard row.node.parentID != nil else { return nil }
+        return { session.selection = row.id; session.detachSelection() }
     }
 
     /// Delete Topic's bare-Delete shortcut follows this (see `EditorSession.deleteKeyDeletesTopic`).
@@ -83,6 +91,7 @@ struct OutlineRow: View {
     var focus: FocusState<NodeID?>.Binding
     let onRename: (String) -> Void
     let onToggle: () -> Void
+    var onAttachOrDetach: (() -> Void)?
     @State private var draft: String
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -93,7 +102,8 @@ struct OutlineRow: View {
         isFindMatch: Bool,
         focus: FocusState<NodeID?>.Binding,
         onRename: @escaping (String) -> Void,
-        onToggle: @escaping () -> Void
+        onToggle: @escaping () -> Void,
+        onAttachOrDetach: (() -> Void)? = nil
     ) {
         self.row = row
         self.isRoot = isRoot
@@ -102,6 +112,7 @@ struct OutlineRow: View {
         self.focus = focus
         self.onRename = onRename
         self.onToggle = onToggle
+        self.onAttachOrDetach = onAttachOrDetach
         _draft = State(initialValue: row.node.title)
     }
 
@@ -137,6 +148,11 @@ struct OutlineRow: View {
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
         .modifier(TopicLinkAccessibility(link: row.node.link))
+        .accessibilityActions {
+            if let onAttachOrDetach {
+                Button(isFloating ? "Attach to Topic…" : "Detach Topic", action: onAttachOrDetach)
+            }
+        }
         .listRowBackground(isFindMatch ? Palette.searchMatchFill : nil)
         // Undo changes the title from outside; show it unless the user is typing here.
         .onChange(of: row.node.title) { _, title in
