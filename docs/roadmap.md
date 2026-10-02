@@ -16,6 +16,7 @@ The detailed requirements (FR and NFR IDs, acceptance scenarios, open questions)
 - **MM-0h** Privacy policy and support pages (en, vi), linked from Settings, Help and the startup failure screen.
 - **MM-0i** Shell polish from the design guidelines: View menu sidebar command, Delete shortcut, one name per action, window title, empty state action, Increase Contrast colours, glossary.
 - **MM-0j** Icon Composer icon with default, dark, clear and tinted appearances.
+- **MM-0k** Design system v1 in code ([design-system.md](design-system.md), ADR 0007): colour tokens with Increase Contrast variants, branch palette and themes, bundled brand fonts, canvas metrics, `TopicStyle`, motion, a debug gallery and contrast tests.
 
 No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
@@ -29,7 +30,7 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 3. Basic canvas
 
-- **MM-3** Map editor on an infinite canvas, trackpad and mouse first: node rendering, pan, zoom, pinch, select, inline editing, add and delete nodes, viewport culling, VoiceOver elements for nodes. The outline editor stays as the accessible alternative. Builds on the layout engine (MM-4), which is done first.
+- **MM-3** Map editor on an infinite canvas, trackpad and mouse first: node rendering, pan, zoom, pinch, select, inline editing, add and delete nodes, viewport culling, VoiceOver elements for nodes. The outline editor stays as the accessible alternative. Builds on the layout engine (MM-4) and the design system (MM-0k), which are done first.
 
 ## 4. Layout engine
 
@@ -70,11 +71,11 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 13. Purchases
 
-- **MM-13** Pricing and StoreKit 2: the unlock model, Restore Purchases in Settings, a paywall that states price and terms. Waits on the product owner's pricing decision.
+- **MM-13** StoreKit 2 for a free app with a one-time Pro unlock: entitlement check, Restore Purchases in Settings, a paywall that states price and terms. The price and the Pro feature list are still to be decided.
 
 ## 14. Release
 
-- **MM-14** App Store submission kit: metadata in English and Vietnamese, screenshots, Review Notes on AI availability, privacy and accessibility labels, age rating, TestFlight build.
+- **MM-14** App Store submission kit for the Mac-only first release: metadata in English and Vietnamese, screenshots, Review Notes on AI availability, privacy and accessibility labels, age rating, TestFlight builds as 0.x, 1.0.0 for the public release.
 
 ## Cross-cutting
 
@@ -83,3 +84,7 @@ These run beside the phases above once their dependency is done.
 - **MM-15** Search: maps by title and topic text in the library, Find in the open map, diacritic-insensitive for Vietnamese.
 - **MM-16** Topic inspector: notes and details, toggled from the toolbar and the View menu.
 - **MM-17** Multiple windows: one session per map shared by its windows, one window per map on iPad, state restoration at relaunch.
+- **MM-18** Map themes: Standard, xDev Blue and Graphite branch palettes, chosen per map as an undoable command.
+- **MM-19** Recently Deleted: deleted maps kept for 30 days and restorable, with schema V2 and its migration test.
+- **MM-20** Voice input: dictate topics in Vietnamese (`DictationTranscriber`) or English (`SpeechTranscriber`), on the device.
+- **MM-21** Intel Mac support: universal build for macOS 26, AI hidden on Intel, checked under Rosetta or on an Intel Mac.

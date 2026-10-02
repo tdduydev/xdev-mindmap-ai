@@ -1,0 +1,264 @@
+# Design system
+
+Version 1, 2026-10-02. The visual language of MindMap AI: tokens, the canvas components and how they adapt to each platform and accessibility setting. The product owner chose the options in [ADR 0007](adr/0007-visual-language.md); the HIG rules behind them are in [design-guidelines.md](design-guidelines.md). Code lives in `MindMapAI/DesignSystem/`; views use these names, never raw values.
+
+Contrast figures are WCAG 2 ratios computed from the hex values below against the canvas they sit on. Values marked *[Proposal]* are starting points the implementation may tune, with the reason written in the task note.
+
+## Principles
+
+1. **Brand on the canvas, platform in the chrome.** The map (topics, edges, the canvas, onboarding and empty-state headlines) carries the xDev identity: its fonts, branch colours and navy dark canvas. Sidebar, toolbar, menus, lists, sheets and Settings use system fonts, colours and materials, so the app still feels like a Mac app.
+2. **Glass for controls only.** Liquid Glass is for toolbars, the sidebar and the floating canvas controls. Topics, edges, the canvas and AI suggestions are opaque fills.
+3. **Hierarchy you can see without colour.** Level shows in size, weight and shape, not only in colour. Selection has a ring, AI suggestions have a dashed outline and a symbol, collapsed branches have a count.
+4. **Every colour has four values:** light, dark, light with Increase Contrast, dark with Increase Contrast.
+5. **One token, one meaning.** A colour named for a role (`topicText`, `selectionRing`) is used for that role only.
+
+## Colour
+
+### Brand primitives
+
+From the xDev design tokens (`xdev-hive/packages/ui/src/tokens/primitives.css`). Never used directly in views; semantic tokens below refer to them.
+
+| Name | Hex | Name | Hex |
+| --- | --- | --- | --- |
+| brand blue light | `#7BD4FF` | navy 950 | `#0B1830` |
+| brand blue mid | `#1E90FF` | navy 850 (brand navy) | `#142745` |
+| brand blue deep | `#004CFF` | ink (neutral 700) | `#344568` |
+| blue 400 | `#4AAEFF` | neutral 800 | `#22314F` |
+| blue 800 | `#0038C2` | neutral 600 | `#5B6885` |
+| canvas | `#F7F9FC` | navy 100 | `#E8ECF8` |
+
+### Semantic tokens
+
+| Token | Light | Dark | Light, Increase Contrast | Dark, Increase Contrast | Use |
+| --- | --- | --- | --- | --- | --- |
+| `canvasBackground` | `#F7F9FC` | `#142745` | `#FFFFFF` | `#0B1830` | Canvas behind the map |
+| `topicText` | `#22314F` (12.3:1) | `#F4F6FC` (13.8:1) | `#0C1A33` | `#FFFFFF` | Topic titles |
+| `topicTextSecondary` | `#5B6885` (5.3:1) | `#9DAAC7` (6.4:1) | `#344568` | `#E8ECF8` | Note previews, AI suggestion text, counts |
+| `centralFill` | `#142745` | `#E8ECF8` | `#0B1830` | `#FFFFFF` | Central topic |
+| `centralText` | `#FFFFFF` (14.9:1) | `#142745` (12.7:1) | `#FFFFFF` | `#0B1830` | Central topic title |
+| `accent` (AccentColor) | `#004CFF` (5.7:1) | `#4AAEFF` (6.3:1) | `#0038C2` | `#7BD4FF` | Tint, selection, drop targets |
+| `selectionRing` | = accent | = accent | = accent | = accent | 2 pt ring, 3 pt with Increase Contrast |
+| `crossLink` | `#5B6885` (5.3:1) | `#9DAAC7` (6.4:1) | `#344568` | `#E8ECF8` | Cross-link lines and arrowheads |
+| `searchMatchFill` | `#FFF4DB` | `#3D3423` | `#FFE7B3` | `#4A3B1E` | Find results behind the title |
+| `searchMatchBorder` | `#F5C86B` | `#7A5D22` | `#9A5B00` | `#FFC35C` | Outline of a find result |
+| `favorite` | `#B26A00` (was `#F2A516`, 2.1:1 on white, below the 3:1 for graphics) | `#FFC35C` | `#9A5B00` | `#FFD285` | Star |
+| `warningFill` / `warningText` | `#FFF4DB` / `#9A5B00` | `#3D3423` / `#FFC35C` | `#FFE7B3` / `#7A4600` | `#4A3B1E` / `#FFD285` | Save-failure banner (existing assets) |
+| `danger` | `#C62828` | `#FF8A8A` | `#A51F1F` | `#FFB4B4` | Destructive confirmation text |
+| `success` | `#0F7A4A` | `#4ADE9B` | `#0B5E39` | `#7EE2A8` | Sync on, export done |
+
+The canvas uses its own `canvasBackground` in both modes; every other surface (sidebar, lists, sheets, the window behind the canvas controls) uses system colours.
+
+### Branch palette
+
+Each level-1 branch takes the next colour in the theme's palette, in order of `sortOrder`, cycling after the last. Descendants inherit their level-1 ancestor's colour. The Standard palette is the xDev chart palette, darkened for light mode so every line reaches at least 4:1 against the canvas (3:1 is the WCAG minimum for graphics).
+
+| Branch | Light | vs `#F7F9FC` | Dark | vs `#142745` | Light IC | Dark IC |
+| --- | --- | --- | --- | --- | --- | --- |
+| blue | `#0B6CF5` | 4.5:1 | `#4AAEFF` | 6.3:1 | `#0954BF` | `#77C2FF` |
+| teal | `#0B7F74` | 4.6:1 | `#3CCFBE` | 7.7:1 | `#09635A` | `#6DDBCE` |
+| amber | `#B26A00` | 4.0:1 | `#FFC35C` | 9.4:1 | `#8B5300` | `#FFD285` |
+| violet | `#6A4DF0` | 5.1:1 | `#A594FF` | 5.9:1 | `#533CBB` | `#BCAFFF` |
+| rose | `#C2385E` | 5.0:1 | `#FF7FA0` | 6.3:1 | `#972C49` | `#FF9FB8` |
+| green | `#1F8A55` | 4.1:1 | `#4ADE9B` | 8.7:1 | `#186C42` | `#77E6B4` |
+
+Derived colours, computed in code from the branch colour so themes only define the line colour:
+
+| Derived | Light | Dark | Increase Contrast |
+| --- | --- | --- | --- |
+| `mainFill` (level 1) | branch at 12% over the canvas | branch at 20% over the canvas | 18% light, 28% dark |
+| `subFill` (level 2 and deeper) | branch at 7% | branch at 12% | 12% light, 20% dark |
+| `mainStroke` | branch, 1.5 pt | branch, 1.5 pt | IC branch, 2 pt |
+| `edge` | branch | branch | IC branch |
+| `badgeFill` | IC branch (white text ≥ 6.3:1) | branch (navy text ≥ 5.9:1) | IC branch |
+
+Topic text on any of these fills stays `topicText`; it measures 9.2:1 or more on every main and sub fill above.
+
+### Themes
+
+A map's `theme` (already a field of `MindMap`, stored as a string with a fallback) picks the branch palette. *[Proposal]* three themes for V1, built in MM-18:
+
+| Theme | Branch colours |
+| --- | --- |
+| Standard (default) | The six-colour palette above |
+| xDev Blue | Every branch blue: light `#0B6CF5`, dark `#4AAEFF`; levels told apart by shape and weight only |
+| Graphite | Every branch neutral: light `#5B6885`, dark `#9DAAC7`, for printing and calm maps |
+
+Themes change colour only, never layout, fonts or shapes.
+
+### AI gradient
+
+The AI signature is the xDev gradient, drawn at 135°:
+
+| | Light | Dark | Increase Contrast |
+| --- | --- | --- | --- |
+| Gradient | `#1E90FF` → `#004CFF` (ends 3.1:1 and 5.7:1 on the canvas) | `#7BD4FF` → `#4AAEFF` (9.0:1 and 6.3:1) | Solid `#0038C2` / `#7BD4FF` |
+
+Used for: the `sparkles` symbol on AI buttons and menu items, the dashed outline of suggested topics, and the progress indicator while AI works. Never as a fill behind text, never on glass. With Increase Contrast or Reduce Transparency, the gradient becomes the solid colour in the last column.
+
+## Typography
+
+Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with `OFL.txt`, registered through `UIAppFonts` (iOS) and `ATSApplicationFontsPath` (macOS).
+
+Content styles (canvas points at 100% zoom). On iOS and iPadOS each is `Font.custom(_:size:relativeTo:)`, so it scales with Dynamic Type; macOS has no Dynamic Type and uses the size as is.
+
+| Role | Family, weight | Size / line | Relative to | Used for |
+| --- | --- | --- | --- | --- |
+| `central` | Space Grotesk SemiBold (600) | 20 / 26 | `.title3` | Central topic |
+| `main` | Be Vietnam Pro SemiBold | 15 / 20 | `.body` | Level-1 topics |
+| `sub` | Be Vietnam Pro Regular | 14 / 19 | `.callout` | Level 2 |
+| `deep` | Be Vietnam Pro Regular | 13 / 18 | `.subheadline` | Level 3 and deeper |
+| `outlineTopic` | Be Vietnam Pro Regular / SemiBold for the root | 14 / 20 | `.body` | Outline editor rows |
+| `note` | Be Vietnam Pro Regular | 14 / 21 | `.body` | Note text in the inspector |
+| `badge` | Be Vietnam Pro SemiBold | 11 / 14 | `.caption2` | Collapse count, AI label |
+| `display` | Space Grotesk SemiBold | 28 / 34 | `.largeTitle` | Onboarding and empty-state headlines |
+
+Chrome keeps system text styles (`Typography.rowTitle`, `.rowDetail`, `.banner` and the like): sidebar, library list, toolbar, menus, Settings, alerts. Rules: no weight below Regular, no italics for emphasis on the canvas, numbers in tabular figures where they line up (counts, zoom percentage).
+
+## Space and size
+
+The 4-point grid of `Spacing` (2, 4, 8, 12, 16, 24, 32) stays. Canvas metrics are a separate enum, `CanvasMetrics`:
+
+| Token | Central | Main | Sub and deeper |
+| --- | --- | --- | --- |
+| Padding (horizontal × vertical) | 16 × 12 | 12 × 8 | 10 × 6 |
+| Minimum width | 96 | 56 | 40 |
+| Maximum width (then wrap) | 280 | 240 | 220 |
+| Corner radius | 12 | 10 | 8 |
+| Gap to the parent (horizontal) | — | 64 | 40 |
+| Gap between siblings (vertical) | — | 20 | 10 |
+| Edge width from the parent | — | 3 | 2 (1.5 from level 3) |
+
+- Titles wrap and are never truncated on the canvas; the outline truncates to one line with the full title in the accessibility label.
+- Hit target: the visual box on the Mac (minimum 28 pt high); on iOS and iPadOS the tappable area grows to 44 × 44 pt around small topics without changing the drawing.
+- Selection ring: 2 pt outside the topic with a 2 pt gap, 3 pt with Increase Contrast.
+- Collapse badge: a capsule 18 pt high on the Mac, 22 pt on iOS, on the side away from the parent.
+
+## Edges
+
+| Kind | Shape | Stroke | Colour |
+| --- | --- | --- | --- |
+| Hierarchy | Cubic Bézier from the parent's side centre to the child's side centre, both control points at half the horizontal distance | Width by level (table above), round caps | Branch colour |
+| Cross-link | Gentle arc between the closest sides, arrowhead at the target for `reference`, none for `relationship` | 1.5 pt, dashed 4–3 | `crossLink` |
+| Cross-link label | Capsule on the arc's midpoint, `badge` text | — | `canvasBackground` fill, `crossLink` stroke |
+| AI suggestion | As hierarchy | 1.5 pt, dashed 3–3 | AI gradient |
+
+Edges are drawn under topics and never cross a topic's box; the layout engine (MM-4) owns the routing, the canvas only draws.
+
+## Topic states
+
+| State | Appearance |
+| --- | --- |
+| Default | Central: `centralFill`. Main: `mainFill` with `mainStroke`. Sub: `subFill`, no stroke |
+| Hover (pointer) | Fill 4% darker in light, 6% lighter in dark |
+| Selected | `selectionRing` around the box |
+| Multi-selected | Same ring on each topic; the toolbar shows the count |
+| Editing | Ring stays; the title becomes a text field in the same font, size and position, so nothing jumps |
+| Drag source | Topic at 60% opacity in place; a copy follows the pointer with the drag shadow |
+| Drop target | Accent dashed outline (2 pt) on the new parent, or a 3 pt accent bar where it will be inserted |
+| Collapsed | Badge with the number of hidden topics (`badgeFill`, `badge` text) |
+| Has note | `note.text` symbol, 11 pt, `topicTextSecondary`, after the title |
+| Search match | `searchMatchFill` behind the title, `searchMatchBorder` outline; the current match also gets the selection ring |
+| AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient before the title, title in `topicTextSecondary`; Accept and Discard buttons on hover or selection |
+| Accepted AI topic | Looks like any topic (its origin is kept in `metadata.origin`) |
+
+## Elevation
+
+The map is flat: no shadows on topics at rest. Only two things lift:
+
+| Element | Light | Dark |
+| --- | --- | --- |
+| Dragged topic | `0 8 24` navy 18% + `0 2 6` navy 8% | `0 8 24` black 45% |
+| Floating canvas controls | System glass (`GlassEffectContainer`) | System glass |
+
+Popovers, menus and sheets are system components with system shadows.
+
+## Motion
+
+From the xDev motion tokens. All animation goes through `Motion`; with Reduce Motion, movement becomes a fast crossfade or nothing.
+
+| Token | Duration | Curve |
+| --- | --- | --- |
+| `instant` | 80 ms | standard |
+| `fast` | 120 ms | standard |
+| `base` | 180 ms | standard (0.2, 0, 0, 1) |
+| `slow` | 240 ms | standard |
+| `slower` | 320 ms | emphasized (0.3, 0, 0, 1) |
+| curves | | enter (0, 0, 0.2, 1), exit (0.4, 0, 1, 1) |
+
+| Change | Motion | With Reduce Motion |
+| --- | --- | --- |
+| Topic added | Fade in and scale 0.96 → 1, `base` enter | Fade, `fast` |
+| Topic deleted | Fade out, `fast` exit | Remove |
+| Collapse, expand, relayout | Topics move to their new frames, `slow` | Jump |
+| Zoom to fit, jump to a search result | Camera move, `slower` | Jump |
+| AI suggestions arriving | Each fades in, 40 ms apart, `base` enter | All appear at once |
+| Selection ring | `instant` | None |
+
+## Symbols
+
+SF Symbols only, outline style in toolbars and menus. Names to verify in the SF Symbols app when implementing.
+
+| Action | Symbol | Action | Symbol |
+| --- | --- | --- | --- |
+| New Mind Map | `square.and.pencil` | AI actions | `sparkles` (AI gradient) |
+| Add Child Topic | `arrow.turn.down.right` | Note | `note.text` |
+| Add Sibling Topic | `return` | Cross-link | `link` |
+| Delete Topic | `trash` | Search | `magnifyingglass` |
+| Collapse / Expand | `chevron.down` / `chevron.right` | Inspector | `sidebar.right` |
+| Zoom In / Out | `plus.magnifyingglass` / `minus.magnifyingglass` | iCloud on / off / error | `icloud` / `icloud.slash` / `exclamationmark.icloud` |
+| Zoom to Fit | `arrow.up.left.and.arrow.down.right` | Voice input | `mic` |
+| Favorite | `star` / `star.fill` | Restore from Recently Deleted | `arrow.uturn.backward` |
+
+## Components
+
+| Component | Built from | Notes |
+| --- | --- | --- |
+| `TopicView` | Content font by level, fills and strokes from the theme, state from the session | One accessibility element: "title, level n, m subtopics", plus actions |
+| `EdgeLayer` | One `Canvas` (SwiftUI) per visible region | Draws hierarchy, cross-links and suggestion edges from layout output |
+| `CanvasControls` | `GlassEffectContainer` with zoom out, zoom percentage, zoom in, fit, add topic, AI | Trailing bottom on Mac and iPad; above the home indicator on iPhone |
+| `CollapseBadge` | Capsule, `badge` text | Tap or click expands |
+| `AISuggestionBar` | Glass bar above the canvas: "n suggestions", Accept All, Discard | Per-topic Accept and Discard live on each suggestion |
+| `EmptyState` | `ContentUnavailableView` with a `display` headline on the canvas, system text in lists | Always with an action button |
+| `SyncStatusLine` | Caption text and symbol in the sidebar footer | Never an alert |
+| `TopicInspector` | `.inspector`, note editor in the `note` font | Sheet on iPhone |
+
+## Accessibility
+
+- **Contrast:** text 4.5:1 or more, graphics 3:1 or more, in all four colour variants. The tables above give the figures; a unit test recomputes them from the tokens so a change cannot regress.
+- **Increase Contrast:** IC colours, 2 pt strokes, 3 pt selection ring, gradients become solid.
+- **Reduce Transparency:** canvas controls use the system's frosted fallback; nothing on the canvas is translucent anyway.
+- **Differentiate Without Color:** levels differ in font size and weight and in shape (central filled, main outlined, sub plain); suggestions have the dashed outline and the symbol; search matches have an outline.
+- **Dynamic Type (iOS, iPadOS):** content fonts scale with `relativeTo`; topics grow and the layout reflows. At accessibility sizes the canvas starts zoomed to fit the central topic and its children.
+- **VoiceOver:** see FR-CNV-07 in the SRS; the outline editor remains the full alternative.
+
+## Platforms
+
+| | Mac | iPad | iPhone |
+| --- | --- | --- | --- |
+| Canvas controls | Toolbar items plus the floating cluster | Floating cluster | Floating cluster, compact |
+| Topic hit area | Visual box | 44 pt minimum | 44 pt minimum |
+| Pointer | Hover state, open and closed hand while panning | Hover state | — |
+| Default zoom | 100% | 100% | Fit width of the central topic and level 1 |
+
+## Implementation
+
+| Swift name | Holds |
+| --- | --- |
+| `Palette` | Semantic colours (asset catalog colour sets with Any, Dark and High Contrast appearances) |
+| `BranchPalette`, `MapTheme` | Branch colours per theme and the derived fills (computed, so no asset per derived colour) |
+| `Typography` | Chrome styles (system) and `Typography.Content` (brand fonts, `relativeTo`) |
+| `Spacing`, `Radius`, `Metrics` | Existing scales |
+| `CanvasMetrics` | The canvas table above |
+| `Elevation` | The drag shadow |
+| `Motion` | Durations, curves and the Reduce Motion rule |
+| `TopicStyle` | Resolves fill, stroke, font, padding and radius for a level, theme, colour scheme and contrast setting |
+
+- A debug-only `DesignSystemGallery` view shows every token and topic state in both modes for review and screenshots.
+- Colour sets are named after their token (`CanvasBackground`, `TopicText`…), each with Any, Dark, and High Contrast variants.
+- Tests: WCAG contrast of every text and graphic pair in the four variants; `TopicStyle` resolution per level and theme; the fonts load on both platforms.
+
+## Not decided yet
+
+- The exact list and colours of themes beyond Standard (MM-18).
+- Icon Composer appearances (MM-0j) and whether the app icon picks up the AI gradient.
+- Topic shapes or icons chosen by the user (not in V1).
