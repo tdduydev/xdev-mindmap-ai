@@ -21,7 +21,7 @@ struct ExportSheet: View {
     @State private var failed = false
 
     private var lockedFeature: ProFeature? {
-        options.requiredFeature.flatMap { entitlements.isUnlocked($0) ? nil : $0 }
+        options.requiredFeature.flatMap { entitlements.allows($0) ? nil : $0 }
     }
 
     /// The root is the whole map, so only a topic below it makes a branch.

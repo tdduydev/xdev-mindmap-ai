@@ -92,7 +92,7 @@ enum ImageScale: Int, CaseIterable, Identifiable {
 
     /// High resolution is part of MindMap AI Pro (docs/pricing.md).
     var requiredFeature: ProFeature? {
-        self == .standard ? nil : .highResolutionImage
+        self == .standard ? nil : .highResolutionPNGExport
     }
 }
 
@@ -113,7 +113,7 @@ nonisolated enum PDFPageMode: String, CaseIterable, Identifiable {
     }
 
     var requiredFeature: ProFeature? {
-        self == .multiplePages ? .multiPagePDF : nil
+        self == .multiplePages ? .vectorPDFExport : nil
     }
 }
 

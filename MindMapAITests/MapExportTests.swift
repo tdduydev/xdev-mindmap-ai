@@ -157,12 +157,12 @@ struct MapExportTests {
         options.imageScale = .standard
         #expect(options.requiredFeature == nil)
         options.imageScale = .triple
-        #expect(options.requiredFeature == .highResolutionImage)
+        #expect(options.requiredFeature == .highResolutionPNGExport)
         options.format = .pdf
         options.pageMode = .singlePage
         #expect(options.requiredFeature == nil)
         options.pageMode = .multiplePages
-        #expect(options.requiredFeature == .multiPagePDF)
+        #expect(options.requiredFeature == .vectorPDFExport)
     }
 
     /// The red, green and blue of one pixel of a PNG.
