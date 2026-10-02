@@ -169,7 +169,7 @@ MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51), the library
 | `MockChatProvider` | `MindMapTestSupport` | Scripted answers, failures and a hang |
 | `MapChat` | `MindMapAI/Features/Chat` | One per `OpenMap`, so every window on the map shares it. Asks after the AI privacy notice, stops, clears, opens citations through `EditorSession.showTopic` (Reveal Topic as in Find) |
 | `ChatPanel` | `MindMapAI/Features/Chat` | Shares the editor's `.inspector` with the topic inspector (one or the other); on iPhone `.inspector` is a sheet, which closes when a citation is opened |
-| `OpenMapsGraphSource`, `AppEnvironment.mapQueries` | `MindMapAI/Features/Chat` | Open maps read from the editor's live graph, the rest from the store; for M2 too |
+| `AppEnvironment.mapQueries` | `MindMapAI/Features/Chat/AppEnvironment+Chat.swift` | The chat's `MapQueries` over the AI apps' `OpenMapsGraphSource` (`AIAppsHost.swift`, MM-46): open maps read from the editor's live graph, the rest from the store |
 
 Differences from the design above:
 
