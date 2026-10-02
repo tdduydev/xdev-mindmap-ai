@@ -22,4 +22,6 @@ scripts/out/
 .xdev-hive/guard-docs.sh
 .mcp.json
 .gemini/
+.codex/
+.agents/skills/hive-leader/
 .claude/settings.json
