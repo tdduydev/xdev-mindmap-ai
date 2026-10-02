@@ -234,6 +234,105 @@ struct MapChatTests {
         #expect(!chat.showsEntryPoints)
     }
 
+    // MARK: Suggested questions and scope (MM-78)
+
+    @Test func anEmptyChatSuggestsQuestionsAboutTheMapThatAskAtOnce() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("Plan and Budget.", citations: []))
+        chat.draft = "half typed"
+
+        #expect(chat.suggestedQuestions == ["Summarize this map", "What is missing?", "What are the next steps?"])
+        chat.ask(suggestion: "Summarize this map")
+        await chat.answerSettled()
+
+        #expect(chat.entries.map(\.question) == ["Summarize this map"])
+        #expect(chat.entries.first?.state == .complete)
+        #expect(chat.draft == "half typed", "a suggestion leaves the draft alone")
+        #expect(chatProvider.questions.first?.message.branch == nil)
+    }
+
+    @Test func aSuggestionWaitsWhileAnAnswerIsComing() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.hang)
+        chat.ask(suggestion: "What is missing?")
+        #expect(!chat.canAskSuggestion)
+
+        chat.ask(suggestion: "What are the next steps?")
+        chat.stop()
+
+        #expect(chat.entries.map(\.question) == ["What is missing?"])
+    }
+
+    @Test func theScopeIsTheWholeMapUntilABranchIsChosen() async throws {
+        let chat = try await open()
+        #expect(chat.selectableBranch == nil, "the central topic is selected when the map opens")
+        chat.asksAboutSelectedBranch = true
+        #expect(chat.branch == nil)
+
+        let planID = try node("Plan", in: chat)
+        chat.session.selection = planID
+        #expect(chat.selectableBranch == ChatBranch(nodeID: planID, title: "Plan"))
+        #expect(chat.branch == nil, "selecting a topic does not change the scope by itself")
+
+        chat.asksAboutSelectedBranch = true
+        #expect(chat.branch == ChatBranch(nodeID: planID, title: "Plan"))
+        #expect(chat.suggestedQuestions.first == "Summarize this branch")
+    }
+
+    @Test func deselectingGoesBackToTheWholeMap() async throws {
+        let chat = try await open()
+        let planID = try node("Plan", in: chat)
+        chat.session.selection = planID
+        chat.asksAboutSelectedBranch = true
+
+        chat.session.selection = nil
+        chat.selectionChanged()
+        #expect(chat.branch == nil)
+        #expect(!chat.asksAboutSelectedBranch)
+
+        chat.session.selection = planID
+        #expect(chat.branch == nil, "the old choice does not come back quietly")
+
+        chat.asksAboutSelectedBranch = true
+        chat.session.selection = try node("Budget", in: chat)
+        #expect(chat.branch == nil, "another topic is another branch: back to the whole map")
+    }
+
+    @Test func aBranchQuestionCarriesTheBranchAndIsSavedWithIt() async throws {
+        let chat = try await open()
+        let planID = try node("Plan", in: chat)
+        chat.session.selection = planID
+        chat.asksAboutSelectedBranch = true
+        let beta = try citation("T1", "Beta", in: chat)
+        chatProvider.enqueue(.text("In the Plan branch, the beta comes first [T1].", citations: [beta]))
+
+        await ask("What comes first?", in: chat)
+
+        let branch = ChatBranch(nodeID: planID, title: "Plan")
+        #expect(chatProvider.questions.first?.message.branch == branch)
+        #expect(chat.entries.first?.branch == branch)
+        #expect(chat.turns.first?.branch == branch)
+        let reopened = try await reopen(chat)
+        #expect(reopened.entries.first?.branch == branch, "the saved turn says which branch it covered")
+    }
+
+    @Test func theScopeIsTakenWhenTheQuestionIsAsked() async throws {
+        let chat = try await open()
+        defaults.set(false, forKey: AIAssistant.privacyNoticeKey)
+        let planID = try node("Plan", in: chat)
+        chat.session.selection = planID
+        chat.asksAboutSelectedBranch = true
+        chatProvider.enqueue(.text("Yes.", citations: []))
+
+        chat.draft = "Anything?"
+        chat.ask()
+        chat.session.selection = nil
+        chat.assistant.acknowledgePrivacyNotice()
+        await chat.answerSettled()
+
+        #expect(chatProvider.questions.first?.message.branch?.nodeID == planID)
+    }
+
     // MARK: Saved with the map (MM-55)
 
     /// The chat as the map's next opening builds it, from the store.

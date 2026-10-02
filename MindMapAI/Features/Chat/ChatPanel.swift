@@ -31,6 +31,7 @@ struct ChatPanel: View {
             }
             .defaultScrollAnchor(.bottom)
             Divider()
+            scopePicker
             composer
         }
         // `.contain` keeps the children's own identifiers, which UI tests use.
@@ -48,6 +49,7 @@ struct ChatPanel: View {
         } message: {
             Text("Its questions and answers are deleted. This can’t be undone.")
         }
+        .onChange(of: chat.selectableBranch) { chat.selectionChanged() }
         .onAppear { if chat.focusRequest { takeFocus() } }
         .onChange(of: chat.focusRequest) { _, requested in
             if requested { takeFocus() }
@@ -70,8 +72,48 @@ struct ChatPanel: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
+            suggestions
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Questions to start with; tapping one asks it at once.
+    private var suggestions: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            ForEach(chat.suggestedQuestions, id: \.self) { question in
+                Button {
+                    chat.ask(suggestion: question)
+                } label: {
+                    Label(question, systemImage: "text.bubble")
+                        .frame(maxWidth: .infinity, minHeight: Metrics.minimumHitTarget, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.bordered)
+                .disabled(!chat.canAskSuggestion)
+                .accessibilityIdentifier(AccessibilityID.Chat.suggestion)
+                .accessibilityHint(Text("Asks this question"))
+            }
+        }
+        .padding(.top, Spacing.sm)
+    }
+
+    /// Whole map or the selected branch (FR-AI-11). The branch is offered
+    /// only while one topic other than the central one is selected.
+    private var scopePicker: some View {
+        Picker(selection: $chat.asksAboutSelectedBranch) {
+            Text("Whole Map").tag(false)
+            if let branch = chat.selectableBranch {
+                Text("Selected Branch: \(branch.title)").tag(true)
+            }
+        } label: {
+            Text("Scope")
+        }
+        .pickerStyle(.menu)
+        .fixedSize()
+        .disabled(chat.selectableBranch == nil)
+        .frame(maxWidth: .infinity, minHeight: Metrics.minimumHitTarget, alignment: .leading)
+        .padding(.horizontal, Spacing.lg)
+        .accessibilityIdentifier(AccessibilityID.Chat.scope)
     }
 
     private var composer: some View {
@@ -152,6 +194,16 @@ private struct ChatEntryView: View {
                 .background(.quaternary, in: RoundedRectangle(cornerRadius: Radius.lg))
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .accessibilityLabel(Text("You asked: \(entry.question)"))
+            if let branch = entry.branch {
+                Label {
+                    Text("Branch: \(branch.title)")
+                } icon: {
+                    Image(systemName: "arrow.triangle.branch")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier(AccessibilityID.Chat.answerScope)
+            }
             answer
         }
     }

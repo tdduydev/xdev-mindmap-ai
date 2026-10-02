@@ -67,7 +67,7 @@ private struct UITestChatProvider: ChatProvider {
                     var table = CitationTable()
                     var hit: TopicHit?
                     for word in message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber }) where hit == nil {
-                        hit = try? await queries.search(String(word), in: mapID, limit: 1).first
+                        hit = try? await queries.search(String(word), in: mapID, under: message.branch?.nodeID, limit: 1).first
                     }
                     let text: String
                     if let hit {

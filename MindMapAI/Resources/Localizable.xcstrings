@@ -1092,6 +1092,16 @@
         }
       }
     },
+    "Asks this question" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi câu này"
+          }
+        }
+      }
+    },
     "Automatic" : {
       "localizations" : {
         "vi" : {
@@ -1178,6 +1188,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang động não ý tưởng…"
+          }
+        }
+      }
+    },
+    "Branch: %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhánh: %@"
           }
         }
       }
@@ -4173,6 +4193,16 @@
         }
       }
     },
+    "Scope" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phạm vi"
+          }
+        }
+      }
+    },
     "Screen Time or device management keeps MindMap AI out of iCloud. Your maps stay on this device." : {
       "localizations" : {
         "vi" : {
@@ -4240,6 +4270,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhánh đang chọn"
+          }
+        }
+      }
+    },
+    "Selected Branch: %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhánh đang chọn: %@"
           }
         }
       }
@@ -4600,6 +4640,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tóm tắt cả sơ đồ"
+          }
+        }
+      }
+    },
+    "Summarize this branch" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tóm tắt nhánh này"
+          }
+        }
+      }
+    },
+    "Summarize this map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tóm tắt sơ đồ này"
           }
         }
       }
@@ -5579,6 +5639,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trang web"
+          }
+        }
+      }
+    },
+    "What are the next steps for this branch?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các bước tiếp theo của nhánh này là gì?"
+          }
+        }
+      }
+    },
+    "What are the next steps?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các bước tiếp theo là gì?"
+          }
+        }
+      }
+    },
+    "What is missing in this branch?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhánh này còn thiếu gì?"
+          }
+        }
+      }
+    },
+    "What is missing?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Còn thiếu gì?"
           }
         }
       }
