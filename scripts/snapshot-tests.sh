@@ -6,6 +6,7 @@
 #   scripts/snapshot-tests.sh            # compare with the references
 #   scripts/snapshot-tests.sh --record   # write new references, on purpose
 #   scripts/snapshot-tests.sh en         # one language: en or vi
+#   SNAPSHOT_TEST='paywall()' scripts/snapshot-tests.sh --record   # one scene
 #
 # A failed comparison leaves the image drawn and a diff (differing pixels in
 # red) in scripts/out/snapshots/<language>/. See docs/testing.md.
@@ -52,7 +53,7 @@ for language in $languages; do
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$derived" \
     -resultBundlePath "$results" \
-    -only-testing:MindMapAITests/MacSnapshotTests \
+    -only-testing:"MindMapAITests/MacSnapshotTests${SNAPSHOT_TEST:+/$SNAPSHOT_TEST}" \
     -testLanguage "$language" -testRegion US \
     SWIFT_TREAT_WARNINGS_AS_ERRORS=YES || status=$?
 
