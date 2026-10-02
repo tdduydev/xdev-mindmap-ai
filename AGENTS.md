@@ -32,6 +32,7 @@ App **MindMap AI by xDev** cho macOS, iPadOS, iOS: Swift, SwiftUI, SwiftData, kh
 ## Trước khi merge
 - Không có CI trên GitHub: chạy `scripts/ci.sh` tại máy (test lõi bằng `swift test`, test app trên macOS, build iOS Simulator; warning tính là lỗi). Cần Xcode 26 trở lên; nếu `xcode-select` còn trỏ vào CommandLineTools thì script tự dùng `/Applications/Xcode.app`.
 - Mỗi mục roadmap là một task `MM-*` trên Hive; tiêu chí xong ở note của task, thứ tự ở [[roadmap]].
+- Yêu cầu chi tiết ở SRS trên Hive ([[srs]], trang Hive, không mirror): note task ghi mã `FR-*`/`NFR-*`, đọc đúng trang chứa mã đó. Mục gắn [Đề xuất] chưa được chốt.
 - Đổi kiến trúc thì sửa `docs/` trong cùng commit. Quyết định lớn thì thêm ADR ở `docs/adr/` và một dòng trong `.xdev-hive/docs.json`. Các trang đó mirror từ repo, không sửa trên Hive.
 
 ## Code

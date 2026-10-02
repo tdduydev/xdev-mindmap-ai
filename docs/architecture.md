@@ -13,6 +13,7 @@ flowchart LR
     Domain["MindMapDomain<br/>MindMap, MindNode, MindEdge"]
     Graph["MindMapGraph<br/>GraphState, commands, engine"]
     Persistence["MindMapPersistence<br/>SwiftData, repository"]
+    Layout["MindMapLayout<br/>sizes in, frames out"]
     AICore["MindMapAICore<br/>provider protocol, context, proposals"]
     AIApple["MindMapAIApple<br/>Foundation Models provider, prompts"]
   end
@@ -22,6 +23,8 @@ flowchart LR
   Graph --> Domain
   Persistence --> Graph
   Persistence --> Domain
+  Layout --> Graph
+  Layout --> Domain
   Persistence -.later.-> CloudKit[(iCloud / CloudKit)]
   AICore --> Graph
   AIApple --> AICore
@@ -33,6 +36,7 @@ flowchart LR
 | `MindMapDomain` | Foundation | SwiftUI, SwiftData, CloudKit, AI |
 | `MindMapGraph` | Domain | SwiftUI, SwiftData, CloudKit, AI, screen coordinates |
 | `MindMapPersistence` | Domain, Graph, SwiftData | SwiftUI |
+| `MindMapLayout` | Domain, Graph, Foundation geometry types | SwiftUI, SwiftData ([[layout-engine]]) |
 | `MindMapAICore` | Domain, Graph, NaturalLanguage | FoundationModels, SwiftUI, SwiftData |
 | `MindMapAIApple` | AICore, FoundationModels (on-device model only) | Private Cloud Compute, SwiftUI, SwiftData |
 | App target | All of the above, SwiftUI | SwiftData records directly |
@@ -87,7 +91,7 @@ Errors that reach the user are categories with plain messages (could not save, c
 
 | Layer | How |
 | --- | --- |
-| Domain, Graph | Swift Testing in the package, `swift test` on the Mac host |
+| Domain, Graph, Layout | Swift Testing in the package, `swift test` on the Mac host |
 | Persistence | Swift Testing with in-memory and on-disk stores |
 | AI | `MindMapAICoreTests` with `MockAIProvider`; `MindMapAIAppleTests` run the real model only where `SystemLanguageModel.default.isAvailable` |
 | App | `MindMapAITests`, hosted on macOS: library and editor sessions end to end on an in-memory store |

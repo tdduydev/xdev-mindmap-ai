@@ -51,6 +51,17 @@ public struct GraphTransaction {
         changes.recordEdge(edge.id, before: nil, after: edge)
     }
 
+    /// Edits one edge. A body that changes nothing records nothing.
+    public mutating func updateEdge(_ id: EdgeID, _ body: (inout MindEdge) -> Void) throws {
+        guard let old = state.edges[id] else { throw GraphError.edgeNotFound(id) }
+        var new = old
+        body(&new)
+        guard new != old else { return }
+        new.updatedAt = now
+        state.upsertEdge(new)
+        changes.recordEdge(id, before: old, after: new)
+    }
+
     @discardableResult
     public mutating func removeEdge(_ id: EdgeID) throws -> MindEdge {
         guard let removed = state.removeEdge(id) else { throw GraphError.edgeNotFound(id) }
