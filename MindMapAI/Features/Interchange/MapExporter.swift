@@ -26,7 +26,7 @@ enum MapExporter {
         if options.format == .backup {
             return try await MapArchive.exportData(graph, imageData: imageData)
         }
-        let picture = await MapPicture.make(graph)
+        let picture = await MapPicture.make(graph, imageData: imageData)
         switch options.format {
         case .png:
             return try MapRenderer.png(

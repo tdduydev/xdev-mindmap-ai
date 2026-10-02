@@ -8,6 +8,8 @@ nonisolated enum UITestLaunch {
     /// Followed by a `UITestAI` raw value: a scripted model in place of Apple
     /// Intelligence, so AI screens can be tested on any machine.
     static let ai = "-uitest-ai"
+    /// Seeds the app's pasteboard in its own process for image-paste UI tests.
+    static let imageClipboard = "-uitest-image-clipboard"
 }
 
 /// How the scripted model of the UI test mode behaves.

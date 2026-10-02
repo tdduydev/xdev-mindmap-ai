@@ -17,6 +17,7 @@ struct CanvasDrawing {
     /// Topics drawn as shapes below the detail zoom.
     var fills: [SRGBColor: Path] = [:]
     var outlines: [Stroke: Path] = [:]
+    var imagePlaceholders: [SRGBColor: Path] = [:]
     var selection = Path()
     var selectionWidth: CGFloat = CanvasMetrics.selectionRingWidth
     /// Edges into AI suggestions, and suggestions drawn as shapes, in the AI style.
@@ -33,7 +34,17 @@ struct CanvasDrawing {
             scene: model.scene,
             rect: model.cullingRect,
             shapes: model.isDetailed ? nil : model.visibleTopics,
-            selection: model.session.selection
+            selection: model.session.selection,
+            imageFrame: { topic in
+                guard let image = topic.topicImage, let spec = model.textSpec(for: topic) else { return nil }
+                let size = image.displaySize(
+                    maximumWidth: Double(spec.maximumWidth - 2 * spec.horizontalPadding),
+                    maximumAspect: CanvasMetrics.imageMaxAspect
+                )
+                return CGRect(x: topic.frame.midX - size.width / 2,
+                    y: topic.frame.minY + spec.verticalPadding,
+                    width: size.width, height: size.height)
+            }
         ) { model.style(for: $0, colorScheme: colorScheme, contrast: contrast) }
     }
 
@@ -46,6 +57,7 @@ struct CanvasDrawing {
         rect: CGRect,
         shapes: [CanvasTopic]?,
         selection selected: NodeID?,
+        imageFrame: (CanvasTopic) -> CGRect? = { _ in nil },
         style: (CanvasTopic) -> TopicStyle
     ) -> CanvasDrawing {
         var drawing = CanvasDrawing()
@@ -76,6 +88,11 @@ struct CanvasDrawing {
                 continue
             }
             drawing.fills[style.fill, default: Path()].addPath(shape)
+            if let frame = imageFrame(topic) {
+                let placeholder = Path(roundedRect: frame,
+                    cornerRadius: CanvasMetrics.imageCornerRadius, style: .continuous)
+                drawing.imagePlaceholders[style.edgeColor, default: Path()].addPath(placeholder)
+            }
             if let stroke = style.stroke {
                 drawing.outlines[Stroke(color: stroke, width: style.strokeWidth), default: Path()].addPath(shape)
             }
@@ -125,6 +142,9 @@ struct EdgeLayer: View {
             }
             for (fill, path) in drawing.fills {
                 context.fill(path, with: .color(fill.color))
+            }
+            for (color, path) in drawing.imagePlaceholders {
+                context.stroke(path, with: .color(color.color.opacity(CanvasMetrics.imagePlaceholderOpacity)))
             }
             for (stroke, path) in drawing.outlines {
                 context.stroke(path, with: .color(stroke.color.color), lineWidth: stroke.width)

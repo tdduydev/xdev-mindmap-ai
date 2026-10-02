@@ -1,6 +1,7 @@
 import MindMapDomain
 import MindMapLayout
 import SwiftUI
+import UniformTypeIdentifiers
 #if os(macOS)
 import AppKit
 #endif
@@ -45,15 +46,20 @@ struct TopicView: View {
                     shape.strokeBorder(stroke.color, lineWidth: style.strokeWidth)
                 }
             }
-            TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
-                if isEditing {
-                    TopicTitleEditor(model: model, spec: spec, color: textColor, width: textWidth)
-                } else {
-                    title
+            VStack(spacing: topic.topicImage == nil ? 0 : CanvasMetrics.imageGap) {
+                if let image = topic.topicImage {
+                    LoadedTopicImage(image: image, level: topic.level, spec: spec, session: model.session)
                 }
-            } chip: { chip in
-                if let chipSpec {
-                    TopicChipView(chip: chip, spec: chipSpec, variant: variant, aiStyle: aiStyle, model: model)
+                TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
+                    if isEditing {
+                        TopicTitleEditor(model: model, spec: spec, color: textColor, width: textWidth)
+                    } else {
+                        title
+                    }
+                } chip: { chip in
+                    if let chipSpec {
+                        TopicChipView(chip: chip, spec: chipSpec, variant: variant, aiStyle: aiStyle, model: model)
+                    }
                 }
             }
         }
@@ -88,6 +94,26 @@ struct TopicView: View {
         .simultaneousGesture(selectionTap)
         // While the title is a text field, a drag selects text instead.
         .gesture(moveDrag, including: isEditing ? .subviews : .all)
+        .onDrop(of: [UTType.fileURL.identifier, UTType.image.identifier], isTargeted: nil) { providers in
+            guard !topic.isSuggestion, let provider = providers.first else { return false }
+            if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                _ = provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in
+                    guard let data else { return }
+                    Task { @MainActor in await model.session.addImage(data, to: topic.id) }
+                }
+                return true
+            }
+            guard provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) else { return false }
+            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                let url = item as? URL ?? (item as? Data).flatMap { URL(dataRepresentation: $0, relativeTo: nil) }
+                guard let url else { return }
+                let access = url.startAccessingSecurityScopedResource()
+                defer { if access { url.stopAccessingSecurityScopedResource() } }
+                guard let data = try? Data(contentsOf: url) else { return }
+                Task { @MainActor in await model.session.addImage(data, to: topic.id) }
+            }
+            return true
+        }
         .onHover { hovering in
             isHovering = hovering
             model.setHovering(topic.id, part: .card, hovering)
@@ -324,6 +350,17 @@ struct TopicContextMenu: View {
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         TopicLinkMenuItems(topic: topic, model: model)
+        Button(topic.topicImage == nil ? "Add Image…" : "Replace Image…") {
+            model.session.imagePickerTarget = topic.id
+        }
+        if let image = topic.topicImage {
+            Menu("Image Size") {
+                Button("Small") { model.session.setImageSize(CanvasMetrics.imageWidthSmall, for: image.id) }
+                Button("Medium") { model.session.setImageSize(CanvasMetrics.imageWidthMedium, for: image.id) }
+                Button("Large") { model.session.setImageSize(CanvasMetrics.imageWidthLarge, for: image.id) }
+            }
+            Button("Remove Image") { Task { await model.session.removeImage(from: topic.id) } }
+        }
         TagsMenu(session: model.session, targets: model.contextTargets(for: topic.id), onAddTag: { model.addTag(to: topic.id) })
         #if os(iOS)
         // Touch has no ⌘-click.
@@ -343,7 +380,7 @@ struct TopicContextMenu: View {
         Button("Copy") { perform { $0.copySelection() } }
         // Paste goes under the topic the menu opened on, even in a multi-selection.
         Button("Paste") { perform { $0.selection = topic.id; $0.paste() } }
-            .disabled(!model.session.clipboard.hasText)
+            .disabled(!model.session.canPaste)
         Divider()
         Button(topic.isCollapsed ? "Expand Topic" : "Collapse Topic") { model.toggleCollapsed(topic.id) }
             .disabled(topic.childCount == 0)
@@ -501,6 +538,7 @@ struct TopicAccessibility: ViewModifier {
             }
             .modifier(TagCustomContent(names: topic.tagNames))
             .modifier(TopicLinkAccessibility(link: topic.isSuggestion ? nil : topic.link))
+            .modifier(TopicImageAccessibility(image: topic.topicImage))
     }
 
     /// Accept and Discard for each suggested tag, as the chips offer them.

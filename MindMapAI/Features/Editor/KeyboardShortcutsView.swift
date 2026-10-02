@@ -50,6 +50,7 @@ struct KeyboardShortcutsView: View {
             Shortcut(keys: "⇧⌘E", action: "Edit Note"),
             Shortcut(keys: "⌘K", action: "Add Link…"),
             Shortcut(keys: "⇧⌘O", action: "Open Link"),
+            Shortcut(keys: "⌥⌘I", action: "Add Image…"),
             Shortcut(keys: "⇧⌘T", action: "Add Tag…"),
             Shortcut(keys: "⌥⇧⌘T", action: "Manage Tags…"),
             Shortcut(keys: "⌘D", action: "Duplicate Topic"),
