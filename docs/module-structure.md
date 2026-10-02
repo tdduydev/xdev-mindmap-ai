@@ -24,7 +24,7 @@ Packages/
 │  ├─ MindMapGraph            ✓
 │  ├─ MindMapPersistence      ✓, plus App Group store and CloudKit config (MM-6)
 │  ├─ MindMapLayout           ✓ (MM-4), see [[layout-engine]]
-│  ├─ MindMapInterchange      MM-10: Markdown, text, OPML ⇄ drafts → [GraphCommand]
+│  ├─ MindMapInterchange      ✓ Markdown and text (MM-10a), see [[interchange]]; OPML later
 │  ├─ MindMapSearch           index, tokenizing, ranking, `Embedder` protocol
 │  ├─ MindMapAICore           ✓ (MM-7): AIProvider, requests, AIProposal, ContextBuilder, ProposalTranslator, AICapabilities
 │  ├─ MindMapAIApple          ✓ (MM-7): Foundation Models provider, @Generable types, prompts catalog; Translation glue later

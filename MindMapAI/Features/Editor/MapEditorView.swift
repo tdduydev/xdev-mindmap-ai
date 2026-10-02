@@ -7,6 +7,7 @@ import SwiftUI
 struct MapEditorView: View {
     @Bindable var session: EditorSession
     let canvas: CanvasModel
+    @Bindable var assistant: AIAssistant
     @Environment(\.undoManager) private var undoManager
 
     var body: some View {
@@ -18,20 +19,37 @@ struct MapEditorView: View {
                 OutlineEditorView(session: session)
             }
         }
+        .safeAreaInset(edge: .top) {
+            AISuggestionBar(assistant: assistant)
+        }
         .safeAreaInset(edge: .bottom) {
             if session.saveFailed {
                 SaveFailedBanner()
             }
+        }
+        .sheet(item: $assistant.sheet, onDismiss: assistant.sheetDismissed) { sheet in
+            AISheet(assistant: assistant, sheet: sheet)
+        }
+        .inspector(isPresented: $session.isInspectorPresented) {
+            MapInspectorView(session: session)
         }
         .navigationTitle(session.map.title)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         #if os(macOS)
-        .onDeleteCommand(perform: session.deleteSelection)
+        .onDeleteCommand {
+            // Delete on a selected suggestion discards it rather than a topic.
+            if let suggestion = assistant.selectedSuggestion {
+                assistant.discard(suggestion)
+            } else {
+                session.deleteSelection()
+            }
+        }
         #endif
         .toolbar { toolbar }
         .focusedSceneValue(\.editorSession, session)
+        .focusedSceneValue(\.aiAssistant, assistant)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
@@ -69,6 +87,20 @@ struct MapEditorView: View {
                 Label("Delete", systemImage: "trash")
             }
             .disabled(!session.canDeleteSelection)
+        }
+        if assistant.service.showsEntryPoints {
+            ToolbarItem(placement: .primaryAction) {
+                AIToolbarMenu(assistant: assistant)
+            }
+        }
+        // After the primary actions, so it sits at the trailing edge above the inspector.
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                session.isInspectorPresented.toggle()
+            } label: {
+                Label("Inspector", systemImage: "sidebar.trailing")
+            }
+            .help(session.isInspectorPresented ? Text("Hide Inspector") : Text("Show Inspector"))
         }
     }
 }
