@@ -174,7 +174,7 @@ enum ExportPreferences {
 
 /// The default the export sheet starts from (FR-SET-07); the sheet's toggle changes it too.
 struct ExportSettingsSection: View {
-    @AppStorage(ExportPreferences.includeNotesKey) private var includeNotes = true
+    @AppStorage(ExportPreferences.includeNotesKey, store: AppDefaults.store) private var includeNotes = true
 
     var body: some View {
         Section {

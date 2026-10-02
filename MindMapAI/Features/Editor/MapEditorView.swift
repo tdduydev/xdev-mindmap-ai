@@ -89,6 +89,7 @@ struct MapEditorView: View {
             }
             .pickerStyle(.segmented)
             .help(Text("View As"))
+            .accessibilityIdentifier(AccessibilityID.Editor.presentation)
         }
         // Design system: a multi-selection shows its count in the toolbar.
         ToolbarItem {
@@ -102,10 +103,12 @@ struct MapEditorView: View {
             Button(action: session.undo) {
                 Label("Undo", systemImage: "arrow.uturn.backward")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.undo)
             .disabled(!session.canUndo)
             Button(action: session.redo) {
                 Label("Redo", systemImage: "arrow.uturn.forward")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.redo)
             .disabled(!session.canRedo)
         }
         ToolbarItemGroup(placement: .primaryAction) {
@@ -115,12 +118,15 @@ struct MapEditorView: View {
             Button(action: session.addChild) {
                 Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.addChild)
             Button(action: session.addSibling) {
                 Label("Add Sibling Topic", systemImage: "plus")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.addSibling)
             Button(role: .destructive, action: session.deleteSelection) {
                 Label("Delete Topic", systemImage: "trash")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.delete)
             .disabled(!session.canDeleteSelection)
             Button(action: voice.present) {
                 Label("Add Topics by Voice", systemImage: "mic")

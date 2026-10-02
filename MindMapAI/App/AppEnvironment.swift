@@ -13,20 +13,27 @@ final class AppEnvironment {
     let openRequests: MapOpenRequests
     /// One session per open map, whatever the number of windows showing it.
     let openMaps: OpenMaps
+    /// Writes the UI test fixture; nil outside the UI test mode.
+    private let seeding: Task<Void, Never>?
 
     init(
         repository: any MapRepository,
         spotlightIndex: any MapSearchIndex = SpotlightMapIndex(),
-        openRequests: MapOpenRequests = MapOpenRequests()
+        openRequests: MapOpenRequests = MapOpenRequests(),
+        seeding: Task<Void, Never>? = nil
     ) {
         self.repository = repository
         self.spotlightIndex = spotlightIndex
         self.openRequests = openRequests
         openMaps = OpenMaps(repository: repository)
+        self.seeding = seeding
     }
 
     static func live() -> AppLaunch {
         do {
+            if let mode = UITestMode.current {
+                return .ready(try uiTest(mode))
+            }
             return .ready(AppEnvironment(repository: try PersistenceController.makeRepository(at: storeLocation)))
         } catch {
             Log.persistence.fault("The store did not open: \(error.localizedDescription, privacy: .public)")
@@ -55,6 +62,31 @@ final class AppEnvironment {
             openMap: { openRequests.open($0) },
             readClipboard: { Clipboard.string }
         )
+    }
+
+    /// Waits until the store holds what the library should show first.
+    func prepare() async {
+        await seeding?.value
+    }
+
+    /// An in-memory store, so UI tests never see or touch the person's maps,
+    /// and no Spotlight index, so fixture maps never show in the Mac's search.
+    private static func uiTest(_ mode: UITestMode) throws -> AppEnvironment {
+        let repository = try PersistenceController.makeRepository(at: .inMemory)
+        let maps = try mode.fixture.makeMaps()
+        let seeding = Task {
+            do {
+                for graph in maps.graphs {
+                    try await repository.create(graph)
+                }
+                for id in maps.favorites {
+                    try await repository.setFavorite(true, for: id)
+                }
+            } catch {
+                Log.persistence.fault("The UI test fixture was not saved: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        return AppEnvironment(repository: repository, spotlightIndex: NoSearchIndex(), seeding: seeding)
     }
 }
 

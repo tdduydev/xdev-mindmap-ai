@@ -18,6 +18,7 @@ struct LibraryView: View {
             ForEach(rows) { row in
                 let map = row.map
                 MapRow(map: map, excerpt: row.excerpt)
+                    .accessibilityIdentifier(AccessibilityID.Library.map)
                     .contextMenu { menu(for: map) }
                     .swipeActions {
                         Button(role: .destructive) {
@@ -28,6 +29,7 @@ struct LibraryView: View {
                     }
             }
         }
+        .accessibilityIdentifier(AccessibilityID.Library.list)
         .overlay {
             if model.isSearching {
                 if maps.isEmpty, model.searchedQuery == SearchQuery(model.searchText) {
@@ -48,6 +50,7 @@ struct LibraryView: View {
                 Button(action: create) {
                     Label("New Mind Map", systemImage: "plus")
                 }
+                .accessibilityIdentifier(AccessibilityID.Library.newMap)
             }
             if let transfer {
                 ToolbarItem(placement: .secondaryAction) {
@@ -128,6 +131,7 @@ struct LibraryView: View {
             } actions: {
                 Button("New Mind Map", action: create)
                     .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier(AccessibilityID.Library.newMap)
             }
         case .recent:
             ContentUnavailableView("No Recent Maps", systemImage: "clock", description: Text("Maps you edit appear here."))

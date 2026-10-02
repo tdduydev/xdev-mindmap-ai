@@ -28,43 +28,50 @@ enum Motion {
     /// Delay between AI suggestions fading in one after another.
     static let suggestionStagger: Double = 0.04
 
+    /// UI tests run with no animation (docs/testing.md), so a query never
+    /// finds a view halfway through moving.
+    private static func isStill(_ reduceMotion: Bool) -> Bool {
+        reduceMotion || UITestMode.isActive
+    }
+
     /// 180 ms with the standard curve; nil (no animation) with Reduce Motion.
     static func standard(reduceMotion: Bool) -> Animation? {
-        reduceMotion ? nil : Curve.standard.animation(duration: Duration.base)
+        isStill(reduceMotion) ? nil : Curve.standard.animation(duration: Duration.base)
     }
 
     /// A topic appearing: fade and scale in, or a quick fade with Reduce Motion.
     static func topicAdded(reduceMotion: Bool) -> Animation {
-        reduceMotion ? Curve.standard.animation(duration: Duration.fast) : Curve.enter.animation(duration: Duration.base)
+        if UITestMode.isActive { return Curve.standard.animation(duration: 0) }
+        return reduceMotion ? Curve.standard.animation(duration: Duration.fast) : Curve.enter.animation(duration: Duration.base)
     }
 
     /// Scale a new topic starts from; 1 with Reduce Motion, so it only fades.
     static func topicAddedScale(reduceMotion: Bool) -> CGFloat {
-        reduceMotion ? 1 : 0.96
+        isStill(reduceMotion) ? 1 : 0.96
     }
 
     /// A topic disappearing; removed without animation with Reduce Motion.
     static func topicDeleted(reduceMotion: Bool) -> Animation? {
-        reduceMotion ? nil : Curve.exit.animation(duration: Duration.fast)
+        isStill(reduceMotion) ? nil : Curve.exit.animation(duration: Duration.fast)
     }
 
     /// Topics moving to new frames after collapse, expand or relayout.
     static func relayout(reduceMotion: Bool) -> Animation? {
-        reduceMotion ? nil : Curve.standard.animation(duration: Duration.slow)
+        isStill(reduceMotion) ? nil : Curve.standard.animation(duration: Duration.slow)
     }
 
     /// Camera moves: zoom to fit, jump to a search result.
     static func camera(reduceMotion: Bool) -> Animation? {
-        reduceMotion ? nil : Curve.emphasized.animation(duration: Duration.slower)
+        isStill(reduceMotion) ? nil : Curve.emphasized.animation(duration: Duration.slower)
     }
 
     /// The AI suggestion at `index` fading in after the ones before it; all at
     /// once with Reduce Motion.
     static func suggestionArrival(index: Int, reduceMotion: Bool) -> Animation? {
-        reduceMotion ? nil : Curve.enter.animation(duration: Duration.base).delay(Double(index) * suggestionStagger)
+        isStill(reduceMotion) ? nil : Curve.enter.animation(duration: Duration.base).delay(Double(index) * suggestionStagger)
     }
 
     static func selection(reduceMotion: Bool) -> Animation? {
-        reduceMotion ? nil : Curve.standard.animation(duration: Duration.instant)
+        isStill(reduceMotion) ? nil : Curve.standard.animation(duration: Duration.instant)
     }
 }
