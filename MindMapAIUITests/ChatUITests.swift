@@ -103,8 +103,8 @@ struct ChatPage {
         return nil
     }
 
-    func open(file: StaticString = #filePath, line: UInt = #line) {
-        guard let entry = entryPoint() else {
+    func open(label: String = "Ask About This Map", file: StaticString = #filePath, line: UInt = #line) {
+        guard let entry = entryPoint(label: label) else {
             XCTFail("No Ask About This Map button", file: file, line: line)
             return
         }

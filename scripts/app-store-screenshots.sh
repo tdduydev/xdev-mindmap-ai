@@ -21,7 +21,8 @@ case "$appearance" in light|dark|all) ;; *) exit 64 ;; esac
 if [[ "$platform" == mac ]]; then
   destination='platform=macOS,arch=arm64'
 else
-  id=$(xcrun simctl list devices available | sed -n "s/.*$device (\([A-F0-9-]*\)) (.*/\1/p" | head -n 1)
+  # Agents share the machine: MINDMAP_SCREENSHOT_SIMULATOR picks a private simulator so captures never race another run.
+  id=${MINDMAP_SCREENSHOT_SIMULATOR:-$(xcrun simctl list devices available | sed -n "s/.*$device (\([A-F0-9-]*\)) (.*/\1/p" | head -n 1)}
   [[ -n "$id" ]] || { echo "Simulator unavailable: $device" >&2; exit 1; }
   destination="platform=iOS Simulator,id=$id"
   xcrun simctl boot "$id" 2>/dev/null || true

@@ -42,7 +42,7 @@ final class AppStoreScreenshotUITests: XCTestCase {
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
         third.library.show().open(title).show(.canvas)
         let chat = ChatPage(app: third.app)
-        chat.open()
+        chat.open(label: language == .vietnamese ? "Hỏi về sơ đồ này" : "Ask About This Map")
         chat.ask(language == .vietnamese ? "Thiết kế gồm những gì?" : "What is in Design?")
         chat.answers.firstMatch.waitToExist()
         capture("04-ask-map", in: third.app)
