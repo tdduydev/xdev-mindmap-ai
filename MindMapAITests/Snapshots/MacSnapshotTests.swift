@@ -125,7 +125,7 @@ struct MacSnapshotTests {
     // MARK: Paywall
 
     /// The product comes from MindMapAI.storekit, as in the IAP review screenshot.
-    @Test func paywall() async throws {
+    @Test(.storeKitTestLock) func paywall() async throws {
         let url = try #require(Bundle(for: SnapshotApp.self).url(forResource: "MindMapAI", withExtension: "storekit"))
         let session = try SKTestSession(contentsOf: url)
         session.disableDialogs = true

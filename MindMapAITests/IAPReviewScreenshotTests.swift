@@ -18,7 +18,7 @@ struct IAPReviewScreenshotTests {
     static let canvasSize = CGSize(width: 1440, height: 900)
     static let scale: CGFloat = 2
 
-    @Test(.enabled(if: ProcessInfo.processInfo.environment["MINDMAP_RENDER_IAP_SCREENSHOT"] == "1"))
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["MINDMAP_RENDER_IAP_SCREENSHOT"] == "1"), .storeKitTestLock)
     func rendersThePaywall() async throws {
         let url = try #require(
             Bundle.allBundles.lazy.compactMap { $0.url(forResource: "MindMapAI", withExtension: "storekit") }.first
