@@ -50,7 +50,10 @@ final class CanvasModel {
     /// A topic to scroll into view (and maybe edit) once the layout has it.
     @ObservationIgnored private var pendingReveal: (id: NodeID, edit: Bool)?
     @ObservationIgnored private var styles: [StyleKey: TopicStyle] = [:]
-    @ObservationIgnored let layoutOptions = LayoutOptions(
+    @ObservationIgnored let layoutOptions = CanvasModel.layoutOptions
+
+    /// Shared with export, so a picture of the map has the canvas's layout.
+    static let layoutOptions = LayoutOptions(
         horizontalSpacing: CanvasMetrics.layoutParentGap,
         verticalSpacing: CanvasMetrics.layoutSiblingGap
     )

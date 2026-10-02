@@ -85,6 +85,14 @@ enum CanvasMetrics {
     static let fitZoomLimits: ClosedRange<CGFloat> = zoomLimits.lowerBound...1
     /// Room left around the map by Zoom to Fit, in view points.
     static let fitPadding: CGFloat = 48
+    /// Room around the map in an exported PNG or PDF, in canvas points; wide
+    /// enough for a collapse badge beside an outermost topic.
+    static let exportPadding: CGFloat = 48
+    /// Paper margin of an exported PDF page, in PDF points (1/72 inch).
+    static let exportPageMargin: CGFloat = 36
+    /// The longest side of an exported PNG, in pixels. A larger map is drawn at
+    /// a lower scale rather than making an image other apps cannot open.
+    static let exportMaximumPixels: CGFloat = 16_384
     /// Room kept between a topic scrolled into view and the view's edge.
     static let revealMargin: CGFloat = 32
     /// Fraction of the visible size drawn beyond each edge, so panning does not

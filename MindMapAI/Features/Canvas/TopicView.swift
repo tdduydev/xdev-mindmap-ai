@@ -130,18 +130,7 @@ struct TopicView: View {
     }
 
     private var title: some View {
-        Group {
-            if topic.title.isEmpty {
-                Text("Untitled Topic").foregroundStyle(style.secondaryTextColor.color)
-            } else {
-                Text(verbatim: topic.title).foregroundStyle(textColor)
-            }
-        }
-        .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
-        .lineSpacing(spec.lineSpacing)
-        .multilineTextAlignment(.center)
-        .frame(width: textWidth)
-        .fixedSize(horizontal: false, vertical: true)
+        TopicTitleText(title: topic.title, spec: spec, color: textColor, placeholderColor: style.secondaryTextColor.color, width: textWidth)
     }
 
     /// A ring outside the box with a gap, so it reads on any fill (NFR-A11Y-07:
@@ -156,22 +145,14 @@ struct TopicView: View {
 
     /// The count of hidden topics, on the side away from the parent; a click expands.
     private var badge: some View {
-        // Alignment guides run outside the main actor; read the gap here.
-        let gap = CanvasMetrics.collapseBadgeGap
-        return Button {
+        Button {
             model.toggleCollapsed(topic.id)
         } label: {
-            Text(topic.hiddenDescendantCount, format: .number)
-                .font(Typography.Content.badge.font)
-                .foregroundStyle(style.badgeText.color)
-                .padding(.horizontal, Spacing.sm)
-                .frame(minWidth: CanvasMetrics.collapseBadgeHeight, minHeight: CanvasMetrics.collapseBadgeHeight)
-                .background(style.badgeFill.color, in: Capsule())
+            CollapseBadgeLabel(count: topic.hiddenDescendantCount, style: style)
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .alignmentGuide(.trailing) { $0[.leading] - gap }
-        .alignmentGuide(.leading) { $0[.trailing] + gap }
+        .modifier(CollapseBadgePlacement())
         // The topic element already offers Expand Topic.
         .accessibilityHidden(true)
     }
@@ -183,6 +164,58 @@ struct TopicView: View {
         #else
         0
         #endif
+    }
+}
+
+/// A topic's title as the card draws it, with the font, wrap width and line
+/// spacing `TopicMeasurer` measured; shared by the canvas and export.
+struct TopicTitleText: View {
+    let title: String
+    let spec: TopicTextSpec
+    let color: Color
+    let placeholderColor: Color
+    let width: CGFloat
+
+    var body: some View {
+        Group {
+            if title.isEmpty {
+                Text("Untitled Topic").foregroundStyle(placeholderColor)
+            } else {
+                Text(verbatim: title).foregroundStyle(color)
+            }
+        }
+        .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
+        .lineSpacing(spec.lineSpacing)
+        .multilineTextAlignment(.center)
+        .frame(width: width)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// The count of topics a collapsed branch hides.
+struct CollapseBadgeLabel: View {
+    let count: Int
+    let style: TopicStyle
+
+    var body: some View {
+        Text(count, format: .number)
+            .font(Typography.Content.badge.font)
+            .foregroundStyle(style.badgeText.color)
+            .padding(.horizontal, Spacing.sm)
+            .frame(minWidth: CanvasMetrics.collapseBadgeHeight, minHeight: CanvasMetrics.collapseBadgeHeight)
+            .background(style.badgeFill.color, in: Capsule())
+    }
+}
+
+/// Puts the badge just outside the card, on the side away from the parent,
+/// when used in an overlay aligned to that side.
+struct CollapseBadgePlacement: ViewModifier {
+    func body(content: Content) -> some View {
+        // Alignment guides run outside the main actor; read the gap here.
+        let gap = CanvasMetrics.collapseBadgeGap
+        return content
+            .alignmentGuide(.trailing) { $0[.leading] - gap }
+            .alignmentGuide(.leading) { $0[.trailing] + gap }
     }
 }
 
