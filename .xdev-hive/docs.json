@@ -10,6 +10,8 @@
     {"file": "docs/on-device-ai.md", "key": "on-device-ai", "title": "On-device AI"},
     {"file": "docs/cloudkit-sync.md", "key": "cloudkit-sync", "title": "iCloud sync"},
     {"file": "docs/privacy.md", "key": "privacy", "title": "Privacy"},
+    {"file": "docs/design-guidelines.md", "key": "design-guidelines", "title": "Design guidelines"},
+    {"file": "docs/app-store-readiness.md", "key": "app-store-readiness", "title": "App Store readiness"},
     {"file": "docs/roadmap.md", "split": "##", "folder": "roadmap", "folderTitle": "Roadmap", "prefix": "roadmap-", "intro": "folder", "short": true},
     {"file": "docs/adr/0001-backendless-native-ios.md", "key": "adr-0001", "title": "0001 Native, local-first, backendless", "parent": "adr"},
     {"file": "docs/adr/0002-core-swift-package.md", "key": "adr-0002", "title": "0002 Core in a Swift package", "parent": "adr"},
