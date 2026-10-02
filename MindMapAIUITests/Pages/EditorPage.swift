@@ -143,8 +143,9 @@ struct EditorPage {
         let content = presentation == .canvas ? canvas : outline
         segment.tap()
         // A tap that lands while a busy machine is still settling the editor is
-        // sometimes dropped; one more is harmless, since the segment only selects.
-        if !content.waitForExistence(timeout: MindMapApp.timeout / 3) {
+        // sometimes dropped (seen on the first test of a cold simulator); more
+        // are harmless, since the segment only selects.
+        for _ in 0..<2 where !content.waitForExistence(timeout: MindMapApp.timeout / 3) {
             segment.tap()
         }
         content.waitToExist(file: file, line: line)
