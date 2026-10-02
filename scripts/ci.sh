@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The check every change must pass before merging. There is no hosted CI, so
-# this runs locally: core tests on the Mac, app tests on macOS, then an iOS
-# Simulator build so the shared code keeps compiling for iPad and iPhone.
+# this runs locally: core tests on the Mac, app tests on macOS, a universal
+# macOS Release build, then an iOS Simulator build.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -25,6 +25,17 @@ xcodebuild test -quiet \
   -derivedDataPath "$derived" \
   -only-testing:MindMapAITests \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+
+step "Universal macOS Release build"
+xcodebuild build -quiet \
+  -project MindMapAI.xcodeproj -scheme MindMapAI \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -derivedDataPath "$derived" \
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+
+app_binary="$derived/Build/Products/Release/MindMap AI.app/Contents/MacOS/MindMap AI"
+lipo -verify_arch arm64 x86_64 "$app_binary"
 
 step "iOS Simulator build"
 xcodebuild build -quiet \
