@@ -21,9 +21,9 @@ final class OutlineUITests: XCTestCase {
         editor.renameOutlineTopic(UITestFixture.Title.design, to: "Prototype")
         editor.outlineTopic(titled: "Prototype").waitToExist()
 
-        editor.undoButton.tap()
+        editor.undoButton.tapOrClick()
         editor.outlineTopic(titled: UITestFixture.Title.design).waitToExist()
-        editor.redoButton.tap()
+        editor.redoButton.tapOrClick()
         editor.outlineTopic(titled: "Prototype").waitToExist()
     }
 
@@ -34,9 +34,9 @@ final class OutlineUITests: XCTestCase {
 
         editor.tap(.addSibling)
         editor.outlineTopics.waitForCount(Self.planRowCount + 1)
-        editor.undoButton.tap()
+        editor.undoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount)
-        editor.redoButton.tap()
+        editor.redoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount + 1)
     }
 
@@ -48,10 +48,10 @@ final class OutlineUITests: XCTestCase {
         // Research goes with Interviews below it.
         editor.tap(.delete)
         editor.outlineTopics.waitForCount(Self.planRowCount - 2)
-        editor.undoButton.tap()
+        editor.undoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount)
         editor.outlineTopic(titled: UITestFixture.Title.interviews).waitToExist()
-        editor.redoButton.tap()
+        editor.redoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount - 2)
     }
 
@@ -62,10 +62,10 @@ final class OutlineUITests: XCTestCase {
         editor.outlineDisclosures.waitForCount(2)
         let research = editor.outlineDisclosures.element(boundBy: 1)
 
-        research.tap()
+        research.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount - 1)
         XCTAssertFalse(editor.outlineTopic(titled: UITestFixture.Title.interviews).exists)
-        research.tap()
+        research.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount)
         editor.outlineTopic(titled: UITestFixture.Title.interviews).waitToExist()
     }

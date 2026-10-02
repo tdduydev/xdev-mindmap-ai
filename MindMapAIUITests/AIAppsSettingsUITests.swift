@@ -43,12 +43,12 @@ final class AIAppsSettingsUITests: XCTestCase {
         let settings = app.buttons[AccessibilityID.Sidebar.settings]
         // On iPhone the library is pushed over the sidebar, which has the button.
         if !settings.waitForExistence(timeout: MindMapApp.timeout / 3) {
-            app.navigationBars.buttons.firstMatch.tap()
+            app.navigationBars.buttons.firstMatch.tapOrClick()
         }
-        settings.waitToExist().tap()
+        settings.waitToExist().tapOrClick()
         app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].waitToExist()
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Settings.pane("aiApps")].exists)
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].tap()
+        app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].tapOrClick()
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Settings.aiAppsPrivacy].waitForExistence(timeout: 2))
     }
     #endif

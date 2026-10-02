@@ -44,12 +44,12 @@ struct LibraryPage {
             #if os(iOS)
             if !sidebar.exists {
                 // An open map on iPhone: back to the list, which is below it in the stack.
-                app.navigationBars.buttons.element(boundBy: 0).tap()
+                app.navigationBars.buttons.element(boundBy: 0).tapOrClick()
             }
             #endif
             if !list.waitForExistence(timeout: MindMapApp.timeout / 3) {
                 sidebar.waitToExist(file: file, line: line)
-                sidebar.cells.firstMatch.tap()
+                sidebar.cells.firstMatch.tapOrClick()
             }
         }
         list.waitToExist(file: file, line: line)
@@ -62,7 +62,7 @@ struct LibraryPage {
         #if os(iOS)
         // On iPhone the sidebar is the screen below the list.
         if !sectionRow(section).waitForExistence(timeout: MindMapApp.timeout / 3) {
-            app.navigationBars.buttons.element(boundBy: 0).tap()
+            app.navigationBars.buttons.element(boundBy: 0).tapOrClick()
         }
         #endif
         return sectionRow(section).waitToExist(file: file, line: line)
@@ -71,25 +71,25 @@ struct LibraryPage {
     /// Picks a section in the sidebar and waits for its list.
     @discardableResult
     func select(_ section: Section, file: StaticString = #filePath, line: UInt = #line) -> LibraryPage {
-        showSectionRow(section, file: file, line: line).tap()
+        showSectionRow(section, file: file, line: line).tapOrClick()
         list.waitToExist(file: file, line: line)
         return self
     }
 
     func createMap(file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
-        newMapButton.waitToExist(file: file, line: line).tap()
+        newMapButton.waitToExist(file: file, line: line).tapOrClick()
         return EditorPage(app: app).waitUntilOpen(file: file, line: line)
     }
 
     func open(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
         let row = map(titled: title).waitToExist(file: file, line: line)
         let editor = EditorPage(app: app)
-        row.tap()
+        row.tapOrClick()
         #if os(macOS)
         // The first click on a Mac sometimes only brings the window forward,
         // when a system prompt or another app held the focus at launch.
         if !editor.presentationPicker.waitForExistence(timeout: MindMapApp.timeout / 3) {
-            row.tap()
+            row.tapOrClick()
         }
         #endif
         return editor.waitUntilOpen(file: file, line: line)
@@ -99,7 +99,7 @@ struct LibraryPage {
     @discardableResult
     func search(_ text: String, file: StaticString = #filePath, line: UInt = #line) -> LibraryPage {
         let field = searchField.waitToExist(file: file, line: line)
-        field.tap()
+        field.tapOrClick()
         field.typeText(text)
         return self
     }

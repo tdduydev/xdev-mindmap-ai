@@ -87,3 +87,19 @@ extension XCUIElementQuery {
         XCTAssertEqual(result, .completed, "expected \(count) elements, found \(self.count)", file: file, line: line)
     }
 }
+
+@MainActor
+extension XCUIElement {
+    /// Taps on iOS, clicks on macOS. On macOS 27 with Xcode 27, `tap()` is
+    /// played back as a touch through a virtual HID device that WindowServer
+    /// refuses to create for testmanagerd (missing the
+    /// `com.apple.private.hid.client.event-dispatch` entitlement), so the tap
+    /// never lands and XCTest only times out after 5 s; `click()` sends a mouse event.
+    func tapOrClick() {
+        #if os(macOS)
+        click()
+        #else
+        tap()
+        #endif
+    }
+}

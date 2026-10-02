@@ -36,9 +36,9 @@ struct SettingsPage {
         let button = app.buttons[AccessibilityID.Sidebar.settings].firstMatch
         if !button.waitForExistence(timeout: MindMapApp.timeout / 3) {
             // On iPhone the sidebar sits below the list in the stack.
-            app.navigationBars.buttons.element(boundBy: 0).tap()
+            app.navigationBars.buttons.element(boundBy: 0).tapOrClick()
         }
-        button.waitToExist(file: file, line: line).tap()
+        button.waitToExist(file: file, line: line).tapOrClick()
         #endif
         let page = SettingsPage(app: app)
         page.paneButton(.general).waitToExist(file: file, line: line)
@@ -48,21 +48,21 @@ struct SettingsPage {
     /// Shows a pane: the Mac's tab, or the iOS row that pushes its page.
     @discardableResult
     func show(_ pane: Pane, file: StaticString = #filePath, line: UInt = #line) -> SettingsPage {
-        paneButton(pane).waitToExist(file: file, line: line).tap()
+        paneButton(pane).waitToExist(file: file, line: line).tapOrClick()
         return self
     }
 
     /// Picks an appearance by its position in the menu (System, Light, Dark),
     /// so it works in every language.
     func chooseAppearance(at index: Int, file: StaticString = #filePath, line: UInt = #line) {
-        appearancePicker.waitToExist(file: file, line: line).tap()
+        appearancePicker.waitToExist(file: file, line: line).tapOrClick()
         #if os(macOS)
         let item = appearancePicker.menuItems.element(boundBy: index)
         #else
         // The open menu is the only collection of buttons outside the form.
         let item = app.collectionViews.buttons.element(boundBy: index)
         #endif
-        item.waitToExist(file: file, line: line).tap()
+        item.waitToExist(file: file, line: line).tapOrClick()
     }
 
     /// The text the picker shows for the chosen option.
@@ -81,9 +81,9 @@ struct SettingsPage {
         #else
         // Done is on the list of panes only; a pane's page goes back to it first.
         if !doneButton.exists {
-            app.navigationBars.buttons.element(boundBy: 0).tap()
+            app.navigationBars.buttons.element(boundBy: 0).tapOrClick()
         }
-        doneButton.waitToExist().tap()
+        doneButton.waitToExist().tapOrClick()
         #endif
     }
 }
