@@ -18,11 +18,11 @@ final class AIAppsSettingsUITests: XCTestCase {
         toggle.waitToExist()
         XCTAssertEqual(toggle.value as? Int, 0, "AI Apps must be off by default")
         let status = app.staticTexts[AccessibilityID.Settings.aiAppsStatus]
-        XCTAssertEqual(status.waitToExist().label, "Off")
+        XCTAssertEqual(status.waitToExist().shownText, "Off")
 
         toggle.click()
         XCTAssertTrue(
-            app.staticTexts.matching(identifier: AccessibilityID.Settings.aiAppsStatus).matching(NSPredicate(format: "label == 'Ready'")).firstMatch
+            app.staticTexts.matching(identifier: AccessibilityID.Settings.aiAppsStatus).matching(NSPredicate(format: "label == 'Ready' OR value == 'Ready'")).firstMatch
                 .waitForExistence(timeout: MindMapApp.timeout),
             "the port did not open"
         )
@@ -33,7 +33,7 @@ final class AIAppsSettingsUITests: XCTestCase {
 
         app.descendants(matching: .any)[AccessibilityID.Settings.pane("aiApps")].click()
         toggle.click()
-        XCTAssertEqual(status.waitToExist().label, "Off")
+        XCTAssertEqual(status.waitToExist().shownText, "Off")
     }
     #else
     @MainActor

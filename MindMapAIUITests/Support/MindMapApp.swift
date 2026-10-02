@@ -102,4 +102,9 @@ extension XCUIElement {
         tap()
         #endif
     }
+
+    /// The text a static text shows: its label on iOS, its value on macOS.
+    var shownText: String {
+        label.isEmpty ? (value as? String ?? "") : label
+    }
 }

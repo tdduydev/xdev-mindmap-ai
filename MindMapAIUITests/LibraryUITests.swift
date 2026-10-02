@@ -58,7 +58,7 @@ final class LibraryUITests: XCTestCase {
         let library = MindMapApp.launch(fixture: .sample, language: .vietnamese).library
         // On iPhone the sidebar is the screen below All Maps; elsewhere it is beside the list.
         let allMaps = library.showSectionRow(.all)
-        XCTAssertTrue(allMaps.label.hasPrefix("Tất cả sơ đồ"), "sidebar row reads \(allMaps.label)")
+        XCTAssertTrue(allMaps.shownText.hasPrefix("Tất cả sơ đồ"), "sidebar row reads \(allMaps.shownText)")
 
         library.select(.favorites).maps.waitForCount(1)
         library.select(.all).maps.waitForCount(2)

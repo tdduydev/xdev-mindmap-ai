@@ -23,7 +23,7 @@ final class ChatUITests: XCTestCase {
         chat.ask("Where are the interviews?")
 
         let citation = chat.citation(titled: UITestFixture.Title.interviews).waitToExist()
-        XCTAssertTrue(chat.answers.firstMatch.label.contains(UITestFixture.Title.interviews))
+        XCTAssertTrue(chat.answers.firstMatch.shownText.contains(UITestFixture.Title.interviews))
         citation.tapOrClick()
         #if os(macOS)
         // Beside the map on the Mac, the panel stays while the topic is shown.
@@ -40,7 +40,7 @@ final class ChatUITests: XCTestCase {
         chat.ask("Weather?")
 
         let answer = chat.answers.firstMatch.waitToExist()
-        XCTAssertEqual(answer.label, "The map does not seem to cover that.")
+        XCTAssertEqual(answer.shownText, "The map does not seem to cover that.")
         XCTAssertFalse(chat.citations.firstMatch.exists)
     }
 

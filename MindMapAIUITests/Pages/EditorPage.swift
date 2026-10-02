@@ -121,9 +121,10 @@ struct EditorPage {
     /// Waits until the find status reads `text`.
     func waitForFindStatus(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
         let status = findStatus.waitToExist(file: file, line: line)
-        let matches = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", text), object: status)
+        // A static text keeps its text in the label on iOS and in the value on macOS.
+        let matches = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@ OR value == %@", text, text), object: status)
         let result = XCTWaiter().wait(for: [matches], timeout: MindMapApp.timeout)
-        XCTAssertEqual(result, .completed, "find status is \"\(status.label)\", expected \"\(text)\"", file: file, line: line)
+        XCTAssertEqual(result, .completed, "find status is \"\(status.shownText)\", expected \"\(text)\"", file: file, line: line)
     }
 
     @discardableResult
