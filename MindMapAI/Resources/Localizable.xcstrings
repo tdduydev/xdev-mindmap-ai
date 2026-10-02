@@ -803,6 +803,16 @@
         }
       }
     },
+    "Add Answer to Note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm câu trả lời vào ghi chú"
+          }
+        }
+      }
+    },
     "Add App" : {
       "localizations" : {
         "vi" : {
@@ -1036,6 +1046,16 @@
         }
       }
     },
+    "Add the answer to the note of “%@”" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm câu trả lời vào ghi chú của “%@”"
+          }
+        }
+      }
+    },
     "Add the next topic to the selection" : {
       "localizations" : {
         "vi" : {
@@ -1200,6 +1220,26 @@
         }
       }
     },
+    "Answer added to the note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã thêm câu trả lời vào ghi chú"
+          }
+        }
+      }
+    },
+    "Answer copied" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã sao chép câu trả lời"
+          }
+        }
+      }
+    },
     "App" : {
       "localizations" : {
         "vi" : {
@@ -1340,6 +1380,16 @@
         }
       }
     },
+    "Ask Again" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi lại"
+          }
+        }
+      }
+    },
     "Ask a Question" : {
       "localizations" : {
         "vi" : {
@@ -1376,6 +1426,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hỏi về sơ đồ này"
+          }
+        }
+      }
+    },
+    "Ask this question again for a new answer" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi lại câu này để có câu trả lời mới"
           }
         }
       }
@@ -1747,6 +1807,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sao chép"
+          }
+        }
+      }
+    },
+    "Copy Answer" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép câu trả lời"
+          }
+        }
+      }
+    },
+    "Copy the answer as plain text" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép câu trả lời dạng chữ thuần"
           }
         }
       }
@@ -3456,6 +3536,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chạm đúp vào nền canvas trống"
+          }
+        }
+      }
+    },
+    "Select one topic to add the answer to its note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn một chủ đề để thêm câu trả lời vào ghi chú của nó"
           }
         }
       }

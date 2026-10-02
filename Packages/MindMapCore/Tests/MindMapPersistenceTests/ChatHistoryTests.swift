@@ -103,6 +103,19 @@ struct ChatHistoryTests {
         #expect(try await repository.chatTurns(for: two.map.id) == [kept])
     }
 
+    @Test func deleteChatTurnDeletesOnlyThatTurn() async throws {
+        let graph = GraphState.newMap(title: "Retry")
+        try await repository.create(graph)
+        let kept = try turn("A", in: graph)
+        let replaced = try turn("B", in: graph)
+        try await repository.appendChatTurn(kept, to: graph.map.id, at: now)
+        try await repository.appendChatTurn(replaced, to: graph.map.id, at: now)
+
+        try await repository.deleteChatTurn(replaced.id, from: graph.map.id)
+
+        #expect(try await repository.chatTurns(for: graph.map.id) == [kept])
+    }
+
     @Test func deletingTheMapDeletesItsChat() async throws {
         let graph = GraphState.newMap(title: "Gone")
         try await repository.create(graph)

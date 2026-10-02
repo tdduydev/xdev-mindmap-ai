@@ -24,6 +24,12 @@ enum Snapshot {
     static let channelTolerance = 24
     /// The share of pixels that may differ: a few glyph edges, not a moved view.
     static let pixelTolerance = 0.002
+    /// A pixel only counts when no pixel this close in the other image matches
+    /// it, both ways round: text antialiasing on the shared Mac mini moves
+    /// glyph edges by a pixel between OS updates (MM-81), which failed every
+    /// scene with text, while a missing line or a changed colour still has no
+    /// match nearby.
+    static let neighbourRadius = 1
 
     /// The language of this run (`-testLanguage`), in each reference's name.
     static var language: String {
@@ -126,15 +132,23 @@ enum SnapshotWindow {
         try await Task.sleep(for: .milliseconds(600))
     }
 
-    /// The window once two captures a moment apart are the same: AppKit
+    /// The window once three captures a moment apart are the same: AppKit
     /// updates the toolbar and SwiftUI the environment a few frames after
-    /// the content, so a single capture now and then catches the window halfway.
+    /// the content, so a single capture now and then catches the window
+    /// halfway. Two were not enough: the first map window of a run sometimes
+    /// held a toolbar item blank for two captures (MM-81).
     static func stableCapture(_ window: NSWindow) async throws -> CGImage {
         var previous = try capture(window)
+        var unchanged = 0
         for _ in 0..<20 {
             try await Task.sleep(for: .milliseconds(250))
             let next = try capture(window)
-            if try Bitmap(next).pixels == Bitmap(previous).pixels { return next }
+            if try Bitmap(next).pixels == Bitmap(previous).pixels {
+                unchanged += 1
+                if unchanged == 2 { return next }
+            } else {
+                unchanged = 0
+            }
             previous = next
         }
         Issue.record("the window never stopped changing")
@@ -181,7 +195,7 @@ struct Bitmap {
         try #require(drawn)
     }
 
-    private init(width: Int, height: Int, pixels: [UInt8]) {
+    init(width: Int, height: Int, pixels: [UInt8]) {
         self.width = width
         self.height = height
         self.pixels = pixels
@@ -205,7 +219,7 @@ struct Bitmap {
             for channel in 0..<4 {
                 delta = max(delta, abs(Int(pixels[offset + channel]) - Int(reference.pixels[offset + channel])))
             }
-            if delta > Snapshot.channelTolerance {
+            if delta > Snapshot.channelTolerance, !matchesNearby(offset / 4, in: reference) {
                 changed += 1
                 diff.replaceSubrange(offset..<offset + 4, with: [255, 0, 0, 255])
             } else {
@@ -220,6 +234,28 @@ struct Bitmap {
             summary: "\(changed) pixels differ (\(percent)%)",
             diff: Bitmap(width: width, height: height, pixels: diff)
         )
+    }
+
+    /// Whether the pixel at `index` has a match within `Snapshot.neighbourRadius`
+    /// in `reference`, and its counterpart in `reference` one in this image.
+    private func matchesNearby(_ index: Int, in reference: Bitmap) -> Bool {
+        reference.hasPixel(near: index, matching: self) && hasPixel(near: index, matching: reference)
+    }
+
+    /// Whether a pixel around `index` is within `Snapshot.channelTolerance` of
+    /// `other`'s pixel at `index`.
+    private func hasPixel(near index: Int, matching other: Bitmap) -> Bool {
+        let x = index % width, y = index / width
+        let radius = Snapshot.neighbourRadius
+        for nearY in max(0, y - radius)...min(height - 1, y + radius) {
+            for nearX in max(0, x - radius)...min(width - 1, x + radius) {
+                let near = (nearY * width + nearX) * 4
+                if (0..<4).allSatisfy({ abs(Int(pixels[near + $0]) - Int(other.pixels[index * 4 + $0])) <= Snapshot.channelTolerance }) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     func png() throws -> Data {

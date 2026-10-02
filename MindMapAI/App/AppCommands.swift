@@ -297,6 +297,14 @@ struct MapCommands: Commands {
             .disabled(chat?.showsEntryPoints != true)
         Button("Clear Chat") { chat?.requestClear() }
             .disabled(chat?.canClear != true)
+        // The answer buttons on the last answer (MM-79). No keys yet: none
+        // has been approved, and ⌘C would steal Copy from the canvas.
+        Button("Copy Answer") { chat?.copyLastAnswer() }
+            .disabled(chat?.canCopyLastAnswer != true)
+        Button("Add Answer to Note") { chat?.addLastAnswerToNote() }
+            .disabled(chat?.canAddLastAnswerToNote != true)
+        Button("Ask Again") { chat?.askLastQuestionAgain() }
+            .disabled(chat?.canAskLastQuestionAgain != true)
         Divider()
         Button("Accept All Suggestions") { assistant?.acceptAll() }
             .keyboardShortcut(.return, modifiers: [.command, .control])

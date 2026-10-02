@@ -5,6 +5,7 @@ import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
 import MindMapTestSupport
+import Observation
 import Testing
 
 /// Ask in a map end to end without a model: `MockChatProvider` answers, a real
@@ -14,6 +15,8 @@ struct MapChatTests {
     let repository: SwiftDataMapRepository
     let chatProvider = MockChatProvider()
     let defaults: UserDefaults
+    /// What Copy put on the pasteboard; the tests leave the real one alone.
+    let copied = CopiedText()
 
     init() throws {
         repository = try PersistenceController.makeRepository(at: .inMemory)
@@ -42,7 +45,7 @@ struct MapChatTests {
         )
         await service.refresh()
         let assistant = AIAssistant(session: session, service: service, defaults: defaults, locale: Locale(identifier: "en_US"))
-        return MapChat(session: session, assistant: assistant, locale: Locale(identifier: "en_US"))
+        return MapChat(session: session, assistant: assistant, locale: Locale(identifier: "en_US"), copyText: { [copied] in copied.texts.append($0) })
     }
 
     private func node(_ title: String, in chat: MapChat) throws -> NodeID {
@@ -77,6 +80,20 @@ struct MapChatTests {
         #expect(chat.turns.map(\.answer) == ["The beta comes first [T2]."])
         #expect(!chat.session.canUndo, "asking never edits the map")
         #expect(chatProvider.questions.first?.scope == .map(chat.session.map.id))
+    }
+
+    @Test func theComposerHearsWhenAnAnswerEnds() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("The beta comes first.", citations: []))
+        chat.draft = "What comes first?"
+        chat.ask()
+        let ended = Flag()
+        withObservationTracking { _ = chat.isAnswering } onChange: { ended.set() }
+
+        await chat.answerSettled()
+
+        #expect(!chat.isAnswering)
+        #expect(ended.value, "Stop stays on screen unless isAnswering is observable")
     }
 
     @Test func theAnswerFollowsTheLanguageOfTheQuestion() async throws {
@@ -400,10 +417,181 @@ struct MapChatTests {
         #expect(try await repository.chatTurns(for: chat.session.map.id).isEmpty)
     }
 
+    // MARK: Answer actions (MM-79)
+
+    private func undoManager(for session: EditorSession) -> UndoManager {
+        let undoManager = UndoManager()
+        undoManager.groupsByEvent = false
+        session.undoManager = undoManager
+        return undoManager
+    }
+
+    @Test func copyPutsThePlainAnswerWithoutHandles() async throws {
+        let chat = try await open()
+        let beta = try citation("T2", "Beta", in: chat)
+        chatProvider.enqueue(.text("The beta comes first [T2].\nThen the budget [T1, T3].", citations: [beta]))
+        await ask("What comes first?", in: chat)
+        let entry = try #require(chat.entries.last)
+
+        #expect(chat.canCopyLastAnswer)
+        chat.copy(entry)
+
+        #expect(copied.texts == ["The beta comes first.\nThen the budget."])
+        #expect(!chat.session.canUndo, "copying never edits the map")
+    }
+
+    @Test func anUnfinishedAnswerCannotBeCopiedOrAdded() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.hang)
+        chat.draft = "Long?"
+        chat.ask()
+        let entry = try #require(chat.entries.last)
+
+        #expect(!chat.canCopy(entry))
+        #expect(!chat.canAddToNote(entry))
+        #expect(!chat.canAskAgain(entry), "Ask Again waits for the answer to stop")
+        chat.stop()
+        let stopped = try #require(chat.entries.last)
+        #expect(!chat.canCopy(stopped))
+        #expect(chat.canAskAgain(stopped))
+    }
+
+    @Test func addToNoteAppendsToTheSelectedTopicAsOneUndoStep() async throws {
+        let chat = try await open()
+        let session = chat.session
+        let planID = try node("Plan", in: chat)
+        session.perform(UpdateNodeCommand(nodeID: planID, .note("Earlier note\n")), named: "Edit Note")
+        // After the setup step: with no group open the undo manager would throw.
+        let undoManager = undoManager(for: session)
+        session.selection = planID
+        chatProvider.enqueue(.text("Start with the beta [T2].", citations: [try citation("T2", "Beta", in: chat)]))
+        await ask("What first?", in: chat)
+        let entry = try #require(chat.entries.last)
+        #expect(chat.noteTarget(for: entry) == planID, "the selection wins over the citation")
+
+        undoManager.beginUndoGrouping()
+        #expect(chat.addToNote(entry))
+        undoManager.endUndoGrouping()
+
+        #expect(session.engine.state.node(planID)?.note == "Earlier note\n\nStart with the beta.")
+        #expect(undoManager.undoActionName == String(localized: "Add Answer to Note"))
+
+        undoManager.undo()
+        #expect(session.engine.state.node(planID)?.note == "Earlier note\n")
+        #expect(undoManager.redoActionName == String(localized: "Add Answer to Note"))
+
+        undoManager.redo()
+        #expect(session.engine.state.node(planID)?.note == "Earlier note\n\nStart with the beta.")
+
+        await session.flush()
+        let stored = try #require(try await repository.loadGraph(for: session.map.id))
+        #expect(stored.node(planID)?.note == "Earlier note\n\nStart with the beta.")
+    }
+
+    @Test func withNothingSelectedTheFirstCitedTopicThatExistsGetsTheNote() async throws {
+        let chat = try await open()
+        let session = chat.session
+        let budgetID = try node("Budget", in: chat)
+        let gone = ChatCitation(handle: "T9", mapID: session.map.id, nodeID: NodeID(), title: "Deleted")
+        chatProvider.enqueue(.text("Keep the budget small [T9][T3].", citations: [gone, try citation("T3", "Budget", in: chat)]))
+        await ask("Budget?", in: chat)
+        session.selection = nil
+        let entry = try #require(chat.entries.last)
+
+        let undoManager = undoManager(for: session)
+        #expect(chat.noteTarget(for: entry) == budgetID)
+        undoManager.beginUndoGrouping()
+        #expect(chat.addToNote(entry))
+        undoManager.endUndoGrouping()
+        #expect(session.engine.state.node(budgetID)?.note == "Keep the budget small.")
+
+        undoManager.undo()
+        #expect(session.engine.state.node(budgetID)?.note == nil)
+        undoManager.redo()
+        #expect(session.engine.state.node(budgetID)?.note == "Keep the budget small.")
+    }
+
+    @Test func addToNoteNeedsOneTopic() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("No sources.", citations: []))
+        await ask("Anything?", in: chat)
+        chat.session.selection = nil
+        let entry = try #require(chat.entries.last)
+
+        #expect(chat.noteTarget(for: entry) == nil)
+        #expect(!chat.canAddLastAnswerToNote)
+        #expect(!chat.addToNote(entry))
+        #expect(!chat.session.engine.canUndo)
+    }
+
+    @Test func askAgainReplacesTheLastAnswerAndItsSavedTurn() async throws {
+        let chat = try await open()
+        let mapID = chat.session.map.id
+        chatProvider.enqueue(.text("One.", citations: []))
+        chatProvider.enqueue(.text("Two.", citations: []))
+        chatProvider.enqueue(.text("Two, better.", citations: []))
+        await ask("First?", in: chat)
+        await ask("Second?", in: chat)
+        let first = try #require(chat.entries.first)
+        #expect(!chat.canAskAgain(first), "only the last question can be asked again")
+
+        chat.askLastQuestionAgain()
+        await chat.answerSettled()
+
+        #expect(chat.entries.map(\.question) == ["First?", "Second?"])
+        #expect(chat.entries.map(\.displayAnswer) == ["One.", "Two, better."])
+        #expect(chatProvider.questions.last?.message.text == "Second?")
+        #expect(chatProvider.questions.last?.history.map(\.answer) == ["One."], "the model does not see the answer it replaces")
+        let saved = try await repository.chatTurns(for: mapID)
+        #expect(saved.map(\.answer) == ["One.", "Two, better."])
+    }
+
+    @Test func askAgainKeepsTheBranchOfTheQuestion() async throws {
+        let chat = try await open()
+        let planID = try node("Plan", in: chat)
+        chat.session.selection = planID
+        chat.asksAboutSelectedBranch = true
+        chatProvider.enqueue(.text("Beta.", citations: []))
+        chatProvider.enqueue(.text("Beta again.", citations: []))
+        await ask("What is here?", in: chat)
+        chat.session.selection = nil
+
+        chat.askLastQuestionAgain()
+        await chat.answerSettled()
+
+        #expect(chatProvider.questions.last?.message.branch?.nodeID == planID)
+        #expect(chat.entries.last?.branch?.nodeID == planID)
+    }
+
+    @Test func aFailedRetryLeavesNoStaleAnswerSaved() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("One.", citations: []))
+        chatProvider.enqueue(.failure(.guardrailViolation))
+        await ask("First?", in: chat)
+
+        chat.askLastQuestionAgain()
+        await chat.answerSettled()
+
+        #expect(chat.entries.last?.state == .failed(.rephrase))
+        #expect(try await repository.chatTurns(for: chat.session.map.id).isEmpty)
+        #expect(chat.canAskLastQuestionAgain, "a failed retry can be asked again")
+    }
+
     private struct OpenFailed: Error {}
+}
+
+/// What Copy wrote, in place of the pasteboard.
+final class CopiedText {
+    var texts: [String] = []
 }
 
 /// Ask in a map is free; nothing here should ask, but the service needs an answer.
 private struct NothingLocked: ProEntitlements {
     func allows(_ feature: ProFeature) -> Bool { true }
+}
+
+/// Set from an observation callback, read after the answer settles.
+nonisolated private final class Flag: @unchecked Sendable {
+    private(set) var value = false
+    func set() { value = true }
 }

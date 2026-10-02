@@ -193,7 +193,17 @@ Chosen by the product owner on 2026-10-03 (FR-AI-09, FR-AI-11).
 - **The answer says so:** the prompt gets "Scope: only the branch “…”. The tools read only this branch. Begin the answer by saying it covers this branch." The instructions stay fixed; the title is map content and goes in the prompt only. The panel also shows "Branch: <title>" above the answer, so the scope is stated even if the model leaves it out.
 - **Saved with the turn, no schema change:** `ChatTurn.branch`, kept in the existing `citationsData` of `ChatTurnRecord` (SchemaV3 unchanged). A whole-map turn still stores MM-55's plain citation array; a branch turn stores `{ "citations": […], "branch": { "nodeID", "title" } }` (`SavedCitations`). A build that reads only the array keeps the turn and loses that turn's chips.
 - **Menu bar:** no new command. The picker and the suggestions are controls in the panel, like the question field; the scope follows the canvas selection.
-- **Not built:** buttons on an answer and asking by voice, the other two of the product owner's four (separate tasks).
+- **Not built:** asking by voice (a separate task). Buttons on an answer came with MM-79 ([Buttons on an answer](#buttons-on-an-answer-mm-79)).
+
+## Buttons on an answer (MM-79)
+
+Chosen by the product owner on 2026-10-03 (FR-AI-10, FR-EDT-13). Under each answer, in `ChatPanel`, borderless buttons with `Metrics.minimumHitTarget`:
+
+- **Copy** (finished answers): puts `displayAnswer` on the pasteboard as plain text, so `[T3]` handles are left out (`Clipboard.copy`). VoiceOver hears "Answer copied". It never changes the map.
+- **Add to Note** (finished answers): appends the answer to a topic's note, after a blank line when the note has text, as one `UpdateNodeCommand(.note)` named "Add Answer to Note": one undo step, redo restores it. The topic is the selected one; with nothing selected, the first cited topic still in the map [Đề xuất]; with several topics selected, or no selection and no citation, the button is disabled (its help says "Select one topic to add the answer to its note"). The help names the topic that will get it. The text is the plain answer, without handles.
+- **Ask Again** (the last question only, once its answer is finished, stopped or failed; disabled while the model is not ready): asks the same question with the same scope (`branch`) in place of that answer. The conversation is rebuilt from the turns before it, so the model does not see the answer it replaces. The old saved turn is deleted at once (`ChatHistoryStore.deleteChatTurn`, no schema change) and the new answer is saved as a new turn when it finishes, so a retry that stops or fails leaves no stale answer in the store. An earlier question has later turns built on it, so it has no Ask Again.
+- **Menu bar:** AI ▸ Copy Answer, Add Answer to Note, Ask Again act on the last answer and are disabled when it does not allow them. No shortcuts: none is approved yet, and ⌘C must stay Copy for the canvas and text.
+- **Not here:** Create Topics from Answer belongs to MM-51 (suggestions from the chat).
 
 ## Testing
 
