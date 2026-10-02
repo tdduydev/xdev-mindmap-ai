@@ -204,6 +204,30 @@ struct CanvasModelTests {
         #expect(!canvas.beginEditingSelection())
     }
 
+    /// The menu's Delete key follows the canvas's focus and leaves a title
+    /// being typed alone (FR-KBD-01).
+    @Test func editingATitleKeepsTheDeleteKeyForTheText() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        let id = try await addChild("Research", to: rootID, in: canvas)
+        canvas.select(id)
+        #expect(!canvas.session.deleteKeyDeletesTopic, "the canvas does not have focus yet")
+
+        canvas.hasKeyboardFocus = true
+        #expect(canvas.session.keyboardFocus == .content)
+        #expect(canvas.session.deleteKeyDeletesTopic)
+
+        canvas.beginEditing(id)
+        #expect(canvas.session.keyboardFocus == .editingText)
+        #expect(!canvas.session.deleteKeyDeletesTopic)
+
+        canvas.commitEditing()
+        #expect(canvas.session.deleteKeyDeletesTopic)
+
+        canvas.hasKeyboardFocus = false
+        #expect(canvas.session.keyboardFocus == .elsewhere)
+    }
+
     @Test func deletingFromTheCanvasRemovesTheBranchAndUndoRestoresIt() async throws {
         let canvas = try await open()
         let rootID = try #require(canvas.session.rootID)

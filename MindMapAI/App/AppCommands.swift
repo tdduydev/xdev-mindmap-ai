@@ -1,4 +1,5 @@
 import MindMapAICore
+import MindMapDomain
 import SwiftUI
 
 /// What the menus can act on in the frontmost window.
@@ -60,6 +61,13 @@ struct MapCommands: Commands {
                 .keyboardShortcut("0", modifiers: [.command, .option])
                 .disabled(canvas?.canZoomToFit != true)
             Divider()
+            Picker("Theme", selection: themeBinding) {
+                ForEach(MindMapTheme.allCases) { theme in
+                    Text(theme.title).tag(theme)
+                }
+            }
+            .disabled(editor == nil)
+            Divider()
         }
 
         CommandMenu("Topic") {
@@ -90,6 +98,7 @@ struct MapCommands: Commands {
             .disabled(editor?.canToggleSelection != true)
             Divider()
             Button("Delete Topic") { editor?.deleteSelection() }
+                .keyboardShortcut(deleteTopicShortcut)
                 .disabled(editor?.canDeleteSelection != true)
         }
 
@@ -146,6 +155,20 @@ struct MapCommands: Commands {
         Button("Cancel AI Request") { assistant?.cancel() }
             .keyboardShortcut(".")
             .disabled(assistant?.isWorking != true)
+    }
+
+    /// The bare Delete key comes and goes with focus, so it stays with text
+    /// fields and with a selected suggestion (see `EditorSession.deleteKeyDeletesTopic`).
+    private var deleteTopicShortcut: KeyboardShortcut? {
+        guard editor?.deleteKeyDeletesTopic == true, assistant?.holdsDeleteKey != true else { return nil }
+        return KeyboardShortcut(.delete, modifiers: [])
+    }
+
+    private var themeBinding: Binding<MindMapTheme> {
+        Binding(
+            get: { editor?.map.theme ?? .standard },
+            set: { editor?.changeTheme(to: $0) }
+        )
     }
 
     private func presentationBinding(_ presentation: EditorPresentation) -> Binding<Bool> {

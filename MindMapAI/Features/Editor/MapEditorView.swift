@@ -30,11 +30,17 @@ struct MapEditorView: View {
         .sheet(item: $assistant.sheet, onDismiss: assistant.sheetDismissed) { sheet in
             AISheet(assistant: assistant, sheet: sheet)
         }
-        .navigationTitle(session.map.title)
+        .inspector(isPresented: $session.isInspectorPresented) {
+            MapInspectorView(session: session)
+        }
+        // The window title on the Mac: the map, never the app name.
+        .navigationTitle(session.displayTitle)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         #if os(macOS)
+        // Delete when the menu's Delete Topic shortcut is off: on a selected
+        // suggestion, or where SwiftUI did not report the content's focus.
         .onDeleteCommand {
             // Delete on a selected suggestion discards it rather than a topic.
             if let suggestion = assistant.selectedSuggestion {
@@ -78,15 +84,15 @@ struct MapEditorView: View {
         }
         ToolbarItemGroup(placement: .primaryAction) {
             Button(action: session.addChild) {
-                Label("Add Child", systemImage: "arrow.turn.down.right")
+                Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }
             .accessibilityIdentifier(AccessibilityID.Editor.addChild)
             Button(action: session.addSibling) {
-                Label("Add Sibling", systemImage: "plus")
+                Label("Add Sibling Topic", systemImage: "plus")
             }
             .accessibilityIdentifier(AccessibilityID.Editor.addSibling)
             Button(role: .destructive, action: session.deleteSelection) {
-                Label("Delete", systemImage: "trash")
+                Label("Delete Topic", systemImage: "trash")
             }
             .accessibilityIdentifier(AccessibilityID.Editor.delete)
             .disabled(!session.canDeleteSelection)
@@ -95,6 +101,15 @@ struct MapEditorView: View {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
             }
+        }
+        // After the primary actions, so it sits at the trailing edge above the inspector.
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                session.isInspectorPresented.toggle()
+            } label: {
+                Label("Inspector", systemImage: "sidebar.trailing")
+            }
+            .help(session.isInspectorPresented ? Text("Hide Inspector") : Text("Show Inspector"))
         }
     }
 }

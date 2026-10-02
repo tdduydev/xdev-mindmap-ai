@@ -6,6 +6,7 @@ import SwiftUI
 struct OutlineEditorView: View {
     @Bindable var session: EditorSession
     @FocusState private var focusedNode: NodeID?
+    @FocusState private var isListFocused: Bool
 
     var body: some View {
         List(selection: $session.selection) {
@@ -19,6 +20,7 @@ struct OutlineEditorView: View {
                 )
             }
         }
+        .focused($isListFocused)
         .accessibilityIdentifier(AccessibilityID.Outline.list)
         .overlay {
             if session.rows.isEmpty {
@@ -38,7 +40,16 @@ struct OutlineEditorView: View {
         }
         .onChange(of: focusedNode) { _, node in
             if let node { session.selection = node }
+            reportKeyboardFocus()
         }
+        .onChange(of: isListFocused) { reportKeyboardFocus() }
+        .onAppear(perform: reportKeyboardFocus)
+    }
+
+    /// Delete Topic's bare-Delete shortcut follows this (see `EditorSession.deleteKeyDeletesTopic`).
+    private func reportKeyboardFocus() {
+        let focus: EditorSession.KeyboardFocus = focusedNode != nil ? .editingText : isListFocused ? .content : .elsewhere
+        session.reportKeyboardFocus(focus, from: .outline)
     }
 }
 

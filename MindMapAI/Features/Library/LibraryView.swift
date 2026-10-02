@@ -91,8 +91,12 @@ struct LibraryView: View {
     private var emptyState: some View {
         switch section {
         case .all:
+            // The first screen of a new install, so it carries the logo (FR-LIB-08).
             ContentUnavailableView {
-                Label("Start with one thought.", systemImage: "point.3.connected.trianglepath.dotted")
+                VStack(spacing: Spacing.lg) {
+                    BrandMark()
+                    Text("Start with one thought.")
+                }
             } actions: {
                 Button("New Mind Map", action: create)
                     .buttonStyle(.borderedProminent)

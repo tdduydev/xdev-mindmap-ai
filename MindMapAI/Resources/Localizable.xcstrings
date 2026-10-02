@@ -223,16 +223,6 @@
         }
       }
     },
-    "Add Child" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thêm chủ đề con"
-          }
-        }
-      }
-    },
     "Add Child Topic" : {
       "localizations" : {
         "vi" : {
@@ -249,16 +239,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm liên kết"
-          }
-        }
-      }
-    },
-    "Add Sibling" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thêm chủ đề cùng cấp"
           }
         }
       }
@@ -504,11 +484,22 @@
       }
     },
     "Central Topic" : {
+      "comment" : "Glossary: the one topic at the centre of a map is “chủ đề trung tâm”, never “root” or “gốc”.",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chủ đề trung tâm"
+          }
+        }
+      }
+    },
+    "Change Theme" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi bộ màu"
           }
         }
       }
@@ -953,6 +944,26 @@
         }
       }
     },
+    "Graphite" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Graphite"
+          }
+        }
+      }
+    },
+    "Hide Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn bảng thông tin"
+          }
+        }
+      }
+    },
     "Ideas" : {
       "localizations" : {
         "vi" : {
@@ -979,6 +990,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sang tiếng Việt"
+          }
+        }
+      }
+    },
+    "Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bảng thông tin"
           }
         }
       }
@@ -1029,6 +1050,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang tìm chủ đề còn thiếu…"
+          }
+        }
+      }
+    },
+    "Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ"
           }
         }
       }
@@ -1095,6 +1126,9 @@
           }
         }
       }
+    },
+    "MindMap AI by xDev" : {
+      "shouldTranslate" : false
     },
     "MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support." : {
       "localizations" : {
@@ -1476,6 +1510,16 @@
         }
       }
     },
+    "Show Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện bảng thông tin"
+          }
+        }
+      }
+    },
     "Simpler" : {
       "localizations" : {
         "vi" : {
@@ -1502,6 +1546,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tách chủ đề"
+          }
+        }
+      }
+    },
+    "Standard" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiêu chuẩn"
           }
         }
       }
@@ -1672,6 +1726,16 @@
         }
       }
     },
+    "Theme" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ màu"
+          }
+        }
+      }
+    },
     "Think. Draw. Connect." : {
       "shouldTranslate" : false
     },
@@ -1736,6 +1800,7 @@
       }
     },
     "Topic" : {
+      "comment" : "Glossary: “topic” is always “chủ đề”, never “node” or “nút”. English buttons, menu items and titles use Title Case (“Add Child Topic”); Vietnamese uses sentence case (“Thêm chủ đề con”).",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -1796,6 +1861,7 @@
       }
     },
     "Untitled Map" : {
+      "comment" : "Glossary: “map” is always “sơ đồ”, never “bản đồ”; “mind map”, as in “New Mind Map”, is also “sơ đồ”.",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -1825,12 +1891,12 @@
         }
       }
     },
-    "Version %@ (%@)" : {
+    "Version" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phiên bản %1$@ (%2$@)"
+            "value" : "Phiên bản"
           }
         }
       }
@@ -1895,8 +1961,15 @@
         }
       }
     },
-    "by xDev" : {
-      "shouldTranslate" : false
+    "xDev Blue" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "xDev Blue"
+          }
+        }
+      }
     },
     "xDev Servers" : {
       "localizations" : {

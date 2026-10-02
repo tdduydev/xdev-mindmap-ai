@@ -14,7 +14,7 @@ extension MapRecord {
             createdAt: createdAt,
             updatedAt: updatedAt,
             isFavorite: isFavorite,
-            theme: MindMapTheme(rawValue: themeRaw) ?? .standard,
+            theme: MindMapTheme(storedValue: themeRaw),
             layoutConfiguration: LayoutConfiguration(style: LayoutStyle(rawValue: layoutStyleRaw) ?? .horizontalTree)
         )
     }

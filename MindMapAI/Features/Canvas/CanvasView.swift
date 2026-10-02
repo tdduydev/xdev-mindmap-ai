@@ -80,7 +80,9 @@ struct CanvasView: View {
             model.setTextSpecs(textSpecs)
             model.revealSelection()
             model.takeFocusRequest()
+            model.hasKeyboardFocus = isFocused
         }
+        .onChange(of: isFocused) { _, focused in model.hasKeyboardFocus = focused }
         .onChange(of: dynamicTypeSize) { model.setTextSpecs(textSpecs) }
         .onChange(of: session.focusRequest) { model.takeFocusRequest() }
         .onChange(of: session.selection) {
