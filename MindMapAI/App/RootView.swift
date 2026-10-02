@@ -37,7 +37,7 @@ struct RootView: View {
                 )
             }
         }
-        .task { await library.load() }
+        .task { await library.observeChanges() }
         // FR-AI-01: Apple Intelligence can be turned on or off while the app is away.
         .task { await ai.refresh() }
         .onChange(of: scenePhase) { _, phase in
