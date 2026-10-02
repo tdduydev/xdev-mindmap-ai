@@ -15,6 +15,32 @@ struct NodeTypeValuesTests {
         #expect(TopicLink.normalized("https://" + String(repeating: "a", count: TopicLink.maximumLength)) == nil)
     }
 
+    @Test func typedLinksGetASchemeAndEncoding() throws {
+        #expect(try TopicLink.validated("name@example.com")?.string == "mailto:name@example.com")
+        #expect(try TopicLink.validated("example.com:8080/a")?.string == "https://example.com:8080/a")
+        #expect(try TopicLink.validated("https://example.com/a b")?.string == "https://example.com/a%20b")
+        #expect(try TopicLink.validated("https://vi.wikipedia.org/wiki/Hà_Nội")?.url != nil)
+        #expect(try TopicLink.validated(" \n ") == nil)
+    }
+
+    @Test func refusedLinksSayWhy() {
+        #expect(throws: TopicLinkError.unsupportedScheme) { try TopicLink.validated("file:///etc/hosts") }
+        #expect(throws: TopicLinkError.unsupportedScheme) { try TopicLink.validated("javascript:alert(1)") }
+        #expect(throws: TopicLinkError.unsupportedScheme) { try TopicLink.validated("data:text/html,hi") }
+        #expect(throws: TopicLinkError.missingHost) { try TopicLink.validated("https://") }
+        #expect(throws: TopicLinkError.missingAddress) { try TopicLink.validated("mailto:") }
+        #expect(throws: TopicLinkError.tooLong) {
+            try TopicLink.validated("https://example.com/" + String(repeating: "a", count: TopicLink.maximumLength))
+        }
+    }
+
+    @Test func linksAreNamedByHostOrAddress() {
+        #expect(TopicLink(string: "https://example.com/private?token=1").displayName == "example.com")
+        #expect(TopicLink(string: "mailto:team@example.com").displayName == "team@example.com")
+        #expect(TopicLink(string: "mailto:team@example.com").isMail)
+        #expect(TopicLink(string: "obsidian://x").displayName == nil)
+    }
+
     /// A link this build cannot open is still kept as text.
     @Test func storedLinkKeepsTextItCannotOpen() {
         let link = TopicLink(string: "obsidian://open?vault=x")

@@ -104,6 +104,9 @@ struct OutlineRow: View {
             if !row.tags.isEmpty {
                 OutlineTagChips(tags: row.tags)
             }
+            if let link = row.node.link, let url = link.url {
+                OutlineLinkButton(link: link, url: url)
+            }
             if row.node.hasNote {
                 Image(systemName: "note.text")
                     .font(Typography.rowDetail)
@@ -119,6 +122,7 @@ struct OutlineRow: View {
             }
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
+        .modifier(TopicLinkAccessibility(link: row.node.link))
         .listRowBackground(isFindMatch ? Palette.searchMatchFill : nil)
         // Undo changes the title from outside; show it unless the user is typing here.
         .onChange(of: row.node.title) { _, title in

@@ -30,7 +30,8 @@ public enum PlainTextOutline {
 
             while let last = open.last, last.column >= column { open.removeLast() }
             let depth = open.last.map { $0.depth + 1 } ?? 0
-            _ = builder.add(depth: depth, title: title(from: content))
+            let (text, link) = trailingLink(title(from: content))
+            _ = builder.add(depth: depth, title: text, link: link)
             open.append((column, depth))
         }
         return builder.finish()
@@ -46,7 +47,11 @@ public enum PlainTextOutline {
         var lines: [String] = []
         for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
             let indent = String(repeating: "\t", count: depth)
-            lines.append(indent + escapedTitle(TextLines.singleLine(node.title)))
+            var title = escapedTitle(TextLines.singleLine(node.title))
+            if let link = node.link, link.url != nil {
+                title += title.isEmpty ? "<\(link.string)>" : " <\(link.string)>"
+            }
+            lines.append(indent + title)
             guard includeNotes, let noteLines = TextLines.noteLines(node.note) else { continue }
             for noteLine in noteLines {
                 let text = noteLine.trimmingTrailingWhitespace()
@@ -73,6 +78,17 @@ public enum PlainTextOutline {
         }
         if ["-", "*", "+", "•"].contains(content) { return "" }
         return String(content)
+    }
+
+    /// `Title <https://example.com>`: a trailing `<…>` with an allowed scheme
+    /// is the topic's link. Any other `<…>` stays in the title.
+    private static func trailingLink(_ title: String) -> (String, TopicLink?) {
+        guard title.hasSuffix(">"), let open = title.lastIndex(of: "<") else { return (title, nil) }
+        let inner = title[title.index(after: open)..<title.index(before: title.endIndex)]
+        guard inner.contains(":"), !inner.contains(where: \.isWhitespace),
+              let link = TopicLink.normalized(String(inner))
+        else { return (title, nil) }
+        return (String(title[..<open].trimmingTrailingWhitespace()), link)
     }
 
     private static func escapedTitle(_ title: String) -> String {

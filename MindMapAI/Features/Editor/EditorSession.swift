@@ -48,6 +48,8 @@ final class EditorSession {
     var isInspectorPresented = false
     /// A topic whose note field in the inspector should take focus (Topic ▸ Edit Note).
     var noteFocusRequest: NodeID?
+    /// The topic whose link sheet shows (Topic ▸ Add Link…, FR-ORG-26).
+    var linkEditorTarget: NodeID?
     /// Asks the inspector's tag field to take focus (Topic ▸ Add Tag…).
     var tagFieldFocusRequest = false
     /// Whether Manage Tags shows.
@@ -479,11 +481,12 @@ final class EditorSession {
     func connect(_ source: NodeID, to target: NodeID, type: EdgeType = .relationship, label: String? = nil) -> EdgeID? {
         let id = EdgeID()
         let command = ConnectNodesCommand(edgeID: id, from: source, to: target, type: type, label: label)
-        return perform(command, named: String(localized: "Add Link")) ? id : nil
+        // "Link" is the URL on a topic; a link between two topics is a Connection.
+        return perform(command, named: String(localized: "Add Connection")) ? id : nil
     }
 
-    func removeLink(_ id: EdgeID) {
-        perform(RemoveEdgeCommand(edgeID: id), named: String(localized: "Remove Link"))
+    func removeConnection(_ id: EdgeID) {
+        perform(RemoveEdgeCommand(edgeID: id), named: String(localized: "Remove Connection"))
     }
 
     func collapseAll() {

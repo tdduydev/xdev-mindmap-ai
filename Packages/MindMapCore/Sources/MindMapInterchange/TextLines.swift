@@ -1,4 +1,5 @@
 import Foundation
+import MindMapDomain
 
 /// Line handling shared by the parsers and exporters.
 enum TextLines {
@@ -70,8 +71,8 @@ struct DraftBuilder {
 
     var lastIndex: Int? { items.indices.last }
 
-    mutating func add(depth: Int, title: String) -> Int {
-        items.append(OutlineDraft.Item(depth: depth, title: title))
+    mutating func add(depth: Int, title: String, link: TopicLink? = nil) -> Int {
+        items.append(OutlineDraft.Item(depth: depth, title: title, link: link))
         notes.append([])
         return items.count - 1
     }

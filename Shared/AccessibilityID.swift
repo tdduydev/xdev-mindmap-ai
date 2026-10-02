@@ -28,6 +28,7 @@ nonisolated enum AccessibilityID {
         static let addSibling = "editor.addSibling"
         static let delete = "editor.delete"
         static let find = "editor.find"
+        static let inspector = "editor.inspector"
     }
 
     /// Find in the open map (the bar above the canvas or the outline).
@@ -51,6 +52,16 @@ nonisolated enum AccessibilityID {
         static let canvas = "canvas"
         static let topic = "canvas.topic"
         static let addCentralTopic = "canvas.addCentralTopic"
+    }
+
+    /// A topic's URL link (FR-ORG-26).
+    enum Link {
+        static let field = "link.field"
+        static let save = "link.save"
+        static let remove = "link.remove"
+        static let cancel = "link.cancel"
+        static let error = "link.error"
+        static let open = "link.open"
     }
 
     enum Chat {

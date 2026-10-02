@@ -555,6 +555,17 @@
         }
       }
     },
+    "Add Connection" : {
+      "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm kết nối"
+          }
+        }
+      }
+    },
     "Add Idea" : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -573,6 +584,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm liên kết"
+          }
+        }
+      }
+    },
+    "Add Link…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm liên kết…"
           }
         }
       }
@@ -693,6 +714,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm một chủ đề"
+          }
+        }
+      }
+    },
+    "Add a web address after “https://”." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy nhập địa chỉ web sau “https://”."
+          }
+        }
+      }
+    },
+    "Add an email address after “mailto:”." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy nhập địa chỉ email sau “mailto:”."
           }
         }
       }
@@ -1914,6 +1955,26 @@
         }
       }
     },
+    "Edit Link" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa liên kết"
+          }
+        }
+      }
+    },
+    "Edit Link…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa liên kết…"
+          }
+        }
+      }
+    },
     "Edit Note" : {
       "localizations" : {
         "vi" : {
@@ -2553,6 +2614,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sáng"
+          }
+        }
+      }
+    },
+    "Link" : {
+      "comment" : "Glossary: “Link” / “liên kết” is only the URL on a topic (FR-ORG-26); a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết"
           }
         }
       }
@@ -3370,12 +3442,32 @@
         }
       }
     },
+    "Only web and email links can be added." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ thêm được liên kết web và email."
+          }
+        }
+      }
+    },
     "Open Apple Intelligence Settings…" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mở cài đặt Apple Intelligence…"
+          }
+        }
+      }
+    },
+    "Open Link" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở liên kết"
           }
         }
       }
@@ -3791,6 +3883,16 @@
         }
       }
     },
+    "Remove Connection" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá kết nối"
+          }
+        }
+      }
+    },
     "Remove Link" : {
       "localizations" : {
         "vi" : {
@@ -4017,6 +4119,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chạy lệnh này trong Terminal."
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu"
           }
         }
       }
@@ -4961,6 +5073,26 @@
         }
       }
     },
+    "This isn’t a web or email address." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đây không phải địa chỉ web hay email."
+          }
+        }
+      }
+    },
+    "This link is too long." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết này quá dài."
+          }
+        }
+      }
+    },
     "This option comes with MindMap AI Pro." : {
       "localizations" : {
         "vi" : {
@@ -5397,6 +5529,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang chờ mạng"
+          }
+        }
+      }
+    },
+    "Web addresses and email addresses. Nothing is loaded until you open the link." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ web và địa chỉ email. Không có gì được tải cho tới khi bạn mở liên kết."
           }
         }
       }
