@@ -16,28 +16,37 @@ public struct GraphRepairResult: Sendable {
 /// dropping that content, the repair hangs it under the root where the user
 /// can see it. Only edges whose endpoints are gone are removed.
 ///
+/// A floating topic (no parent, a position) is left where it is; a position
+/// anywhere else is cleared, and a parentless topic without one is a detached
+/// branch as before.
+///
 /// Organization records are repaired after the tree: tag links whose topic is
 /// gone are deleted, links waiting for a tag that never arrived are deleted
-/// after `orphanedTagLinkLifetime`, duplicate map tags merge into the oldest,
-/// duplicate links keep the oldest, and boundaries shrink back to a valid run.
+/// after `orphanLifetime`, duplicate map tags merge into the oldest,
+/// duplicate links keep the oldest, boundaries and summaries shrink back to a
+/// valid run, a summary that cannot name its topic goes (the topic stays), and
+/// images whose topic is gone or that are a topic's second image go.
 ///
 /// Choices are deterministic (timestamps, then IDs), so two devices repairing
 /// the same data independently produce the same result.
 public enum GraphRepair {
-    /// How long a tag link may wait for its tag to sync before it is deleted:
-    /// long enough for a device that was offline for weeks [Đề xuất].
-    public static let orphanedTagLinkLifetime: TimeInterval = 30 * 24 * 60 * 60
+    /// How long a tag link may wait for its tag, or a summary for its topic,
+    /// to sync before it is deleted: long enough for a device that was
+    /// offline for weeks [Đề xuất].
+    public static let orphanLifetime: TimeInterval = 30 * 24 * 60 * 60
 
     public static func repair(_ state: GraphState, now: Date) throws -> GraphRepairResult {
         let issues = GraphValidator.validate(state)
         let expiredLinks = expiredTagLinks(in: state, now: now)
-        guard !issues.isEmpty || !expiredLinks.isEmpty else {
+        let expiredSummaries = expiredSummaries(in: state, now: now)
+        guard !issues.isEmpty || !expiredLinks.isEmpty || !expiredSummaries.isEmpty else {
             return GraphRepairResult(state: state, issues: [], changes: GraphChangeSet())
         }
 
         var transaction = GraphTransaction(state: state, now: now)
         try removeBrokenEdges(in: &transaction)
         try ensureRoot(in: &transaction)
+        try clearStrayPositions(in: &transaction)
 
         if let rootID = transaction.state.map.rootNodeID {
             let remaining = GraphValidator.validate(transaction.state)
@@ -56,7 +65,12 @@ public enum GraphRepair {
         try removeDanglingTagLinks(in: &transaction)
         try mergeDuplicateTags(in: &transaction)
         try removeDuplicateTagLinks(in: &transaction)
+        for id in expiredSummaries where transaction.state.groups[id] != nil {
+            try transaction.removeGroup(id)
+        }
+        try removeInvalidSummaries(in: &transaction)
         try repairGroups(in: &transaction)
+        try repairImages(in: &transaction)
 
         return GraphRepairResult(state: transaction.state, issues: issues, changes: transaction.changes)
     }
@@ -65,9 +79,51 @@ public enum GraphRepair {
 
     private static func expiredTagLinks(in state: GraphState, now: Date) -> [NodeTagID] {
         state.nodeTags.values
-            .filter { state.tags[$0.tagID] == nil && now.timeIntervalSince($0.createdAt) > orphanedTagLinkLifetime }
+            .filter { state.tags[$0.tagID] == nil && now.timeIntervalSince($0.createdAt) > orphanLifetime }
             .map(\.id)
             .sorted()
+    }
+
+    /// Summaries whose topic has not arrived within `orphanLifetime`.
+    private static func expiredSummaries(in state: GraphState, now: Date) -> [GroupID] {
+        state.groups.values
+            .filter { group in
+                group.kind == .summary
+                    && group.summaryNodeID.map { state.node($0) == nil } == true
+                    && now.timeIntervalSince(group.createdAt) > orphanLifetime
+            }
+            .map(\.id)
+            .sorted()
+    }
+
+    /// Before the runs are fixed: a summary topic that loses its summary
+    /// becomes an ordinary child and may be a run member again.
+    private static func removeInvalidSummaries(in transaction: inout GraphTransaction) throws {
+        for id in GraphValidator.invalidSummaries(in: transaction.state) {
+            try transaction.removeGroup(id)
+        }
+    }
+
+    private static func repairImages(in transaction: inout GraphTransaction) throws {
+        let state = transaction.state
+        for image in state.images.values.sorted(by: { $0.id < $1.id }) where state.node(image.nodeID) == nil {
+            try transaction.removeImage(image.id)
+        }
+        for id in GraphValidator.duplicateImages(in: transaction.state) {
+            try transaction.removeImage(id)
+        }
+    }
+
+    /// The tree wins over a position: on a topic with a parent, or on the root.
+    private static func clearStrayPositions(in transaction: inout GraphTransaction) throws {
+        let state = transaction.state
+        let stray = state.nodes.values
+            .filter { $0.position != nil && ($0.parentID != nil || $0.id == state.map.rootNodeID) }
+            .map(\.id)
+            .sorted()
+        for id in stray {
+            try transaction.updateNode(id) { $0.position = nil }
+        }
     }
 
     private static func removeDanglingTagLinks(in transaction: inout GraphTransaction) throws {
@@ -99,20 +155,20 @@ public enum GraphRepair {
         }
     }
 
-    /// Shrinks a boundary to the ends still under its parent, swaps ends that
+    /// Shrinks a boundary or summary to the ends still under its parent, swaps ends that
     /// are out of order, and deletes a boundary with no member left. Crossing
     /// boundaries from two devices are drawn as they are and left alone.
     private static func repairGroups(in transaction: inout GraphTransaction) throws {
         let state = transaction.state
         let broken = state.groups.values
-            .filter { $0.kind == .boundary && state.members(of: $0) == nil }
+            .filter { $0.kind.isRun && state.members(of: $0) == nil }
             .sorted { $0.id < $1.id }
         for group in broken {
             guard let parentID = group.parentNodeID, state.node(parentID) != nil else {
                 try transaction.removeGroup(group.id)
                 continue
             }
-            let siblings = state.childIDs(of: parentID)
+            let siblings = state.runSiblingIDs(of: parentID)
             let ends = [group.firstNodeID, group.lastNodeID].compactMap { $0.flatMap { siblings.firstIndex(of: $0) } }
             guard let low = ends.min(), let high = ends.max() else {
                 try transaction.removeGroup(group.id)
@@ -146,16 +202,21 @@ public enum GraphRepair {
             transaction.updateMap { $0.rootNodeID = newRootID }
         }
         if let rootID = transaction.state.map.rootNodeID {
-            try transaction.updateNode(rootID) { $0.parentID = nil }
+            try transaction.updateNode(rootID) { root in
+                root.parentID = nil
+                root.position = nil
+            }
         }
     }
 
-    /// Prefers a node that already has no parent, then the top of a branch whose
-    /// parent is gone, then any node; the oldest wins.
+    /// Prefers a node that already has no parent and no position, then the
+    /// top of a branch whose parent is gone, then a floating topic, then any
+    /// node; the oldest wins.
     private static func rootCandidate(in state: GraphState) -> NodeID? {
         let all = state.nodes.values.sorted(by: oldestFirst)
-        return all.first { $0.parentID == nil }?.id
+        return all.first { $0.parentID == nil && $0.position == nil }?.id
             ?? all.first { $0.parentID.map { state.node($0) == nil } ?? false }?.id
+            ?? all.first { $0.parentID == nil }?.id
             ?? all.first?.id
     }
 

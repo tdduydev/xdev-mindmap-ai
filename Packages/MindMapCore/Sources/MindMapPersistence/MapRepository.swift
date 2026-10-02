@@ -41,6 +41,10 @@ public protocol MapRepository: SharedTagActions {
     /// check `map.deletedAt`.
     func loadGraph(for mapID: MapID) async throws -> GraphState?
 
+    /// An image's bytes, which `loadGraph` leaves out. Nil when the image is
+    /// not stored or its bytes have not synced yet.
+    func imageData(for imageID: ImageID) async throws -> Data?
+
     /// Stores a whole new graph: a new map, a template or an import.
     func create(_ graph: GraphState) async throws
 

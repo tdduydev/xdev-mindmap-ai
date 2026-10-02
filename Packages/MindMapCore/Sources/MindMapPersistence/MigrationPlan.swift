@@ -9,6 +9,7 @@ typealias EdgeRecord = CurrentSchema.EdgeRecord
 typealias TagRecord = CurrentSchema.TagRecord
 typealias NodeTagRecord = CurrentSchema.NodeTagRecord
 typealias GroupRecord = CurrentSchema.GroupRecord
+typealias ImageRecord = CurrentSchema.ImageRecord
 
 /// Every schema the app has shipped, oldest first. A new version adds a
 /// schema, a stage here, and a test that opens the older stores with it.

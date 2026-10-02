@@ -38,3 +38,4 @@ public typealias EdgeID = Identifier<MindEdge>
 public typealias TagID = Identifier<MindTag>
 public typealias NodeTagID = Identifier<MindNodeTag>
 public typealias GroupID = Identifier<MindGroup>
+public typealias ImageID = Identifier<MindImage>

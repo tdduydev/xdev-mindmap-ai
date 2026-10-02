@@ -1,8 +1,11 @@
 import Foundation
 import SwiftData
 
-/// Recently Deleted (MM-19) and node organization (MM-32 to MM-37) in one
-/// schema change, so one migration stage and one CloudKit deployment.
+/// Recently Deleted (MM-19), node organization (MM-32 to MM-37) and the V1
+/// node types (MM-59: link, floating topic, image, summary, callout) in one
+/// schema change, so one migration stage and one CloudKit deployment. The
+/// node types were added in place because no uploaded build had this schema
+/// yet (docs/data-model.md, *V2 or V3*).
 ///
 /// Additive only: V1's properties are unchanged, new properties are optional,
 /// new records follow V1's CloudKit rules (defaults or optionals, no unique
@@ -13,7 +16,8 @@ enum SchemaV2: VersionedSchema {
     static var versionIdentifier: Schema.Version { Schema.Version(2, 0, 0) }
 
     static var models: [any PersistentModel.Type] {
-        [MapRecord.self, NodeRecord.self, EdgeRecord.self, TagRecord.self, NodeTagRecord.self, GroupRecord.self]
+        [MapRecord.self, NodeRecord.self, EdgeRecord.self, TagRecord.self, NodeTagRecord.self, GroupRecord.self,
+         ImageRecord.self]
     }
 
     @Model
@@ -54,6 +58,11 @@ enum SchemaV2: VersionedSchema {
         /// Calendar days as `YYYY-MM-DD`, so they do not move with the time zone.
         var startDate: String?
         var dueDate: String?
+        var linkURL: String?
+        /// A floating topic's centre relative to the central topic's; both or neither.
+        var positionX: Double?
+        var positionY: Double?
+        var calloutText: String?
 
         init(nodeID: UUID, mapID: UUID) {
             self.nodeID = nodeID
@@ -129,9 +138,34 @@ enum SchemaV2: VersionedSchema {
         var originRaw: String = "user"
         var createdAt: Date = Date.distantPast
         var updatedAt: Date = Date.distantPast
+        /// For `kind = summary`: the summary topic.
+        var summaryNodeID: UUID?
 
         init(groupID: UUID, mapID: UUID) {
             self.groupID = groupID
+            self.mapID = mapID
+        }
+    }
+
+    @Model
+    final class ImageRecord {
+        var imageID: UUID = UUID()
+        var mapID: UUID = UUID()
+        var nodeID: UUID = UUID()
+        /// A file beside the store, not a column, and a `CKAsset` in iCloud,
+        /// so a map's rows stay small.
+        @Attribute(.externalStorage) var data: Data?
+        var uniformType: String = "public.heic"
+        var pixelWidth: Int = 0
+        var pixelHeight: Int = 0
+        var byteCount: Int = 0
+        var displayWidth: Double?
+        var altText: String?
+        var createdAt: Date = Date.distantPast
+        var updatedAt: Date = Date.distantPast
+
+        init(imageID: UUID, mapID: UUID) {
+            self.imageID = imageID
             self.mapID = mapID
         }
     }

@@ -18,7 +18,9 @@ public struct EntityChange<Value: Hashable & Sendable>: Hashable, Sendable {
 }
 
 /// Exactly what one command changed, with the old and new value of every
-/// touched node, edge, tag, tag link, group and map.
+/// touched node, edge, tag, tag link, group, image and map. An image change
+/// carries the bytes when they were known (added, or removed after loading),
+/// so persistence can write them and undo can restore them.
 ///
 /// It serves two jobs: persistence writes only these records, and undo applies
 /// the reversed set. Because undo replays recorded values instead of a
@@ -30,12 +32,13 @@ public struct GraphChangeSet: Hashable, Sendable {
     public private(set) var tags: [TagID: EntityChange<MindTag>] = [:]
     public private(set) var nodeTags: [NodeTagID: EntityChange<MindNodeTag>] = [:]
     public private(set) var groups: [GroupID: EntityChange<MindGroup>] = [:]
+    public private(set) var images: [ImageID: EntityChange<MindImage>] = [:]
     public private(set) var map: EntityChange<MindMap>?
 
     public init() {}
 
     public var isEmpty: Bool {
-        nodes.isEmpty && edges.isEmpty && tags.isEmpty && nodeTags.isEmpty && groups.isEmpty && map == nil
+        nodes.isEmpty && edges.isEmpty && tags.isEmpty && nodeTags.isEmpty && groups.isEmpty && images.isEmpty && map == nil
     }
 
     public func reversed() -> GraphChangeSet {
@@ -45,6 +48,7 @@ public struct GraphChangeSet: Hashable, Sendable {
         result.tags = tags.mapValues(\.reversed)
         result.nodeTags = nodeTags.mapValues(\.reversed)
         result.groups = groups.mapValues(\.reversed)
+        result.images = images.mapValues(\.reversed)
         result.map = map?.reversed
         return result
     }
@@ -61,6 +65,8 @@ public struct GraphChangeSet: Hashable, Sendable {
     public var deletedNodeTagIDs: [NodeTagID] { nodeTags.filter { $0.value.after == nil }.map(\.key) }
     public var savedGroups: [MindGroup] { groups.values.compactMap(\.after) }
     public var deletedGroupIDs: [GroupID] { groups.filter { $0.value.after == nil }.map(\.key) }
+    public var savedImages: [MindImage] { images.values.compactMap(\.after) }
+    public var deletedImageIDs: [ImageID] { images.filter { $0.value.after == nil }.map(\.key) }
 
     // MARK: Recording
 
@@ -82,6 +88,10 @@ public struct GraphChangeSet: Hashable, Sendable {
 
     mutating func recordGroup(_ id: GroupID, before: MindGroup?, after: MindGroup?) {
         groups[id] = Self.merged(groups[id], before: before, after: after)
+    }
+
+    mutating func recordImage(_ id: ImageID, before: MindImage?, after: MindImage?) {
+        images[id] = Self.merged(images[id], before: before, after: after)
     }
 
     mutating func recordMap(before: MindMap, after: MindMap) {

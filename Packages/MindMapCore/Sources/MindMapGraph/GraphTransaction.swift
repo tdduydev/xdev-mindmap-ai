@@ -9,10 +9,14 @@ public struct GraphTransaction {
     public private(set) var changes = GraphChangeSet()
     /// The time stamped on everything this transaction creates or updates.
     public let now: Date
+    /// Bytes of images the caller has loaded. Removing one of these images
+    /// records its bytes, so undo restores it without the file.
+    public let imageData: [ImageID: Data]
 
-    public init(state: GraphState, now: Date) {
+    public init(state: GraphState, now: Date, imageData: [ImageID: Data] = [:]) {
         self.state = state
         self.now = now
+        self.imageData = imageData
     }
 
     // MARK: Nodes
@@ -26,17 +30,23 @@ public struct GraphTransaction {
 
     /// Edits one node. A body that changes nothing records nothing.
     ///
-    /// Moving or reordering the node also fixes the boundaries it ends, so
-    /// every command that moves topics keeps them valid and undo restores them.
+    /// Moving or reordering the node also fixes the boundaries and summaries it
+    /// ends, so every command that moves topics keeps them valid and undo
+    /// restores them. A node given a parent loses its floating position, and a
+    /// summary topic moved to another parent loses its summary (the tree wins).
     public mutating func updateNode(_ id: NodeID, _ body: (inout MindNode) -> Void) throws {
         guard let old = state.node(id) else { throw GraphError.nodeNotFound(id) }
         var new = old
         body(&new)
+        if new.parentID != nil { new.position = nil }
         guard new != old else { return }
         new.updatedAt = now
         let reorder: GroupReorder?
         if new.parentID != old.parentID {
             try detachFromGroups(old)
+            for summary in state.summaries(naming: id) {
+                try removeGroup(summary.id)
+            }
             reorder = nil
         } else if new.sortOrder != old.sortOrder {
             reorder = groupReorder(for: old)
@@ -50,14 +60,18 @@ public struct GraphTransaction {
         }
     }
 
-    /// Removes one node, its tag links, and the boundaries it held up: the
-    /// ones it ends shrink, the ones over its children go.
+    /// Removes one node, its tag links, its image, and the groups it held up:
+    /// the ones it ends shrink, the ones over its children and the summaries
+    /// naming it go.
     @discardableResult
     public mutating func removeNode(_ id: NodeID) throws -> MindNode {
         guard let node = state.node(id) else { throw GraphError.nodeNotFound(id) }
         try detachFromGroups(node)
-        for group in state.groups(under: id) {
+        for group in state.groups(under: id) + state.summaries(naming: id) where state.groups[group.id] != nil {
             try removeGroup(group.id)
+        }
+        for image in state.images(of: id) {
+            try removeImage(image.id)
         }
         for link in state.nodeTags.values where link.nodeID == id {
             try removeNodeTag(link.id)
@@ -178,6 +192,41 @@ public struct GraphTransaction {
     public mutating func removeGroup(_ id: GroupID) throws -> MindGroup {
         guard let removed = state.removeGroup(id) else { throw GraphError.groupNotFound(id) }
         changes.recordGroup(id, before: removed, after: nil)
+        return removed
+    }
+
+    // MARK: Images
+
+    /// One image per topic: replacing one is a remove and an insert.
+    public mutating func insertImage(_ image: MindImage) throws {
+        guard image.mapID == state.map.id else { throw GraphError.belongsToAnotherMap }
+        guard state.images[image.id] == nil else { throw GraphError.imageAlreadyExists(image.id) }
+        guard state.node(image.nodeID) != nil else { throw GraphError.nodeNotFound(image.nodeID) }
+        if let existing = state.image(of: image.nodeID) { throw GraphError.nodeHasImage(existing.id) }
+        state.upsertImage(image)
+        changes.recordImage(image.id, before: nil, after: image)
+    }
+
+    /// Edits an image's fields; its bytes cannot change here (replace instead).
+    public mutating func updateImage(_ id: ImageID, _ body: (inout MindImage) -> Void) throws {
+        guard let old = state.images[id] else { throw GraphError.imageNotFound(id) }
+        var new = old
+        body(&new)
+        new.data = nil
+        guard new != old else { return }
+        guard state.node(new.nodeID) != nil else { throw GraphError.nodeNotFound(new.nodeID) }
+        new.updatedAt = now
+        state.upsertImage(new)
+        // An image added earlier in this transaction still has to be saved with its bytes.
+        new.data = changes.images[id]?.after?.data
+        changes.recordImage(id, before: old, after: new)
+    }
+
+    @discardableResult
+    public mutating func removeImage(_ id: ImageID) throws -> MindImage {
+        guard var removed = state.removeImage(id) else { throw GraphError.imageNotFound(id) }
+        removed.data = imageData[id]
+        changes.recordImage(id, before: removed, after: nil)
         return removed
     }
 

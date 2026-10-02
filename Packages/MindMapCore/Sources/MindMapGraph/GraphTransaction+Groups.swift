@@ -1,9 +1,10 @@
 import Foundation
 import MindMapDomain
 
-/// Keeps boundaries valid while topics move. Boundaries are positional (a run
-/// of siblings from `firstNodeID` to `lastNodeID`), so only a change to an
-/// endpoint needs fixing; a topic added inside the run joins it on its own.
+/// Keeps boundaries and summaries valid while topics move. Both are positional
+/// (a run of siblings from `firstNodeID` to `lastNodeID`, summary topics left
+/// out), so only a change to an endpoint needs fixing; a topic added inside
+/// the run joins it on its own.
 extension GraphTransaction {
     /// The boundaries a topic ends, as they were before it was reordered.
     struct GroupReorder {
@@ -45,7 +46,7 @@ extension GraphTransaction {
     /// them. Moved out of the run, the end stays with the topic, and the run
     /// becomes the siblings between the two ends (swapped if needed).
     mutating func finishGroupReorder(_ reorder: GroupReorder) throws {
-        let siblings = state.childIDs(of: reorder.parentID)
+        let siblings = state.runSiblingIDs(of: reorder.parentID)
         let position = Dictionary(uniqueKeysWithValues: siblings.enumerated().map { ($1, $0) })
         guard let moved = position[reorder.nodeID] else { return }
         for (id, members) in reorder.groups {

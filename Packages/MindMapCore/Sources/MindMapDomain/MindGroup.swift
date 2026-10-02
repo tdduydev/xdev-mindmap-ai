@@ -1,6 +1,7 @@
 import Foundation
 
-/// A frame around a run of adjacent siblings and their branches.
+/// A frame (boundary) or a bracket (summary) around a run of adjacent
+/// siblings and their branches.
 ///
 /// Members are positional: every child of `parentNodeID` from `firstNodeID` to
 /// `lastNodeID` in display order. A topic added inside the run joins it and a
@@ -16,6 +17,9 @@ public struct MindGroup: Identifiable, Hashable, Sendable, Codable {
     public var title: String?
     public var color: TopicColor?
     public var origin: NodeOrigin
+    /// For a summary: the summary topic, a child of `parentNodeID` that is
+    /// left out of every sibling run. Ignored for other kinds.
+    public var summaryNodeID: NodeID?
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -30,7 +34,8 @@ public struct MindGroup: Identifiable, Hashable, Sendable, Codable {
         color: TopicColor? = nil,
         origin: NodeOrigin = .user,
         createdAt: Date = .now,
-        updatedAt: Date? = nil
+        updatedAt: Date? = nil,
+        summaryNodeID: NodeID? = nil
     ) {
         self.id = id
         self.mapID = mapID
@@ -41,13 +46,14 @@ public struct MindGroup: Identifiable, Hashable, Sendable, Codable {
         self.title = title
         self.color = color
         self.origin = origin
+        self.summaryNodeID = summaryNodeID
         self.createdAt = createdAt
         self.updatedAt = updatedAt ?? createdAt
     }
 }
 
-/// Only `boundary` is built. `summary` and `zone` are reserved; a kind this
-/// build does not know is hidden and kept as it is.
+/// `boundary` and `summary` are built; `zone` is reserved. A kind this build
+/// does not know is hidden and kept as it is.
 public struct GroupKind: RawRepresentable, Hashable, Sendable, Codable {
     public let rawValue: String
 
@@ -56,4 +62,8 @@ public struct GroupKind: RawRepresentable, Hashable, Sendable, Codable {
     }
 
     public static let boundary = GroupKind(rawValue: "boundary")
+    public static let summary = GroupKind(rawValue: "summary")
+
+    /// Kinds whose members this build computes and keeps valid.
+    public var isRun: Bool { self == .boundary || self == .summary }
 }

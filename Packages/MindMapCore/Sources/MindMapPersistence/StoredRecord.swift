@@ -80,3 +80,15 @@ extension GroupRecord: StoredRecord {
         FetchDescriptor(predicate: #Predicate { $0.mapID == mapID })
     }
 }
+
+extension ImageRecord: StoredRecord {
+    var recordID: UUID { imageID }
+    static func id(of image: MindImage) -> UUID { image.id.rawValue }
+    static func make(for image: MindImage) -> ImageRecord { ImageRecord(imageID: image.id.rawValue, mapID: image.mapID.rawValue) }
+    static func withIDs(_ ids: [UUID]) -> FetchDescriptor<ImageRecord> {
+        FetchDescriptor(predicate: #Predicate { ids.contains($0.imageID) })
+    }
+    static func inMap(_ mapID: UUID) -> FetchDescriptor<ImageRecord> {
+        FetchDescriptor(predicate: #Predicate { $0.mapID == mapID })
+    }
+}
