@@ -41,6 +41,12 @@ The iOS Simulator needs none of this.
 
 A cold simulator, or a Mac running many builds at once, can take a minute to launch the app. Queries wait `MindMapApp.timeout` (30 s) after launch. If the runner crashes with "operation never finished bootstrapping" before the first test, the simulator was still booting: run again.
 
+### StoreKit tests and other test runs
+
+StoreKit Testing keeps one set of transactions per app on the Mac, not per test process. Two runs of `MindMapAITests` at once (two worktrees, an agent and the leader) see each other's purchases, and one run's `clearTransactions()` wipes what the other just bought: `refundLocksAgain`, `askToBuyStaysPendingAndUnlocksOnApproval` and `redeemedCodeUnlocksPro` failed this way, then passed alone (MM-69). Releasing a lock when the suite ended was not enough either: the end of the first process still reset StoreKit while the second run's suite was buying.
+
+So every test or suite that creates an `SKTestSession` takes the `.storeKitTestLock` trait (`MindMapAITests/StoreKitTestLock.swift`). The first one in a process takes a file lock in the app's temporary directory and keeps it until the process exits; another run's StoreKit tests wait for it, up to 15 minutes, while its other tests go on. Expect the Pro entitlement suite to start late when another run of the app tests is going. Inside a test, look for the transaction the test made (`pendingAskToBuyConfirmation`, the ID `buyProduct` returns), not the first one listed.
+
 ## Snapshot tests
 
 XCUITest on the Mac needs an unlocked login session, and the shared Mac mini locks its screen when no one is at it. Snapshot tests check the Mac's own interface without one: `MacSnapshotTests` (`MindMapAITests/Snapshots/`) draws each scene into an off-screen window and compares the pixels with a reference PNG kept in the repo. They are hosted app tests, so they run while the Mac is locked, like the rest of `MindMapAITests`.
