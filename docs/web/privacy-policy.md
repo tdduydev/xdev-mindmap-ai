@@ -1,6 +1,6 @@
 # Privacy policy page
 
-Source text for <https://xdev.asia/mindmap/privacy>, which the app opens from Settings ▸ Privacy and Help ▸ Privacy Policy (`AppLinks.privacyPolicy`). The same URL goes in App Store Connect. The page is published from the Hive project of the xdev.asia repo; this file is the source of truth for its wording.
+Source text for <https://xdev.asia/mindmap/privacy>, which the app opens from Settings ▸ Privacy and Help ▸ Privacy Policy (`AppLinks.privacyPolicy`). The same URL goes in App Store Connect. The page is published from the xdev.asia repo (`src/apps/mindmap.en.json`, `.vi.json`), live since 2026-10-03; this file is the source of truth for its wording.
 
 ## Keep it true
 
@@ -19,7 +19,7 @@ Do not add claims the app does not make good on. Dates are the publish date of t
 
 **MindMap AI by xDev: Privacy Policy**
 
-Last updated: 2 October 2026
+Effective date: 3 October 2026
 
 MindMap AI is built so that your maps stay yours. This policy explains what the app does with your data.
 
@@ -43,7 +43,7 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 
 **Changes.** If this policy changes, we update this page and the date above.
 
-**Contact.** See [MindMap AI Support](https://xdev.asia/mindmap/support).
+**Contact.** [duy@xdev.asia](mailto:duy@xdev.asia), or see [MindMap AI Support](https://xdev.asia/mindmap/support).
 
 ---
 
@@ -51,7 +51,7 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 
 **MindMap AI by xDev: Chính sách quyền riêng tư**
 
-Cập nhật lần cuối: 2 tháng 10 năm 2026
+Ngày hiệu lực: 3 tháng 10 năm 2026
 
 MindMap AI được làm để sơ đồ của bạn luôn là của bạn. Chính sách này cho biết ứng dụng làm gì với dữ liệu của bạn.
 
@@ -75,4 +75,4 @@ MindMap AI được làm để sơ đồ của bạn luôn là của bạn. Chí
 
 **Thay đổi.** Khi chính sách này thay đổi, chúng tôi cập nhật trang này và ngày ở trên.
 
-**Liên hệ.** Xem [Hỗ trợ MindMap AI](https://xdev.asia/mindmap/support).
+**Liên hệ.** [duy@xdev.asia](mailto:duy@xdev.asia), hoặc xem [Hỗ trợ MindMap AI](https://xdev.asia/vi/mindmap/support).
