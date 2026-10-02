@@ -17,3 +17,9 @@ scripts/out/
 
 # Code index written by the codegraph MCP server
 .codegraph/
+
+# Written into every checkout and worktree by the xDev Hive app; never commit them
+.xdev-hive/guard-docs.sh
+.mcp.json
+.gemini/
+.claude/settings.json
