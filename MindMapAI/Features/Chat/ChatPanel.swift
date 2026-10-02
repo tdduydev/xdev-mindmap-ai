@@ -187,8 +187,10 @@ private struct ChatEntryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
+            // No text selection here: on the Mac a selectable Text is an AppKit
+            // text element, and with the label below SwiftUI and AppKit ask each
+            // other for its label until the stack overflows (MM-82).
             Text(entry.question)
-                .textSelection(.enabled)
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
                 .background(.quaternary, in: RoundedRectangle(cornerRadius: Radius.lg))
