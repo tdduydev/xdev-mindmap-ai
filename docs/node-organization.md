@@ -2,7 +2,7 @@
 
 How people sort, mark and group topics beyond the tree: tags, colour and symbol, tasks, styled cross-links, boundaries, and the filter bar with Focus on Branch. This is the design for MM-31 to MM-37 (MM-30). The stored fields are in [[data-model]] (*Schema V2*); the research behind it, 14 apps compared on 2026-10-02, is the Hive page [[research-node-features]].
 
-Status: the stored fields, domain values, commands and repair rules are built (MM-31, see [[data-model]] *Schema V2* and [[graph-engine]]); no UI exists for any of this yet, except where *What exists today* says so.
+Status: the stored fields, domain values, commands and repair rules are built (MM-31, see [[data-model]] *Schema V2* and [[graph-engine]]). Tags are built end to end (MM-34, *Tags* below says what was built and how); the other features have no UI yet, except where *What exists today* says so.
 
 ## Principles
 
@@ -45,6 +45,18 @@ Checked against `main` at `8f28e35`:
 - **Shared tags** are library data, like `isFavorite`: rename, recolour, merge and delete go through the repository's library actions, not a map's undo history. Delete Shared Tag asks first and says how many maps use it. Open maps pick up the change from the repository's change stream. Tagging a topic with a shared tag is still a map command.
 - **Search.** Find and library search match tag names with the search folding, so "viec" finds the tag "việc". Typing `#name` in the filter's text field filters by that tag.
 - **AI Suggest Tags** (see *AI*).
+
+### As built (MM-34)
+
+- **Inspector.** A Tags section under Note (`TagField`): the selection's tags with a remove button each ("Some topics" when only part of a multi-selection has one), and a field. Typing offers matching map and shared tags by search folding, shared first, and "Create Tag “x”" when no tag has the name's key; Return adds the tag with that key or creates a map tag. Every action applies to every selected topic as one undo step: "Add Tag", "Remove Tag".
+- **Menus.** Topic ▸ Add Tag… (⇧⌘T) opens the inspector with the cursor in the field; Topic ▸ Tags ▸ has the ten most used tags of the map as toggles (on when every selected topic has it), Add Tag… and Manage Tags…; Topic ▸ Manage Tags… (⌥⇧⌘T) opens the sheet. The topic context menu has Tags ▸ and the AI submenu's Suggest Tags. Both keys are in Help ▸ Keyboard Shortcuts. ⌥⌘T was avoided: it is Show/Hide Toolbar in the standard View menu.
+- **Manage Tags** (`TagManagerView`) lists Map Tags and Shared Tags with a topic count each: rename in place, Color ▸ (None and the seven colours with their shapes), Merge Into ▸, Make Shared or Make Map Tag, Delete Tag…. Map tag edits are commands ("Rename Tag", "Change Tag Color", "Merge Tags", "Delete Tag"). Shared tag edits are library actions (`SharedTagActions` on the repository). A shared tag merges only into a shared tag, and becomes a map tag only when no other map uses it (otherwise an alert says how many maps do). Delete asks first; for a shared tag it says how many maps use it.
+- **Library actions reach open maps** through `MapRepositoryChange.tagsChanged(LibraryTagChange)`; each editor applies it with `GraphEngine.apply(_:)` without an undo step. A rename or recolour keeps the map's undo history; anything that moves, deletes or rescopes a tag or link in that map clears it, and the window's undo manager with it, since undoing across it would replay records the library replaced. The editor saves its pending edits before a library action. `LibraryModel.load` runs `repairSharedTags()` (same-key shared tags merge into the oldest), so it runs at launch, on return to the foreground and after a change from outside.
+- **Canvas.** Chips under the title, measured with it (`TopicMeasurer` sets each chip's width, `ChipFlowLayout` wraps them in the same rows): up to three tags, then "+n", then suggested tags. A tag's chip is its colour's badge (graphite without a colour) and draws nothing interactive, so a click selects the topic. Hidden below the detail zoom with the rest of the card. PNG and PDF draw the same chips. VoiceOver reads tags as custom content ("more content"), not in the value.
+- **Outline.** Up to three chips after the title, then "+n", read as one "Tags: …" element.
+- **Find.** A topic matches when its title, its note or one of its tag names holds every word; a word written `#name` matches only tags whose folded name starts with it (`#viec #gap`). Library search texts include the names of the tags each map uses.
+- **Suggest Tags** (AI ▸ Suggest Tags, ⌃⌘T; also the topic's AI menu): the topic and its branch, or the multi-selection it is part of, up to 12 topics, with the map's and shared tag names (30, most used first). Suggested chips use the AI dashed outline and `sparkles`; clicking one opens its name to edit with Accept Tag and Discard Tag; the bar has Review… (a list by topic), Discard and Accept All. Accepting is one "Add AI Tags" step: one `TagNodesCommand` per name with `origin = ai`, so a new name becomes one map tag for every topic it was accepted on. Hidden on ineligible devices, explained in one line otherwise, as every AI action.
+- **Not built yet:** chips limited to two on iPhone; the colour shape in chips with Differentiate Without Color (the name is always there, so colour is not the only signal); the inspector does not show AI suggestions; the outline has no context menu, so tagging there goes through the menu bar and the inspector; the `#name` filter belongs to the filter bar (MM-36).
 
 ## Tasks (MM-35)
 
@@ -130,8 +142,9 @@ Every item is also in the iPad menu bar. Items that do not apply are disabled, n
 | Menu | Item | Key |
 | --- | --- | --- |
 | Topic | Add Link… | ⌘K |
-| Topic | Add Tag… (opens the inspector's tag field) | ⇧⌘T |
-| Topic | Tags ▸ the map's most used tags as toggles, Manage Tags… | — |
+| Topic | Add Tag… (opens the inspector's tag field) | ⇧⌘T (built, MM-34) |
+| Topic | Tags ▸ the map's most used tags as toggles, Add Tag…, Manage Tags… | — |
+| Topic | Manage Tags… | ⌥⇧⌘T (built, MM-34) |
 | Topic | Make Task / Remove Task | ⇧⌘K |
 | Topic | Mark as Done / Mark as Not Done | ⌥⌘K |
 | Topic | Priority ▸ High, Medium, Low, None | ⌥⌘1, ⌥⌘2, ⌥⌘3; the current priority's key again clears it |
@@ -145,7 +158,7 @@ Every item is also in the iPad menu bar. Items that do not apply are disabled, n
 | View | Clear Filter | ⌥⇧⌘L |
 | View | Filter Mode ▸ Dim Others, Hide Others | — |
 | View | Focus on Branch / Exit Focus | ⇧⌘F |
-| AI | Suggest Tags | ⌃⌘T |
+| AI | Suggest Tags | ⌃⌘T (built, MM-34) |
 | AI | Suggest Groups | ⌃⌘O |
 | AI | Summarize Boundary | ⌃⌘Y |
 

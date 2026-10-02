@@ -236,4 +236,5 @@ private struct OneShotProvider: AIProvider {
     func rewrite(_ request: RewriteRequest) async throws -> AIRewrite { throw AIError.generationFailed }
     func summarize(_ request: SummarizeRequest) async throws -> AISummary { throw AIError.generationFailed }
     func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal { proposal }
+    func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions { throw AIError.generationFailed }
 }

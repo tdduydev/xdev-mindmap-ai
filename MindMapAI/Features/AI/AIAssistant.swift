@@ -52,6 +52,9 @@ final class AIAssistant {
     let session: EditorSession
     let service: AIService
     private(set) var suggestions: SuggestionState?
+    /// Suggested tags (MM-34), shown as AI chips; apart from topic
+    /// suggestions, and never both at once.
+    private(set) var tagSuggestions: TagSuggestionState?
     private(set) var activity: Activity?
     var failure: AIFailure?
     var sheet: Sheet?
@@ -83,8 +86,26 @@ final class AIAssistant {
     // MARK: Reading
 
     var isWorking: Bool { activity != nil }
-    var hasSuggestions: Bool { suggestions?.isEmpty == false }
-    var canAcceptSuggestions: Bool { suggestions?.isComplete == true && hasSuggestions }
+    var hasSuggestions: Bool { suggestions?.isEmpty == false || hasTagSuggestions }
+    var hasTagSuggestions: Bool { tagSuggestions?.isEmpty == false }
+    var canAcceptSuggestions: Bool {
+        hasTagSuggestions || (suggestions?.isComplete == true && suggestions?.isEmpty == false)
+    }
+
+    /// How many suggestions the bar counts: topics or tags.
+    var suggestionCount: Int {
+        tagSuggestions?.suggestions.count ?? suggestions?.topics.count ?? 0
+    }
+
+    /// Suggested tag names per topic, for the canvas chips.
+    var tagSuggestionChips: [NodeID: [(id: String, name: String)]] {
+        guard let tagSuggestions else { return [:] }
+        var result: [NodeID: [(id: String, name: String)]] = [:]
+        for suggestion in tagSuggestions.suggestions {
+            result[suggestion.nodeID, default: []].append((suggestion.id, suggestion.name))
+        }
+        return result
+    }
     /// Delete belongs to the selected suggestion, which the editor discards on
     /// Delete, or to the text field of a sheet; it is not Delete Topic's key then.
     var holdsDeleteKey: Bool { selectedSuggestion != nil || sheet != nil }
@@ -109,7 +130,7 @@ final class AIAssistant {
             return !node.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .summarize:
             return !session.engine.state.childIDs(of: id).isEmpty
-        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics:
+        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags:
             return true
         }
     }
@@ -224,6 +245,30 @@ final class AIAssistant {
         }
     }
 
+    /// Tags for the topic and its branch, or for every selected topic when
+    /// the topic is part of a multi-selection. The answer shows as AI chips
+    /// on each topic; nothing is tagged until the person accepts.
+    func suggestTags(_ nodeID: NodeID? = nil) {
+        guard canRun(.suggestTags, on: nodeID), let id = target(nodeID) else { return }
+        afterNotice { [weak self] in
+            guard let self else { return }
+            let ids = self.session.isSelected(id) && self.session.selectedIDs.count > 1 ? self.session.orderedSelection : [id]
+            guard let request = SuggestTagsRequest.make(
+                for: ids,
+                in: self.session.engine.state,
+                language: self.language(for: id),
+                userLocaleIdentifier: self.locale.identifier
+            ) else { return self.show(.topicGone) }
+            let provider = self.service.provider
+            self.clearSuggestions()
+            self.run(.suggestTags) {
+                try await provider.suggestTags(request)
+            } done: { [weak self] result in
+                self?.showTagSuggestions(result)
+            }
+        }
+    }
+
     /// Stops the request in flight. Suggestions still streaming go too;
     /// complete ones stay for a decision.
     func cancel() {
@@ -236,7 +281,21 @@ final class AIAssistant {
     // MARK: Suggestions
 
     func acceptAll() {
-        accept(nil)
+        if hasTagSuggestions { acceptTags(nil) } else { accept(nil) }
+    }
+
+    func acceptTag(_ id: String) {
+        acceptTags([id])
+    }
+
+    func discardTag(_ id: String) {
+        tagSuggestions?.remove(id)
+        if tagSuggestions?.isEmpty == true { clearTagSuggestions() } else { onSuggestionsChange?() }
+    }
+
+    func renameTagSuggestion(_ id: String, to name: String) {
+        tagSuggestions?.rename(id, to: name)
+        onSuggestionsChange?()
     }
 
     func accept(_ temporaryID: String) {
@@ -252,6 +311,7 @@ final class AIAssistant {
     func discardAll() {
         if suggestions?.isComplete == false { cancel() }
         clearSuggestions()
+        clearTagSuggestions()
     }
 
     func renameSuggestion(_ temporaryID: String, to title: String) {
@@ -334,6 +394,7 @@ final class AIAssistant {
 
     private func stream(_ request: SuggestionRequest, anchor: NodeID) {
         cancel()
+        clearTagSuggestions()
         failure = nil
         selectedSuggestion = nil
         suggestions = SuggestionState(feature: request.feature, anchorID: anchor)
@@ -421,6 +482,43 @@ final class AIAssistant {
             show(AIFailure(error))
             if case .topicGone = AIFailure(error) { clearSuggestions() }
         }
+    }
+
+    private func showTagSuggestions(_ result: AITagSuggestions) {
+        var state = TagSuggestionState(result)
+        state.prune(in: session.engine.state)
+        guard !state.isEmpty else { return show(.nothingSuggested) }
+        tagSuggestions = state
+        onSuggestionsChange?()
+        AccessibilityNotification.Announcement(String(localized: "\(state.suggestions.count) AI suggestions")).post()
+    }
+
+    /// The accepted tags (all when nil) as one "Add AI Tags" step, origin AI.
+    private func acceptTags(_ ids: Set<String>?) {
+        guard var state = tagSuggestions else { return }
+        // Topics deleted or tagged meanwhile take their suggestions with them.
+        state.prune(in: session.engine.state)
+        let remaining = ids.map { $0.filter { id in state.suggestion(id) != nil } }
+        do {
+            let command = try state.accept(remaining, in: session.engine)
+            guard session.perform(command, named: String(localized: "Add AI Tags")) else {
+                show(.unusable)
+                return
+            }
+            state.didAccept(remaining)
+            tagSuggestions = state
+            if state.isEmpty { clearTagSuggestions() } else { onSuggestionsChange?() }
+        } catch {
+            tagSuggestions = state
+            if state.isEmpty { clearTagSuggestions() } else { onSuggestionsChange?() }
+            show(AIFailure(error))
+        }
+    }
+
+    private func clearTagSuggestions() {
+        guard tagSuggestions != nil else { return }
+        tagSuggestions = nil
+        onSuggestionsChange?()
     }
 
     private func clearSuggestions() {

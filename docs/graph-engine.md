@@ -66,6 +66,8 @@ The full validation after each command is the safety net that keeps a buggy comm
 
 Commands have no hand-written inverse. Undo applies the recorded change set reversed and redo applies it again, so both are exact by construction, including side effects such as renumbering siblings or opening a collapsed parent (ADR 0003). History is linear and capped (200 steps by default).
 
+Shared tags change outside every map's history (library actions, [[node-organization]] *Tags*). `GraphEngine.apply(_ change: LibraryTagChange)` takes such a change into an open map without an undo step and without validating or saving (the repository already stored it). A rename or recolour of a shared tag keeps history, since no step can hold a shared tag's record; a change that moves, deletes or rescopes a tag or link of the map clears history, because undoing across it would replay records the library replaced (for example delete a tag that is shared now).
+
 Once iCloud sync is on, a remote change can touch a node that local history also holds. Phase 6 decides between clearing history on remote changes and rebasing it; until then history assumes it is the only writer.
 
 ## Traversal

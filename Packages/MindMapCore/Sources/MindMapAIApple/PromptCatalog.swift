@@ -71,6 +71,12 @@ public struct PromptCatalog: Hashable, Sendable {
             "Rewrite the title of the focus topic as asked. Keep its meaning."
         case .summarize:
             "Summarize the focus topic and its subtopics in plain sentences. Do not add facts that are not in the map."
+        case .suggestTags:
+            """
+            Suggest tags that sort the listed topics: short labels of one or two words, such as a category, a status or an owner.
+            When an existing tag fits, use its name exactly as written. Do not repeat a tag a topic already has.
+            Give a topic no tag rather than a vague one.
+            """
         }
     }
 
@@ -120,6 +126,22 @@ public struct PromptCatalog: Hashable, Sendable {
         let parts = request.partialSummaries.map { "- \($0)" }.joined(separator: "\n")
         return render(request.context)
             + "\nThese are summaries of parts of the branch:\n\(parts)\nCombine them into one summary of two to four sentences."
+    }
+
+    public func prompt(for request: SuggestTagsRequest) -> String {
+        var lines = ["Map: \(request.mapTitle)"]
+        if !request.availableTags.isEmpty {
+            lines.append("Existing tags: " + request.availableTags.joined(separator: "; "))
+        }
+        lines.append("Topics:")
+        for topic in request.topics {
+            var line = "- \(topic.reference): \(topic.title)"
+            if !topic.path.isEmpty { line += " (under " + topic.path.joined(separator: " > ") + ")" }
+            if !topic.tags.isEmpty { line += " [tags: " + topic.tags.joined(separator: "; ") + "]" }
+            lines.append(line)
+        }
+        lines.append("Suggest up to \(AIProposalLimits.maximumTagsPerTopic) tags for each topic, by its reference.")
+        return lines.joined(separator: "\n")
     }
 
     /// The context as a short outline. Indented lines read better to the model

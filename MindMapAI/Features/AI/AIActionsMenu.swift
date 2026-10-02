@@ -50,6 +50,8 @@ struct AIActionsMenu: View {
             .disabled(!assistant.canRun(.summarize, on: nodeID))
         Button("Find Missing Topics", systemImage: "questionmark.bubble") { assistant.findMissingTopics(nodeID) }
             .disabled(!assistant.canRun(.findMissingTopics, on: nodeID))
+        Button("Suggest Tags", systemImage: "tag") { assistant.suggestTags(nodeID) }
+            .disabled(!assistant.canRun(.suggestTags, on: nodeID))
     }
 }
 
@@ -95,6 +97,7 @@ extension AIFeature {
         case .rewrite: String(localized: "Rewriting the title…")
         case .summarize: String(localized: "Summarizing the branch…")
         case .findMissingTopics: String(localized: "Looking for missing topics…")
+        case .suggestTags: String(localized: "Suggesting tags…")
         }
     }
 
@@ -106,6 +109,7 @@ extension AIFeature {
         case .expandTopic: String(localized: "Suggested subtopics")
         case .brainstorm: String(localized: "Ideas")
         case .findMissingTopics: String(localized: "Possible missing topics")
+        case .suggestTags: String(localized: "Suggested tags")
         case .rewrite, .summarize: String(localized: "Suggestions")
         }
     }

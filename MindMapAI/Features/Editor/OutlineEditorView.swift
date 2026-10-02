@@ -101,6 +101,9 @@ struct OutlineRow: View {
                 .onSubmit(commit)
                 .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
                 .accessibilityIdentifier(AccessibilityID.Outline.topic)
+            if !row.tags.isEmpty {
+                OutlineTagChips(tags: row.tags)
+            }
             if row.node.hasNote {
                 Image(systemName: "note.text")
                     .font(Typography.rowDetail)

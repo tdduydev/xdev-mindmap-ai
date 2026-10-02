@@ -1,6 +1,7 @@
 import Foundation
 @testable import MindMapAIApple
 import MindMapAICore
+import MindMapDomain
 import MindMapTestSupport
 import Testing
 
@@ -89,5 +90,21 @@ struct PromptCatalogTests {
             }
         }
         #expect(PromptVersion.allCases.contains(.current))
+    }
+}
+
+@Suite("Suggest Tags prompt")
+struct SuggestTagsPromptTests {
+    @Test func listsTopicsByReferenceWithExistingTagsAsWritten() {
+        let topic = TagSuggestionTopic(reference: "t1", nodeID: NodeID(), title: "Thiết kế backend", path: ["Dự án"], tags: ["Việc"])
+        let request = SuggestTagsRequest(
+            mapTitle: "Kế hoạch", topics: [topic], availableTags: ["Việc", "Gấp"], language: .vietnamese, userLocaleIdentifier: "vi_VN"
+        )
+
+        let prompt = PromptCatalog().prompt(for: request)
+
+        #expect(prompt.contains("Existing tags: Việc; Gấp"))
+        #expect(prompt.contains("- t1: Thiết kế backend (under Dự án) [tags: Việc]"))
+        #expect(prompt.hasSuffix("Suggest up to 3 tags for each topic, by its reference."))
     }
 }

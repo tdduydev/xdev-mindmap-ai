@@ -49,6 +49,21 @@ struct GeneratedRewrites {
     var titles: [String]
 }
 
+@Generable
+struct GeneratedTagSuggestions {
+    @Guide(description: "Tags for the listed topics, one entry per topic", .maximumCount(12))
+    var topics: [GeneratedTopicTags]
+}
+
+@Generable
+struct GeneratedTopicTags {
+    @Guide(description: "The reference of the topic, such as t1")
+    var reference: String
+
+    @Guide(description: "One or two word tags for the topic", .maximumCount(3))
+    var tags: [String]
+}
+
 extension GeneratedMindMap {
     func proposal() -> AIProposal {
         AIProposal(

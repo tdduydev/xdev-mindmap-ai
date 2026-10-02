@@ -91,7 +91,7 @@ public actor SwiftDataMapRepository: MapRepository {
         lastForeignTransaction = .min
     }
 
-    private func publish(_ change: MapRepositoryChange) {
+    func publish(_ change: MapRepositoryChange) {
         for subscriber in subscribers.values { subscriber.yield(change) }
     }
 
@@ -223,6 +223,9 @@ public actor SwiftDataMapRepository: MapRepository {
             guard !found.isEmpty else { continue }
             texts[MapID(record.mapID), default: []].append(contentsOf: found)
         }
+        for (mapID, names) in try tagNamesByMap() {
+            texts[mapID, default: []].append(contentsOf: names)
+        }
         return texts
     }
 
@@ -239,7 +242,7 @@ public actor SwiftDataMapRepository: MapRepository {
     // MARK: Writing
 
     /// Every write ends here, so every transaction carries this repository's author.
-    private func commit() throws {
+    func commit() throws {
         modelContext.author = author
         try modelContext.save()
     }

@@ -26,7 +26,19 @@ extension TopicTextSpecs {
                 minimumHeight: CanvasMetrics.minimumPointerHeight
             )
         }
-        return TopicTextSpecs(levels: levels, placeholder: String(localized: "Untitled Topic"))
+        let badge = Typography.Content.badge
+        let chipSize = scaledSize(badge)
+        let chip = TopicChipSpec(
+            postScriptName: badge.face.postScriptName,
+            pointSize: chipSize,
+            horizontalPadding: CanvasMetrics.tagChipHorizontalPadding,
+            // Chips grow with their text, as the title does.
+            height: (CanvasMetrics.tagChipHeight * chipSize / badge.size).rounded(.up),
+            spacing: CanvasMetrics.tagChipSpacing,
+            topGap: CanvasMetrics.tagChipTopGap,
+            symbolWidth: (CanvasMetrics.tagChipSymbolWidth * chipSize / badge.size).rounded(.up)
+        )
+        return TopicTextSpecs(levels: levels, placeholder: String(localized: "Untitled Topic"), chip: chip)
     }
 
     /// Design sizes, without Dynamic Type: the Mac, and tests.

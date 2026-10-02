@@ -6,8 +6,9 @@ import MindMapDomain
 /// A value type with no UI, storage or AI dependencies: the editor owns one and
 /// hands each returned change set to the repository to save.
 public struct GraphEngine: Sendable {
-    public private(set) var state: GraphState
-    private var history: CommandHistory
+    // Internal setters for `apply(_: LibraryTagChange)`, in its own file.
+    public internal(set) var state: GraphState
+    var history: CommandHistory
     private let clock: @Sendable () -> Date
 
     /// Fails if the graph is invalid; run `GraphRepair` on loaded data first.
@@ -88,6 +89,11 @@ struct CommandHistory: Sendable {
         if undoStack.count > limit {
             undoStack.removeFirst(undoStack.count - limit)
         }
+        redoStack.removeAll()
+    }
+
+    mutating func clear() {
+        undoStack.removeAll()
         redoStack.removeAll()
     }
 

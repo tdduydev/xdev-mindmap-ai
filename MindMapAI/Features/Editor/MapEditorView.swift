@@ -51,6 +51,24 @@ struct MapEditorView: View {
         .inspector(isPresented: $session.isInspectorPresented) {
             MapInspectorView(session: session)
         }
+        .sheet(isPresented: $session.isManagingTags) {
+            TagManagerView(session: session)
+        }
+        // A tag typed in the inspector that cannot be a name; Manage Tags shows its own.
+        .alert(
+            Text("Couldn’t Change the Tag"),
+            isPresented: Binding(
+                get: { session.tagFailure != nil && !session.isManagingTags },
+                set: { if !$0 { session.tagFailure = nil } }
+            ),
+            presenting: session.tagFailure
+        ) { _ in
+            Button("OK") { session.tagFailure = nil }
+        } message: { failure in
+            Text(failure.message)
+        }
+        // Shared tag changes from other windows; this window's own arrive too and change nothing.
+        .task { await session.observeLibraryTags() }
         // The window title on the Mac: the map, never the app name.
         .navigationTitle(session.displayTitle)
         #if os(iOS)

@@ -2,8 +2,8 @@ import MindMapDomain
 import MindMapGraph
 import SwiftUI
 
-/// The inspector beside an open map: the selected topic's note and details
-/// (FR-EDT-13), then the settings of the map itself. On iPhone `.inspector`
+/// The inspector beside an open map: the selected topic's note, tags and
+/// details (FR-EDT-13), then the settings of the map itself. On iPhone `.inspector`
 /// shows it as a sheet.
 struct MapInspectorView: View {
     let session: EditorSession
@@ -16,6 +16,15 @@ struct MapInspectorView: View {
                     // the next selection; leaving commits it first.
                     TopicNoteEditor(session: session, nodeID: node.id, note: node.note)
                         .id(node.id)
+                }
+                Section {
+                    TagField(session: session)
+                } header: {
+                    if session.selectedIDs.count > 1 {
+                        Text("Tags of \(session.selectedIDs.count) Topics")
+                    } else {
+                        Text("Tags")
+                    }
                 }
                 Section("Topic") {
                     TopicDetails(session: session, node: node)

@@ -105,6 +105,21 @@ public struct AppleFoundationModelProvider: AIProvider {
         return AISummary(nodeID: context.focus.nodeID, text: trimmed, isPartial: request.isPartial)
     }
 
+    public func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions {
+        let generated = try await respond(
+            .suggestTags,
+            language: request.language,
+            userLocaleIdentifier: request.userLocaleIdentifier,
+            prompt: catalog.prompt(for: request),
+            generating: GeneratedTagSuggestions.self
+        )
+        do {
+            return try AITagSuggestions.checked(generated.topics.map { ($0.reference, $0.tags) }, for: request)
+        } catch let error as ProposalError {
+            throw failure(.invalidResponse(error), feature: .suggestTags)
+        }
+    }
+
     // MARK: Streaming
 
     public func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error> {
@@ -213,7 +228,7 @@ public struct AppleFoundationModelProvider: AIProvider {
         // keeps the default guardrails.
         let guardrails: SystemLanguageModel.Guardrails = switch feature {
         case .rewrite, .summarize: .permissiveContentTransformations
-        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics: .default
+        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags: .default
         }
         let model = SystemLanguageModel(guardrails: guardrails)
         let instructions = catalog.instructions(for: feature, language: language, userLocaleIdentifier: userLocaleIdentifier)

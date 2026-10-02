@@ -73,6 +73,19 @@ enum CanvasMetrics {
     /// Size of the note symbol after a title.
     static let noteSymbolSize: CGFloat = 11
 
+    /// Tag chips in a row under the title (MM-34), measured with it.
+    static let tagChipHeight: CGFloat = 16
+    static let tagChipHorizontalPadding: CGFloat = 6
+    /// Between chips, and between rows of chips.
+    static let tagChipSpacing: CGFloat = 4
+    /// Between the title and the first row of chips.
+    static let tagChipTopGap: CGFloat = 4
+    /// The `sparkles` mark and its gap before a suggested tag's name.
+    static let tagChipSymbolWidth: CGFloat = 13
+    /// Tags shown on a topic before "+n". Read off the main actor by the
+    /// layout pass, hence `nonisolated`.
+    nonisolated static let maximumTopicTagChips = 3
+
     /// The pointer hit area is the visual box, at least this tall.
     static let minimumPointerHeight: CGFloat = 28
 

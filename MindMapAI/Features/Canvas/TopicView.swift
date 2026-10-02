@@ -9,6 +9,8 @@ struct TopicView: View {
     let topic: CanvasTopic
     let style: TopicStyle
     let spec: TopicTextSpec
+    /// Nil until the canvas has its text settings; chips need them.
+    var chipSpec: TopicChipSpec?
     let isRoot: Bool
     let isSelected: Bool
     let isEditing: Bool
@@ -38,10 +40,16 @@ struct TopicView: View {
                     shape.strokeBorder(stroke.color, lineWidth: style.strokeWidth)
                 }
             }
-            if isEditing {
-                TopicTitleEditor(model: model, spec: spec, color: textColor, width: textWidth)
-            } else {
-                title
+            TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
+                if isEditing {
+                    TopicTitleEditor(model: model, spec: spec, color: textColor, width: textWidth)
+                } else {
+                    title
+                }
+            } chip: { chip in
+                if let chipSpec {
+                    TopicChipView(chip: chip, spec: chipSpec, variant: variant, aiStyle: aiStyle, model: model)
+                }
             }
         }
         .frame(width: topic.frame.width, height: topic.frame.height)
@@ -105,6 +113,10 @@ struct TopicView: View {
     /// Suggestions use the secondary text colour, so they read as not yet part of the map.
     private var textColor: Color {
         (topic.isSuggestion ? style.secondaryTextColor : style.textColor).color
+    }
+
+    private var variant: ColorVariant {
+        ColorVariant(colorScheme: colorScheme, contrast: contrast)
     }
 
     private var aiStyle: AnyShapeStyle {
@@ -246,6 +258,7 @@ struct TopicContextMenu: View {
             .disabled(isRoot)
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
+        TagsMenu(session: model.session, targets: model.contextTargets(for: topic.id), onAddTag: { model.addTag(to: topic.id) })
         #if os(iOS)
         // Touch has no ⌘-click.
         Button(model.session.isSelected(topic.id) ? "Remove from Selection" : "Add to Selection") {
@@ -384,8 +397,21 @@ struct TopicAccessibility: ViewModifier {
                     Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
                 } else {
                     topicActions
+                    suggestedTagActions
                 }
             }
+            .modifier(TagCustomContent(names: topic.tagNames))
+    }
+
+    /// Accept and Discard for each suggested tag, as the chips offer them.
+    @ViewBuilder
+    private var suggestedTagActions: some View {
+        ForEach(topic.chips.filter(\.isSuggestion)) { chip in
+            if case .suggestion(let id) = chip.kind {
+                Button("Accept Tag \(chip.label)") { model.acceptTagSuggestion(id) }
+                Button("Discard Tag \(chip.label)") { model.discardTagSuggestion(id) }
+            }
+        }
     }
 
     private var label: Text {
@@ -401,6 +427,7 @@ struct TopicAccessibility: ViewModifier {
         Button("Add Child Topic") { model.addChild(of: topic.id) }
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
+        Button("Add Tag…") { model.addTag(to: topic.id) }
         if !isRoot {
             Button("Delete Topic") { model.delete(topic.id) }
         }

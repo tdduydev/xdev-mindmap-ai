@@ -121,6 +121,14 @@ final class LibraryModel {
     func load() async {
         await purgeExpiredMaps()
         do {
+            // Shared tags made on two devices offline merge here, as a map's
+            // own tags do when it opens (docs/node-organization.md, *Sync and repair*).
+            try await repository.repairSharedTags()
+        } catch {
+            // The library still loads; the duplicates stay until the next load.
+            Log.persistence.error("Repairing shared tags failed: \(error.localizedDescription, privacy: .public)")
+        }
+        do {
             let previous = hasLoaded ? maps : nil
             maps = try await repository.fetchMaps()
             deletedMaps = try await repository.fetchDeletedMaps()
@@ -159,6 +167,9 @@ final class LibraryModel {
             await spotlightIndex?.remove(id)
         case .storeChanged:
             await load()
+        case .tagsChanged:
+            // Library search matches tag names.
+            invalidateSearch()
         }
     }
 
