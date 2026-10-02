@@ -34,7 +34,7 @@ The graph, its commands and its persistence live in a local Swift package (`Pack
 
 - Xcode 26 or later
 - macOS 26 or later to run the Mac app (built first, see ADR 0006); iOS and iPadOS 26 or later
-- A Mac on Apple silicon
+- A Mac on Apple silicon for development; the app also runs on Intel Macs with macOS 26, without on-device AI
 
 No third-party dependencies, no secrets, no server.
 

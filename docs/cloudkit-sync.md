@@ -32,6 +32,6 @@ Repair is deterministic, so devices reach the same result independently.
 
 ## Open questions for Phase 6
 
-- Undo history after a remote change: clear it, or rebase it.
+- Undo history after a remote change: decided 2026-10-02, drop the undo steps that touch the topics the remote change touched and keep the rest.
 - Whether the map record's `updatedAt` should come from the server's modification time, so "Recent" ordering agrees across devices.
 - Test plan for account changes and storage-full errors on real devices.

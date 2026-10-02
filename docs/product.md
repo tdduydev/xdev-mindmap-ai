@@ -23,19 +23,20 @@ AI is not a chatbot bolted onto a diagram tool. It works on the selected part of
 
 ## Platforms
 
-macOS (developed first), iPadOS and iOS, all from version 26. Windows, keyboard, trackpad and mouse on the Mac; portrait and landscape, Split View, Stage Manager, Apple Pencil and touch on iPad; light and dark mode, Dynamic Type and VoiceOver everywhere.
+macOS (developed first, and the only platform of the first release), iPadOS and iOS, all from version 26. The Mac app runs on Apple silicon and on Intel Macs that run macOS 26; on-device AI needs Apple silicon, so it is hidden on Intel. Windows, keyboard, trackpad and mouse on the Mac; portrait and landscape, Split View, Stage Manager, Apple Pencil and touch on iPad; light and dark mode, Dynamic Type and VoiceOver everywhere.
 
 ## MVP scope
 
 | Area | Items |
 | --- | --- |
-| Maps | Create, rename, delete; All, Recent, Favorites; search |
+| Maps | Create, rename, delete; All, Recent, Favorites; search; Recently Deleted for 30 days |
 | Nodes | Root, child, sibling, edit, delete, reparent, collapse and expand |
 | Canvas | Auto layout, pan, zoom, undo and redo |
 | Data | SwiftData persistence, iCloud sync |
 | Files | Markdown import and export, PNG and PDF export |
 | Input | Basic Apple Pencil interaction, Share Extension foundation |
 | AI | Generate map, expand node, brainstorm, rewrite, summarize |
+| Voice | Dictate topics in Vietnamese or English, on the device |
 | Quality | Dark mode, English, Vietnamese |
 
 ## Not in the MVP
@@ -50,9 +51,9 @@ Real-time collaboration, team workspaces, any custom backend, Firebase authentic
 - Suggestions are phrased as possibilities ("Possible missing topics"), never as corrections.
 - Where Apple Intelligence is unavailable, AI entry points are hidden or disabled with a short explanation; everything else works.
 
-## Monetization (later)
+## Monetization
 
-StoreKit 2 when the time comes. Core mind mapping is never crippled and there are no ads. Possible Pro features: PDF to map, advanced export and themes, version history, advanced AI workflows.
+Free app with a one-time Pro unlock (non-consumable, StoreKit 2), decided on 2026-10-02. Core mind mapping is never crippled and there are no ads. The price and the Pro feature list are still open; candidates: PDF to map, advanced export and themes, version history, advanced AI workflows.
 
 ## Positioning
 

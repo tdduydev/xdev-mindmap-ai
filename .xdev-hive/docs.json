@@ -12,12 +12,14 @@
     {"file": "docs/privacy.md", "key": "privacy", "title": "Privacy"},
     {"file": "docs/design-guidelines.md", "key": "design-guidelines", "title": "Design guidelines"},
     {"file": "docs/app-store-readiness.md", "key": "app-store-readiness", "title": "App Store readiness"},
+    {"file": "docs/design-system.md", "key": "design-system", "title": "Design system"},
     {"file": "docs/roadmap.md", "split": "##", "folder": "roadmap", "folderTitle": "Roadmap", "prefix": "roadmap-", "intro": "folder", "short": true},
     {"file": "docs/adr/0001-backendless-native-ios.md", "key": "adr-0001", "title": "0001 Native, local-first, backendless", "parent": "adr"},
     {"file": "docs/adr/0002-core-swift-package.md", "key": "adr-0002", "title": "0002 Core in a Swift package", "parent": "adr"},
     {"file": "docs/adr/0003-commands-with-recorded-undo.md", "key": "adr-0003", "title": "0003 Commands with recorded undo", "parent": "adr"},
     {"file": "docs/adr/0004-hierarchy-in-parent-id.md", "key": "adr-0004", "title": "0004 Hierarchy in parentID", "parent": "adr"},
     {"file": "docs/adr/0005-ios-26-minimum.md", "key": "adr-0005", "title": "0005 OS 26 minimum", "parent": "adr"},
-    {"file": "docs/adr/0006-macos-first.md", "key": "adr-0006", "title": "0006 macOS first", "parent": "adr"}
+    {"file": "docs/adr/0006-macos-first.md", "key": "adr-0006", "title": "0006 macOS first", "parent": "adr"},
+    {"file": "docs/adr/0007-visual-language.md", "key": "adr-0007", "title": "0007 Visual language and brand fonts", "parent": "adr"}
   ]
 }
