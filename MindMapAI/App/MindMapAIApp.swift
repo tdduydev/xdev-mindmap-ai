@@ -27,7 +27,11 @@ struct MindMapAIApp: App {
         #if os(macOS)
         .defaultSize(width: 1180, height: 760)
         #endif
-        .commands { MapCommands() }
+        .commands {
+            MapCommands()
+            // View ▸ Show/Hide Sidebar with ⌃⌘S, as the HIG lists for the View menu.
+            SidebarCommands()
+        }
 
         #if os(macOS)
         Settings {

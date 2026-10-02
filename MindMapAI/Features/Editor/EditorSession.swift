@@ -23,6 +23,8 @@ final class EditorSession {
     /// A node whose title field should take focus, such as one just created.
     var focusRequest: NodeID?
     private(set) var saveFailed = false
+    /// Where the window's keyboard focus is, as far as this editor knows. Set by the view.
+    var keyboardFocus: KeyboardFocus = .elsewhere
 
     /// The window's undo manager, so the Edit menu, ⌘Z and the iOS undo gestures
     /// drive the engine's history. Set by the view.
@@ -73,6 +75,17 @@ final class EditorSession {
     var canUndo: Bool { engine.canUndo }
     var canRedo: Bool { engine.canRedo }
     var canDeleteSelection: Bool { selection != nil && selection != rootID }
+
+    /// A bare Delete in the menu bar is matched before the focused view sees
+    /// the key, so it is the Delete Topic shortcut only while the editor holds
+    /// focus outside a text field: otherwise it would eat Delete in a title
+    /// being typed, or delete a topic while the library list is focused.
+    var deleteKeyDeletesTopic: Bool { keyboardFocus == .content && canDeleteSelection }
+
+    /// The display name of the map, also the editor's window title.
+    var displayTitle: String {
+        map.title.isEmpty ? String(localized: "Untitled Map") : map.title
+    }
 
     var canToggleSelection: Bool {
         guard let selection else { return false }
@@ -330,5 +343,16 @@ final class EditorSession {
         if index > 0 { return siblings[index - 1] }
         if index + 1 < siblings.count { return siblings[index + 1] }
         return parentID
+    }
+}
+
+extension EditorSession {
+    enum KeyboardFocus {
+        /// Focus is outside the editor, such as in the sidebar or the library.
+        case elsewhere
+        /// The editor's content has focus and no text is being edited.
+        case content
+        /// A topic title or another text field in the editor is being edited.
+        case editingText
     }
 }

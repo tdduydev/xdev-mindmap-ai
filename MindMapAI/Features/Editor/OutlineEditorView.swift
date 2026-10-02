@@ -7,6 +7,7 @@ struct OutlineEditorView: View {
     @Bindable var session: EditorSession
     @Environment(\.undoManager) private var undoManager
     @FocusState private var focusedNode: NodeID?
+    @FocusState private var isListFocused: Bool
 
     var body: some View {
         List(selection: $session.selection) {
@@ -20,6 +21,7 @@ struct OutlineEditorView: View {
                 )
             }
         }
+        .focused($isListFocused)
         .overlay {
             if session.rows.isEmpty {
                 ContentUnavailableView {
@@ -35,11 +37,14 @@ struct OutlineEditorView: View {
                 SaveFailedBanner()
             }
         }
-        .navigationTitle(session.map.title)
+        // The window title on the Mac: the map, never the app name.
+        .navigationTitle(session.displayTitle)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         #if os(macOS)
+        // Kept next to the menu's Delete shortcut: it still answers Delete if
+        // the list holds focus without SwiftUI reporting it.
         .onDeleteCommand(perform: session.deleteSelection)
         #endif
         .toolbar { toolbar }
@@ -53,7 +58,10 @@ struct OutlineEditorView: View {
         }
         .onChange(of: focusedNode) { _, node in
             if let node { session.selection = node }
+            reportKeyboardFocus()
         }
+        .onChange(of: isListFocused) { reportKeyboardFocus() }
+        .onDisappear { session.keyboardFocus = .elsewhere }
     }
 
     @ToolbarContentBuilder
@@ -70,16 +78,20 @@ struct OutlineEditorView: View {
         }
         ToolbarItemGroup(placement: .primaryAction) {
             Button(action: session.addChild) {
-                Label("Add Child", systemImage: "arrow.turn.down.right")
+                Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }
             Button(action: session.addSibling) {
-                Label("Add Sibling", systemImage: "plus")
+                Label("Add Sibling Topic", systemImage: "plus")
             }
             Button(role: .destructive, action: session.deleteSelection) {
-                Label("Delete", systemImage: "trash")
+                Label("Delete Topic", systemImage: "trash")
             }
             .disabled(!session.canDeleteSelection)
         }
+    }
+
+    private func reportKeyboardFocus() {
+        session.keyboardFocus = focusedNode != nil ? .editingText : isListFocused ? .content : .elsewhere
     }
 }
 

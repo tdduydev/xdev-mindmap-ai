@@ -52,6 +52,8 @@ struct MapCommands: Commands {
             .disabled(editor?.canToggleSelection != true)
             Divider()
             Button("Delete Topic") { editor?.deleteSelection() }
+                // The shortcut comes and goes with focus so Delete stays with text fields (see EditorSession).
+                .keyboardShortcut(editor?.deleteKeyDeletesTopic == true ? .delete : nil)
                 .disabled(editor?.canDeleteSelection != true)
         }
 
