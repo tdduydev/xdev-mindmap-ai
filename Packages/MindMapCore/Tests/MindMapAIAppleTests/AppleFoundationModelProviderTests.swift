@@ -28,6 +28,41 @@ struct AppleCapabilityProbeTests {
     }
 }
 
+/// What the provider does with an answer once guided generation has filled
+/// the schema; no model needed.
+struct GeneratedAnswerTests {
+    private let provider = AppleFoundationModelProvider()
+
+    @Test func aMalformedTreeArrivesAsInvalidResponse() throws {
+        let generated = try GeneratedMindMap(GeneratedContent(json: """
+        {"title": "Garden", "topics": [
+          {"temporaryID": "t1", "parentTemporaryID": "", "title": "Vegetables"},
+          {"temporaryID": "t2", "parentTemporaryID": "t3", "title": "Tomatoes"},
+          {"temporaryID": "t3", "parentTemporaryID": "t2", "title": "Beans"}
+        ]}
+        """))
+
+        #expect(throws: AIError.invalidResponse(.cycle(temporaryID: "t2"))) {
+            try provider.checked(generated.proposal(), limit: 30, feature: .generateMap)
+        }
+    }
+
+    @Test func aGeneratedMapKeepsNoMoreTopicsThanAskedFor() throws {
+        let generated = try GeneratedMindMap(GeneratedContent(json: """
+        {"title": "Garden", "topics": [
+          {"temporaryID": "t1", "parentTemporaryID": "", "title": "Vegetables"},
+          {"temporaryID": "t2", "parentTemporaryID": "t1", "title": "Tomatoes"},
+          {"temporaryID": "t3", "parentTemporaryID": "", "title": "Flowers"}
+        ]}
+        """))
+
+        let proposal = try provider.checked(generated.proposal(), limit: 2, feature: .generateMap)
+
+        #expect(proposal.topics.map(\.title) == ["Vegetables", "Flowers"])
+        #expect(proposal.suggestedMapTitle == "Garden")
+    }
+}
+
 /// Runs the real on-device model, so only where it is available. Answers vary,
 /// so these check shape, not wording.
 @Suite(.enabled(if: SystemLanguageModel.default.isAvailable), .serialized)
@@ -68,6 +103,7 @@ struct AppleFoundationModelProviderTests {
         ))
 
         #expect(proposal.anchor == .root)
+        #expect(!proposal.topics.isEmpty && proposal.topics.count <= 10)
         #expect(!(proposal.suggestedMapTitle ?? "").isEmpty)
         // The app makes a new map with the suggested title, then applies the topics under its root.
         var fixture = try OutlineFixture("New map")

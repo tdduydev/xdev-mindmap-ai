@@ -174,6 +174,17 @@ struct AIContextBuilderTests {
         #expect(chunks.allSatisfy { $0.focus.nodeID == fixture["Root"] && $0.omittedDescendantCount == 0 })
     }
 
+    @Test func onlyASummaryOfATruncatedContextIsPartial() throws {
+        let fixture = try OutlineFixture(outline)
+        let truncated = try context(fixture, focus: "Marketing")
+        let whole = try context(fixture, focus: "Product")
+
+        #expect(SummarizeRequest(context: truncated).isPartial)
+        #expect(!SummarizeRequest(context: whole).isPartial)
+        // The partial summaries of every chunk cover what the context left out.
+        #expect(!SummarizeRequest(context: truncated, partialSummaries: ["Part one.", "Part two."]).isPartial)
+    }
+
     @Test func aSmallBranchIsOneChunk() throws {
         let fixture = try OutlineFixture(outline)
         let chunks = try AIContextBuilder().chunkContexts(

@@ -78,6 +78,31 @@ public enum ProposalTranslator {
         return ordered
     }
 
+    /// At most `maximum` topics, taken level by level so every main topic
+    /// survives before any detail does. Guided generation caps a list only at
+    /// the schema's literal, so a model asked for fewer can still return more.
+    /// Throws `ProposalError`.
+    public static func limited(_ proposal: AIProposal, to maximum: Int) throws -> AIProposal {
+        let ordered = try validate(proposal)
+        guard ordered.count > maximum else { return proposal }
+
+        var depths: [String: Int] = [:]
+        for topic in ordered {
+            depths[topic.temporaryID] = topic.parentTemporaryID.flatMap { depths[$0] }.map { $0 + 1 } ?? 0
+        }
+        // Sorting by level, then by position, keeps the model's order within a
+        // level; a kept topic's parent sits on a shallower level, so it is kept too.
+        let kept = Set(
+            ordered.indices
+                .sorted { (depths[ordered[$0].temporaryID] ?? 0, $0) < (depths[ordered[$1].temporaryID] ?? 0, $1) }
+                .prefix(max(0, maximum))
+                .map { ordered[$0].temporaryID }
+        )
+        var limited = proposal
+        limited.topics = ordered.filter { kept.contains($0.temporaryID) }
+        return limited
+    }
+
     /// One command that adds the accepted topics, marked as written by AI.
     ///
     /// `accepting` nil takes every topic. Accepting a nested topic also takes

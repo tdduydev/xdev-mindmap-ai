@@ -90,6 +90,29 @@ struct ProposalTranslatorTests {
         #expect(accepted.nodeIDs["s1"] == node.id)
     }
 
+    @Test func limitingATreeKeepsWholeLevelsFirstAndParentsBeforeChildren() throws {
+        let proposal = AIProposal(feature: .generateMap, anchor: .root, topics: [
+            ProposedTopic(temporaryID: "t1", title: "Vegetables"),
+            ProposedTopic(temporaryID: "t2", parentTemporaryID: "t1", title: "Tomatoes"),
+            ProposedTopic(temporaryID: "t3", parentTemporaryID: "t1", title: "Beans"),
+            ProposedTopic(temporaryID: "t4", title: "Flowers"),
+            ProposedTopic(temporaryID: "t5", parentTemporaryID: "t4", title: "Roses"),
+        ])
+
+        let limited = try ProposalTranslator.limited(proposal, to: 3)
+        #expect(limited.topics.map(\.temporaryID) == ["t1", "t2", "t4"])
+        #expect(try ProposalTranslator.validate(limited).count == 3)
+        #expect(try ProposalTranslator.limited(proposal, to: 5) == proposal)
+
+        let looped = AIProposal(feature: .generateMap, anchor: .root, topics: [
+            ProposedTopic(temporaryID: "a", parentTemporaryID: "b", title: "A"),
+            ProposedTopic(temporaryID: "b", parentTemporaryID: "a", title: "B"),
+        ])
+        #expect(throws: ProposalError.cycle(temporaryID: "a")) {
+            try ProposalTranslator.limited(looped, to: 1)
+        }
+    }
+
     // MARK: Refusing proposals
 
     @Test func refusesMalformedProposals() throws {

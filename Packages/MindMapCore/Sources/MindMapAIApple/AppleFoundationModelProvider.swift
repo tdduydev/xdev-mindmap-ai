@@ -30,7 +30,7 @@ public struct AppleFoundationModelProvider: AIProvider {
             prompt: catalog.prompt(for: request),
             generating: GeneratedMindMap.self
         )
-        return try checked(generated.proposal(), feature: .generateMap)
+        return try checked(generated.proposal(), limit: request.maximumTopics, feature: .generateMap)
     }
 
     public func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
@@ -43,7 +43,7 @@ public struct AppleFoundationModelProvider: AIProvider {
             generating: GeneratedTopicList.self
         )
         let proposal = generated.proposal(for: .expandTopic, anchor: .node(context.focus.nodeID), limit: request.maximumTopics)
-        return try checked(proposal, feature: .expandTopic)
+        return try checked(proposal, limit: request.maximumTopics, feature: .expandTopic)
     }
 
     public func brainstorm(_ request: BrainstormRequest) async throws -> AIProposal {
@@ -56,7 +56,7 @@ public struct AppleFoundationModelProvider: AIProvider {
             generating: GeneratedTopicList.self
         )
         let proposal = generated.proposal(for: .brainstorm, anchor: .node(context.focus.nodeID), limit: request.maximumTopics)
-        return try checked(proposal, feature: .brainstorm)
+        return try checked(proposal, limit: request.maximumTopics, feature: .brainstorm)
     }
 
     public func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal {
@@ -69,7 +69,7 @@ public struct AppleFoundationModelProvider: AIProvider {
             generating: GeneratedTopicList.self
         )
         let proposal = generated.proposal(for: .findMissingTopics, anchor: .node(context.focus.nodeID), limit: request.maximumTopics)
-        return try checked(proposal, feature: .findMissingTopics)
+        return try checked(proposal, limit: request.maximumTopics, feature: .findMissingTopics)
     }
 
     public func rewrite(_ request: RewriteRequest) async throws -> AIRewrite {
@@ -102,7 +102,7 @@ public struct AppleFoundationModelProvider: AIProvider {
         }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw failure(.invalidResponse(.empty), feature: .summarize) }
-        return AISummary(nodeID: context.focus.nodeID, text: trimmed, isPartial: context.isTruncated)
+        return AISummary(nodeID: context.focus.nodeID, text: trimmed, isPartial: request.isPartial)
     }
 
     // MARK: Plumbing
@@ -142,11 +142,11 @@ public struct AppleFoundationModelProvider: AIProvider {
     }
 
     /// Runs the translator's checks before the proposal leaves the provider, so
-    /// a malformed answer surfaces as `invalidResponse` right away.
-    private func checked(_ proposal: AIProposal, feature: AIFeature) throws -> AIProposal {
+    /// a malformed answer surfaces as `invalidResponse` right away, and keeps
+    /// no more topics than the request asked for.
+    func checked(_ proposal: AIProposal, limit: Int, feature: AIFeature) throws -> AIProposal {
         do {
-            _ = try ProposalTranslator.validate(proposal)
-            return proposal
+            return try ProposalTranslator.limited(proposal, to: limit)
         } catch let error as ProposalError {
             throw failure(.invalidResponse(error), feature: feature)
         }

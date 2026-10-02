@@ -100,6 +100,12 @@ public struct SummarizeRequest: Hashable, Sendable {
         self.context = context
         self.partialSummaries = partialSummaries
     }
+
+    /// True when the answer covers part of the branch only. Partial summaries
+    /// already cover what the context left out, so combining them is whole.
+    public var isPartial: Bool {
+        context.isTruncated && partialSummaries.isEmpty
+    }
 }
 
 /// Topics the branch may be missing, offered as suggestions, not corrections.
