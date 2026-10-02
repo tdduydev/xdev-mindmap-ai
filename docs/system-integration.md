@@ -36,7 +36,7 @@ Intents run in the app process. Opening a map sets `MapOpenRequests.pending`; th
 
 ## Spotlight
 
-Only map titles are indexed, as `MapEntity` values. `LibraryModel` rebuilds the index on the first load, then indexes new or renamed maps and removes deleted ones; a reload after the app becomes active picks up maps added by the extension or the intents.
+Only map titles are indexed, as `MapEntity` values. `LibraryModel` rebuilds the index on the first load, then indexes new or renamed maps and removes deleted ones; a map moved to Recently Deleted leaves the index and comes back when restored (MM-19); a reload after the app becomes active picks up maps added by the extension or the intents.
 
 ## Signing (needs a person)
 

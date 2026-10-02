@@ -10,7 +10,8 @@ import MindMapPersistence
 /// because no editor window owns the change.
 public struct QuickCapture: Sendable {
     public enum Failure: Error, Hashable, Sendable {
-        /// Deleted, maybe on another device, after it was offered.
+        /// Deleted, maybe on another device, after it was offered; a map in
+        /// Recently Deleted counts as gone.
         case mapNotFound
         case nothingToAdd
     }
@@ -46,7 +47,9 @@ public struct QuickCapture: Sendable {
     @discardableResult
     public func add(_ draft: OutlineDraft, to mapID: MapID, origin: NodeOrigin = .imported) async throws -> MindMap {
         guard !draft.isEmpty else { throw Failure.nothingToAdd }
-        guard let state = try await repository.loadGraph(for: mapID) else { throw Failure.mapNotFound }
+        guard let state = try await repository.loadGraph(for: mapID), state.map.deletedAt == nil else {
+            throw Failure.mapNotFound
+        }
         // Records from sync can arrive out of order; repair before running a
         // command and save the repair, as the editor does when it opens a map.
         let repair = try GraphRepair.repair(state, now: clock())

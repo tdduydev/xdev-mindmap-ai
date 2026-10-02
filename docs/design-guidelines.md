@@ -64,7 +64,7 @@ The app's menus:
 
 | Menu | Items |
 | --- | --- |
-| File | New Mind Map ⌘N, New Window ⌥⌘N, Import… ⇧⌘I, Import into Map… ⌥⇧⌘I, Export… ⇧⌘E (MM-10), later Duplicate |
+| File | New Mind Map ⌘N, New Window ⌥⌘N, Import… ⇧⌘I, Import into Map… ⌥⇧⌘I, Export… ⇧⌘E (MM-10), Delete Map ⌘⌫, Restore Map, Delete Map Permanently… ⌥⌘⌫ (MM-19; shortcuts only while the library list has focus), later Duplicate |
 | Edit | Undo/Redo with the command's action name, Cut, Copy, Paste branch (MM-5), Select All, Find ⌘F |
 | View | Show/Hide Sidebar, Show/Hide Inspector, Zoom In ⌘+, Zoom Out ⌘−, Actual Size ⌘0, Zoom to Fit, Enter Full Screen |
 | Topic | Add Sibling, Add Child, Promote, Demote, Collapse/Expand, Delete (the Delete key) |

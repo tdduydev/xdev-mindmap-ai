@@ -35,6 +35,40 @@
         }
       }
     },
+    "%lld days left" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day left"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days left"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Còn %lld ngày"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld of %lld" : {
       "localizations" : {
         "vi" : {
@@ -1026,6 +1060,46 @@
         }
       }
     },
+    "Delete Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá sơ đồ"
+          }
+        }
+      }
+    },
+    "Delete Map Permanently…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá vĩnh viễn sơ đồ…"
+          }
+        }
+      }
+    },
+    "Delete Permanently" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá vĩnh viễn"
+          }
+        }
+      }
+    },
+    "Delete Permanently…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá vĩnh viễn…"
+          }
+        }
+      }
+    },
     "Delete Topic" : {
       "localizations" : {
         "vi" : {
@@ -1046,22 +1120,22 @@
         }
       }
     },
-    "Delete this map?" : {
+    "Delete this map permanently?" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Xoá sơ đồ này?"
+            "value" : "Xoá vĩnh viễn sơ đồ này?"
           }
         }
       }
     },
-    "Delete…" : {
+    "Deleted maps stay here for 30 days, then are deleted permanently." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Xoá…"
+            "value" : "Sơ đồ đã xoá được giữ ở đây 30 ngày, sau đó bị xoá vĩnh viễn."
           }
         }
       }
@@ -1873,6 +1947,16 @@
         }
       }
     },
+    "Map in Recently Deleted" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ đang ở mục Đã xoá gần đây"
+          }
+        }
+      }
+    },
     "Maps and Topics" : {
       "localizations" : {
         "vi" : {
@@ -2198,6 +2282,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa có sơ đồ gần đây"
+          }
+        }
+      }
+    },
+    "No Recently Deleted Maps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có sơ đồ nào đã xoá gần đây"
           }
         }
       }
@@ -2623,6 +2717,16 @@
         }
       }
     },
+    "Recently Deleted" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã xoá gần đây"
+          }
+        }
+      }
+    },
     "Redo" : {
       "localizations" : {
         "vi" : {
@@ -2703,12 +2807,42 @@
         }
       }
     },
+    "Restore" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khôi phục"
+          }
+        }
+      }
+    },
+    "Restore Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khôi phục sơ đồ"
+          }
+        }
+      }
+    },
     "Restore Purchases" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Khôi phục giao dịch mua"
+          }
+        }
+      }
+    },
+    "Restore it from Recently Deleted to open it." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khôi phục sơ đồ từ mục Đã xoá gần đây để mở."
           }
         }
       }

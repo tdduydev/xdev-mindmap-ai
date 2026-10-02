@@ -91,6 +91,8 @@ final class EditorSession {
     enum Opening {
         case ready(EditorSession)
         case missing
+        /// In Recently Deleted: not opened, so it cannot be edited until restored.
+        case recentlyDeleted
         case failed
     }
 
@@ -104,6 +106,8 @@ final class EditorSession {
     ) async -> Opening {
         do {
             guard let stored = try await repository.loadGraph(for: mapID) else { return .missing }
+            // A window restored at launch, or a stale link, can still name a deleted map.
+            guard stored.map.deletedAt == nil else { return .recentlyDeleted }
             let repair = try GraphRepair.repair(stored, now: .now)
             let session = EditorSession(
                 engine: try GraphEngine(state: repair.state),

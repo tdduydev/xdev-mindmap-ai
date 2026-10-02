@@ -9,7 +9,6 @@ Every sentence must describe the app as shipped. Change this page, [privacy](../
 - iCloud sync ships (MM-6): the iCloud section is already written as "when available"; check it still matches.
 - Voice input ships (MM-20): same for the voice section; it must stay on the device.
 - Analytics, crash reporting, cloud AI or any network call to xDev is added: rewrite the page before the build ships.
-- Recently Deleted ships (MM-19): add the 30-day period to "Deleting your data".
 
 Do not add claims the app does not make good on. Dates are the publish date of the wording.
 
@@ -35,7 +34,7 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 
 **Crash reports from Apple.** If you choose to share analytics with app developers in your device settings, Apple may share crash reports and usage statistics with xDev. You control this in your device's privacy settings.
 
-**Deleting your data.** Delete a map in the app to remove it. Deleting the app removes the maps stored on that device. Maps in iCloud can be removed in your device's iCloud storage settings.
+**Deleting your data.** Delete a map in the app to move it to Recently Deleted. It stays there for 30 days so you can restore it, then it is deleted permanently; Delete Permanently removes it straight away. Deleting the app removes the maps stored on that device. Maps in iCloud can be removed in your device's iCloud storage settings.
 
 **Children.** The app does not collect data from anyone, including children.
 
@@ -65,7 +64,7 @@ MindMap AI được làm để sơ đồ của bạn luôn là của bạn. Chí
 
 **Báo cáo lỗi từ Apple.** Nếu bạn chọn chia sẻ phân tích với nhà phát triển trong cài đặt thiết bị, Apple có thể chia sẻ báo cáo lỗi và thống kê sử dụng với xDev. Bạn quản lý việc này trong cài đặt quyền riêng tư của thiết bị.
 
-**Xoá dữ liệu.** Xoá một sơ đồ trong ứng dụng để gỡ nó. Xoá ứng dụng sẽ xoá các sơ đồ lưu trên thiết bị đó. Sơ đồ trong iCloud có thể xoá trong phần quản lý dung lượng iCloud của thiết bị.
+**Xoá dữ liệu.** Xoá một sơ đồ trong ứng dụng thì sơ đồ chuyển vào mục Đã xoá gần đây. Sơ đồ được giữ ở đó 30 ngày để bạn khôi phục, sau đó bị xoá vĩnh viễn; Xoá vĩnh viễn sẽ gỡ nó ngay. Xoá ứng dụng sẽ xoá các sơ đồ lưu trên thiết bị đó. Sơ đồ trong iCloud có thể xoá trong phần quản lý dung lượng iCloud của thiết bị.
 
 **Trẻ em.** Ứng dụng không thu thập dữ liệu của bất kỳ ai, kể cả trẻ em.
 
