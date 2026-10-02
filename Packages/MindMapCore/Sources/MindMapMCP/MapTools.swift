@@ -98,7 +98,8 @@ struct MapTools: Sendable {
         var lines = ["# \(Self.inline(outline.mapTitle)) (map_id: \(outline.mapID))", ""]
         for topic in outline.topics {
             let indent = String(repeating: "  ", count: topic.depth)
-            lines.append("\(indent)- \(Self.inline(topic.title)) <!-- topic_id: \(topic.nodeID) -->")
+            let floating = topic.isFloating ? " (floating topic)" : ""
+            lines.append("\(indent)- \(Self.inline(topic.title))\(floating) <!-- topic_id: \(topic.nodeID) -->")
             if let note = topic.note {
                 for noteLine in note.split(separator: "\n", omittingEmptySubsequences: false) {
                     lines.append("\(indent)  \(noteLine)".trimmingTrailingSpaces())
@@ -122,6 +123,7 @@ struct MapTools: Sendable {
                 ]
                 if let note = topic.note { row["note"] = .string(note) }
                 if topic.isNoteCut { row["note_cut"] = true }
+                if topic.isFloating { row["floating"] = true }
                 return .object(row)
             }),
             "omitted_topic_count": .int(outline.omittedTopicCount),

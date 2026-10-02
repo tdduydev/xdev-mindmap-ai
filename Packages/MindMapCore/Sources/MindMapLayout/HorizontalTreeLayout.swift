@@ -10,6 +10,11 @@ import MindMapGraph
 /// are stacked without overlap, so topics of any size never collide. A topic is
 /// centered on its children's block, and children start one gap past the edge
 /// of their own parent, so a wide topic pushes only its own branch outward.
+///
+/// Each floating topic (ADR 0010) is centred on its stored position, with its
+/// branch growing to the right of it by the same rules. Floating branches are
+/// laid out after the main tree in `GraphState.floatingTopicIDs` order and are
+/// not pushed away from it or from each other: they may overlap.
 public struct HorizontalTreeLayout: MindMapLayoutEngine {
     public init() {}
 
@@ -83,8 +88,22 @@ private struct LayoutPass {
             return MapLayout(options: options)
         }
         result.rootID = rootID
+        let floating = graph.floatingTopicIDs
+        if let old = previous?.floatingTopicIDs {
+            // A floating topic that was deleted or attached is reached from no
+            // re-measured parent; it goes unless it was placed in the tree.
+            let current = Set(floating)
+            orphans.append(contentsOf: old.filter { !current.contains($0) })
+        }
+        result.floatingTopicIDs = floating
         measure(from: rootID, rootID: rootID)
+        for id in floating {
+            measure(from: id, rootID: rootID)
+        }
         place(rootID: rootID)
+        for id in floating {
+            placeFloating(id)
+        }
         removeOrphans()
         result.crossLinks = crossLinks()
         result.bounds = bounds()
@@ -179,7 +198,28 @@ private struct LayoutPass {
         // reads top to bottom like a right-only one.
         let leftOrder = options.sides == .balanced ? Array(left.reversed()) : left
         stack += placements(for: leftOrder, in: rootFrame, side: .left, depth: 1)
+        place(stack)
+    }
 
+    /// A floating topic is drawn as a main topic (depth 1) on the right, with
+    /// no connector: it has no parent to draw one from.
+    private mutating func placeFloating(_ id: NodeID) {
+        guard let position = graph.node(id)?.position else { return }
+        let nodeSize = size(of: id)
+        let frame = CGRect(
+            x: position.x - nodeSize.width / 2,
+            y: position.y - nodeSize.height / 2,
+            width: nodeSize.width,
+            height: nodeSize.height
+        )
+        // It may have had one in the previous layout, before it was detached.
+        result.connectors[id] = nil
+        guard write(id, frame: frame, side: .right, depth: 1) else { return }
+        place(placements(for: measure(of: id).visibleChildren, in: frame, side: .right, depth: 2))
+    }
+
+    private mutating func place(_ start: [Placement]) {
+        var stack = start
         while let next = stack.popLast() {
             let nodeSize = size(of: next.id)
             let minX = next.side == .left ? next.anchorX - nodeSize.width : next.anchorX

@@ -44,6 +44,12 @@ public enum GraphError: Error, Hashable, Sendable {
     case imageAlreadyExists(ImageID)
     /// A topic has at most one image; this one is already on it.
     case nodeHasImage(ImageID)
+    /// A floating topic needs the central topic to be placed beside.
+    case noCentralTopic
+    /// Only a floating topic has a position to move.
+    case notFloating(NodeID)
+    /// Detaching needs a topic that has a parent.
+    case notInTree(NodeID)
     /// The graph is structurally broken: given to the engine that way, or left
     /// that way by a command, whose result was then discarded.
     case invalidGraph(Set<GraphIssue>)

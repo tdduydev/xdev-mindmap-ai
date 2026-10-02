@@ -9,6 +9,8 @@ public struct MapLayout: Equatable, Sendable {
     public internal(set) var rootID: NodeID?
     public internal(set) var options: LayoutOptions
     public internal(set) var nodes: [NodeID: LayoutNode]
+    /// Floating topics laid out around their stored positions, in layout order.
+    public internal(set) var floatingTopicIDs: [NodeID]
     /// The line from each visible topic's parent to it, keyed by the child.
     public internal(set) var connectors: [NodeID: EdgePath]
     /// Cross-links whose two ends are both visible.
@@ -23,6 +25,7 @@ public struct MapLayout: Equatable, Sendable {
         rootID = nil
         self.options = options
         nodes = [:]
+        floatingTopicIDs = []
         connectors = [:]
         crossLinks = [:]
         bounds = .zero

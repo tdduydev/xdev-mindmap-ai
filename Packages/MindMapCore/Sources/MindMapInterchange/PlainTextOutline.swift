@@ -85,13 +85,23 @@ public enum PlainTextOutline {
 
 /// Pre-order walk over a map or one branch, collapsed branches included:
 /// an export carries the whole map, not just what is on screen.
+///
+/// A whole map is the main tree, then each floating branch as a further
+/// top-level item (FR-ORG-27). Reading it back makes them main topics, by the
+/// import rule for several top-level items.
 enum OutlineWalk {
     static func nodes(of state: GraphState, from branchID: NodeID?) throws -> [(MindNode, Int)] {
-        guard let startID = branchID ?? state.map.rootNodeID else { return [] }
-        guard state.node(startID) != nil else { throw InterchangeError.topicNotFound }
+        let starts: [NodeID]
+        if let branchID {
+            starts = [branchID]
+        } else {
+            guard state.map.rootNodeID != nil else { return [] }
+            starts = state.topLevelIDs
+        }
+        guard let first = starts.first, state.node(first) != nil else { throw InterchangeError.topicNotFound }
         var result: [(MindNode, Int)] = []
         var visited: Set<NodeID> = []
-        var stack: [(NodeID, Int)] = [(startID, 0)]
+        var stack: [(NodeID, Int)] = starts.reversed().map { ($0, 0) }
         while let (id, depth) = stack.popLast() {
             guard let node = state.node(id), visited.insert(id).inserted else { continue }
             result.append((node, depth))

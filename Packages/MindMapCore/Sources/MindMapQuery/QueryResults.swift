@@ -26,6 +26,8 @@ public struct OutlineTopic: Hashable, Sendable {
     public let isNoteCut: Bool
     /// Children in the map, whether or not the outline shows them.
     public let childCount: Int
+    /// Heads a floating branch: no parent, listed after the main tree.
+    public let isFloating: Bool
 }
 
 /// A map or a branch, top to bottom, cut to a `TextLimit`. Collapsed branches
