@@ -71,6 +71,8 @@ These time the model only. SwiftUI's layout and rendering are not in them, so th
 | Delete topic | Delete while the canvas has focus and no title is being edited (a selected suggestion is discarded instead), Topic ▸ Delete Topic | Topic ▸ Delete Topic |
 | Canvas or outline | View ▸ As Canvas ⌘1, As Outline ⌘2, toolbar picker | Toolbar picker |
 
+**+ buttons (MM-57, FR-CNV-05, FR-EDT-02).** The hovered topic and the primary selection show a round + on the side away from the parent (add child) and, except on the central topic, one on the bottom edge (add sibling, still [Đề xuất]). Pressing one runs `CanvasModel.addFromButton`, the same `EditorSession.addChild`/`addSibling` as the menu and context menu: one "Add Topic" undo step, and the new topic opens for editing. `CanvasModel.addButtons(for:)` decides which topics show them and on which side; `setHovering(_:part:_:)` takes the hover of the card and of each button apart, since the buttons sit outside the card, and clears the hover only after `Motion.hoverExitDelay` with no part hovered. The buttons are overlaid after the topic's `contentShape`, which would otherwise keep taps off anything outside the card, and the topic showing them is drawn above its neighbours (`zIndex`), as a 44 pt tap area on iOS reaches past the 10 pt sibling gap.
+
 Collapsing a topic that holds the selection selects the collapsed topic, so Delete and Rename never act on a topic nobody sees.
 
 The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas. Delete is a menu key equivalent, so it is switched on only while `EditorSession.deleteKeyDeletesTopic` holds: `CanvasModel` reports the canvas's focus and its title editing, the outline reports its own (MM-0i). Delete removes every selected branch as one step. Find (MM-15) selects and reveals each match on the canvas too, and every match gets the `searchMatchFill` and `searchMatchBorder` of [[design-system]] behind its title, drawn outside the measured text so the layout does not move (FR-KBD-06).
@@ -87,7 +89,7 @@ The Mac's scroll events reach SwiftUI's hosting view rather than a background vi
 
 ## Accessibility
 
-Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does), actions Collapse/Expand, Add Child Topic, Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. At accessibility text sizes (iOS, iPadOS) the canvas opens with the central topic and its children fitted to the view. The outline stays the full alternative (FR-EDT-16).
+Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does), actions Collapse/Expand, Add Child Topic, Add Sibling Topic (not on the central topic), Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. At accessibility text sizes (iOS, iPadOS) the canvas opens with the central topic and its children fitted to the view. The outline stays the full alternative (FR-EDT-16).
 
 ## Not done yet
 

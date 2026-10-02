@@ -28,6 +28,16 @@ enum Motion {
     /// Delay between AI suggestions fading in one after another.
     static let suggestionStagger: Double = 0.04
 
+    /// How long a topic's + buttons stay after the pointer leaves it, so
+    /// crossing the gap to a button or passing over an edge does not blink them.
+    /// A delay, not an animation, so Reduce Motion keeps it.
+    static let hoverExitDelay: Double = 0.2
+
+    /// A topic's + buttons appearing and going; nothing with Reduce Motion.
+    static func addButtons(reduceMotion: Bool) -> Animation? {
+        isStill(reduceMotion) ? nil : Curve.standard.animation(duration: Duration.fast)
+    }
+
     /// UI tests run with no animation (docs/testing.md), so a query never
     /// finds a view halfway through moving.
     private static func isStill(_ reduceMotion: Bool) -> Bool {

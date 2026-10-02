@@ -44,6 +44,8 @@ final class CanvasModel {
     /// Counts drops refused because they aim into a moving branch, so the view
     /// can play feedback each time.
     private(set) var refusedDrops = 0
+    /// The topic under the pointer, for its + buttons (MM-57).
+    private(set) var hoveredID: NodeID?
 
     @ObservationIgnored var initialPlacement = InitialPlacement.centralTopic
     @ObservationIgnored private var needsInitialPlacement = true
@@ -65,6 +67,8 @@ final class CanvasModel {
     @ObservationIgnored private var styles: [StyleKey: TopicStyle] = [:]
     /// What was selected before a marquee drag that adds to the selection.
     @ObservationIgnored private var marqueeBase: (ids: Set<NodeID>, primary: NodeID?) = ([], nil)
+    @ObservationIgnored private var hoveredParts: Set<HoverPart> = []
+    @ObservationIgnored private var hoverExit: Task<Void, Never>?
     @ObservationIgnored let layoutOptions = CanvasModel.layoutOptions
 
     /// Shared with export, so a picture of the map has the canvas's layout.
@@ -430,9 +434,80 @@ final class CanvasModel {
         session.addChild()
     }
 
+    func addSibling(of id: NodeID) {
+        select(id)
+        session.addSibling()
+    }
+
     func delete(_ id: NodeID) {
         select(id)
         session.deleteSelection()
+    }
+
+    // MARK: Add buttons (MM-57)
+
+    /// The parts of a topic the pointer can be over. The + buttons sit outside
+    /// the card, so each reports its own hover.
+    enum HoverPart: Hashable {
+        case card, addChild, addSibling
+    }
+
+    /// The + buttons a topic shows, and where.
+    struct AddButtons: Equatable {
+        /// The side away from the parent, where children go; trailing for the central topic.
+        let childEdge: HorizontalEdge
+        /// The central topic has no siblings.
+        let showsSibling: Bool
+    }
+
+    /// Records pointer movement over a topic and its buttons. Leaving waits a
+    /// moment before the buttons go, so the pointer can cross the gap from the
+    /// card to a button, or pass over an edge, without them blinking.
+    func setHovering(_ id: NodeID, part: HoverPart, _ inside: Bool) {
+        if inside {
+            hoverExit?.cancel()
+            hoverExit = nil
+            if hoveredID != id {
+                hoveredParts = []
+                hoveredID = id
+            }
+            hoveredParts.insert(part)
+            return
+        }
+        guard hoveredID == id else { return }
+        hoveredParts.remove(part)
+        guard hoveredParts.isEmpty else { return }
+        hoverExit?.cancel()
+        hoverExit = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Motion.hoverExitDelay))
+            guard !Task.isCancelled, let self, self.hoveredParts.isEmpty, self.hoveredID == id else { return }
+            self.hoveredID = nil
+        }
+    }
+
+    /// Waits for a pending hover exit, for tests.
+    func hoverSettled() async {
+        await hoverExit?.value
+    }
+
+    /// The + buttons for a topic: on the one under the pointer, and on the
+    /// primary selection, since touch has no hover. None on suggestions, on a
+    /// title being edited, while dragging or drawing a rectangle, or below the
+    /// detail zoom, where topics are shapes.
+    func addButtons(for topic: CanvasTopic) -> AddButtons? {
+        guard isDetailed, !topic.isSuggestion, drag == nil, marquee == nil, topic.id != editingID,
+              topic.id == hoveredID || topic.id == session.selection else { return nil }
+        let isRoot = topic.id == session.rootID
+        return AddButtons(childEdge: topic.side == .left ? .leading : .trailing, showsSibling: !isRoot)
+    }
+
+    /// A + button: the same command as Add Child Topic or Add Sibling Topic,
+    /// so one undo step, and the new topic opens for editing.
+    func addFromButton(_ id: NodeID, sibling: Bool) {
+        hoverExit?.cancel()
+        hoveredID = nil
+        hoveredParts = []
+        if sibling { addSibling(of: id) } else { addChild(of: id) }
     }
 
     func editNote(_ id: NodeID) {
