@@ -38,7 +38,7 @@ final class FoundationUITests: XCTestCase {
         editor.outlineTopics.waitForCount(5)
         editor.outlineTopic(titled: UITestFixture.Title.design).waitToExist().tap()
 
-        editor.addChildButton.tap()
+        editor.tap(.addChild)
         editor.outlineTopics.waitForCount(6)
         editor.undoButton.tap()
         editor.outlineTopics.waitForCount(5)

@@ -13,6 +13,7 @@ struct SidebarView: View {
             } icon: {
                 Image(systemName: section.systemImage)
             }
+            .accessibilityIdentifier(AccessibilityID.Sidebar.section(section.rawValue))
         }
         .accessibilityIdentifier(AccessibilityID.Sidebar.list)
         .safeAreaInset(edge: .bottom, spacing: 0) { CloudSyncStatusLine() }

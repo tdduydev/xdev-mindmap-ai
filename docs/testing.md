@@ -76,10 +76,23 @@ Identifiers live in one enum, `AccessibilityID` (`Shared/AccessibilityID.swift`)
 - Every interactive control a test needs gets an identifier. Do not find controls by their label: labels are translated.
 - Identifiers are not shown to VoiceOver and never contain map content.
 
+## Suites
+
+| Suite | Covers | Platforms |
+| --- | --- | --- |
+| `FoundationUITests` | The UI test mode itself: fixtures, a fresh store per launch, language | macOS, iOS |
+| `LibraryUITests` | Sections, New Mind Map, search by title and topic text, diacritic folding, Vietnamese | macOS, iOS |
+| `OutlineUITests` | Rename, add sibling, delete a branch, each with undo and redo; collapse; Vietnamese VoiceOver labels | macOS, iOS |
+| `FindUITests` | Find in map: match count, Next and Previous, no results, folding, Done, Vietnamese | macOS, iOS |
+| `SettingsUITests` | Opening Settings (⌘, or the sidebar button), panes, Appearance kept across a reopen, Vietnamese | macOS, iOS |
+| `MenuShortcutUITests` | Menu items disabled without a map, ⌘N, ⌘1/⌘2, ⇧⌘Return with ⌘Z and ⇧⌘Z, ⌘F/⌘G/⇧⌘G/Esc, ⌘, | macOS only |
+
+Menu bar items have no accessibility identifier (SwiftUI `Commands` do not pass one on), so `MenuShortcutUITests` finds them by their English titles and runs in English only. On iPhone the editor toolbar moves what does not fit into an overflow menu; its items lose their identifiers, so `EditorPage.tap(_:)` opens the menu and finds the item by its SF Symbol name, which is not translated.
+
 ## Writing a UI test
 
 - One `XCTestCase` per area (MM-23 library and outline, MM-24 canvas, …), each test `@MainActor`, starting with `MindMapApp.launch(fixture:language:)`.
-- Go through page objects in `MindMapAIUITests/Pages/`: `LibraryPage`, `EditorPage`. Add elements and steps there, not in the test, so a UI change is fixed in one place. Pages return the next page (`library.open(title)` returns an `EditorPage`).
+- Go through page objects in `MindMapAIUITests/Pages/`: `LibraryPage`, `EditorPage`, `SettingsPage`. Add elements and steps there, not in the test, so a UI change is fixed in one place. Pages return the next page (`library.open(title)` returns an `EditorPage`).
 - Wait, do not sleep: `waitToExist()` and `waitForCount(_:)` fail at the caller's line.
 - Pick segments, menus and sections by identifier or position, never by translated text. A test that checks the text itself (a Vietnamese run) compares to the expected string on purpose.
 - iPhone shows the split view as a stack: `LibraryPage.show()` opens All Maps from the sidebar when the list is not on screen.

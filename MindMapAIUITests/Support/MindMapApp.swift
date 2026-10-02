@@ -53,6 +53,10 @@ struct MindMapApp {
 
     var library: LibraryPage { LibraryPage(app: app) }
     var editor: EditorPage { EditorPage(app: app) }
+
+    func openSettings(file: StaticString = #filePath, line: UInt = #line) -> SettingsPage {
+        SettingsPage.open(in: app, file: file, line: line)
+    }
 }
 
 @MainActor
