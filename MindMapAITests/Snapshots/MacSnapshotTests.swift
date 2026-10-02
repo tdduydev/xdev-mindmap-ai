@@ -75,7 +75,9 @@ struct MacSnapshotTests {
 
             let scenes: [(String, AnyView, CGSize)] = [
                 ("sidebar", AnyView(SidebarView(selection: .constant(.all))), CGSize(width: 220, height: 400)),
-                ("inspector", AnyView(MapInspectorView(session: map.session)), CGSize(width: 320, height: 900)),
+                // Room under the content, so the Form never scrolls: MM-64's
+                // Image section brought it within a few points of 900.
+                ("inspector", AnyView(MapInspectorView(session: map.session)), CGSize(width: 320, height: 1000)),
             ]
             // ImageRenderer draws SwiftUI itself, glass included, where AppKit
             // draws nothing; it cannot draw Forms or AppKit controls.
