@@ -32,7 +32,7 @@ Packages/
 │  ├─ MindMapAICore           ✓ (MM-7): AIProvider, requests, AIProposal, ContextBuilder, ProposalTranslator, AICapabilities
 │  ├─ MindMapAIApple          ✓ (MM-7): Foundation Models provider, @Generable types, prompts catalog; Translation glue later
 │  ├─ MindMapQuery            ✓ (MM-47): `MapQueries`, `TopicRef`, `GraphSource`, `TextLimit`; reads for MCP and the chat, see [[mcp]] and [[chat]]
-│  ├─ MindMapMCP              ✓ (MM-40): `MCPServer` (JSON-RPC, both eras, 4 read tools), `MCPListener` (loopback HTTP), `MCPAccess`; Mac only at run time, see [[mcp]]
+│  ├─ MindMapMCP              ✓ (MM-40): `MCPServer` (JSON-RPC, both eras, 4 read tools), `MCPListener` (loopback HTTP), `MCPAccess`; Mac only at run time, hosted by the app's `Features/AIApps` (MM-46), see [[mcp]]
 │  ├─ mindmap-mcp-dev         developer tool, not shipped (MM-40): serves sample maps for the MCP Inspector
 │  ├─ MindMapCapture          ✓ speech (MM-20): `VoiceTranscribing`, `AppleSpeechTranscriber`, `SpokenTopics`; OCR, PDF text, ink later
 │  └─ MindMapTestSupport      fixtures, MockAIProvider (✓ MM-7), in-memory repository (tests only)

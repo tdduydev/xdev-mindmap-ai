@@ -47,7 +47,7 @@ flowchart LR
 | `MindMapQuery` | Domain, Graph, Persistence (the `MapRepository` protocol), Search: read-only queries for MCP and the chat ([[mcp]]) | SwiftUI, AI, Network |
 | `MindMapMCP` | Domain, Query, Network (`NWListener` on 127.0.0.1), Security (`SecRandomCopyBytes`): our own JSON-RPC MCP server ([[mcp]]) | SwiftUI, SwiftData records, AI, outside MCP SDKs |
 | Share Extension | Domain, Graph, Persistence, Interchange, Sharing, SwiftUI | AI, AppIntents |
-| App target | All of the above, SwiftUI | SwiftData records directly |
+| App target | All of the above, SwiftUI; on the Mac it hosts `MindMapMCP` (`AIAppsHost`, Settings ▸ AI Apps, MM-46) | SwiftData records directly |
 
 The package boundary enforces these rules at compile time (ADR 0002). Later phases add packages the same way: layout, AI, import, export.
 

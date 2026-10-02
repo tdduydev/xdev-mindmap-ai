@@ -16,10 +16,11 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 | Spotlight | Map titles only, in the device's own index; maps moved to Recently Deleted or deleted are removed |
 | Clipboard | Read only when the user runs Map from Clipboard |
 | Sync status | Reads the iCloud account status, the network status and the mirroring's events on the device, to show them; nothing about them leaves the device. CloudKit errors are logged by code only |
+| AI apps over MCP (Mac) | Off by default (Settings ▸ AI Apps, MM-46; [mcp](mcp.md), ADR 0008). While on, the app listens on 127.0.0.1 only, and only while it runs. An AI app the person added (one token each, in the Keychain, device-only, never synced) can list, read and search map titles, notes and structure, and may send what it reads to its own provider (Anthropic, OpenAI…) under its own terms; xDev receives nothing. The footer under the switch says so before it is turned on, and Settings ▸ Privacy shows whether it is on. Revoke stops a token at once; turning the switch off closes the port and keeps the apps. Last read times are kept in memory only. Logs hold tool names and sizes; app names are `.private`; arguments and map text are never logged |
 
 ## Planned
 
-- **AI apps over MCP** ([mcp.md](mcp.md), ADR 0008; server core built in MM-40, not in the app until MM-46): off by default. Once the person connects an AI app such as Claude or ChatGPT, that app can read maps on the Mac and may send them to its own provider under its terms; xDev still receives nothing. The task that ships it adds a row to the table above and updates the privacy policy.
+- **AI apps writing suggestions** (M5 in [mcp.md](mcp.md)): proposals only, labelled with the app's name, accepted in the app; adds an "Allow Suggestions" switch and changes the row above.
 - **Chat** ([chat.md](chat.md), ADR 0009, not built): on the device like the other AI features; conversations are not saved [Đề xuất].
 
 ## Rules for the code

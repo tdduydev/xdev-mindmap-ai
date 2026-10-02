@@ -58,5 +58,10 @@ nonisolated enum AccessibilityID {
         static let voiceInputLanguage = "settings.voiceInputLanguage"
         static let privacyAI = "settings.privacy.ai"
         static let privacyVoiceInput = "settings.privacy.voiceInput"
+        static let aiAppsSwitch = "settings.aiApps.switch"
+        static let aiAppsStatus = "settings.aiApps.status"
+        static let aiAppsPort = "settings.aiApps.port"
+        static let aiAppsAdd = "settings.aiApps.add"
+        static let aiAppsPrivacy = "settings.aiApps.privacy"
     }
 }

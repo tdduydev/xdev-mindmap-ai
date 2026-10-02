@@ -26,8 +26,11 @@ struct SettingsTests {
     // MARK: Panes
 
     @Test func panesAreInTheDocumentedOrder() {
-        #expect(SettingsPane.available(showsAI: true) == [.general, .export, .ai, .data, .pro, .privacy, .about])
-        #expect(SettingsPane.available(showsAI: false) == [.general, .export, .data, .pro, .privacy, .about])
+        // The Mac.
+        #expect(SettingsPane.available(showsAI: true, showsAIApps: true) == [.general, .export, .ai, .data, .aiApps, .pro, .privacy, .about])
+        #expect(SettingsPane.available(showsAI: false, showsAIApps: true) == [.general, .export, .data, .aiApps, .pro, .privacy, .about])
+        // iPad and iPhone: no AI Apps.
+        #expect(SettingsPane.available(showsAI: true, showsAIApps: false) == [.general, .export, .ai, .data, .pro, .privacy, .about])
     }
 
     @Test func lastPaneReopensAndAMissingOneOpensGeneral() {
@@ -37,8 +40,9 @@ struct SettingsTests {
         #expect(AppStorage(wrappedValue: SettingsPane.general, SettingsPane.storageKey, store: defaults).wrappedValue == .export)
 
         // AI was last, then the Mac turned out to have no Apple Intelligence (an Intel Mac).
-        #expect(SettingsPane.ai.resolved(in: SettingsPane.available(showsAI: false)) == .general)
-        defaults.set("aiApps", forKey: SettingsPane.storageKey)
+        #expect(SettingsPane.ai.resolved(in: SettingsPane.available(showsAI: false, showsAIApps: true)) == .general)
+        #expect(SettingsPane.aiApps.resolved(in: SettingsPane.available(showsAI: true, showsAIApps: false)) == .general)
+        defaults.set("integrations", forKey: SettingsPane.storageKey)
         #expect(AppStorage(wrappedValue: SettingsPane.general, SettingsPane.storageKey, store: defaults).wrappedValue == .general)
     }
 
