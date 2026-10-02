@@ -47,5 +47,14 @@ App **MindMap AI by xDev** cho macOS, iPadOS, iOS: Swift, SwiftUI, SwiftData, kh
 - Test bằng Swift Testing; command mới phải có test cả undo lẫn redo.
 - Commit theo Conventional Commits, tiếng Anh: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`.
 
+## Giao diện và App Store
+- Theo [[design-guidelines]]. Liquid Glass chỉ cho lớp điều khiển (toolbar, sidebar, nút nổi trên canvas); node, cạnh và canvas không dùng glass. Ưu tiên component chuẩn của SwiftUI.
+- Trên Mac, menu bar có đủ mọi lệnh: mỗi nút toolbar và mỗi thao tác editor là một mục menu có phím tắt; không áp dụng thì disable, không ẩn. Không đổi nghĩa phím tắt chuẩn.
+- Mỗi thứ chỉ có một tên trên UI ("Topic"/"chủ đề", "map"/"sơ đồ"). Nút và mục menu viết Title Case, mô tả viết sentence case.
+- Vùng chạm lấy `Metrics.minimumHitTarget`; animation đi qua `Motion` (tôn trọng Reduce Motion); mỗi màu mới có biến thể dark và tương phản cao.
+- Nội dung AI: hiện dạng đề xuất có nhãn AI, sửa được trước khi Accept; Accept là một command, undo một bước. Không thử lách guardrail của Foundation Models.
+- Thêm API cần lý do (UserDefaults, file timestamp…) thì cập nhật `PrivacyInfo.xcprivacy`; thêm thu thập dữ liệu hay AI đám mây thì cập nhật [[privacy]] và nhãn privacy ([[app-store-readiness]]).
+- Không tạo app record thứ hai cho iOS: một record, một bundle ID `asia.xdev.mindmapai` (universal purchase).
+
 ## Khi xong task
 Note của task ghi: đã làm; quyết định kiến trúc; file chính; test (thêm gì, pass chưa, còn thiếu gì); rủi ro thật; bước nên làm tiếp.
