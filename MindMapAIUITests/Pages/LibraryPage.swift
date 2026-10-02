@@ -56,16 +56,22 @@ struct LibraryPage {
         return self
     }
 
-    /// Picks a section in the sidebar and waits for its list.
+    /// Brings the row of `section` on screen and returns it.
     @discardableResult
-    func select(_ section: Section, file: StaticString = #filePath, line: UInt = #line) -> LibraryPage {
+    func showSectionRow(_ section: Section, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
         #if os(iOS)
         // On iPhone the sidebar is the screen below the list.
         if !sectionRow(section).waitForExistence(timeout: MindMapApp.timeout / 3) {
             app.navigationBars.buttons.element(boundBy: 0).tap()
         }
         #endif
-        sectionRow(section).waitToExist(file: file, line: line).tap()
+        return sectionRow(section).waitToExist(file: file, line: line)
+    }
+
+    /// Picks a section in the sidebar and waits for its list.
+    @discardableResult
+    func select(_ section: Section, file: StaticString = #filePath, line: UInt = #line) -> LibraryPage {
+        showSectionRow(section, file: file, line: line).tap()
         list.waitToExist(file: file, line: line)
         return self
     }
