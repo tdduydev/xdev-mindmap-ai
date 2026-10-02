@@ -23,7 +23,7 @@ struct MigrationHarnessTests {
 
     /// The plan is `[SchemaV1, SchemaV2]`: V1's data comes through with every
     /// value, every V2 field is empty (so maps draw as before), and there are
-    /// no tags, tag links or boundaries yet.
+    /// no tags, tag links, boundaries, summaries or images yet.
     @Test func v1StoreOpensAsV2WithEmptyNewFields() async throws {
         let store = try FixtureStore(copying: "V1")
         defer { store.remove() }
@@ -39,6 +39,7 @@ struct MigrationHarnessTests {
         for node in nodes {
             #expect(node.colorToken == nil && node.symbol == nil && node.taskStateRaw == nil)
             #expect(node.priority == nil && node.startDate == nil && node.dueDate == nil)
+            #expect(node.linkURL == nil && node.positionX == nil && node.positionY == nil && node.calloutText == nil)
         }
         let edges = try context.fetch(FetchDescriptor<EdgeRecord>())
         #expect(edges.map(\.label) == ["cites"])
@@ -46,6 +47,7 @@ struct MigrationHarnessTests {
         #expect(try context.fetchCount(FetchDescriptor<TagRecord>()) == 0)
         #expect(try context.fetchCount(FetchDescriptor<NodeTagRecord>()) == 0)
         #expect(try context.fetchCount(FetchDescriptor<GroupRecord>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<ImageRecord>()) == 0)
 
         let graph = try #require(try await SwiftDataMapRepository(modelContainer: container).loadGraph(for: V1Fixture.mapID))
         #expect(graph == V1Fixture.graph)
@@ -68,6 +70,49 @@ struct MigrationHarnessTests {
 
         let reopened = try PersistenceController.makeRepository(at: .file(store.url))
         #expect(try await reopened.loadGraph(for: V1Fixture.mapID) == engine.state)
+    }
+
+    /// A migrated V1 map takes every node type of MM-59 and keeps it on reopening,
+    /// the image's bytes included.
+    @Test func migratedStoreKeepsNodeTypes() async throws {
+        let store = try FixtureStore(copying: "V1")
+        defer { store.remove() }
+        let repository = try PersistenceController.makeRepository(at: .file(store.url))
+        var engine = try GraphEngine(state: try #require(try await repository.loadGraph(for: V1Fixture.mapID)))
+        let bytes = Data((0..<255).map(UInt8.init))
+        let floating = MindNode(mapID: V1Fixture.mapID, parentID: nil, title: "Floating", position: TopicPosition(x: -120.5, y: 64))
+        let summaryTopic = MindNode(mapID: V1Fixture.mapID, parentID: V1Fixture.rootID, title: "Summary", sortOrder: 3)
+        let summary = MindGroup(
+            mapID: V1Fixture.mapID, kind: .summary, parentNodeID: V1Fixture.rootID,
+            firstNodeID: V1Fixture.childID, lastNodeID: V1Fixture.siblingID, summaryNodeID: summaryTopic.id
+        )
+        let image = MindImage(
+            mapID: V1Fixture.mapID, nodeID: V1Fixture.childID, data: bytes, uniformType: "public.png",
+            pixelWidth: 16, pixelHeight: 9, byteCount: bytes.count, displayWidth: 240, altText: "Whiteboard"
+        )
+
+        let changes = try engine.execute(EditGraphForTest { transaction in
+            try transaction.insertNode(floating)
+            try transaction.insertNode(summaryTopic)
+            try transaction.insertGroup(summary)
+            try transaction.insertImage(image)
+            try transaction.updateNode(V1Fixture.siblingID) { node in
+                node.link = TopicLink.normalized("example.com/plan")
+                node.callout = MindNode.normalizedCallout("Check the budget")
+            }
+        })
+        try await repository.save(changes, map: engine.state.map)
+
+        let reopened = try PersistenceController.makeRepository(at: .file(store.url))
+        let loaded = try #require(try await reopened.loadGraph(for: V1Fixture.mapID))
+        #expect(loaded == engine.state)
+        #expect(loaded.node(V1Fixture.siblingID)?.link?.string == "https://example.com/plan")
+        #expect(loaded.node(V1Fixture.siblingID)?.callout == "Check the budget")
+        #expect(loaded.floatingTopicIDs == [floating.id])
+        #expect(loaded.group(summary.id)?.summaryNodeID == summaryTopic.id)
+        #expect(loaded.image(of: V1Fixture.childID)?.altText == "Whiteboard")
+        #expect(try await reopened.imageData(for: image.id) == bytes)
+        #expect(try GraphRepair.repair(loaded, now: .now).changes.isEmpty)
     }
 
     /// Opening is not enough: the migrated store must take edits and keep them.
@@ -102,6 +147,19 @@ struct MigrationHarnessTests {
     func writeV1Fixture() throws {
         let url = URL(fileURLWithPath: try #require(V1Fixture.outputPath))
         try V1Fixture.write(to: url)
+    }
+}
+
+/// Runs primitives directly; the user commands for the node types come with MM-60 to MM-66.
+struct EditGraphForTest: GraphCommand {
+    let body: @Sendable (inout GraphTransaction) throws -> Void
+
+    init(_ body: @escaping @Sendable (inout GraphTransaction) throws -> Void) {
+        self.body = body
+    }
+
+    func execute(in transaction: inout GraphTransaction) throws {
+        try body(&transaction)
     }
 }
 
