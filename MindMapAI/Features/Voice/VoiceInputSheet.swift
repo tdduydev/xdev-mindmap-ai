@@ -27,6 +27,7 @@ struct VoiceInputSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add Topics", action: voice.addTopics)
                         .disabled(!voice.canAddTopics)
+                        .accessibilityIdentifier(AccessibilityID.Voice.addTopics)
                 }
             }
         }
@@ -61,6 +62,7 @@ struct VoiceInputSheet: View {
             Button(action: voice.startListening) {
                 Label("Start Listening", systemImage: "mic")
             }
+            .accessibilityIdentifier(AccessibilityID.Voice.listen)
         case .preparing:
             Label {
                 Text("Getting ready…")
@@ -80,6 +82,7 @@ struct VoiceInputSheet: View {
             Button(action: voice.stopListening) {
                 Label("Stop Listening", systemImage: "mic.fill")
             }
+            .accessibilityIdentifier(AccessibilityID.Voice.listen)
             .accessibilityHint(Text("Listening"))
         case .finishing:
             Label {
