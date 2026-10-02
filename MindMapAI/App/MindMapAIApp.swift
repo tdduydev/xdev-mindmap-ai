@@ -103,6 +103,8 @@ struct MindMapAIApp: App {
             .environment(pro)
             .environment(ai)
             .environment(sync)
+            // A restored map window can be the only window at launch.
+            .task { sync.start() }
         }
         #if os(macOS)
         .defaultSize(width: 980, height: 700)
