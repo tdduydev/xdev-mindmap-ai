@@ -48,6 +48,16 @@ StoreKit Testing keeps one set of transactions per app on the Mac, not per test 
 
 So every test or suite that creates an `SKTestSession` takes the `.storeKitTestLock` trait (`MindMapAITests/StoreKitTestLock.swift`). The first one in a process takes a file lock in the app's temporary directory and keeps it until the process exits; another run's StoreKit tests wait for it, up to 15 minutes, while its other tests go on. Expect the Pro entitlement suite to start late when another run of the app tests is going. Inside a test, look for the transaction the test made (`pendingAskToBuyConfirmation`, the ID `buyProduct` returns), not the first one listed.
 
+The lock is a file in the app's temporary directory. The test host is the sandboxed app, so that directory is in the app's container, which macOS keys by bundle ID: every worktree's run of `MindMapAITests` finds the same file. On a Mac running several builds, StoreKit still applies a purchase, refund or `clearTransactions()` late, sometimes after more than five seconds (MM-88). So `eventually` waits up to 30 seconds, and each test's `init` asks for the clear again and stops the test with a clear message if StoreKit still lists a transaction, rather than letting the next test fail on the previous test's purchase.
+
+### Waiting and timing on a busy machine
+
+Agents and the leader run `scripts/ci.sh` in several worktrees at once, so any test that depends on a short span of real time fails at random (MM-88):
+
+- Wait for an event, not a span of time: `AIAppsTests.waitUntil` uses `Observations` on the host's state and only gives up after 60 seconds to stop a hung test. Never count `Task.yield()` calls or sleep for a fixed time and then check once.
+- Do not bind a fixed port. Pick one at random and try another when it is taken (`AIAppsTests.listenOnAFreePort`); `MCPListener` takes port 0 in core tests.
+- A test that times code checks the median of several runs and only fails far over the budget. `CommandCostTests` fails a default run when a 1,000-topic command takes a median over 1 s, ten times its 100 ms budget, which still catches a command that has gone quadratic. The 100 ms budget is checked on a quiet Mac with `MINDMAP_BENCHMARKS=1 swift test --package-path Packages/MindMapCore --filter CommandCostTests`. Other timings (layout, canvas, persistence) are printed, never asserted.
+
 ## Snapshot tests
 
 XCUITest on the Mac needs an unlocked login session, and the shared Mac mini locks its screen when no one is at it. Snapshot tests check the Mac's own interface without one: `MacSnapshotTests` (`MindMapAITests/Snapshots/`) draws each scene into an off-screen window and compares the pixels with a reference PNG kept in the repo. They are hosted app tests, so they run while the Mac is locked, like the rest of `MindMapAITests`.

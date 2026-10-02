@@ -19,12 +19,19 @@ struct ProEntitlementTests {
         session = try SKTestSession(contentsOf: url)
         session.disableDialogs = true
         session.askToBuyEnabled = false
-        session.clearTransactions()
         // StoreKit applies the clear asynchronously; start each test from nothing
         // bought. A refunded transaction is no entitlement but still listed, and
-        // the Ask to Buy test must not find an earlier test's one.
+        // the Ask to Buy test must not find an earlier test's one. On a busy Mac
+        // the clear took over five seconds, and a test that went on anyway found
+        // the previous test's purchase (restoreWithNothingBought, MM-88), so the
+        // clear is asked again and a test never starts on a dirty store.
         let session = session
-        _ = await Self.eventually { await !Self.hasProEntitlement() && session.allTransactions().isEmpty }
+        var cleared = false
+        for _ in 0..<3 where !cleared {
+            session.clearTransactions()
+            cleared = await Self.eventually { await !Self.hasProEntitlement() && session.allTransactions().isEmpty }
+        }
+        try #require(cleared, "StoreKit still lists transactions after clearTransactions()")
     }
 
     @Test func loadsTheProProductWithItsPrice() async throws {
@@ -192,10 +199,13 @@ struct ProEntitlementTests {
     }
 
     /// Waits for a change that arrives asynchronously through `Transaction.updates`.
-    /// StoreKit delivers purchases, refunds and clears asynchronously, and later
-    /// still on a busy machine, so state is polled for up to five seconds.
-    private static func eventually(_ condition: () async -> Bool) async -> Bool {
-        for _ in 0..<50 {
+    /// StoreKit delivers purchases, refunds and clears asynchronously, and much
+    /// later on a Mac running several builds: five seconds was not enough
+    /// (MM-88). The deadline is in time, not tries, so a slow `condition` does
+    /// not stretch it; a met condition returns at once, so it costs nothing.
+    private static func eventually(within limit: Duration = .seconds(30), _ condition: () async -> Bool) async -> Bool {
+        let deadline = ContinuousClock.now + limit
+        while ContinuousClock.now < deadline {
             if await condition() { return true }
             try? await Task.sleep(for: .milliseconds(100))
         }

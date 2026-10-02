@@ -58,8 +58,28 @@ struct AIAppsTests {
         return (response.status, String(decoding: response.body, as: UTF8.self))
     }
 
-    /// A port nobody else in this run uses; the listener binds it for real.
+    /// A port picked at random; the listener binds it for real. Another test
+    /// run (another worktree) can hold it, so tests that need it open go
+    /// through `listenOnAFreePort`. The host refuses port 0, which would let
+    /// the system choose, since every client config holds the port.
     private func freePort() -> UInt16 { UInt16.random(in: 52_000...60_000) }
+
+    /// Turns `host` on at a random port, trying another when that one is
+    /// taken, and returns once it listens.
+    private func listenOnAFreePort(_ host: AIAppsHost) async throws {
+        for _ in 0..<5 {
+            #expect(host.setPort(freePort()))
+            host.setEnabled(true)
+            try await waitFor(host) {
+                switch $0 {
+                case .listening, .portUnavailable: true
+                case .off, .starting: false
+                }
+            }
+            if case .listening = host.status { return }
+        }
+        throw TimedOut()
+    }
 
     // MARK: Defaults
 
@@ -148,8 +168,9 @@ struct AIAppsTests {
         let before = Date.now
 
         _ = try await call("list_maps", token: token, on: host)
-        // The server reports activity from its own task; give it a turn on the main actor.
-        for _ in 0..<50 where host.apps.first?.lastRead == nil { await Task.yield() }
+        // The server reports activity from its own task, which reaches the main
+        // actor later; a fixed number of yields was not enough on a busy Mac.
+        try await waitUntil { host.apps.first?.lastRead != nil }
 
         let lastRead = try #require(host.apps.first?.lastRead)
         #expect(lastRead >= before)
@@ -188,12 +209,10 @@ struct AIAppsTests {
     @Test func switchOpensAndClosesThePortAndRevokesNothing() async throws {
         let host = makeHost()
         host.start()
-        #expect(host.setPort(freePort()))
         _ = try host.addApp(named: "Claude Code")
 
-        host.setEnabled(true)
+        try await listenOnAFreePort(host)
         #expect(defaults.bool(forKey: AIAppsHost.enabledKey))
-        try await waitFor(host) { if case .listening = $0 { true } else { false } }
         #expect(host.status == .listening(port: host.port))
 
         host.setEnabled(false)
@@ -207,16 +226,21 @@ struct AIAppsTests {
         defaults.set(Int(freePort()), forKey: AIAppsHost.portKey)
         let host = makeHost()
         host.start()
-        try await waitFor(host) { if case .listening = $0 { true } else { false } }
+        // Starting is enough: the port may be held by another test run.
+        try await waitFor(host) {
+            switch $0 {
+            case .listening, .portUnavailable: true
+            case .off, .starting: false
+            }
+        }
+        #expect(host.isEnabled)
         host.setEnabled(false)
     }
 
     @Test func aTakenPortIsReportedNotReplaced() async throws {
-        let port = freePort()
         let first = makeHost()
-        first.setPort(port)
-        first.setEnabled(true)
-        try await waitFor(first) { if case .listening = $0 { true } else { false } }
+        try await listenOnAFreePort(first)
+        let port = first.port
 
         let otherDefaults = try #require(UserDefaults(suiteName: "AIAppsTests.\(UUID().uuidString)"))
         let second = AIAppsHost(
@@ -237,12 +261,26 @@ struct AIAppsTests {
 
     private struct TimedOut: Error {}
 
-    private func waitFor(_ host: AIAppsHost, _ condition: (AIAppsHost.Status) -> Bool) async throws {
-        let deadline = ContinuousClock.now + .seconds(10)
-        while !condition(host.status) {
-            guard ContinuousClock.now < deadline else { throw TimedOut() }
-            try await Task.sleep(for: .milliseconds(20))
+    private func waitFor(_ host: AIAppsHost, _ condition: @escaping @MainActor (AIAppsHost.Status) -> Bool) async throws {
+        try await waitUntil { condition(host.status) }
+    }
+
+    /// Returns when `condition` holds, checked again on every change it reads
+    /// rather than on a timer. The limit only stops a hung test: a listener
+    /// took over ten seconds to start on a Mac running several builds (MM-88).
+    private func waitUntil(within limit: Duration = .seconds(60), _ condition: @escaping @MainActor () -> Bool) async throws {
+        // Two tasks rather than a task group, which Xcode 27's region isolation
+        // checker cannot compile here.
+        let watcher = Task { @MainActor in
+            for await met in Observations(condition) where met { return true }
+            return false
         }
+        let timer = Task {
+            try await Task.sleep(for: limit)
+            watcher.cancel()
+        }
+        defer { timer.cancel() }
+        guard await watcher.value else { throw TimedOut() }
     }
 
     // MARK: Keychain
