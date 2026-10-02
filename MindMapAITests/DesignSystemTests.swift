@@ -75,8 +75,9 @@ struct DesignSystemContrastTests {
         }
     }
 
-    @Test func everyBranchIsReadableAndVisible() {
-        let theme = MapTheme.standard
+    @Test(arguments: MindMapTheme.allCases)
+    func everyBranchIsReadableAndVisible(_ stored: MindMapTheme) {
+        let theme = MapTheme(stored)
         for variant in ColorVariant.allCases {
             let canvas = Tokens.canvasBackground[variant]
             for index in theme.branches.colors.indices {

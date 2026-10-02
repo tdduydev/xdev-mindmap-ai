@@ -1,4 +1,5 @@
 import MindMapAICore
+import MindMapDomain
 import SwiftUI
 
 /// What the menus can act on in the frontmost window.
@@ -59,6 +60,13 @@ struct MapCommands: Commands {
             Button("Zoom to Fit") { canvas?.zoomToFit() }
                 .keyboardShortcut("0", modifiers: [.command, .option])
                 .disabled(canvas?.canZoomToFit != true)
+            Divider()
+            Picker("Theme", selection: themeBinding) {
+                ForEach(MindMapTheme.allCases) { theme in
+                    Text(theme.title).tag(theme)
+                }
+            }
+            .disabled(editor == nil)
             Divider()
         }
 
@@ -146,6 +154,13 @@ struct MapCommands: Commands {
         Button("Cancel AI Request") { assistant?.cancel() }
             .keyboardShortcut(".")
             .disabled(assistant?.isWorking != true)
+    }
+
+    private var themeBinding: Binding<MindMapTheme> {
+        Binding(
+            get: { editor?.map.theme ?? .standard },
+            set: { editor?.changeTheme(to: $0) }
+        )
     }
 
     private func presentationBinding(_ presentation: EditorPresentation) -> Binding<Bool> {

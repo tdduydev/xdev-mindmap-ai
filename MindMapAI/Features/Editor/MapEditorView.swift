@@ -30,6 +30,9 @@ struct MapEditorView: View {
         .sheet(item: $assistant.sheet, onDismiss: assistant.sheetDismissed) { sheet in
             AISheet(assistant: assistant, sheet: sheet)
         }
+        .inspector(isPresented: $session.isInspectorPresented) {
+            MapInspectorView(session: session)
+        }
         .navigationTitle(session.map.title)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -89,6 +92,15 @@ struct MapEditorView: View {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
             }
+        }
+        // After the primary actions, so it sits at the trailing edge above the inspector.
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                session.isInspectorPresented.toggle()
+            } label: {
+                Label("Inspector", systemImage: "sidebar.trailing")
+            }
+            .help(session.isInspectorPresented ? Text("Hide Inspector") : Text("Show Inspector"))
         }
     }
 }

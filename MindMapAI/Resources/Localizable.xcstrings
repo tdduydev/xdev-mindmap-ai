@@ -513,6 +513,16 @@
         }
       }
     },
+    "Change Theme" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi bộ màu"
+          }
+        }
+      }
+    },
     "Choose a map, or start a new one." : {
       "localizations" : {
         "vi" : {
@@ -953,6 +963,26 @@
         }
       }
     },
+    "Graphite" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Graphite"
+          }
+        }
+      }
+    },
+    "Hide Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn bảng thông tin"
+          }
+        }
+      }
+    },
     "Ideas" : {
       "localizations" : {
         "vi" : {
@@ -979,6 +1009,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sang tiếng Việt"
+          }
+        }
+      }
+    },
+    "Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bảng thông tin"
           }
         }
       }
@@ -1029,6 +1069,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang tìm chủ đề còn thiếu…"
+          }
+        }
+      }
+    },
+    "Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ"
           }
         }
       }
@@ -1476,6 +1526,16 @@
         }
       }
     },
+    "Show Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện bảng thông tin"
+          }
+        }
+      }
+    },
     "Simpler" : {
       "localizations" : {
         "vi" : {
@@ -1502,6 +1562,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tách chủ đề"
+          }
+        }
+      }
+    },
+    "Standard" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiêu chuẩn"
           }
         }
       }
@@ -1668,6 +1738,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chủ đề đã bị xoá nên các đề xuất của nó cũng được gỡ đi."
+          }
+        }
+      }
+    },
+    "Theme" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ màu"
           }
         }
       }
@@ -1897,6 +1977,16 @@
     },
     "by xDev" : {
       "shouldTranslate" : false
+    },
+    "xDev Blue" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "xDev Blue"
+          }
+        }
+      }
     },
     "xDev Servers" : {
       "localizations" : {

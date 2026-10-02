@@ -33,9 +33,22 @@ public struct MindMap: Identifiable, Hashable, Sendable, Codable {
     }
 }
 
-/// The look of a map. V1 has one; the type exists so stored maps already carry the choice.
+/// The look of a map: which colours its branches take (FR-THM-02). Stored as
+/// the raw string, so these values must never be renamed.
 public enum MindMapTheme: String, Hashable, Sendable, Codable, CaseIterable {
     case standard
+    case xdevBlue
+    case graphite
+
+    /// A theme this version does not know, written by a newer one, opens as
+    /// Standard instead of failing to open the map (FR-THM-03).
+    public init(storedValue: String) {
+        self = MindMapTheme(rawValue: storedValue) ?? .standard
+    }
+
+    public init(from decoder: any Decoder) throws {
+        self.init(storedValue: try decoder.singleValueContainer().decode(String.self))
+    }
 }
 
 /// How a map arranges its nodes. This is the user's stored choice; spacing and
