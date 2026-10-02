@@ -70,6 +70,14 @@ enum CanvasMetrics {
     /// On touch, a hold on empty canvas before a drag draws a selection rectangle.
     static let marqueeHoldDuration: Double = 0.4
 
+    /// Floating topics (FR-ORG-27): the step Add Floating Topic moves down
+    /// from the middle of the view until the new topic overlaps none.
+    static let floatingTopicNudge: CGFloat = 24
+    /// Steps tried before it gives up and overlaps.
+    static let floatingTopicNudgeLimit = 40
+    /// Below the central topic, when no canvas has laid the map out.
+    static let floatingTopicFallbackOffset: CGFloat = 160
+
     /// Size of the note symbol after a title.
     static let noteSymbolSize: CGFloat = 11
 

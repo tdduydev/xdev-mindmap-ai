@@ -86,6 +86,9 @@ final class CanvasModel {
         assistant?.onSuggestionsChange = { [weak self] in
             self?.suggestionsDidChange()
         }
+        session.floatingTopicPlacement = { [weak self] in
+            self?.freeFloatingSpot()
+        }
     }
 
     // MARK: Reading
@@ -323,8 +326,49 @@ final class CanvasModel {
         }
     }
 
+    /// On a topic it edits the title; on empty canvas it makes a floating
+    /// topic centred there and opens its title (FR-ORG-27).
     func doubleTap(at viewPoint: CGPoint) {
-        if let topic = topic(at: viewPoint) { beginEditing(topic.id) }
+        if let topic = topic(at: viewPoint) { return beginEditing(topic.id) }
+        guard session.canAddFloatingTopic, let position = position(at: viewport.toCanvas(viewPoint)) else { return }
+        commitEditing()
+        session.addFloatingTopic(at: position)
+    }
+
+    // MARK: Floating topics
+
+    /// A stored position is relative to the central topic's centre (ADR 0010),
+    /// so this needs the central topic laid out.
+    func position(at canvasPoint: CGPoint) -> TopicPosition? {
+        guard let root = session.rootID.flatMap(scene.topic) else { return nil }
+        return TopicPosition(x: Double(canvasPoint.x - root.frame.midX), y: Double(canvasPoint.y - root.frame.midY))
+    }
+
+    /// Where Add Floating Topic puts a topic: the middle of the view, moved
+    /// down a step at a time until a new main topic there overlaps no topic.
+    func freeFloatingSpot() -> TopicPosition? {
+        guard let specs, viewport.size.width > 0 else { return nil }
+        let size = TopicMeasurer(specs: specs).size(of: "", level: 1)
+        var centre = viewport.toCanvas(CGPoint(x: viewport.size.width / 2, y: viewport.size.height / 2))
+        let gap = layoutOptions.verticalSpacing / 2
+        for _ in 0..<CanvasMetrics.floatingTopicNudgeLimit {
+            let frame = CGRect(x: centre.x - size.width / 2, y: centre.y - size.height / 2, width: size.width, height: size.height)
+                .insetBy(dx: -gap, dy: -gap)
+            if !scene.topics(in: frame).contains(where: { $0.frame.intersects(frame) }) { break }
+            centre.y += CanvasMetrics.floatingTopicNudge
+        }
+        return position(at: centre)
+    }
+
+    /// The menu's Add Floating Topic, and the empty canvas's context menu.
+    func addFloatingTopic() {
+        commitEditing()
+        session.addFloatingTopic()
+    }
+
+    /// The context menu's and VoiceOver's Detach Topic.
+    func detach(_ id: NodeID) {
+        performFromContextMenu(on: id) { $0.selection = id; $0.detachSelection() }
     }
 
     /// The topic drawn under a view point; the last drawn wins, as on screen.
@@ -498,7 +542,7 @@ final class CanvasModel {
         guard isDetailed, !topic.isSuggestion, drag == nil, marquee == nil, topic.id != editingID,
               topic.id == hoveredID || topic.id == session.selection else { return nil }
         let isRoot = topic.id == session.rootID
-        return AddButtons(childEdge: topic.side == .left ? .leading : .trailing, showsSibling: !isRoot)
+        return AddButtons(childEdge: topic.side == .left ? .leading : .trailing, showsSibling: !isRoot && !topic.isFloating)
     }
 
     /// A + button: the same command as Add Child Topic or Add Sibling Topic,
@@ -678,20 +722,42 @@ final class CanvasModel {
         guard var drag else { return }
         drag.location = viewPoint
         (drag.drop, drag.isRefused) = dropTarget(at: viewPoint, moving: drag.ids)
+        // A floating topic moved a little is still over its own branch; that
+        // is a move, not a drop into itself.
+        if drag.isRefused, movesFreely(drag) { drag.isRefused = false }
         self.drag = drag
     }
 
+    /// One floating topic dragged alone goes wherever it is dropped.
+    private func movesFreely(_ drag: TopicDrag) -> Bool {
+        drag.ids == [drag.leadID] && session.isFloating(drag.leadID)
+    }
+
     /// Drops where the indicator shows. A refused drop moves nothing and plays
-    /// feedback (FR-KBD-04).
-    func endDrag() {
+    /// feedback (FR-KBD-04). On empty canvas a floating topic moves there, and
+    /// with `detaching` (⌥ on the Mac) a branch of the tree becomes floating
+    /// there; otherwise a drop on empty canvas is cancelled, as before MM-62.
+    func endDrag(detaching: Bool = false) {
         guard let drag else { return }
         self.drag = nil
         if let drop = drag.drop {
             session.move(drag.ids, to: drop)
+        } else if !drag.isRefused, drag.ids == [drag.leadID], let position = dropPosition(of: drag) {
+            if session.isFloating(drag.leadID) {
+                session.moveFloatingTopic(drag.leadID, to: position)
+            } else if detaching {
+                session.detach(drag.leadID, to: position)
+            }
         } else if drag.isRefused {
             refusedDrops += 1
             AccessibilityNotification.Announcement(String(localized: "A topic can’t move into its own branch.")).post()
         }
+    }
+
+    /// Where the dragged topic's centre is, as a stored position.
+    private func dropPosition(of drag: TopicDrag) -> TopicPosition? {
+        let centre = CGPoint(x: drag.location.x - drag.grabOffset.width, y: drag.location.y - drag.grabOffset.height)
+        return position(at: viewport.toCanvas(centre))
     }
 
     /// The drop under a view point, or whether it is refused.

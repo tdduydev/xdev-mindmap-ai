@@ -46,6 +46,7 @@ struct KeyboardShortcutsView: View {
         ShortcutGroup(title: "Topics", shortcuts: [
             Shortcut(keys: "⌘↩", action: "Add Sibling Topic"),
             Shortcut(keys: "⇧⌘↩", action: "Add Child Topic"),
+            Shortcut(keys: "⌥⌘↩", action: "Add Floating Topic"),
             Shortcut(keys: "⇧⌘E", action: "Edit Note"),
             Shortcut(keys: "⌘K", action: "Add Link…"),
             Shortcut(keys: "⇧⌘O", action: "Open Link"),
@@ -80,12 +81,15 @@ struct KeyboardShortcutsView: View {
         Shortcut(words: "⌘-drag", action: "Select topics in a rectangle"),
         Shortcut(words: "⇧-drag", action: "Add topics in a rectangle"),
         Shortcut(words: "Drag a topic", action: "Move it, or drop it on another topic"),
+        Shortcut(words: "Double-click empty canvas", action: "Add Floating Topic"),
+        Shortcut(words: "⌥-drag a topic to empty canvas", action: "Detach Topic"),
     ]
     #else
     // Gestures on iOS read no modifier keys; touch has its own ways.
     private static let pointerShortcuts = [
         Shortcut(words: "Hold, then drag", action: "Select topics in a rectangle"),
         Shortcut(words: "Drag a topic", action: "Move it, or drop it on another topic"),
+        Shortcut(words: "Double-tap empty canvas", action: "Add Floating Topic"),
     ]
     #endif
 

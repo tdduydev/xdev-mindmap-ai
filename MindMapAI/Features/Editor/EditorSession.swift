@@ -60,6 +60,9 @@ final class EditorSession {
     /// Called with every change the map goes through (command, undo, redo),
     /// so the canvas lays out only what changed.
     @ObservationIgnored var onGraphChange: ((GraphChangeSet) -> Void)?
+    /// Where the canvas would put a floating topic made without a pointer
+    /// (Add Floating Topic, Detach Topic from the menu). Set by the canvas.
+    @ObservationIgnored var floatingTopicPlacement: (() -> TopicPosition?)?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false
@@ -191,8 +194,13 @@ final class EditorSession {
         selection.flatMap { engine.state.node($0)?.isCollapsed } ?? false
     }
 
-    /// The root has no siblings, so it cannot be copied next to itself.
-    var canDuplicateSelection: Bool { !movableBranchRoots.isEmpty }
+    /// The root and floating topics have no siblings, so they cannot be
+    /// copied next to themselves.
+    var canDuplicateSelection: Bool { !duplicableBranchRoots.isEmpty }
+
+    private var duplicableBranchRoots: [NodeID] {
+        movableBranchRoots.filter { !isFloating($0) }
+    }
 
     var canCopySelection: Bool { !selectedBranchRoots.isEmpty }
     /// Cut deletes, so it follows Delete: the central topic stays.
@@ -267,9 +275,10 @@ final class EditorSession {
         }
     }
 
-    /// The root has no siblings, so on the root this adds a child instead.
+    /// The root and floating topics have no siblings, so on them this adds a
+    /// child instead.
     func addSibling() {
-        guard let anchor = selection, anchor != rootID else { return addChild() }
+        guard let anchor = selection, anchor != rootID, !isFloating(anchor) else { return addChild() }
         let id = NodeID()
         if perform(AddNodeCommand(nodeID: id, .sibling(after: anchor), title: ""), named: String(localized: "Add Topic")) {
             select(id, focus: true)
@@ -328,7 +337,7 @@ final class EditorSession {
     /// Copies each selected branch right after itself and selects the copies,
     /// as one undo step.
     func duplicateSelection() {
-        let originals = movableBranchRoots
+        let originals = duplicableBranchRoots
         guard !originals.isEmpty else { return }
         let copies = originals.map { (original: $0, copy: NodeID()) }
         let command = BatchCommand(copies.map { DuplicateBranchCommand(nodeID: $0.original, copyID: $0.copy) })
@@ -797,10 +806,11 @@ final class EditorSession {
     /// Topics in outline (pre-order) order, hidden ones included.
     private func inOutlineOrder(_ ids: Set<NodeID>) -> [NodeID] {
         guard ids.count > 1 else { return Array(ids) }
-        guard let rootID else { return ids.sorted() }
+        guard rootID != nil else { return ids.sorted() }
         let state = engine.state
         var result: [NodeID] = []
-        var stack = [rootID]
+        // The main tree, then each floating branch, as the outline lists them.
+        var stack = Array(state.topLevelIDs.reversed())
         while let id = stack.popLast(), result.count < ids.count {
             if ids.contains(id) { result.append(id) }
             stack.append(contentsOf: state.childIDs(of: id).reversed())
