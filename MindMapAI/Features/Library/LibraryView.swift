@@ -8,28 +8,53 @@ struct LibraryView: View {
     @Binding var selection: MapID?
     /// Shows a map in a window of its own (FR-LIB-10).
     var openInNewWindow: ((MapID) -> Void)?
-    @State private var pendingDeletion: MindMap?
+    /// Only Delete Permanently asks first; Delete is undone with ⌘Z or Restore.
+    @State private var pendingPermanentDeletion: MindMap?
+    /// Recently Deleted keeps a selection of its own: picking a deleted map
+    /// must not open it in the editor.
+    @State private var deletedSelection: MapID?
     @Environment(FileTransfer.self) private var transfer: FileTransfer?
+    @Environment(\.undoManager) private var undoManager
+
+    private var showsDeletedMaps: Bool { section == .recentlyDeleted }
 
     var body: some View {
         let rows = rows
         let maps = rows.map(\.map)
-        List(selection: $selection) {
+        List(selection: showsDeletedMaps ? $deletedSelection : $selection) {
             ForEach(rows) { row in
                 let map = row.map
-                MapRow(map: map, excerpt: row.excerpt)
+                MapRow(map: map, excerpt: row.excerpt, daysLeft: model.daysLeft(for: map))
                     .accessibilityIdentifier(AccessibilityID.Library.map)
-                    .contextMenu { menu(for: map) }
+                    .contextMenu {
+                        if showsDeletedMaps { deletedMenu(for: map) } else { menu(for: map) }
+                    }
                     .swipeActions {
                         Button(role: .destructive) {
-                            pendingDeletion = map
+                            if showsDeletedMaps { pendingPermanentDeletion = map } else { delete(map) }
                         } label: {
-                            Label("Delete", systemImage: "trash")
+                            if showsDeletedMaps {
+                                Label("Delete Permanently", systemImage: "trash.slash")
+                            } else {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                    .swipeActions(edge: .leading) {
+                        if showsDeletedMaps {
+                            Button {
+                                restore(map)
+                            } label: {
+                                Label("Restore", systemImage: "arrow.uturn.backward")
+                            }
                         }
                     }
             }
         }
         .accessibilityIdentifier(AccessibilityID.Library.list)
+        // Only while the list has focus, so the menu shortcuts (⌘Delete,
+        // ⌥⌘Delete) never take the key from a text field.
+        .focusedValue(\.libraryMapActions, mapActions)
         .overlay {
             if model.isSearching {
                 if maps.isEmpty, model.searchedQuery == SearchQuery(model.searchText) {
@@ -66,17 +91,21 @@ struct LibraryView: View {
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 240, ideal: 280)
         .onDeleteCommand {
-            pendingDeletion = maps.first { $0.id == selection }
+            if showsDeletedMaps {
+                pendingPermanentDeletion = maps.first { $0.id == deletedSelection }
+            } else if let map = maps.first(where: { $0.id == selection }) {
+                delete(map)
+            }
         }
         #endif
         .confirmationDialog(
-            "Delete this map?",
-            isPresented: isConfirmingDeletion,
+            "Delete this map permanently?",
+            isPresented: isConfirmingPermanentDeletion,
             titleVisibility: .visible,
-            presenting: pendingDeletion
+            presenting: pendingPermanentDeletion
         ) { map in
-            Button("Delete", role: .destructive) {
-                delete(map)
+            Button("Delete Permanently", role: .destructive) {
+                deletePermanently(map)
             }
         } message: { map in
             Text("“\(map.title)” and all its topics will be deleted. This can’t be undone.")
@@ -112,9 +141,24 @@ struct LibraryView: View {
         }
         Divider()
         Button(role: .destructive) {
-            pendingDeletion = map
+            delete(map)
         } label: {
-            Label("Delete…", systemImage: "trash")
+            Label("Delete", systemImage: "trash")
+        }
+    }
+
+    @ViewBuilder
+    private func deletedMenu(for map: MindMap) -> some View {
+        Button {
+            restore(map)
+        } label: {
+            Label("Restore", systemImage: "arrow.uturn.backward")
+        }
+        Divider()
+        Button(role: .destructive) {
+            pendingPermanentDeletion = map
+        } label: {
+            Label("Delete Permanently…", systemImage: "trash.slash")
         }
     }
 
@@ -137,6 +181,12 @@ struct LibraryView: View {
             ContentUnavailableView("No Recent Maps", systemImage: "clock", description: Text("Maps you edit appear here."))
         case .favorites:
             ContentUnavailableView("No Favorites", systemImage: "star", description: Text("Mark a map as a favorite to find it here."))
+        case .recentlyDeleted:
+            ContentUnavailableView(
+                "No Recently Deleted Maps",
+                systemImage: "trash",
+                description: Text("Deleted maps stay here for 30 days, then are deleted permanently.")
+            )
         }
     }
 
@@ -164,8 +214,21 @@ struct LibraryView: View {
         }
     }
 
-    private var isConfirmingDeletion: Binding<Bool> {
-        Binding { pendingDeletion != nil } set: { if !$0 { pendingDeletion = nil } }
+    private var isConfirmingPermanentDeletion: Binding<Bool> {
+        Binding { pendingPermanentDeletion != nil } set: { if !$0 { pendingPermanentDeletion = nil } }
+    }
+
+    /// What the menu bar's library commands act on: the selected map of this section.
+    private var mapActions: LibraryMapActions {
+        if showsDeletedMaps {
+            guard let map = model.deletedMaps.first(where: { $0.id == deletedSelection }) else { return LibraryMapActions() }
+            return LibraryMapActions(
+                restore: { restore(map) },
+                deletePermanently: { pendingPermanentDeletion = map }
+            )
+        }
+        guard let map = model.maps.first(where: { $0.id == selection }) else { return LibraryMapActions() }
+        return LibraryMapActions(delete: { delete(map) })
     }
 
     private var isShowingFailure: Binding<Bool> {
@@ -184,7 +247,21 @@ struct LibraryView: View {
         if selection == map.id {
             selection = nil
         }
-        Task { await model.delete(map) }
+        Task { await model.delete(map, undoManager: undoManager) }
+    }
+
+    private func restore(_ map: MindMap) {
+        if deletedSelection == map.id {
+            deletedSelection = nil
+        }
+        Task { await model.restore(map, undoManager: undoManager) }
+    }
+
+    private func deletePermanently(_ map: MindMap) {
+        if deletedSelection == map.id {
+            deletedSelection = nil
+        }
+        Task { await model.deletePermanently(map) }
     }
 }
 
@@ -192,6 +269,8 @@ struct MapRow: View {
     let map: MindMap
     /// Topic text that matched a search, shown when the title did not match.
     var excerpt: String?
+    /// Set for a map in Recently Deleted, in place of its edit time.
+    var daysLeft: Int?
 
     var body: some View {
         HStack(spacing: Spacing.sm) {
@@ -204,9 +283,15 @@ struct MapRow: View {
                         .font(Typography.rowDetail)
                         .lineLimit(1)
                 }
-                Text("Edited \(map.updatedAt, format: .relative(presentation: .named))")
-                    .font(Typography.rowDetail)
-                    .foregroundStyle(.secondary)
+                Group {
+                    if let daysLeft {
+                        Text("\(daysLeft) days left")
+                    } else {
+                        Text("Edited \(map.updatedAt, format: .relative(presentation: .named))")
+                    }
+                }
+                .font(Typography.rowDetail)
+                .foregroundStyle(.secondary)
             }
             Spacer(minLength: Spacing.sm)
             if map.isFavorite {
