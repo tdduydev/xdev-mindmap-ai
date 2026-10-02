@@ -49,7 +49,7 @@ struct EditorView: View {
             if case .ready(let map) = opened {
                 restoration?.apply(to: map.session)
                 restoration = EditorRestoration(map.session)
-                voice = VoiceInput(session: map.session, transcriber: AppleSpeechTranscriber(), entitlements: ai.entitlements)
+                voice = VoiceInput(session: map.session, transcriber: Self.transcriber, entitlements: ai.entitlements)
                 if generatesOnOpen {
                     onGenerationStarted()
                     map.assistant.requestGenerateMap()
@@ -68,6 +68,15 @@ struct EditorView: View {
             }
             openMaps.close(mapID, in: window)
         }
+    }
+
+    /// The Speech framework, or in the UI test mode a script, since the
+    /// Simulator has no speech model.
+    private static var transcriber: any VoiceTranscribing {
+        #if DEBUG
+        if UITestMode.isActive { return UITestVoiceTranscriber() }
+        #endif
+        return AppleSpeechTranscriber()
     }
 
     private enum Unavailable {

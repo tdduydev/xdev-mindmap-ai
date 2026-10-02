@@ -21,14 +21,21 @@ enum UITestAIService {
     }
 }
 
-/// Reports the mode's capabilities; the suggestion features are not
-/// scripted yet, so each one fails the way a bad answer would.
+/// Reports the mode's capabilities. Suggest Subtopics answers with
+/// `UITestAI.subtopics` under the focus topic, so a test can accept and
+/// discard them; the other features are not scripted yet, so each one fails
+/// the way a bad answer would.
 private struct UITestAIProvider: AIProvider {
     let current: AICapabilities
 
     func capabilities() async -> AICapabilities { current }
     func generateMap(_ request: GenerateMapRequest) async throws -> AIProposal { throw AIError.generationFailed }
-    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal { throw AIError.generationFailed }
+    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
+        let topics = UITestAI.subtopics.enumerated().map { index, title in
+            ProposedTopic(temporaryID: "t\(index)", title: title)
+        }
+        return AIProposal(feature: .expandTopic, anchor: .node(request.context.focus.nodeID), topics: topics)
+    }
     func brainstorm(_ request: BrainstormRequest) async throws -> AIProposal { throw AIError.generationFailed }
     func rewrite(_ request: RewriteRequest) async throws -> AIRewrite { throw AIError.generationFailed }
     func summarize(_ request: SummarizeRequest) async throws -> AISummary { throw AIError.generationFailed }

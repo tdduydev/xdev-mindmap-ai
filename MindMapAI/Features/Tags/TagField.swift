@@ -31,6 +31,7 @@ struct TagField: View {
                 session.tagFieldFocusRequest = false
             }
             .accessibilityHint(Text("Type a tag name, then press Return"))
+            .accessibilityIdentifier(AccessibilityID.Inspector.tagField)
         // Only while typing: a list that came and went with focus would
         // vanish under the click that picks from it.
         if !text.trimmingCharacters(in: .whitespaces).isEmpty {

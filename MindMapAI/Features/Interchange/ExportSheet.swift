@@ -45,6 +45,7 @@ struct ExportSheet: View {
                             Text(format.title).tag(format)
                         }
                     }
+                    .accessibilityIdentifier(AccessibilityID.Export.format)
                 }
                 switch options.format {
                 case .markdown, .plainText:
@@ -64,10 +65,12 @@ struct ExportSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel", action: onClose)
+                        .accessibilityIdentifier(AccessibilityID.Export.cancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Export…", action: prepare)
                         .disabled(isPreparing || lockedFeature != nil)
+                        .accessibilityIdentifier(AccessibilityID.Export.export)
                 }
             }
         }

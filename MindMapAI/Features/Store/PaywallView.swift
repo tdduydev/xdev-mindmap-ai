@@ -63,6 +63,7 @@ struct PaywallView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(store.isUnlocked ? "Done" : "Not Now") { dismiss() }
+                        .accessibilityIdentifier(AccessibilityID.Paywall.close)
                 }
             }
             .restoreResultAlert(store)
@@ -111,6 +112,7 @@ struct PaywallView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(store.purchaseState == .purchasing)
+                .accessibilityIdentifier(AccessibilityID.Paywall.purchase)
 
                 switch store.purchaseState {
                 case .pending:
@@ -137,6 +139,7 @@ struct ProSettingsSection: View {
             LabeledContent("Status", value: store.isUnlocked ? String(localized: "Unlocked") : String(localized: "Not unlocked"))
             if !store.isUnlocked {
                 Button("See What’s in Pro…") { isShowingPaywall = true }
+                    .accessibilityIdentifier(AccessibilityID.Settings.showPaywall)
             }
             Button("Restore Purchases") {
                 Task { await store.restorePurchases() }

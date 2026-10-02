@@ -67,7 +67,7 @@ struct EditorPage {
 
     /// Editor toolbar buttons a test taps, with the symbol each shows.
     enum ToolbarAction {
-        case find, addChild, addSibling, delete, inspector
+        case find, addChild, addSibling, delete, inspector, voice, export
 
         var identifier: String {
             switch self {
@@ -76,6 +76,8 @@ struct EditorPage {
             case .addSibling: AccessibilityID.Editor.addSibling
             case .delete: AccessibilityID.Editor.delete
             case .inspector: AccessibilityID.Editor.inspector
+            case .voice: AccessibilityID.Editor.voice
+            case .export: AccessibilityID.Editor.export
             }
         }
 
@@ -87,6 +89,8 @@ struct EditorPage {
             case .addSibling: "plus"
             case .delete: "trash"
             case .inspector: "sidebar.trailing"
+            case .voice: "mic"
+            case .export: "square.and.arrow.up"
             }
         }
     }

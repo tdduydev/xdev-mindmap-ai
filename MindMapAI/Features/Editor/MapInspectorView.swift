@@ -50,6 +50,7 @@ struct MapInspectorView: View {
                     }
                 }
                 .pickerStyle(.inline)
+                .accessibilityIdentifier(AccessibilityID.Inspector.theme)
             }
         }
         .formStyle(.grouped)
@@ -98,6 +99,7 @@ struct TopicNoteEditor: View {
                 }
             }
             .accessibilityLabel(Text("Note"))
+            .accessibilityIdentifier(AccessibilityID.Inspector.note)
             // Undo, redo or an AI summary changed the note; show it unless the user is typing.
             .onChange(of: note) { _, note in
                 if !isFocused { draft = note ?? "" }
