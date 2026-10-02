@@ -30,6 +30,8 @@ struct ChatPanel: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .defaultScrollAnchor(.bottom)
+            // Scrolling back through answers puts the keyboard away, as in Messages.
+            .scrollDismissesKeyboard(.immediately)
             Divider()
             scopePicker
             composer
