@@ -34,6 +34,9 @@ enum Metrics {
     static let minimumHitTarget: CGFloat = 24
     #endif
 
+    /// Room for "400%" in the canvas controls, so the cluster does not resize while zooming.
+    static let zoomLabelWidth: CGFloat = 48
+
     /// Width of the Mac Settings window.
     static let settingsWidth: CGFloat = 480
 }

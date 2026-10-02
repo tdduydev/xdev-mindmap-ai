@@ -23,6 +23,12 @@ final class EditorSession {
     /// A node whose title field should take focus, such as one just created.
     var focusRequest: NodeID?
     private(set) var saveFailed = false
+    /// Canvas or outline; both show the same map and selection (FR-CNV-12).
+    var presentation: EditorPresentation = .canvas
+
+    /// Called with every change the map goes through (command, undo, redo),
+    /// so the canvas lays out only what changed.
+    @ObservationIgnored var onGraphChange: ((GraphChangeSet) -> Void)?
 
     /// The window's undo manager, so the Edit menu, ⌘Z and the iOS undo gestures
     /// drive the engine's history. Set by the view.
@@ -73,6 +79,7 @@ final class EditorSession {
     var canUndo: Bool { engine.canUndo }
     var canRedo: Bool { engine.canRedo }
     var canDeleteSelection: Bool { selection != nil && selection != rootID }
+    var canRenameSelection: Bool { selection.flatMap { engine.state.node($0) } != nil }
 
     var canToggleSelection: Bool {
         guard let selection else { return false }
@@ -285,6 +292,7 @@ final class EditorSession {
         guard !changes.isEmpty else { return }
         let map = engine.state.map
         onMapChange(map)
+        onGraphChange?(changes)
         let previous = lastSave
         lastSave = Task { [repository, weak self] in
             await previous?.value
@@ -331,4 +339,11 @@ final class EditorSession {
         if index + 1 < siblings.count { return siblings[index + 1] }
         return parentID
     }
+}
+
+enum EditorPresentation: String, CaseIterable, Identifiable {
+    case canvas
+    case outline
+
+    var id: Self { self }
 }

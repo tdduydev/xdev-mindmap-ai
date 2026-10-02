@@ -50,6 +50,9 @@ enum CanvasMetrics {
 
     static let crossLinkWidth: CGFloat = 1.5
     static let crossLinkDash: [CGFloat] = [4, 3]
+    /// Arrowhead of a `reference` cross-link: side length and half-angle (radians).
+    static let crossLinkArrowLength: CGFloat = 8
+    static let crossLinkArrowAngle: CGFloat = .pi / 7
     static let suggestionEdgeWidth: CGFloat = 1.5
     static let suggestionDash: [CGFloat] = [3, 3]
 
@@ -69,4 +72,35 @@ enum CanvasMetrics {
     #else
     static let collapseBadgeHeight: CGFloat = 18
     #endif
+    /// Space between a topic and its collapse badge.
+    static let collapseBadgeGap: CGFloat = 4
+
+    // MARK: Camera (MM-3)
+
+    /// 10% to 400% (FR-CNV-02, a proposal in the SRS).
+    static let zoomLimits: ClosedRange<CGFloat> = 0.1...4
+    /// Where ⌘+ and ⌘− stop.
+    static let zoomSteps: [CGFloat] = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4]
+    /// Zoom to Fit never enlarges a small map past actual size.
+    static let fitZoomLimits: ClosedRange<CGFloat> = zoomLimits.lowerBound...1
+    /// Room left around the map by Zoom to Fit, in view points.
+    static let fitPadding: CGFloat = 48
+    /// Room kept between a topic scrolled into view and the view's edge.
+    static let revealMargin: CGFloat = 32
+    /// Fraction of the visible size drawn beyond each edge, so panning does not
+    /// show topics popping in.
+    static let cullingMargin: CGFloat = 0.25
+    /// Below this zoom, titles are too small to read (under 4 pt); topics are
+    /// drawn as plain shapes in the edge layer instead of as views, which keeps
+    /// a whole 1,000-topic map at 60 fps.
+    static let detailZoomThreshold: CGFloat = 0.3
+    /// Points one notch of a non-precise mouse wheel pans.
+    static let wheelLineStep: CGFloat = 16
+    /// How fast ⌘-scroll zooms: the zoom is multiplied by e^(delta × this).
+    static let wheelZoomRate: CGFloat = 0.01
+
+    /// Layout gaps. The layout engine takes one gap for every level, so the
+    /// canvas uses the sub-topic gaps, which most topics in a large map are.
+    static let layoutParentGap: CGFloat = sub.parentGap
+    static let layoutSiblingGap: CGFloat = sub.siblingGap
 }

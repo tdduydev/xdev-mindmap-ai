@@ -32,7 +32,7 @@ Packages/
 │  └─ MindMapTestSupport      fixtures, MockAIProvider, in-memory repository (tests only)
 ├─ MindMapUI/                 SwiftUI, no SwiftData
 │  ├─ MindMapDesignSystem     moved out of the app target when the Share Extension needs it
-│  └─ MindMapCanvas           MM-3: rendering, viewport, hit testing, gestures, PNG/PDF rendering
+│  └─ MindMapCanvas           rendering, viewport, hit testing, gestures, PNG/PDF rendering; in the app target (Features/Canvas) until a second target needs it, see [[canvas]]
 ├─ MindMapSystem/
 │  └─ MindMapIntents          MM-11: entities, queries, intents, AppIntentsPackage
 └─ MindMapLocalModels/        optional, later: MLX or Core AI models

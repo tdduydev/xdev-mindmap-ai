@@ -1,12 +1,56 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%lld subtopics": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld subtopic"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld subtopics"
+                }
+              }
+            }
+          }
+        },
+        "vi": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chủ đề con"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "About": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Giới thiệu"
+          }
+        }
+      }
+    },
+    "Actual Size": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kích thước thật"
           }
         }
       }
@@ -117,6 +161,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Giao diện"
+          }
+        }
+      }
+    },
+    "As Canvas": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem dạng khung vẽ"
+          }
+        }
+      }
+    },
+    "As Outline": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem dạng dàn ý"
+          }
+        }
+      }
+    },
+    "Canvas": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khung vẽ"
           }
         }
       }
@@ -391,6 +465,16 @@
         }
       }
     },
+    "Level %lld": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cấp %lld"
+          }
+        }
+      }
+    },
     "Light": {
       "localizations": {
         "vi": {
@@ -564,6 +648,16 @@
         }
       }
     },
+    "Outline": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dàn ý"
+          }
+        }
+      }
+    },
     "Privacy": {
       "localizations": {
         "vi": {
@@ -697,12 +791,32 @@
         }
       }
     },
+    "Topic added": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã thêm chủ đề"
+          }
+        }
+      }
+    },
     "Topic, level %lld": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Chủ đề, cấp %lld"
+          }
+        }
+      }
+    },
+    "Topics": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chủ đề"
           }
         }
       }
@@ -757,12 +871,52 @@
         }
       }
     },
+    "View As": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem dạng"
+          }
+        }
+      }
+    },
     "Website": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Trang web"
+          }
+        }
+      }
+    },
+    "Zoom In": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phóng to"
+          }
+        }
+      }
+    },
+    "Zoom Out": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thu nhỏ"
+          }
+        }
+      }
+    },
+    "Zoom to Fit": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vừa khung nhìn"
           }
         }
       }

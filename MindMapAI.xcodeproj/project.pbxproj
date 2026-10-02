@@ -10,6 +10,7 @@
 		4D4D41000000000000000014 /* MindMapDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41000000000000000011 /* MindMapDomain */; };
 		4D4D41000000000000000015 /* MindMapGraph in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41000000000000000012 /* MindMapGraph */; };
 		4D4D41000000000000000016 /* MindMapPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41000000000000000013 /* MindMapPersistence */; };
+		4D4D410000000000000C3001 /* MindMapLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C3002 /* MindMapLayout */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,7 @@
 				4D4D41000000000000000014 /* MindMapDomain in Frameworks */,
 				4D4D41000000000000000015 /* MindMapGraph in Frameworks */,
 				4D4D41000000000000000016 /* MindMapPersistence in Frameworks */,
+				4D4D410000000000000C3001 /* MindMapLayout in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +104,7 @@
 				4D4D41000000000000000011 /* MindMapDomain */,
 				4D4D41000000000000000012 /* MindMapGraph */,
 				4D4D41000000000000000013 /* MindMapPersistence */,
+				4D4D410000000000000C3002 /* MindMapLayout */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -528,6 +531,10 @@
 		4D4D41000000000000000013 /* MindMapPersistence */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapPersistence;
+		};
+		4D4D410000000000000C3002 /* MindMapLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapLayout;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
