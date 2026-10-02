@@ -4,7 +4,9 @@ import SwiftUI
 /// An opaque sRGB colour with the arithmetic the design system needs: WCAG
 /// contrast for the tests, and compositing so derived fills stay opaque (a
 /// translucent fill would let edges show through the topics drawn over them).
-struct RGBColor: Hashable, Sendable {
+/// Not named `RGBColor`: AppKit re-exports QuickDraw's `RGBColor`, and any file
+/// importing both AppKit and this module could no longer name the type.
+struct SRGBColor: Hashable, Sendable {
     let red: Double
     let green: Double
     let blue: Double
@@ -35,15 +37,15 @@ struct RGBColor: Hashable, Sendable {
     }
 
     /// WCAG 2 contrast ratio, 1 to 21.
-    func contrast(with other: RGBColor) -> Double {
+    func contrast(with other: SRGBColor) -> Double {
         let lighter = max(relativeLuminance, other.relativeLuminance)
         let darker = min(relativeLuminance, other.relativeLuminance)
         return (lighter + 0.05) / (darker + 0.05)
     }
 
     /// This colour at `opacity` over `background`, flattened to an opaque colour.
-    func composited(over background: RGBColor, opacity: Double) -> RGBColor {
-        RGBColor(
+    func composited(over background: SRGBColor, opacity: Double) -> SRGBColor {
+        SRGBColor(
             red: red * opacity + background.red * (1 - opacity),
             green: green * opacity + background.green * (1 - opacity),
             blue: blue * opacity + background.blue * (1 - opacity)
@@ -70,19 +72,19 @@ enum ColorVariant: CaseIterable, Sendable {
 
 /// One colour role with its four values.
 struct ColorToken: Hashable, Sendable {
-    let light: RGBColor
-    let dark: RGBColor
-    let lightHighContrast: RGBColor
-    let darkHighContrast: RGBColor
+    let light: SRGBColor
+    let dark: SRGBColor
+    let lightHighContrast: SRGBColor
+    let darkHighContrast: SRGBColor
 
     init(light: UInt32, dark: UInt32, lightHighContrast: UInt32, darkHighContrast: UInt32) {
-        self.light = RGBColor(hex: light)
-        self.dark = RGBColor(hex: dark)
-        self.lightHighContrast = RGBColor(hex: lightHighContrast)
-        self.darkHighContrast = RGBColor(hex: darkHighContrast)
+        self.light = SRGBColor(hex: light)
+        self.dark = SRGBColor(hex: dark)
+        self.lightHighContrast = SRGBColor(hex: lightHighContrast)
+        self.darkHighContrast = SRGBColor(hex: darkHighContrast)
     }
 
-    subscript(variant: ColorVariant) -> RGBColor {
+    subscript(variant: ColorVariant) -> SRGBColor {
         switch variant {
         case .light: light
         case .dark: dark

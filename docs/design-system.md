@@ -40,7 +40,7 @@ From the xDev design tokens (`xdev-hive/packages/ui/src/tokens/primitives.css`).
 | `selectionRing` | = accent | = accent | = accent | = accent | 2 pt ring, 3 pt with Increase Contrast |
 | `crossLink` | `#5B6885` (5.3:1) | `#9DAAC7` (6.4:1) | `#344568` | `#E8ECF8` | Cross-link lines and arrowheads |
 | `searchMatchFill` | `#FFF4DB` | `#3D3423` | `#FFE7B3` | `#4A3B1E` | Find results behind the title |
-| `searchMatchBorder` | `#F5C86B` | `#7A5D22` | `#9A5B00` | `#FFC35C` | Outline of a find result |
+| `searchMatchBorder` | `#B26A00` (4.0:1) | `#FFC35C` (9.4:1) | `#8B5300` | `#FFD285` | Outline of a find result |
 | `favorite` | `#B26A00` (was `#F2A516`, 2.1:1 on white, below the 3:1 for graphics) | `#FFC35C` | `#9A5B00` | `#FFD285` | Star |
 | `warningFill` / `warningText` | `#FFF4DB` / `#9A5B00` | `#3D3423` / `#FFC35C` | `#FFE7B3` / `#7A4600` | `#4A3B1E` / `#FFD285` | Save-failure banner (existing assets) |
 | `danger` | `#C62828` | `#FF8A8A` | `#A51F1F` | `#FFB4B4` | Destructive confirmation text |
@@ -97,7 +97,7 @@ Used for: the `sparkles` symbol on AI buttons and menu items, the dashed outline
 
 ## Typography
 
-Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with one `OFL.txt` holding both families' copyright lines (the synchronized group copies resources flat into the bundle, so two files named `OFL.txt` would collide). `BrandFont.registerAll()` registers them with CoreText for the process when the app starts, on iOS and macOS alike: the generated Info.plist cannot hold the `UIAppFonts` array, and one code path is easier to test than two plist keys. Space Grotesk ships as a static SemiBold file (`SpaceGrotesk-SemiBold.ttf`, an instance of the variable font) so its PostScript name is fixed.
+Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with one `OFL.txt` holding both families' copyright lines (the synchronized group copies resources flat into the bundle, so two files named `OFL.txt` would collide). `BrandFont.registerAll()` registers them with CoreText for the process when the app starts, on iOS and macOS alike: the generated Info.plist cannot hold the `UIAppFonts` array, and one code path is easier to test than two plist keys. Space Grotesk ships as a static SemiBold file (`SpaceGrotesk-SemiBold.ttf`, an instance of the variable font) so its PostScript name is fixed: upstream publishes static Light, Regular, Medium and Bold only, so this file is `SpaceGrotesk[wght].ttf` instanced at `wght` 600 with fontTools' `varLib.instancer`, named `Space Grotesk` / `SemiBold`. PostScript names: `BeVietnamPro-Regular`, `BeVietnamPro-Medium`, `BeVietnamPro-SemiBold`, `SpaceGrotesk-SemiBold`.
 
 Content styles (canvas points at 100% zoom). On iOS and iPadOS each is `Font.custom(_:size:relativeTo:)`, so it scales with Dynamic Type; macOS has no Dynamic Type and uses the size as is.
 
@@ -224,7 +224,7 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 
 ## Accessibility
 
-- **Contrast:** text 4.5:1 or more, graphics 3:1 or more, in all four colour variants. The tables above give the figures; a unit test recomputes them from the tokens so a change cannot regress. Exception, open for the product owner: `searchMatchBorder` reaches 3:1 against the canvas only with Increase Contrast (about 1.5:1 light and 2.4:1 dark otherwise), so in standard contrast a match is carried by the fill and border together.
+- **Contrast:** text 4.5:1 or more, graphics 3:1 or more, in all four colour variants. The tables above give the figures; a unit test recomputes them from the tokens so a change cannot regress.
 - **Increase Contrast:** IC colours, 2 pt strokes, 3 pt selection ring, gradients become solid.
 - **Reduce Transparency:** canvas controls use the system's frosted fallback; nothing on the canvas is translucent anyway.
 - **Differentiate Without Color:** levels differ in font size and weight and in shape (central filled, main outlined, sub plain); suggestions have the dashed outline and the symbol; search matches have an outline.

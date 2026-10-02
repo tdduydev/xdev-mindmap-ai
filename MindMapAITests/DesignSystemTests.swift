@@ -4,10 +4,6 @@ import MindMapDomain
 import SwiftUI
 import Testing
 
-#if os(macOS)
-import AppKit
-#endif
-
 private typealias Tokens = Palette.Tokens
 
 /// WCAG minimums from docs/design-system.md: text 4.5:1, graphics 3:1, in
@@ -20,13 +16,13 @@ private enum Minimum {
 /// Approximate system backgrounds behind chrome colours (favourite star,
 /// danger and success text): white in light mode, the dark window colour in
 /// dark mode. Chrome surfaces are system colours, so these stand in for them.
-private func systemBackground(_ variant: ColorVariant) -> RGBColor {
-    variant.isDark ? RGBColor(hex: 0x1E1E1E) : RGBColor(hex: 0xFFFFFF)
+private func systemBackground(_ variant: ColorVariant) -> SRGBColor {
+    variant.isDark ? SRGBColor(hex: 0x1E1E1E) : SRGBColor(hex: 0xFFFFFF)
 }
 
 private func expectContrast(
-    _ foreground: RGBColor,
-    on background: RGBColor,
+    _ foreground: SRGBColor,
+    on background: SRGBColor,
     atLeast minimum: Double,
     _ pair: String,
     _ variant: ColorVariant,
@@ -39,7 +35,7 @@ private func expectContrast(
 @Suite("Design system: contrast")
 struct DesignSystemContrastTests {
     @Test func contrastMatchesTheDocumentedFigure() {
-        #expect(abs(RGBColor(hex: 0xFFFFFF).contrast(with: RGBColor(hex: 0x000000)) - 21) < 0.001)
+        #expect(abs(SRGBColor(hex: 0xFFFFFF).contrast(with: SRGBColor(hex: 0x000000)) - 21) < 0.001)
         // topicText on the light canvas is documented as 12.3:1.
         #expect(abs(Tokens.topicText.light.contrast(with: Tokens.canvasBackground.light) - 12.3) < 0.05)
     }
@@ -60,20 +56,12 @@ struct DesignSystemContrastTests {
             expectContrast(Tokens.centralFill[variant], on: canvas, atLeast: Minimum.graphic, "centralFill / canvas", variant)
             expectContrast(Tokens.accent[variant], on: canvas, atLeast: Minimum.graphic, "selectionRing / canvas", variant)
             expectContrast(Tokens.crossLink[variant], on: canvas, atLeast: Minimum.graphic, "crossLink / canvas", variant)
+            expectContrast(Tokens.searchMatchBorder[variant], on: canvas, atLeast: Minimum.graphic, "searchMatchBorder / canvas", variant)
             expectContrast(Tokens.aiSolid[variant], on: canvas, atLeast: Minimum.graphic, "AI solid / canvas", variant)
             let gradient = variant.isDark ? Tokens.aiGradientDark : Tokens.aiGradientLight
             for stop in gradient {
                 expectContrast(stop, on: canvas, atLeast: Minimum.graphic, "AI gradient / canvas", variant)
             }
-        }
-    }
-
-    /// The search-match border reaches 3:1 only with Increase Contrast; in
-    /// standard contrast the match is carried by the fill and the border
-    /// together (see the task note of MM-0k).
-    @Test func searchMatchBorderIsVisibleWithIncreaseContrast() {
-        for variant in [ColorVariant.lightHighContrast, .darkHighContrast] {
-            expectContrast(Tokens.searchMatchBorder[variant], on: Tokens.canvasBackground[variant], atLeast: Minimum.graphic, "searchMatchBorder / canvas", variant)
         }
     }
 
@@ -116,37 +104,32 @@ struct DesignSystemContrastTests {
     }
 }
 
-#if os(macOS)
 @Suite("Design system: asset catalog")
 struct DesignSystemAssetTests {
     /// The colour sets are what views draw with; the tokens are what the tests
     /// and the derived fills compute with. They must not drift apart.
-    @Test func everyColorSetMatchesItsToken() throws {
-        let appearances: [(NSAppearance.Name, ColorVariant)] = [
-            (.aqua, .light),
-            (.darkAqua, .dark),
-            (.accessibilityHighContrastAqua, .lightHighContrast),
-            (.accessibilityHighContrastDarkAqua, .darkHighContrast),
-        ]
+    ///
+    /// Resolved through SwiftUI, as views resolve them. `NSAppearance(named:)`
+    /// cannot stand in here: asked for a high-contrast appearance it returns
+    /// plain Aqua or Dark Aqua, so the Increase Contrast values would go
+    /// unchecked. `_colorSchemeContrast` is the settable form of the read-only
+    /// `colorSchemeContrast`, the one SwiftUI previews use.
+    @Test func everyColorSetMatchesItsToken() {
         let tolerance = 0.5 / 255
         for (name, token) in Tokens.colorSets.sorted(by: { $0.key < $1.key }) {
-            let color = try #require(NSColor(named: name, bundle: .main), "missing colour set \(name)")
-            for (appearanceName, variant) in appearances {
-                let appearance = try #require(NSAppearance(named: appearanceName))
-                var resolved: NSColor?
-                appearance.performAsCurrentDrawingAppearance {
-                    resolved = color.usingColorSpace(.sRGB)
-                }
-                let actual = try #require(resolved)
+            let color = Color(name, bundle: .main)
+            for variant in ColorVariant.allCases {
+                var environment = EnvironmentValues()
+                (environment.colorScheme, environment._colorSchemeContrast) = variant.environment
+                let actual = color.resolve(in: environment)
                 let expected = token[variant]
-                #expect(abs(Double(actual.redComponent) - expected.red) < tolerance, "\(name) \(variant) red")
-                #expect(abs(Double(actual.greenComponent) - expected.green) < tolerance, "\(name) \(variant) green")
-                #expect(abs(Double(actual.blueComponent) - expected.blue) < tolerance, "\(name) \(variant) blue")
+                #expect(abs(Double(actual.red) - expected.red) < tolerance, "\(name) \(variant) red")
+                #expect(abs(Double(actual.green) - expected.green) < tolerance, "\(name) \(variant) green")
+                #expect(abs(Double(actual.blue) - expected.blue) < tolerance, "\(name) \(variant) blue")
             }
         }
     }
 }
-#endif
 
 @Suite("Design system: topic style")
 struct TopicStyleTests {
@@ -252,13 +235,11 @@ struct MotionTests {
 @Suite("Design system: fonts")
 struct BrandFontTests {
     @Test func brandFontsShipAndLoadByPostScriptName() {
-        withKnownIssue("Font files are not in the bundle yet: the MM-0k session could not download them from google/fonts") {
-            #expect(Bundle.main.url(forResource: "OFL", withExtension: "txt") != nil, "OFL.txt")
-            for font in BrandFont.allCases {
-                #expect(font.url != nil, "\(font.rawValue).ttf in the bundle")
-                #expect(BrandFont.registered.contains(font), "\(font.rawValue) registered")
-                #expect(font.isInstalled, "\(font.rawValue) resolves by PostScript name")
-            }
+        #expect(Bundle.main.url(forResource: "OFL", withExtension: "txt") != nil, "OFL.txt")
+        for font in BrandFont.allCases {
+            #expect(font.url != nil, "\(font.rawValue).ttf in the bundle")
+            #expect(BrandFont.registered.contains(font), "\(font.rawValue) registered")
+            #expect(font.isInstalled, "\(font.rawValue) resolves by PostScript name")
         }
     }
 

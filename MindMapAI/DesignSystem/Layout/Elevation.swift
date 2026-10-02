@@ -4,21 +4,21 @@ import SwiftUI
 /// glass and its own shadow, so they have no token here.
 enum Elevation {
     struct Shadow: Hashable, Sendable {
-        let color: RGBColor
+        let color: SRGBColor
         let opacity: Double
         /// Blur as written in the xDev tokens (CSS `box-shadow` blur).
         let blur: CGFloat
         let y: CGFloat
 
-        static let flat = Shadow(color: RGBColor(hex: 0x000000), opacity: 0, blur: 0, y: 0)
+        static let flat = Shadow(color: SRGBColor(hex: 0x000000), opacity: 0, blur: 0, y: 0)
     }
 
     /// A key shadow and a tighter ambient one; dark mode has only the key.
     static func drag(colorScheme: ColorScheme) -> (key: Shadow, ambient: Shadow) {
         if colorScheme == .dark {
-            return (Shadow(color: RGBColor(hex: 0x000000), opacity: 0.45, blur: 24, y: 8), .flat)
+            return (Shadow(color: SRGBColor(hex: 0x000000), opacity: 0.45, blur: 24, y: 8), .flat)
         }
-        let navy = RGBColor(hex: 0x142745)
+        let navy = SRGBColor(hex: 0x142745)
         return (Shadow(color: navy, opacity: 0.18, blur: 24, y: 8), Shadow(color: navy, opacity: 0.08, blur: 6, y: 2))
     }
 }

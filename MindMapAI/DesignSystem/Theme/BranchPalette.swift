@@ -51,13 +51,13 @@ struct MapTheme: Hashable, Sendable {
 /// The colours of one branch in one appearance, derived from its line colour.
 struct BranchColors: Hashable, Sendable {
     /// The line colour, for strokes and edges (the IC value with Increase Contrast).
-    let line: RGBColor
+    let line: SRGBColor
     /// Level-1 fill, opaque, over the canvas.
-    let mainFill: RGBColor
+    let mainFill: SRGBColor
     /// Level-2 and deeper fill, opaque, over the canvas.
-    let subFill: RGBColor
-    let badgeFill: RGBColor
-    let badgeText: RGBColor
+    let subFill: SRGBColor
+    let badgeFill: SRGBColor
+    let badgeText: SRGBColor
 
     init(line token: ColorToken, variant: ColorVariant) {
         let canvas = Palette.Tokens.canvasBackground[variant]

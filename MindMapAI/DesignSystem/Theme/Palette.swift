@@ -52,7 +52,7 @@ enum Palette {
         static let accent = ColorToken(light: 0x004CFF, dark: 0x4AAEFF, lightHighContrast: 0x0038C2, darkHighContrast: 0x7BD4FF)
         static let crossLink = ColorToken(light: 0x5B6885, dark: 0x9DAAC7, lightHighContrast: 0x344568, darkHighContrast: 0xE8ECF8)
         static let searchMatchFill = ColorToken(light: 0xFFF4DB, dark: 0x3D3423, lightHighContrast: 0xFFE7B3, darkHighContrast: 0x4A3B1E)
-        static let searchMatchBorder = ColorToken(light: 0xF5C86B, dark: 0x7A5D22, lightHighContrast: 0x9A5B00, darkHighContrast: 0xFFC35C)
+        static let searchMatchBorder = ColorToken(light: 0xB26A00, dark: 0xFFC35C, lightHighContrast: 0x8B5300, darkHighContrast: 0xFFD285)
         static let favorite = ColorToken(light: 0xB26A00, dark: 0xFFC35C, lightHighContrast: 0x9A5B00, darkHighContrast: 0xFFD285)
         static let warningFill = ColorToken(light: 0xFFF4DB, dark: 0x3D3423, lightHighContrast: 0xFFE7B3, darkHighContrast: 0x4A3B1E)
         static let warningText = ColorToken(light: 0x9A5B00, dark: 0xFFC35C, lightHighContrast: 0x7A4600, darkHighContrast: 0xFFD285)
@@ -63,8 +63,8 @@ enum Palette {
         /// bright dark one.
         static let badgeText = ColorToken(light: 0xFFFFFF, dark: 0x142745, lightHighContrast: 0xFFFFFF, darkHighContrast: 0x0B1830)
 
-        static let aiGradientLight = [RGBColor(hex: 0x1E90FF), RGBColor(hex: 0x004CFF)]
-        static let aiGradientDark = [RGBColor(hex: 0x7BD4FF), RGBColor(hex: 0x4AAEFF)]
+        static let aiGradientLight = [SRGBColor(hex: 0x1E90FF), SRGBColor(hex: 0x004CFF)]
+        static let aiGradientDark = [SRGBColor(hex: 0x7BD4FF), SRGBColor(hex: 0x4AAEFF)]
         /// Solid AI colour; the first two values are the fallback for Reduce Transparency.
         static let aiSolid = ColorToken(light: 0x0038C2, dark: 0x7BD4FF, lightHighContrast: 0x0038C2, darkHighContrast: 0x7BD4FF)
 

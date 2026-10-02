@@ -16,20 +16,20 @@ struct TopicStyle: Hashable {
 
     let kind: Kind
     let text: ContentStyle
-    let textColor: RGBColor
-    let secondaryTextColor: RGBColor
-    let fill: RGBColor
+    let textColor: SRGBColor
+    let secondaryTextColor: SRGBColor
+    let fill: SRGBColor
     /// Fill under the pointer: 4% darker in light, 6% lighter in dark.
-    let hoverFill: RGBColor
+    let hoverFill: SRGBColor
     /// Nil when the topic has no outline.
-    let stroke: RGBColor?
+    let stroke: SRGBColor?
     let strokeWidth: CGFloat
     let box: CanvasMetrics.Box
     /// Colour and width of the hierarchy edge from the parent; width zero for the central topic.
-    let edgeColor: RGBColor
+    let edgeColor: SRGBColor
     let edgeWidth: CGFloat
-    let badgeFill: RGBColor
-    let badgeText: RGBColor
+    let badgeFill: SRGBColor
+    let badgeText: SRGBColor
     let selectionRingWidth: CGFloat
 
     /// - Parameters:
@@ -48,9 +48,9 @@ struct TopicStyle: Hashable {
         let tokens = Palette.Tokens.self
         let kind: Kind = level <= 0 ? .central : level == 1 ? .main : .sub
 
-        let fill: RGBColor
-        let textColor: RGBColor
-        let stroke: RGBColor?
+        let fill: SRGBColor
+        let textColor: SRGBColor
+        let stroke: SRGBColor?
         switch kind {
         case .central:
             fill = tokens.centralFill[variant]
@@ -73,8 +73,8 @@ struct TopicStyle: Hashable {
             secondaryTextColor: kind == .central ? textColor : tokens.topicTextSecondary[variant],
             fill: fill,
             hoverFill: variant.isDark
-                ? RGBColor(hex: 0xFFFFFF).composited(over: fill, opacity: 0.06)
-                : RGBColor(hex: 0x000000).composited(over: fill, opacity: 0.04),
+                ? SRGBColor(hex: 0xFFFFFF).composited(over: fill, opacity: 0.06)
+                : SRGBColor(hex: 0x000000).composited(over: fill, opacity: 0.04),
             stroke: stroke,
             strokeWidth: stroke == nil ? 0
                 : variant.isHighContrast ? CanvasMetrics.mainStrokeWidthHighContrast : CanvasMetrics.mainStrokeWidth,
