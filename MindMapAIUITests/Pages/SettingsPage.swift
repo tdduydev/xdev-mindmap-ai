@@ -9,6 +9,8 @@ struct SettingsPage {
         case general
         case export
         case ai
+        case data
+        case aiApps
         case pro
         case privacy
         case about
