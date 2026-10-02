@@ -16,24 +16,29 @@ struct FindBar: View {
                 .focused($isFieldFocused)
                 .onSubmit(session.findNext)
                 .autocorrectionDisabled()
+                .accessibilityIdentifier(AccessibilityID.Find.field)
             if !session.findText.isEmpty {
                 status
                     .font(Typography.rowDetail)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
+                    .accessibilityIdentifier(AccessibilityID.Find.status)
             }
             Button(action: session.findPrevious) {
                 Label("Find Previous", systemImage: "chevron.up")
                     .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
             }
             .disabled(!session.hasFindMatches)
+            .accessibilityIdentifier(AccessibilityID.Find.previous)
             Button(action: session.findNext) {
                 Label("Find Next", systemImage: "chevron.down")
                     .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
             }
             .disabled(!session.hasFindMatches)
+            .accessibilityIdentifier(AccessibilityID.Find.next)
             Button("Done", action: session.endFind)
                 .keyboardShortcut(.cancelAction)
+                .accessibilityIdentifier(AccessibilityID.Find.done)
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.borderless)
