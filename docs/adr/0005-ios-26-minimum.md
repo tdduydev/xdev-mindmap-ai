@@ -1,4 +1,4 @@
-# ADR 0005: iOS and iPadOS 26 minimum
+# ADR 0005: OS 26 minimum
 
 - Status: accepted
 - Date: 2026-10-02
@@ -9,10 +9,10 @@ The app depends on Observation, SwiftData and Swift concurrency, and its AI feat
 
 ## Decision
 
-The deployment target is iOS and iPadOS 26.0: the current release and the one before it. APIs newer than iOS 26 are used behind availability checks.
+The deployment target is macOS, iOS and iPadOS 26.0: the current release and the one before it. APIs newer than version 26 are used behind availability checks.
 
 ## Consequences
 
 - Foundation Models and the current SwiftData are available without availability branches.
-- Devices that cannot run iOS 26 are not supported.
+- Devices that cannot run version 26 are not supported.
 - AI availability still varies by device and settings (Apple Intelligence), so capability detection is required regardless of OS version.

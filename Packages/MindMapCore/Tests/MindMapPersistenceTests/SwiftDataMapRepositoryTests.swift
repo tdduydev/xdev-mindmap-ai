@@ -62,18 +62,33 @@ struct SwiftDataMapRepositoryTests {
         #expect(titles == ["Newer", "Older"])
     }
 
-    @Test func updateMapChangesOnlyTheMap() async throws {
+    @Test func favoriteIsNotAnEdit() async throws {
         let graph = try Self.sampleGraph()
         try await repository.create(graph)
-        var map = graph.map
-        map.isFavorite = true
-        map.title = "Renamed"
 
-        try await repository.updateMap(map)
+        try await repository.setFavorite(true, for: graph.map.id)
 
         let loaded = try #require(try await repository.loadGraph(for: graph.map.id))
-        #expect(loaded.map == map)
+        #expect(loaded.map.isFavorite)
+        #expect(loaded.map.updatedAt == graph.map.updatedAt)
         #expect(loaded.nodes == graph.nodes)
+    }
+
+    /// The library can star a map while its editor is open with an older copy;
+    /// the editor's next save must not take the star away.
+    @Test func editorSaveKeepsAFavoriteSetElsewhere() async throws {
+        var engine = try GraphEngine(state: GraphState.newMap(title: "Open in editor"))
+        try await repository.create(engine.state)
+        try await repository.setFavorite(true, for: engine.state.map.id)
+        let rootID = try #require(engine.state.map.rootNodeID)
+
+        let changes = try engine.execute(AddNodeCommand(.child(of: rootID), title: "New idea"))
+        #expect(engine.state.map.isFavorite == false)
+        try await repository.save(changes, map: engine.state.map)
+
+        let loaded = try #require(try await repository.loadGraph(for: engine.state.map.id))
+        #expect(loaded.map.isFavorite)
+        #expect(loaded.nodes == engine.state.nodes)
     }
 
     @Test func deletingAMapDeletesAllItsRecords() async throws {

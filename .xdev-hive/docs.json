@@ -1,18 +1,19 @@
 {
   "docs": [
-    { "file": "README.md", "key": "overview", "title": "Overview" },
-    { "file": "docs/product.md", "key": "product", "title": "Product" },
-    { "file": "docs/architecture.md", "key": "architecture", "title": "Architecture" },
-    { "file": "docs/data-model.md", "key": "data-model", "title": "Data model" },
-    { "file": "docs/graph-engine.md", "key": "graph-engine", "title": "Graph engine" },
-    { "file": "docs/ai-architecture.md", "key": "ai-architecture", "title": "AI architecture" },
-    { "file": "docs/cloudkit-sync.md", "key": "cloudkit-sync", "title": "iCloud sync" },
-    { "file": "docs/privacy.md", "key": "privacy", "title": "Privacy" },
-    { "file": "docs/roadmap.md", "split": "##", "folder": "roadmap", "folderTitle": "Roadmap", "prefix": "roadmap-", "intro": "folder", "short": true },
-    { "file": "docs/adr/0001-backendless-native-ios.md", "key": "adr-0001", "title": "0001 Native, local-first, backendless", "parent": "adr" },
-    { "file": "docs/adr/0002-core-swift-package.md", "key": "adr-0002", "title": "0002 Core in a Swift package", "parent": "adr" },
-    { "file": "docs/adr/0003-commands-with-recorded-undo.md", "key": "adr-0003", "title": "0003 Commands with recorded undo", "parent": "adr" },
-    { "file": "docs/adr/0004-hierarchy-in-parent-id.md", "key": "adr-0004", "title": "0004 Hierarchy in parentID", "parent": "adr" },
-    { "file": "docs/adr/0005-ios-26-minimum.md", "key": "adr-0005", "title": "0005 iOS 26 minimum", "parent": "adr" }
+    {"file": "README.md", "key": "overview", "title": "Overview"},
+    {"file": "docs/product.md", "key": "product", "title": "Product"},
+    {"file": "docs/architecture.md", "key": "architecture", "title": "Architecture"},
+    {"file": "docs/data-model.md", "key": "data-model", "title": "Data model"},
+    {"file": "docs/graph-engine.md", "key": "graph-engine", "title": "Graph engine"},
+    {"file": "docs/ai-architecture.md", "key": "ai-architecture", "title": "AI architecture"},
+    {"file": "docs/cloudkit-sync.md", "key": "cloudkit-sync", "title": "iCloud sync"},
+    {"file": "docs/privacy.md", "key": "privacy", "title": "Privacy"},
+    {"file": "docs/roadmap.md", "split": "##", "folder": "roadmap", "folderTitle": "Roadmap", "prefix": "roadmap-", "intro": "folder", "short": true},
+    {"file": "docs/adr/0001-backendless-native-ios.md", "key": "adr-0001", "title": "0001 Native, local-first, backendless", "parent": "adr"},
+    {"file": "docs/adr/0002-core-swift-package.md", "key": "adr-0002", "title": "0002 Core in a Swift package", "parent": "adr"},
+    {"file": "docs/adr/0003-commands-with-recorded-undo.md", "key": "adr-0003", "title": "0003 Commands with recorded undo", "parent": "adr"},
+    {"file": "docs/adr/0004-hierarchy-in-parent-id.md", "key": "adr-0004", "title": "0004 Hierarchy in parentID", "parent": "adr"},
+    {"file": "docs/adr/0005-ios-26-minimum.md", "key": "adr-0005", "title": "0005 OS 26 minimum", "parent": "adr"},
+    {"file": "docs/adr/0006-macos-first.md", "key": "adr-0006", "title": "0006 macOS first", "parent": "adr"}
   ]
 }

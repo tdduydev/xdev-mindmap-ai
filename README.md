@@ -1,6 +1,6 @@
 # MindMap AI by xDev
 
-AI-native mind mapping for iPhone and iPad.
+AI-native mind mapping for Mac, iPad and iPhone.
 
 **Think. Draw. Connect.**
 
@@ -32,8 +32,8 @@ The graph, its commands and its persistence live in a local Swift package (`Pack
 
 ## Requirements
 
-- Xcode 26 or later (the iOS 26 SDK or newer)
-- iOS and iPadOS 26 or later
+- Xcode 26 or later
+- macOS 26 or later to run the Mac app (built first, see ADR 0006); iOS and iPadOS 26 or later
 - A Mac on Apple silicon
 
 No third-party dependencies, no secrets, no server.
@@ -46,9 +46,9 @@ cd xdev-mindmap-ai-ios
 open MindMapAI.xcodeproj
 ```
 
-Pick an iPad or iPhone simulator and run the `MindMapAI` scheme. To sign for a device, choose your team under Signing & Capabilities.
+Run the `MindMapAI` scheme on **My Mac**; the same target also runs on iPad and iPhone simulators. To sign for a device or distribution, choose your team under Signing & Capabilities.
 
-Run every local check (core tests on the Mac, then an iOS Simulator build of the app):
+Run every local check (core tests, app tests on macOS, then an iOS Simulator build):
 
 ```bash
 scripts/ci.sh
@@ -63,10 +63,11 @@ swift test --package-path Packages/MindMapCore
 ## Project Structure
 
 ```
-MindMapAI/                 App target: shell, features, design system, resources
+MindMapAI/                 Multiplatform app target (macOS, iPadOS, iOS): shell, features, design system, resources
   App/                     Entry point, dependencies, navigation
   Features/                Library, Editor (one folder per feature)
   DesignSystem/            Colors, typography, spacing, motion
+MindMapAITests/            App-level tests, hosted on macOS
 Packages/MindMapCore/      Swift package, no UI
   MindMapDomain            Value types: MindMap, MindNode, MindEdge
   MindMapGraph             GraphState, commands, validation, repair, undo

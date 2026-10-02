@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-  subgraph App["MindMapAI (app target)"]
+  subgraph App["MindMapAI (multiplatform app target)"]
     Features["Features<br/>Library, Editor"]
     DS["DesignSystem"]
     Shell["App shell<br/>AppEnvironment, AppRouter"]
@@ -31,6 +31,10 @@ flowchart LR
 | App target | All of the above, SwiftUI | SwiftData records directly |
 
 The package boundary enforces these rules at compile time (ADR 0002). Later phases add packages the same way: layout, AI, import, export.
+
+## Platforms
+
+One SwiftUI target builds for macOS, iPadOS and iOS (ADR 0006). macOS runs natively with the App Sandbox. Platform differences stay inside views (`#if os(macOS)` for a modifier, a separate file when a whole view differs); models, sessions and the core package never branch on platform. On macOS the window's `UndoManager` drives the engine's history, so the Edit menu and ⌘Z work as on any Mac app.
 
 ## How an edit flows
 
@@ -78,6 +82,7 @@ Errors that reach the user are categories with plain messages (could not save, c
 | --- | --- |
 | Domain, Graph | Swift Testing in the package, `swift test` on the Mac host |
 | Persistence | Swift Testing with in-memory and on-disk stores |
-| App | iOS Simulator build in `scripts/ci.sh`; UI tests arrive with the canvas |
+| App | `MindMapAITests`, hosted on macOS: library and editor sessions end to end on an in-memory store |
+| Platforms | `scripts/ci.sh` also builds for the iOS Simulator; UI tests arrive with the canvas |
 
 There is no hosted CI. `scripts/ci.sh` is the gate before merging.

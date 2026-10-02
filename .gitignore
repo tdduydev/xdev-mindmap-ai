@@ -14,3 +14,6 @@ Package.resolved
 
 # Local check output
 scripts/out/
+
+# Code index written by the codegraph MCP server
+.codegraph/
