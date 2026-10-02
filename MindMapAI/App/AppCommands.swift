@@ -98,6 +98,7 @@ struct MapCommands: Commands {
             .disabled(editor?.canToggleSelection != true)
             Divider()
             Button("Delete Topic") { editor?.deleteSelection() }
+                .keyboardShortcut(deleteTopicShortcut)
                 .disabled(editor?.canDeleteSelection != true)
         }
 
@@ -154,6 +155,13 @@ struct MapCommands: Commands {
         Button("Cancel AI Request") { assistant?.cancel() }
             .keyboardShortcut(".")
             .disabled(assistant?.isWorking != true)
+    }
+
+    /// The bare Delete key comes and goes with focus, so it stays with text
+    /// fields and with a selected suggestion (see `EditorSession.deleteKeyDeletesTopic`).
+    private var deleteTopicShortcut: KeyboardShortcut? {
+        guard editor?.deleteKeyDeletesTopic == true, assistant?.holdsDeleteKey != true else { return nil }
+        return KeyboardShortcut(.delete, modifiers: [])
     }
 
     private var themeBinding: Binding<MindMapTheme> {

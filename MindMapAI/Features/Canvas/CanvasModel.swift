@@ -26,7 +26,13 @@ final class CanvasModel {
     private(set) var scene: CanvasScene = .empty
     private(set) var viewport = CanvasViewport()
     /// The topic whose title is being edited in place.
-    private(set) var editingID: NodeID?
+    private(set) var editingID: NodeID? {
+        didSet { reportKeyboardFocus() }
+    }
+    /// Whether the canvas itself holds keyboard focus. Set by the view.
+    var hasKeyboardFocus = false {
+        didSet { reportKeyboardFocus() }
+    }
     /// The title as typed so far; committed as one Rename Topic command.
     var editingDraft = ""
     /// True while a drag pans the canvas, for the closed-hand pointer.
@@ -316,6 +322,13 @@ final class CanvasModel {
         } else {
             reveal(request.id)
         }
+    }
+
+    /// A title being typed keeps Delete for the text; the focused canvas
+    /// lets it be Delete Topic's shortcut (see `EditorSession.deleteKeyDeletesTopic`).
+    private func reportKeyboardFocus() {
+        let focus: EditorSession.KeyboardFocus = editingID != nil ? .editingText : hasKeyboardFocus ? .content : .elsewhere
+        session.reportKeyboardFocus(focus, from: .canvas)
     }
 
     /// Return on the canvas, or the Rename Topic menu item.

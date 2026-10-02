@@ -246,6 +246,7 @@ struct AIAssistantTests {
 
         assistant.expand(rootID)
         #expect(assistant.sheet == .privacyNotice)
+        #expect(assistant.holdsDeleteKey, "an open sheet keeps Delete for its own fields")
         #expect(provider.requests.isEmpty, "nothing is sent before the notice is read")
 
         assistant.acknowledgePrivacyNotice()
@@ -288,6 +289,8 @@ struct AIAssistantTests {
         canvas.select(suggestion.id)
         #expect(assistant.selectedSuggestion == "s1")
         #expect(session.selection == rootID, "selecting a suggestion leaves the map's selection alone")
+        // Delete then discards the suggestion, so it cannot be Delete Topic's key.
+        #expect(assistant.holdsDeleteKey)
 
         canvas.acceptSuggestion(suggestion.id)
         await canvas.layoutSettled()

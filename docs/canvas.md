@@ -65,11 +65,12 @@ These time the model only. SwiftUI's layout and rendering are not in them, so th
 | Zoom | Pinch, ⌘-scroll, ⌘+ ⌘− ⌘0, ⌥⌘0 Zoom to Fit, the floating controls | Pinch, the floating controls, hardware keyboard shortcuts |
 | Select | Click | Tap (44 pt target around small topics) |
 | Edit title | Double-click, Return, Topic ▸ Rename Topic; Return commits, Esc cancels | Double-tap, Return on a keyboard |
+| Delete topic | Delete while the canvas has focus and no title is being edited (a selected suggestion is discarded instead), Topic ▸ Delete Topic | Topic ▸ Delete Topic |
 | Canvas or outline | View ▸ As Canvas ⌘1, As Outline ⌘2, toolbar picker | Toolbar picker |
 
 Collapsing a topic that holds the selection selects the collapsed topic, so Delete and Rename never act on a topic nobody sees.
 
-The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas. Return opens the title from the canvas's key handler, not as a menu key equivalent: a bare Return in the menu would never reach text fields.
+The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas. Return opens the title from the canvas's key handler, not as a menu key equivalent: a bare Return in the menu would never reach text fields. Delete is a menu key equivalent, so it is switched on only while `EditorSession.deleteKeyDeletesTopic` holds: `CanvasModel` reports the canvas's focus and its title editing, the outline reports its own (MM-0i).
 
 ## Accessibility
 
