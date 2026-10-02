@@ -44,6 +44,23 @@ final class ChatUITests: XCTestCase {
         XCTAssertFalse(chat.citations.firstMatch.exists)
     }
 
+    /// MM-78: an empty chat offers questions that ask at once, and the scope
+    /// starts at the whole map.
+    @MainActor
+    func testASuggestedQuestionAsksAtOnce() {
+        let app = openPlan()
+        let chat = ChatPage(app: app.app)
+
+        chat.open()
+        XCTAssertTrue(chat.scope.waitToExist().exists)
+        let suggestion = chat.suggestions.firstMatch.waitToExist()
+        XCTAssertEqual(chat.suggestions.count, 3)
+        suggestion.tap()
+
+        chat.answers.firstMatch.waitToExist()
+        XCTAssertFalse(chat.suggestions.firstMatch.exists, "suggestions are for an empty chat")
+    }
+
     @MainActor
     func testHiddenWhereAppleIntelligenceCannotRun() {
         let app = openPlan(ai: .ineligible)
@@ -83,6 +100,8 @@ struct ChatPage {
     var sendButton: XCUIElement { app.buttons[AccessibilityID.Chat.send].firstMatch }
     var answers: XCUIElementQuery { app.staticTexts.matching(identifier: AccessibilityID.Chat.answer) }
     var citations: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.citation) }
+    var suggestions: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.suggestion) }
+    var scope: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Chat.scope].firstMatch }
 
     func citation(titled title: String) -> XCUIElement {
         citations.matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
