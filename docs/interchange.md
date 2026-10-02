@@ -31,7 +31,8 @@ GraphState.imported(from: draft, title: fileName)                               
 
 - **Topics:** ATX headings (`#` to `######`) nest by level, and a skipped level still nests only one deep. List items (`-`, `*`, `+`, `1.`, `1)`) nest under the heading above them and under each other by indentation, as in CommonMark: an item indented to its parent's text is its child. A task box (`[ ]`, `[x]`) is dropped.
 - **Notes:** paragraphs, quotes, tables and code fences go to the nearest topic: the list item they are indented under or continue without a blank line, otherwise the heading of their section. Text before the first topic goes into the first topic's note, so nothing in the file is lost. This rule is still marked [Đề xuất] in the SRS.
-- **Kept as written:** inline markup (`**bold**`, links) stays in the title or note. Code fences are copied line for line.
+- **Topic links (MM-60):** a heading or list item whose whole text is one inline link with an `http`, `https` or `mailto` URL is read as the title plus the topic's link, and a topic's link is written that way (`- [Title](url)`); brackets in the title and parentheses in the URL get a backslash. Plain text uses a trailing `<url>`. Rules in [[node-organization]] "Links".
+- **Kept as written:** other inline markup (`**bold**`, links inside a longer title) stays in the title or note. Code fences are copied line for line.
 - **Skipped:** YAML front matter and thematic breaks.
 - **Fallback:** a file with no headings or list items is read as plain text, one topic per line.
 - **Not read:** Setext headings (`Title` over `===`) and HTML blocks. They become notes.

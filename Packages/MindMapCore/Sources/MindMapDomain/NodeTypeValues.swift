@@ -21,27 +21,85 @@ public struct TopicLink: Hashable, Sendable, Codable {
         return url
     }
 
-    /// What a person typed or pasted, as it is stored: trimmed, `https://`
-    /// added to a bare host, scheme and host lowercased. Nil when the result
-    /// is not a link this build opens.
+    /// What a person typed or pasted, as it is stored, or nil when it is not
+    /// a link this build opens. `validated(_:)` says why.
     public static func normalized(_ text: String) -> TopicLink? {
+        (try? validated(text)) ?? nil
+    }
+
+    /// The rules of docs/node-organization.md "Links": trimmed; a bare host
+    /// gets `https://` and a bare address `mailto:`; spaces and other
+    /// characters a URL cannot hold are percent-encoded; scheme and host
+    /// lowercased. Nil for an empty field, which means "no link".
+    public static func validated(_ text: String) throws(TopicLinkError) -> TopicLink? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, !trimmed.contains(where: \.isWhitespace) else { return nil }
-        let withScheme = trimmed.contains(":") ? trimmed : "https://" + trimmed
-        guard var components = URLComponents(string: withScheme),
-              let scheme = components.scheme?.lowercased(), allowedSchemes.contains(scheme)
-        else { return nil }
+        guard !trimmed.isEmpty else { return nil }
+        let withScheme: String
+        if hasScheme(trimmed) {
+            withScheme = trimmed
+        } else if isBareAddress(trimmed) {
+            withScheme = "mailto:" + trimmed
+        } else {
+            withScheme = "https://" + trimmed
+        }
+        guard let parsed = URL(string: withScheme, encodingInvalidCharacters: true),
+              var components = URLComponents(url: parsed, resolvingAgainstBaseURL: false),
+              let scheme = components.scheme?.lowercased()
+        else { throw .unreadable }
+        guard allowedSchemes.contains(scheme) else { throw .unsupportedScheme }
         components.scheme = scheme
         if scheme == "mailto" {
-            guard !components.path.isEmpty else { return nil }
+            guard !components.path.isEmpty else { throw .missingAddress }
         } else {
-            guard let host = components.host, !host.isEmpty else { return nil }
+            guard let host = components.host, !host.isEmpty else { throw .missingHost }
             components.host = host.lowercased()
         }
-        guard let string = components.string else { return nil }
+        guard let string = components.string else { throw .unreadable }
+        guard string.count <= maximumLength else { throw .tooLong }
         let link = TopicLink(string: string)
-        return link.url == nil ? nil : link
+        guard link.url != nil else { throw .unreadable }
+        return link
     }
+
+    /// `name:` at the start, but not `example.com:8080`, whose "scheme" is a host and port.
+    private static func hasScheme(_ text: String) -> Bool {
+        guard let colon = text.firstIndex(of: ":") else { return false }
+        let scheme = text[..<colon]
+        guard let first = scheme.first, first.isASCII, first.isLetter,
+              scheme.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || "+-.".contains($0)) })
+        else { return false }
+        let rest = text[text.index(after: colon)...]
+        let isPort = scheme.contains(".") && rest.first?.isNumber == true
+        return !isPort
+    }
+
+    /// `name@example.com`: one `@`, no `/`.
+    private static func isBareAddress(_ text: String) -> Bool {
+        text.count(where: { $0 == "@" }) == 1 && !text.contains("/") && !text.hasPrefix("@") && !text.hasSuffix("@")
+    }
+
+    /// What VoiceOver and the help tag name the link by: the host, or the
+    /// address for `mailto`; never the path or query, which can be long or private.
+    public var displayName: String? {
+        guard let url else { return nil }
+        if url.scheme?.lowercased() == "mailto" {
+            let address = URLComponents(url: url, resolvingAgainstBaseURL: false)?.path ?? ""
+            return address.removingPercentEncoding ?? address
+        }
+        return url.host()
+    }
+
+    public var isMail: Bool { url?.scheme?.lowercased() == "mailto" }
+}
+
+/// Why a typed link was refused (FR-ORG-26).
+public enum TopicLinkError: Error, Hashable, Sendable {
+    /// `file:`, `javascript:`, `data:`, app schemes and the like.
+    case unsupportedScheme
+    case missingHost
+    case missingAddress
+    case tooLong
+    case unreadable
 }
 
 /// The centre of a floating topic in canvas points relative to the central

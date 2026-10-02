@@ -64,6 +64,11 @@ struct MapEditorView: View {
         .onChange(of: chat.isPresented) { _, isPresented in
             if isPresented { session.isInspectorPresented = false }
         }
+        .sheet(isPresented: linkSheetBinding) {
+            if let target = session.linkEditorTarget {
+                TopicLinkSheet(session: session, nodeID: target)
+            }
+        }
         .sheet(isPresented: $session.isManagingTags) {
             TagManagerView(session: session)
         }
@@ -108,6 +113,13 @@ struct MapEditorView: View {
         .focusedSceneValue(\.voiceInput, voice)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
+    }
+
+    private var linkSheetBinding: Binding<Bool> {
+        Binding(
+            get: { session.linkEditorTarget != nil },
+            set: { if !$0 { session.linkEditorTarget = nil } }
+        )
     }
 
     private var trailingPanelBinding: Binding<Bool> {
@@ -213,6 +225,7 @@ struct MapEditorView: View {
                 Label("Inspector", systemImage: "sidebar.trailing")
             }
             .help(session.isInspectorPresented ? Text("Hide Inspector") : Text("Show Inspector"))
+            .accessibilityIdentifier(AccessibilityID.Editor.inspector)
         }
     }
 }

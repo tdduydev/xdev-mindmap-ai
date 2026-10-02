@@ -46,8 +46,11 @@ public struct MergeNodesCommand: GraphCommand {
 
         let note = Self.mergedNote(survivor: survivor, merged: merged)
         let gainedChildren = merged.contains { !state.childIDs(of: $0.id).isEmpty }
+        // A topic holds one link: the survivor keeps its own, else takes the first merged one's.
+        let link = survivor.link ?? merged.lazy.compactMap(\.link).first
         try transaction.updateNode(survivorID) { node in
             node.note = note
+            node.link = link
             // Children moved into a collapsed topic would vanish from view.
             if gainedChildren { node.isCollapsed = false }
         }
