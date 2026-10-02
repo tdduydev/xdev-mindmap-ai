@@ -25,7 +25,7 @@ AI features need Apple Intelligence, which runs on the device. They appear only 
 Quit and reopen the app. If the message comes back, contact us and mention that message; do not delete the app, because deleting it removes the maps stored on the device.
 
 **How do I delete my data?**
-Delete maps in the app. Deleting the app removes the maps stored on that device.
+Delete maps in the app; they wait in Recently Deleted for 30 days, or use Delete Permanently there to remove them now. Deleting the app removes the maps stored on that device.
 
 ---
 
@@ -45,4 +45,4 @@ Tính năng AI cần Apple Intelligence, chạy trên thiết bị. Chúng chỉ
 Thoát rồi mở lại ứng dụng. Nếu thông báo vẫn hiện, hãy liên hệ chúng tôi và nêu thông báo đó; đừng xoá ứng dụng, vì xoá ứng dụng sẽ xoá các sơ đồ lưu trên thiết bị.
 
 **Làm sao xoá dữ liệu của tôi?**
-Xoá sơ đồ trong ứng dụng. Xoá ứng dụng sẽ xoá các sơ đồ lưu trên thiết bị đó.
+Xoá sơ đồ trong ứng dụng; sơ đồ nằm trong mục Đã xoá gần đây 30 ngày, hoặc chọn Xoá vĩnh viễn ở đó để gỡ ngay. Xoá ứng dụng sẽ xoá các sơ đồ lưu trên thiết bị đó.
