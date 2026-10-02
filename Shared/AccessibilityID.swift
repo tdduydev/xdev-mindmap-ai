@@ -121,6 +121,9 @@ nonisolated enum AccessibilityID {
         static let scope = "chat.scope"
         static let suggestion = "chat.suggestion"
         static let answerScope = "chat.answerScope"
+        static let copy = "chat.copy"
+        static let addToNote = "chat.addToNote"
+        static let askAgain = "chat.askAgain"
     }
 
     enum Settings {

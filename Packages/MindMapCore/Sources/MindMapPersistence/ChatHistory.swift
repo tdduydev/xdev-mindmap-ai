@@ -13,6 +13,10 @@ public protocol ChatHistoryStore: Sendable {
     /// edit of the map: `updatedAt` stays and no `.saved` goes out.
     func appendChatTurn(_ turn: ChatTurn, to mapID: MapID, at date: Date) async throws
 
+    /// Ask Again (MM-79): deletes one turn, the answer being replaced, so a
+    /// retry that stops or fails does not leave the old answer saved.
+    func deleteChatTurn(_ turnID: UUID, from mapID: MapID) async throws
+
     /// Clear Chat: deletes every turn of the map.
     func clearChat(for mapID: MapID) async throws
 }
