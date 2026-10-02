@@ -13,7 +13,7 @@ struct ExportSheet: View {
     let onClose: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
-    @AppStorage(ExportPreferences.includeNotesKey) private var includeNotes = true
+    @AppStorage(ExportPreferences.includeNotesKey, store: AppDefaults.store) private var includeNotes = true
     @State private var options = ExportOptions()
     @State private var scope = ExportScope.wholeMap
     @State private var file: ExportedFile?

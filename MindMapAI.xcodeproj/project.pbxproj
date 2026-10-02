@@ -34,6 +34,13 @@
 			remoteGlobalIDString = 4D4D41000000000000000006;
 			remoteInfo = MindMapAI;
 		};
+		4D4D41000000000000220001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D4D41000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D4D41000000000000000006;
+			remoteInfo = MindMapAI;
+		};
 		4D4D410000000000000B1130 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4D4D41000000000000000001 /* Project object */;
@@ -60,6 +67,7 @@
 /* Begin PBXFileReference section */
 		4D4D41000000000000000004 /* MindMap AI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MindMap AI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D4D41000000000000000018 /* MindMapAITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindMapAITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D4D41000000000000220002 /* MindMapAIUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindMapAIUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D4D410000000000000B1111 /* MindMapShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MindMapShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -82,6 +90,16 @@
 		4D4D41000000000000000019 /* MindMapAITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = MindMapAITests;
+			sourceTree = "<group>";
+		};
+		4D4D41000000000000220003 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		4D4D41000000000000220004 /* MindMapAIUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MindMapAIUITests;
 			sourceTree = "<group>";
 		};
 		4D4D410000000000000B1132 /* MindMapShareExtension */ = {
@@ -120,6 +138,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D4D41000000000000220005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4D4D410000000000000B1134 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -140,6 +165,8 @@
 			children = (
 				4D4D41000000000000000005 /* MindMapAI */,
 				4D4D41000000000000000019 /* MindMapAITests */,
+				4D4D41000000000000220003 /* Shared */,
+				4D4D41000000000000220004 /* MindMapAIUITests */,
 				4D4D410000000000000B1132 /* MindMapShareExtension */,
 				4D4D41000000000000000003 /* Products */,
 			);
@@ -150,6 +177,7 @@
 			children = (
 				4D4D41000000000000000004 /* MindMap AI.app */,
 				4D4D41000000000000000018 /* MindMapAITests.xctest */,
+				4D4D41000000000000220002 /* MindMapAIUITests.xctest */,
 				4D4D410000000000000B1111 /* MindMapShareExtension.appex */,
 			);
 			name = Products;
@@ -174,6 +202,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				4D4D41000000000000000005 /* MindMapAI */,
+				4D4D41000000000000220003 /* Shared */,
 			);
 			name = MindMapAI;
 			packageProductDependencies = (
@@ -215,6 +244,28 @@
 			productName = MindMapAITests;
 			productReference = 4D4D41000000000000000018 /* MindMapAITests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		4D4D41000000000000220008 /* MindMapAIUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4D4D41000000000000220012 /* Build configuration list for PBXNativeTarget "MindMapAIUITests" */;
+			buildPhases = (
+				4D4D41000000000000220006 /* Sources */,
+				4D4D41000000000000220005 /* Frameworks */,
+				4D4D41000000000000220007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4D4D41000000000000220009 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4D4D41000000000000220004 /* MindMapAIUITests */,
+				4D4D41000000000000220003 /* Shared */,
+			);
+			name = MindMapAIUITests;
+			productName = MindMapAIUITests;
+			productReference = 4D4D41000000000000220002 /* MindMapAIUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		4D4D410000000000000B1140 /* MindMapShareExtension */ = {
 			isa = PBXNativeTarget;
@@ -260,6 +311,10 @@
 						CreatedOnToolsVersion = 27.0;
 						TestTargetID = 4D4D41000000000000000006;
 					};
+					4D4D41000000000000220008 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 4D4D41000000000000000006;
+					};
 					4D4D410000000000000B1140 = {
 						CreatedOnToolsVersion = 27.0;
 					};
@@ -285,6 +340,7 @@
 			targets = (
 				4D4D41000000000000000006 /* MindMapAI */,
 				4D4D4100000000000000001B /* MindMapAITests */,
+				4D4D41000000000000220008 /* MindMapAIUITests */,
 				4D4D410000000000000B1140 /* MindMapShareExtension */,
 			);
 		};
@@ -299,6 +355,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4D4D4100000000000000001E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D4D41000000000000220007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -329,6 +392,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D4D41000000000000220006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4D4D410000000000000B1135 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -343,6 +413,11 @@
 			isa = PBXTargetDependency;
 			target = 4D4D41000000000000000006 /* MindMapAI */;
 			targetProxy = 4D4D41000000000000000017 /* PBXContainerItemProxy */;
+		};
+		4D4D41000000000000220009 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4D4D41000000000000000006 /* MindMapAI */;
+			targetProxy = 4D4D41000000000000220001 /* PBXContainerItemProxy */;
 		};
 		4D4D410000000000000B1137 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -635,6 +710,50 @@
 			};
 			name = Release;
 		};
+		4D4D41000000000000220010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MindMapAI;
+			};
+			name = Debug;
+		};
+		4D4D41000000000000220011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MindMapAI;
+			};
+			name = Release;
+		};
 		4D4D410000000000000B1141 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -730,6 +849,15 @@
 			buildConfigurations = (
 				4D4D41000000000000000020 /* Debug */,
 				4D4D41000000000000000021 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4D4D41000000000000220012 /* Build configuration list for PBXNativeTarget "MindMapAIUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D4D41000000000000220010 /* Debug */,
+				4D4D41000000000000220011 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -73,7 +73,7 @@ final class AIAssistant {
 
     static let privacyNoticeKey = "ai.privacyNoticeShown"
 
-    init(session: EditorSession, service: AIService, defaults: UserDefaults = .standard, locale: Locale = .current) {
+    init(session: EditorSession, service: AIService, defaults: UserDefaults = AppDefaults.store, locale: Locale = .current) {
         self.session = session
         self.service = service
         self.defaults = defaults

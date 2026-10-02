@@ -17,7 +17,8 @@ MindMapAI.xcodeproj
 ├─ MindMapAI/                 app target (macOS, iPadOS, iOS): App/, Features/<Feature>/, Resources
 ├─ MindMapShareExtension/     ✓ MM-11, macOS and iOS
 ├─ MindMapAITests/            hosted app tests on macOS
-└─ MindMapAIUITests/          MM-3 and later
+├─ MindMapAIUITests/          XCUITest, macOS and iOS Simulator; pages and launcher ([[testing]])
+└─ Shared/                    AccessibilityID, UITestLaunch: compiled into the app and the UI tests
 Packages/
 ├─ MindMapCore/               no UI; `swift test` on the Mac
 │  ├─ MindMapDomain           ✓

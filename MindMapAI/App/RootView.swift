@@ -66,7 +66,10 @@ struct RootView: View {
         .onDisappear { environment.openMaps.unregister(window) }
         .onChange(of: router.section) { _, section in savedSection = section ?? .all }
         .onChange(of: router.selectedMapID) { _, id in savedMapID = id?.description }
-        .task { await library.observeChanges() }
+        .task {
+            await environment.prepare()
+            await library.observeChanges()
+        }
         // FR-AI-01: Apple Intelligence can be turned on or off while the app is away.
         .task { await ai.refresh() }
         .onChange(of: scenePhase) { _, phase in

@@ -14,6 +14,7 @@ struct SidebarView: View {
                 Image(systemName: section.systemImage)
             }
         }
+        .accessibilityIdentifier(AccessibilityID.Sidebar.list)
         #if os(macOS)
         // No title here: on the Mac it can end up as the window title, and the
         // HIG asks for the content's name there, not the app's.
@@ -28,6 +29,7 @@ struct SidebarView: View {
                 } label: {
                     Label("Settings", systemImage: "gearshape")
                 }
+                .accessibilityIdentifier(AccessibilityID.Sidebar.settings)
             }
         }
         .sheet(isPresented: $isShowingSettings) {

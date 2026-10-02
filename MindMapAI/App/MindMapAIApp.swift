@@ -1,7 +1,9 @@
 import AppIntents
 import MindMapDomain
 import SwiftUI
-#if os(macOS)
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
 import AppKit
 #endif
 
@@ -15,7 +17,7 @@ struct MindMapAIApp: App {
     @State private var pro: ProEntitlement
     /// Shared by every window and Settings; the model itself loads on first use.
     @State private var ai: AIService
-    @AppStorage(AppearancePreference.storageKey) private var appearance = AppearancePreference.system
+    @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -25,6 +27,10 @@ struct MindMapAIApp: App {
         _ai = State(initialValue: AIService(entitlements: pro))
         // Before any view resolves a brand font by name.
         BrandFont.registerAll()
+        #if os(iOS)
+        // Transitions and keyboard animations too, which SwiftUI's Motion does not drive.
+        if UITestMode.isActive { UIView.setAnimationsEnabled(false) }
+        #endif
         let launch = AppEnvironment.live()
         _launch = State(initialValue: launch)
         // Intents can run as soon as the app launches for them, before any window exists.
@@ -57,8 +63,7 @@ struct MindMapAIApp: App {
             #endif
         }
         #if os(macOS)
-        .defaultSize(width: 1180, height: 760)
-        #endif
+        .defaultSize(width: 1180, height: 760)        #endif
         .commands {
             MapCommands(ai: ai)
             // View ▸ Show/Hide Sidebar with ⌃⌘S, as the HIG lists for the View menu.
