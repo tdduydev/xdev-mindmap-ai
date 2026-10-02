@@ -39,7 +39,20 @@ Until then uploads keep iCloud off; the App Group is on.
 
 ## Upload a build
 
-Run it on the Mac mini: the signing keychain, profile and API key exist only there. On 2026-10-02 the first upload signed fine and was stopped by hand while sending, so build 0.1.0 is not on TestFlight yet.
+Run it on the Mac mini: the signing keychain, profile and API key exist only there.
+
+### Uploads
+
+Every upload adds a row here with the commit it was archived from, so whether a schema has shipped can be read from this table (see *V2 or V3* in [data-model.md](data-model.md)).
+
+| Build | Version | Uploaded (UTC) | Commit | Schema |
+| --- | --- | --- | --- | --- |
+| 202610021635 | 0.1.0 | 2026-10-02 09:38 | not recorded | V1 |
+| 202610021704 | 0.1.0 | 2026-10-02 10:07 | not recorded | V1 |
+| 202610021725 | 0.1.0 | 2026-10-02 10:31 | not recorded | V1 |
+| 202610021848 | 0.1.0 | 2026-10-02 11:51 | `a9f7028` | V1 |
+
+All four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02. None contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
 
 ```bash
 scripts/upload-testflight.sh
