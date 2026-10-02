@@ -35,6 +35,7 @@ struct SidebarView: View {
         .sheet(isPresented: $isShowingSettings) {
             SettingsView()
         }
+        .focusedSceneValue(\.showSettingsAction, ShowSettingsAction { isShowingSettings = true })
         #endif
     }
 }

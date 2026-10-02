@@ -167,22 +167,59 @@ struct ExportOptions: Equatable {
     }
 }
 
-/// The export defaults kept in Settings (FR-SET-07).
-enum ExportPreferences {
+/// The export defaults in Settings ▸ Export (FR-SET-07). The export sheet
+/// starts from them and writes back what is changed in it, through the same
+/// keys, so Settings and the sheet never disagree.
+struct ExportPreferences {
+    static let formatKey = "export.format"
     static let includeNotesKey = "export.includeNotes"
-}
+    static let imageScaleKey = "export.png.scale"
+    static let pageModeKey = "export.pdf.pages"
+    /// Absent means Automatic: the paper of the region (`PaperSize.preferred()`).
+    static let paperKey = "export.pdf.paper"
+    static let backgroundKey = "export.background"
 
-/// The default the export sheet starts from (FR-SET-07); the sheet's toggle changes it too.
-struct ExportSettingsSection: View {
-    @AppStorage(ExportPreferences.includeNotesKey, store: AppDefaults.store) private var includeNotes = true
+    var defaults: UserDefaults = AppDefaults.store
 
-    var body: some View {
-        Section {
-            Toggle("Include Notes", isOn: $includeNotes)
-        } header: {
-            Text("Export")
-        } footer: {
-            Text("Applies to Markdown and plain text exports.")
+    /// The stored PNG resolution, or the default when none is stored: High
+    /// with Pro, Standard without (docs/settings.md).
+    static func imageScale(stored: ImageScale?, entitlements: any ProEntitlements) -> ImageScale {
+        let allowsHigh = entitlements.allows(.highResolutionPNGExport)
+        guard let stored else { return allowsHigh ? .double : .standard }
+        // A stored Pro choice stays stored without Pro; the export uses the best it may.
+        return stored.requiredFeature.map { entitlements.allows($0) } == false ? .standard : stored
+    }
+
+    /// What the export sheet opens with. Pro choices without Pro become their
+    /// free counterparts, so the sheet never opens on a locked option.
+    func options(entitlements: any ProEntitlements, locale: Locale = .current) -> ExportOptions {
+        var options = ExportOptions()
+        if let format = defaults.string(forKey: Self.formatKey).flatMap(ExportFormat.init(rawValue:)) {
+            options.format = format
         }
+        if defaults.object(forKey: Self.includeNotesKey) != nil {
+            options.includeNotes = defaults.bool(forKey: Self.includeNotesKey)
+        }
+        let storedScale = defaults.object(forKey: Self.imageScaleKey) == nil
+            ? nil : ImageScale(rawValue: defaults.integer(forKey: Self.imageScaleKey))
+        options.imageScale = Self.imageScale(stored: storedScale, entitlements: entitlements)
+        let pageMode = defaults.string(forKey: Self.pageModeKey).flatMap(PDFPageMode.init(rawValue:)) ?? .singlePage
+        options.pageMode = pageMode.requiredFeature.map { entitlements.allows($0) } == false ? .singlePage : pageMode
+        options.paper = defaults.string(forKey: Self.paperKey).flatMap(PaperSize.init(rawValue:)) ?? .preferred(for: locale)
+        if let background = defaults.string(forKey: Self.backgroundKey).flatMap(ExportBackground.init(rawValue:)) {
+            options.background = background
+        }
+        return options
+    }
+
+    /// Stores what changed between two sheet states, and only that: a paper
+    /// size or resolution nobody touched stays Automatic or default.
+    func save(_ options: ExportOptions, changedFrom old: ExportOptions) {
+        if options.format != old.format { defaults.set(options.format.rawValue, forKey: Self.formatKey) }
+        if options.includeNotes != old.includeNotes { defaults.set(options.includeNotes, forKey: Self.includeNotesKey) }
+        if options.imageScale != old.imageScale { defaults.set(options.imageScale.rawValue, forKey: Self.imageScaleKey) }
+        if options.pageMode != old.pageMode { defaults.set(options.pageMode.rawValue, forKey: Self.pageModeKey) }
+        if options.paper != old.paper { defaults.set(options.paper.rawValue, forKey: Self.paperKey) }
+        if options.background != old.background { defaults.set(options.background.rawValue, forKey: Self.backgroundKey) }
     }
 }

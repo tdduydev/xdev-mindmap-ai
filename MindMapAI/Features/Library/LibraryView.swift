@@ -15,6 +15,7 @@ struct LibraryView: View {
     @State private var deletedSelection: MapID?
     @Environment(FileTransfer.self) private var transfer: FileTransfer?
     @Environment(\.undoManager) private var undoManager
+    @Environment(ProEntitlement.self) private var pro
 
     private var showsDeletedMaps: Bool { section == .recentlyDeleted }
 
@@ -237,7 +238,7 @@ struct LibraryView: View {
 
     private func create() {
         Task {
-            if let id = await model.createMap() {
+            if let id = await model.createMap(theme: NewMapPreferences.theme(entitlements: pro)) {
                 selection = id
             }
         }
