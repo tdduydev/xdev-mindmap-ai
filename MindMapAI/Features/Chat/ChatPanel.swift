@@ -38,10 +38,15 @@ struct ChatPanel: View {
         .accessibilityIdentifier(AccessibilityID.Chat.panel)
         .toolbar {
             ToolbarItem {
-                Button("Clear Chat", systemImage: "trash", action: chat.clear)
+                Button("Clear Chat", systemImage: "trash", action: chat.requestClear)
                     .disabled(!chat.canClear)
                     .help(Text("Clear Chat"))
             }
+        }
+        .confirmationDialog("Clear the chat for this map?", isPresented: $chat.isConfirmingClear, titleVisibility: .visible) {
+            Button("Clear Chat", role: .destructive, action: chat.clear)
+        } message: {
+            Text("Its questions and answers are deleted. This can’t be undone.")
         }
         .onAppear { if chat.focusRequest { takeFocus() } }
         .onChange(of: chat.focusRequest) { _, requested in

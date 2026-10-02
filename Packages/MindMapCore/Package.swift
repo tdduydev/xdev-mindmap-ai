@@ -29,13 +29,14 @@ let package = Package(
     targets: [
         .target(name: "MindMapDomain"),
         .target(name: "MindMapGraph", dependencies: ["MindMapDomain"]),
-        .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        // AICore for the chat's values, which each map saves (MM-55).
+        .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore"]),
         .target(name: "MindMapLayout", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph", "MindMapDomain"]),
         .testTarget(
             name: "MindMapPersistenceTests",
-            dependencies: ["MindMapPersistence", "MindMapDomain", "MindMapGraph"],
+            dependencies: ["MindMapPersistence", "MindMapDomain", "MindMapGraph", "MindMapAICore"],
             resources: [.copy("Fixtures")]
         ),
         .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout", "MindMapDomain", "MindMapGraph"]),

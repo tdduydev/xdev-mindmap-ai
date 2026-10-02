@@ -21,14 +21,15 @@ struct MigrationHarnessTests {
         #expect(try await repository.loadGraph(for: V1Fixture.mapID) == V1Fixture.graph)
     }
 
-    /// The plan is `[SchemaV1, SchemaV2]`: V1's data comes through with every
-    /// value, every V2 field is empty (so maps draw as before), and there are
-    /// no tags, tag links, boundaries, summaries or images yet.
-    @Test func v1StoreOpensAsV2WithEmptyNewFields() async throws {
+    /// The plan is `[SchemaV1, SchemaV2, SchemaV3]`: V1's data comes through
+    /// both stages with every value, every V2 field is empty (so maps draw as
+    /// before), and there are no tags, tag links, boundaries, summaries,
+    /// images or chats yet.
+    @Test func v1StoreOpensAsV3WithEmptyNewFields() async throws {
         let store = try FixtureStore(copying: "V1")
         defer { store.remove() }
         let container = try PersistenceController.makeContainer(at: .file(store.url))
-        #expect(container.schema.version == SchemaV2.versionIdentifier)
+        #expect(container.schema.version == SchemaV3.versionIdentifier)
 
         let context = ModelContext(container)
         let maps = try context.fetch(FetchDescriptor<MapRecord>())
@@ -48,6 +49,7 @@ struct MigrationHarnessTests {
         #expect(try context.fetchCount(FetchDescriptor<NodeTagRecord>()) == 0)
         #expect(try context.fetchCount(FetchDescriptor<GroupRecord>()) == 0)
         #expect(try context.fetchCount(FetchDescriptor<ImageRecord>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<ChatTurnRecord>()) == 0)
 
         let graph = try #require(try await SwiftDataMapRepository(modelContainer: container).loadGraph(for: V1Fixture.mapID))
         #expect(graph == V1Fixture.graph)

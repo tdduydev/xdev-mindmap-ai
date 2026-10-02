@@ -9,7 +9,7 @@ Design for MM-39, 2026-10-02. Ask in a map (C1) is built in MM-41; [What C1 buil
 - **Two scopes:** Ask in one map (from the editor, free) and Ask across the library (from the library, Pro; decided 2026-10-02).
 - **Citations:** each answer names the topics it used; clicking one opens the map at that topic.
 - **Edits are suggestions:** in a map, the chat can suggest topics; they appear as AI suggestions on the canvas and Accept is one command, one undo step.
-- **Saved per map (decided 2026-10-02, MM-55):** each map keeps its conversation in the store, deleted with the map and when the person clears it; it is map content, so it is never logged and syncs only with the map. The first chat release (MM-41) may keep it in memory until MM-55 lands.
+- **Saved per map (decided 2026-10-02, built in MM-55):** each map keeps its conversation in the store, deleted with the map and when the person clears it; it is map content, so it is never logged and syncs only with the map. See [Saving the conversation](#saving-the-conversation).
 - **Hidden where AI is hidden:** same `AICapabilities` as the other AI features, so an Intel Mac or an ineligible device never shows it (MM-21).
 
 ## Model and context
@@ -74,14 +74,16 @@ The chat cannot rename, move or delete topics. Rewrite and Summary stay the exis
 
 ## Saving the conversation
 
-[Đề xuất] Not saved in the first version:
+Decided by the product owner on 2026-10-02 (replacing the earlier proposal not to save); built in MM-55. Storage is in [data-model.md](data-model.md#schema-v3-mm-55).
 
-- No schema change (a saved chat needs `SchemaV3` and a migration, [data-model.md](data-model.md)), nothing extra to sync, nothing extra to delete.
-- The small window drops older turns anyway, so a saved conversation could not be continued as the model saw it *[Inference]*.
-- The chat stays while the map's window is open (with `OpenMap`, so a second window on the same map sees the same chat) and is gone when the map closes. Clear Chat empties it.
-- Copy an answer, or Add Answer to Note on a topic (one command), keeps what matters.
-
-Saving, if wanted later, is a separate decision.
+- **Per map, in the store:** one `ChatTurnRecord` per finished question and answer, in `SchemaV3`, by `mapID`. Opening the map loads them (`OpenMaps` reads `chatTurns(for:)` before it makes the `MapChat`), so the panel shows the conversation again and every window on the map shares it.
+- **The model sees what fits:** the saved turns go to `conversation(in:history:)`; `AppleChatProvider` keeps the latest that fit the budget above and says "Earlier messages were left out to make room" once. Citations of saved turns keep resolving, and a cited topic deleted since shows "Topic no longer exists".
+- **Limit:** 100 turns, 200 messages, per map [Đề xuất]; the oldest go first.
+- **Clear Chat** (panel toolbar and AI menu) asks first ("Clear the chat for this map?"), then deletes the map's turns. It is not an undo step: the chat is not part of the map's graph.
+- **Deleted with the map:** Delete Permanently and the Recently Deleted purge delete the turns; a map in Recently Deleted keeps its chat until then.
+- **Sync:** the turns mirror with the map when iCloud is on. *[Unverified]* A turn asked on another device appears when the map is opened again; an open panel does not reload on a change from outside.
+- **Privacy:** questions and answers are never logged; a failed save logs only the error description.
+- Stopped and failed answers are not saved.
 
 ## Availability
 
@@ -155,7 +157,7 @@ Errors map through `AIFailure`. Logs carry the scope, tool names, token counts a
 
 ## What C1 built
 
-MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51), the library scope (C3, MM-52) and saving (MM-55) are not built.
+MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51) and the library scope (C3, MM-52) are not built. Saving came with MM-55 ([Saving the conversation](#saving-the-conversation)).
 
 | Type | Where | Role |
 | --- | --- | --- |

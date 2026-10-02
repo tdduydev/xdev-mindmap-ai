@@ -252,7 +252,7 @@ struct MapCommands: Commands {
         Button("Ask About This Map…") { chat?.present() }
             .keyboardShortcut("a", modifiers: [.command, .control])
             .disabled(chat?.showsEntryPoints != true)
-        Button("Clear Chat") { chat?.clear() }
+        Button("Clear Chat") { chat?.requestClear() }
             .disabled(chat?.canClear != true)
         Divider()
         Button("Accept All Suggestions") { assistant?.acceptAll() }
