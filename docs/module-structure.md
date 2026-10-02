@@ -26,10 +26,10 @@ Packages/
 │  ├─ MindMapLayout           MM-4
 │  ├─ MindMapInterchange      MM-10: Markdown, text, OPML ⇄ drafts → [GraphCommand]
 │  ├─ MindMapSearch           index, tokenizing, ranking, `Embedder` protocol
-│  ├─ MindMapAICore           MM-7: AIProvider, requests, AIProposal, ContextBuilder, ProposalTranslator, AICapabilities
-│  ├─ MindMapAIApple          MM-7: Foundation Models provider, @Generable types, prompts catalog, Translation glue
+│  ├─ MindMapAICore           ✓ (MM-7): AIProvider, requests, AIProposal, ContextBuilder, ProposalTranslator, AICapabilities
+│  ├─ MindMapAIApple          ✓ (MM-7): Foundation Models provider, @Generable types, prompts catalog; Translation glue later
 │  ├─ MindMapCapture          OCR, PDF text, speech, ink → plain-text drafts
-│  └─ MindMapTestSupport      fixtures, MockAIProvider, in-memory repository (tests only)
+│  └─ MindMapTestSupport      fixtures, MockAIProvider (✓ MM-7), in-memory repository (tests only)
 ├─ MindMapUI/                 SwiftUI, no SwiftData
 │  ├─ MindMapDesignSystem     moved out of the app target when the Share Extension needs it
 │  └─ MindMapCanvas           MM-3: rendering, viewport, hit testing, gestures, PNG/PDF rendering
