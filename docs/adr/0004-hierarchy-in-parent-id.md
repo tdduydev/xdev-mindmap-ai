@@ -18,4 +18,4 @@ The semantic graph is independent of visual layout (approved decision ADR-009), 
 - One fact, one record: a sync merge cannot leave the tree and a hierarchy edge disagreeing.
 - Moving a node rewrites one record, which keeps CloudKit traffic and conflicts small.
 - Rendering code that wants "all lines" combines parent links (derived) and edges (stored).
-- Free-form layouts with user positions will need their own per-map layout record, kept apart from the semantic graph.
+- Free-form layouts with user positions will need their own per-map layout record, kept apart from the semantic graph. Amended by ADR 0010: a floating topic (no parent) stores its own position on its node record; tree topics still never do.
