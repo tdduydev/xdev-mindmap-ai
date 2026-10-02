@@ -9,31 +9,45 @@ final class AIAppsSettingsUITests: XCTestCase {
         // A port of its own, so a MindMap AI running on this Mac does not hold it.
         let mindMap = MindMapApp.launch(arguments: ["-mcp.port", "52480"])
         let app = mindMap.app
-        app.typeKey(",", modifierFlags: .command)
-
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("aiApps")].waitToExist().click()
+        let settings = mindMap.openSettings().show(.aiApps)
         let toggle = app.checkBoxes[AccessibilityID.Settings.aiAppsSwitch].firstMatch.exists
             ? app.checkBoxes[AccessibilityID.Settings.aiAppsSwitch].firstMatch
             : app.switches[AccessibilityID.Settings.aiAppsSwitch].firstMatch
         toggle.waitToExist()
         XCTAssertEqual(toggle.value as? Int, 0, "AI Apps must be off by default")
-        let status = app.staticTexts[AccessibilityID.Settings.aiAppsStatus]
-        XCTAssertEqual(status.waitToExist().shownText, "Off")
+        let status = app.staticTexts[AccessibilityID.Settings.aiAppsStatus].firstMatch
+        status.waitToExist()
+        waitForStatus("Off", of: status)
 
         toggle.click()
-        XCTAssertTrue(
-            app.staticTexts.matching(identifier: AccessibilityID.Settings.aiAppsStatus).matching(NSPredicate(format: "label == 'Ready' OR value == 'Ready'")).firstMatch
-                .waitForExistence(timeout: MindMapApp.timeout),
-            "the port did not open"
-        )
+        waitForStatus("Ready", of: status, "the port did not open")
 
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].click()
+        settings.show(.privacy)
         let privacy = app.descendants(matching: .any)[AccessibilityID.Settings.aiAppsPrivacy].waitToExist()
         XCTAssertTrue(String(describing: privacy.value ?? privacy.label).contains("On"), "Privacy does not say AI Apps is on")
 
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("aiApps")].click()
+        settings.show(.aiApps)
         toggle.click()
-        XCTAssertEqual(status.waitToExist().shownText, "Off")
+        waitForStatus("Off", of: status, "the port did not close")
+    }
+
+    /// On macOS 27, once the status changes, the element with the identifier
+    /// keeps its first value and the new text is a static text inside it, so
+    /// the innermost text is what the window shows.
+    @MainActor
+    private func waitForStatus(
+        _ text: String,
+        of status: XCUIElement,
+        _ message: String = "",
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let shown = NSPredicate { _, _ in
+            let inner = status.staticTexts.firstMatch
+            return (inner.exists ? inner.shownText : status.shownText) == text
+        }
+        let result = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: nil)], timeout: MindMapApp.timeout)
+        XCTAssertEqual(result, .completed, "status is not \(text). \(message)", file: file, line: line)
     }
     #else
     @MainActor
