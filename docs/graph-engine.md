@@ -6,11 +6,11 @@
 
 | Type | Role |
 | --- | --- |
-| `GraphState` | One map's graph as a value: map, nodes, edges, and a derived child index in display order. Read-only outside the module. |
+| `GraphState` | One map's graph as a value: map, nodes, edges, tags, tag links, groups, and a derived child index in display order. Read-only outside the module. |
 | `GraphCommand` | A described change. `execute(in: inout GraphTransaction)` and nothing else. |
 | `GraphTransaction` | The working copy a command edits. Checks each mutation and records it in a `GraphChangeSet`. |
-| `GraphChangeSet` | Before and after values of every touched node, edge and map. Drives saving and undo. |
-| `GraphValidator` | Finds structural issues: missing root, root with a parent, detached branch, parent loop, dangling or self-loop edge. |
+| `GraphChangeSet` | Before and after values of every touched node, edge, tag, tag link, group and map. Drives saving and undo. |
+| `GraphValidator` | Finds structural issues: missing root, root with a parent, detached branch, parent loop, dangling or self-loop edge, tag link without its topic, duplicate tag link, duplicate map tag, boundary that is not a run of siblings. |
 | `GraphRepair` | Fixes those issues without losing a node. Used when loading. |
 | `GraphEngine` | Executes commands, validates the result, keeps undo and redo history. |
 
@@ -32,7 +32,19 @@
 | `SetAllCollapsedCommand.collapseAll / .expandAll` | Collapses every topic with children except the root, or expands all; leaves untouched | Nothing |
 | `RevealNodeCommand` | Opens every collapsed ancestor of a topic, for Find; a visible topic is a no-op | A missing node |
 | `RenameMapCommand` | Sets the map's title; the central topic keeps its own | Nothing |
+| `SetNodeStyleCommand` | Sets colour and/or symbol on topics (`FieldChange.keep` leaves a field); a symbol is one SF Symbol name or one emoji | A missing node |
+| `SetTaskCommand` | Sets task state, priority, start and due day on topics; removing the task keeps priority and days | A missing node |
+| `CreateTagCommand` | Creates a map tag with a cleaned name; a map tag with the same key makes it a no-op | A blank or too long name |
+| `UpdateTagCommand` | Renames, recolours, sets the symbol or order of a map tag | A shared tag, a name another map tag has, a bad name |
+| `DeleteTagCommand` | Deletes a map tag and every link to it | A shared tag, a missing tag |
+| `MergeTagsCommand(into:merging:)` | Moves the merged tags' links to the survivor (one link per topic, the older kept) and deletes them | A merged shared tag, a missing tag |
+| `TagNodesCommand` | Removes and adds tags on topics; `.named` reuses a tag with the same key (shared first) or creates a map tag; `origin` marks AI tags | A missing node or tag, a bad name |
+| `AddGroupCommand` | Adds a boundary over the siblings from one topic to another (either order), caller-chosen `GroupID` | The root, different parents, the same run twice, crossing another boundary |
+| `UpdateGroupCommand` | Sets a boundary's title (trimmed, blank is none) and colour | A missing boundary |
+| `RemoveGroupCommand` | Removes a boundary; the topics stay | A missing boundary |
 | `BatchCommand` | Several commands as one atomic undo step | Anything any part refuses; nothing applies |
+
+`DuplicateBranchCommand` also copies colour, symbol, task fields, tags and the boundaries whose parent is inside the branch; `MergeNodesCommand` moves the merged topics' tags to the survivor. Shared tags are library data: only `TagNodesCommand` touches them through a map. Boundaries are kept valid by `GraphTransaction` whenever a topic is deleted, moved or reordered ([[data-model]], *What keeps them valid*).
 
 Each command only describes its change. `EditorSession` gives each one an undo action name for the Edit menu.
 

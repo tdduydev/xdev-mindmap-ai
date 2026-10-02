@@ -105,12 +105,13 @@ public actor SwiftDataMapRepository: MapRepository {
     public func loadGraph(for mapID: MapID) async throws -> GraphState? {
         guard let mapRecord = try mapRecords(for: mapID).first else { return nil }
         let id = mapID.rawValue
-        let nodes = try modelContext.fetch(FetchDescriptor<NodeRecord>(predicate: #Predicate { $0.mapID == id }))
-        let edges = try modelContext.fetch(FetchDescriptor<EdgeRecord>(predicate: #Predicate { $0.mapID == id }))
         return GraphState(
             map: mapRecord.domainValue,
-            nodes: nodes.map(\.domainValue),
-            edges: edges.compactMap(\.domainValue)
+            nodes: try modelContext.fetch(NodeRecord.inMap(id)).map(\.domainValue),
+            edges: try modelContext.fetch(EdgeRecord.inMap(id)).compactMap(\.domainValue),
+            tags: try modelContext.fetch(TagRecord.available(in: id)).map(\.domainValue),
+            nodeTags: try modelContext.fetch(NodeTagRecord.inMap(id)).map(\.domainValue),
+            groups: try modelContext.fetch(GroupRecord.inMap(id)).map(\.domainValue)
         )
     }
 
@@ -118,16 +119,12 @@ public actor SwiftDataMapRepository: MapRepository {
         let mapRecord = MapRecord(mapID: graph.map.id.rawValue)
         mapRecord.update(from: graph.map)
         modelContext.insert(mapRecord)
-        for node in graph.nodes.values {
-            let record = NodeRecord(nodeID: node.id.rawValue, mapID: node.mapID.rawValue)
-            record.update(from: node)
-            modelContext.insert(record)
-        }
-        for edge in graph.edges.values {
-            let record = EdgeRecord(edgeID: edge.id.rawValue, mapID: edge.mapID.rawValue)
-            record.update(from: edge)
-            modelContext.insert(record)
-        }
+        insert(Array(graph.nodes.values), as: NodeRecord.self)
+        insert(Array(graph.edges.values), as: EdgeRecord.self)
+        // Shared tags are already stored: they belong to the library, not to this map.
+        insert(graph.tags.values.filter { $0.mapID == graph.map.id }, as: TagRecord.self)
+        insert(Array(graph.nodeTags.values), as: NodeTagRecord.self)
+        insert(Array(graph.groups.values), as: GroupRecord.self)
         try commit()
         publish(.saved(mapRecord.domainValue))
     }
@@ -135,10 +132,16 @@ public actor SwiftDataMapRepository: MapRepository {
     public func save(_ changes: GraphChangeSet, map: MindMap) async throws {
         let record = try mapRecord(for: map)
         record.updateGraphFields(from: map)
-        try upsertNodes(changes.savedNodes)
-        try deleteNodes(changes.deletedNodeIDs)
-        try upsertEdges(changes.savedEdges)
-        try deleteEdges(changes.deletedEdgeIDs)
+        try upsert(changes.savedNodes, as: NodeRecord.self)
+        try delete(changes.deletedNodeIDs.map(\.rawValue), as: NodeRecord.self)
+        try upsert(changes.savedEdges, as: EdgeRecord.self)
+        try delete(changes.deletedEdgeIDs.map(\.rawValue), as: EdgeRecord.self)
+        try upsert(changes.savedTags, as: TagRecord.self)
+        try delete(changes.deletedTagIDs.map(\.rawValue), as: TagRecord.self)
+        try upsert(changes.savedNodeTags, as: NodeTagRecord.self)
+        try delete(changes.deletedNodeTagIDs.map(\.rawValue), as: NodeTagRecord.self)
+        try upsert(changes.savedGroups, as: GroupRecord.self)
+        try delete(changes.deletedGroupIDs.map(\.rawValue), as: GroupRecord.self)
         try commit()
         publish(.saved(record.domainValue))
     }
@@ -157,12 +160,11 @@ public actor SwiftDataMapRepository: MapRepository {
         for record in try mapRecords(for: mapID) {
             modelContext.delete(record)
         }
-        for record in try modelContext.fetch(FetchDescriptor<NodeRecord>(predicate: #Predicate { $0.mapID == id })) {
-            modelContext.delete(record)
-        }
-        for record in try modelContext.fetch(FetchDescriptor<EdgeRecord>(predicate: #Predicate { $0.mapID == id })) {
-            modelContext.delete(record)
-        }
+        try deleteAll(NodeRecord.inMap(id))
+        try deleteAll(EdgeRecord.inMap(id))
+        try deleteAll(TagRecord.inMap(id))
+        try deleteAll(NodeTagRecord.inMap(id))
+        try deleteAll(GroupRecord.inMap(id))
         try commit()
         publish(.deleted(mapID))
     }
@@ -203,56 +205,42 @@ public actor SwiftDataMapRepository: MapRepository {
         return record
     }
 
-    private func upsertNodes(_ nodes: [MindNode]) throws {
-        guard !nodes.isEmpty else { return }
-        let ids = nodes.map(\.id.rawValue)
-        let existing = try modelContext.fetch(FetchDescriptor<NodeRecord>(predicate: #Predicate { ids.contains($0.nodeID) }))
-        var recordsByID = Dictionary(grouping: existing, by: \.nodeID)
-        for node in nodes {
-            var records = recordsByID.removeValue(forKey: node.id.rawValue) ?? []
-            let record: NodeRecord
+    private func insert<Record: StoredRecord>(_ values: [Record.Value], as _: Record.Type) {
+        for value in values {
+            let record = Record.make(for: value)
+            record.update(from: value)
+            modelContext.insert(record)
+        }
+    }
+
+    private func upsert<Record: StoredRecord>(_ values: [Record.Value], as _: Record.Type) throws {
+        guard !values.isEmpty else { return }
+        let existing = try modelContext.fetch(Record.withIDs(values.map(Record.id(of:))))
+        var recordsByID = Dictionary(grouping: existing, by: \.recordID)
+        for value in values {
+            var records = recordsByID.removeValue(forKey: Record.id(of: value)) ?? []
+            let record: Record
             if records.isEmpty {
-                record = NodeRecord(nodeID: node.id.rawValue, mapID: node.mapID.rawValue)
+                record = Record.make(for: value)
                 modelContext.insert(record)
             } else {
                 record = records.removeFirst()
             }
-            record.update(from: node)
+            record.update(from: value)
+            // Duplicates of one record can only come from sync; fold them into one.
             records.forEach(modelContext.delete)
         }
     }
 
-    private func deleteNodes(_ ids: [NodeID]) throws {
+    private func delete<Record: StoredRecord>(_ ids: [UUID], as _: Record.Type) throws {
         guard !ids.isEmpty else { return }
-        let rawIDs = ids.map(\.rawValue)
-        for record in try modelContext.fetch(FetchDescriptor<NodeRecord>(predicate: #Predicate { rawIDs.contains($0.nodeID) })) {
-            modelContext.delete(record)
-        }
+        try deleteAll(Record.withIDs(ids))
     }
 
-    private func upsertEdges(_ edges: [MindEdge]) throws {
-        guard !edges.isEmpty else { return }
-        let ids = edges.map(\.id.rawValue)
-        let existing = try modelContext.fetch(FetchDescriptor<EdgeRecord>(predicate: #Predicate { ids.contains($0.edgeID) }))
-        var recordsByID = Dictionary(grouping: existing, by: \.edgeID)
-        for edge in edges {
-            var records = recordsByID.removeValue(forKey: edge.id.rawValue) ?? []
-            let record: EdgeRecord
-            if records.isEmpty {
-                record = EdgeRecord(edgeID: edge.id.rawValue, mapID: edge.mapID.rawValue)
-                modelContext.insert(record)
-            } else {
-                record = records.removeFirst()
-            }
-            record.update(from: edge)
-            records.forEach(modelContext.delete)
-        }
-    }
-
-    private func deleteEdges(_ ids: [EdgeID]) throws {
-        guard !ids.isEmpty else { return }
-        let rawIDs = ids.map(\.rawValue)
-        for record in try modelContext.fetch(FetchDescriptor<EdgeRecord>(predicate: #Predicate { rawIDs.contains($0.edgeID) })) {
+    /// One record at a time: a batch delete goes around the change tracking
+    /// that CloudKit mirroring relies on.
+    private func deleteAll<Record: PersistentModel>(_ descriptor: FetchDescriptor<Record>) throws {
+        for record in try modelContext.fetch(descriptor) {
             modelContext.delete(record)
         }
     }

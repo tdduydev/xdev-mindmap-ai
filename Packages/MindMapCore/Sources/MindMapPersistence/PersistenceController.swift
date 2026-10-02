@@ -18,7 +18,7 @@ public enum PersistenceController {
     /// Sync stays off until CloudKit is switched on in its own phase; the
     /// schema already follows CloudKit's rules, so turning it on needs no migration.
     public static func makeContainer(at location: Location = .standard) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV1.self)
+        let schema = Schema(versionedSchema: CurrentSchema.self)
         let configuration = switch location {
         case .standard:
             standardConfiguration(schema: schema)
@@ -34,7 +34,7 @@ public enum PersistenceController {
 
     /// Where `.standard` keeps the store: the app's own container.
     public static var standardStoreURL: URL {
-        standardConfiguration(schema: Schema(versionedSchema: SchemaV1.self)).url
+        standardConfiguration(schema: Schema(versionedSchema: CurrentSchema.self)).url
     }
 
     /// `.none`, not SwiftData's default `.automatic`: once the app has an App

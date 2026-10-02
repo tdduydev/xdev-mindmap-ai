@@ -67,14 +67,3 @@ enum SchemaV1: VersionedSchema {
         }
     }
 }
-
-typealias MapRecord = SchemaV1.MapRecord
-typealias NodeRecord = SchemaV1.NodeRecord
-typealias EdgeRecord = SchemaV1.EdgeRecord
-
-/// Every schema the app has shipped, oldest first. A new version adds a
-/// `SchemaV2`, a stage here, and a test that opens a V1 store with it.
-enum MindMapMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [SchemaV1.self] }
-    static var stages: [MigrationStage] { [] }
-}

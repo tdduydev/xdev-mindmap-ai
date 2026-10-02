@@ -4,12 +4,17 @@
 
 | Type | Fields | Notes |
 | --- | --- | --- |
-| `MindMap` | id, title, rootNodeID, createdAt, updatedAt, isFavorite, theme, layoutConfiguration | `updatedAt` moves on every edit, undo included. |
-| `MindNode` | id, mapID, parentID, title, note, sortOrder, isCollapsed, nodeType, metadata, createdAt, updatedAt | No canvas position: layout is derived. |
-| `MindEdge` | id, mapID, sourceNodeID, targetNodeID, edgeType, label, createdAt, updatedAt | Cross-links only. |
+| `MindMap` | id, title, rootNodeID, createdAt, updatedAt, isFavorite, theme, layoutConfiguration, deletedAt | `updatedAt` moves on every edit, undo included. `isFavorite` and `deletedAt` are library data, never set by a command. |
+| `MindNode` | id, mapID, parentID, title, note, sortOrder, isCollapsed, nodeType, metadata, createdAt, updatedAt, color, symbol, taskState, priority, startDate, dueDate | No canvas position: layout is derived. |
+| `MindEdge` | id, mapID, sourceNodeID, targetNodeID, edgeType, label, createdAt, updatedAt, lineStyle, arrowHeads, color | Cross-links only. |
 | `NodeMetadata` | origin (`user`, `ai`, `imported`) | Kept after an AI suggestion is accepted. |
+| `MindTag` | id, mapID (nil: shared), name, color, symbol, sortOrder, createdAt, updatedAt | `key` is the tag identity (NFC, case folded, marks kept). |
+| `MindNodeTag` | id, mapID, nodeID, tagID, origin, createdAt, updatedAt | One per topic and tag. |
+| `MindGroup` | id, mapID, kind, parentNodeID, firstNodeID, lastNodeID, title, color, origin, createdAt, updatedAt | A boundary over a run of siblings; members are positional. |
 
-IDs are typed UUIDs (`MapID`, `NodeID`, `EdgeID`), so a node ID cannot be passed where an edge ID is expected. They encode as bare UUIDs.
+IDs are typed UUIDs (`MapID`, `NodeID`, `EdgeID`, `TagID`, `NodeTagID`, `GroupID`), so a node ID cannot be passed where an edge ID is expected. They encode as bare UUIDs.
+
+Open-ended stored values (`TopicColor`, `TaskState`, `TaskPriority`, `EdgeLineStyle`, `EdgeArrowHeads`, `GroupKind`) are structs over their raw value, not enums, so a value a newer version wrote survives a round trip through this build; each type says how an unknown value reads (`TaskState.isDone` is false, `TaskPriority.level` clamps to 1–3, `TopicColor.isKnown` is false and the app draws the theme colour). `CalendarDay` is a day with no time zone, encoded as `YYYY-MM-DD`.
 
 ## Hierarchy
 
@@ -21,9 +26,9 @@ The tree is `MindNode.parentID` plus `sortOrder`, and nothing else. `MindEdge` h
 
 Ties (two devices giving siblings the same key) sort by `createdAt`, then ID, the same way on every device.
 
-## Stored records (SwiftData, schema V1)
+## Stored records (SwiftData)
 
-One record per map, node and edge: `MapRecord`, `NodeRecord`, `EdgeRecord`. A map is never one JSON blob, so sync, conflicts, search and history work per record.
+One record per map, node and edge: `MapRecord`, `NodeRecord`, `EdgeRecord`; since V2 also `TagRecord`, `NodeTagRecord` and `GroupRecord` (see *Schema V2*). A map is never one JSON blob, so sync, conflicts, search and history work per record.
 
 Rules that keep the schema CloudKit-ready:
 
@@ -36,17 +41,19 @@ Rules that keep the schema CloudKit-ready:
 ## Loading a map
 
 ```
-records ─▶ GraphState(map:nodes:edges:)   duplicates: newest updatedAt wins; other maps' records dropped
-        ─▶ GraphRepair.repair             detached branches and loops re-attached under the root
+records ─▶ GraphState(map:nodes:edges:tags:nodeTags:groups:)
+                                          duplicates: newest updatedAt wins; other maps' records dropped
+        ─▶ GraphRepair.repair             detached branches and loops re-attached under the root;
+                                          tag links, duplicate tags and boundaries fixed (see Schema V2)
         ─▶ save repair changes            so the repair does not run again
         ─▶ GraphEngine(state:)            refuses a graph that is still invalid
 ```
 
-`GraphRepair` never drops a node. It removes only edges whose endpoints are gone. Its choices depend on timestamps and IDs only, so two devices repairing the same data reach the same result.
+`GraphRepair` never drops a node. It removes only edges whose endpoints are gone, and organization records whose partner is gone (rules under *Schema V2*). Its choices depend on timestamps and IDs only, so two devices repairing the same data reach the same result.
 
 ## Migrations
 
-`SchemaV1` is a `VersionedSchema`; `MindMapMigrationPlan` lists every shipped schema. A schema change adds `SchemaV2`, a migration stage and a test that opens a V1 store with the new plan. A shipped schema is never edited in place.
+`SchemaV1` and `SchemaV2` are `VersionedSchema`s; `MindMapMigrationPlan` (`MigrationPlan.swift`) lists every shipped schema, and `CurrentSchema` with the `…Record` typealiases there name the schema the app opens. A schema change adds `SchemaV2`, a migration stage and a test that opens a V1 store with the new plan. A shipped schema is never edited in place.
 
 ### Migration harness
 
@@ -56,7 +63,7 @@ records ─▶ GraphState(map:nodes:edges:)   duplicates: newest updatedAt wins;
 - `migratedStoreKeepsNewEdits` saves a command into the opened store and reads it back from a second container.
 - `planEndsAtTheSchemaTheAppOpens` checks that the plan's versions increase, that there is one stage per step, and that the container the app opens uses the plan's last schema.
 
-When SchemaV2 arrives (MM-31, see below), these tests stay as they are and keep passing through the new stage; MM-31 adds what V2 must hold after migration (for example, an empty `deletedAt` on every V1 map and no tags) and, once V2 ships, a `V2.store` fixture made the same way. The test target copies the whole `Fixtures` folder, so a new fixture needs no change to `Package.swift`.
+Since SchemaV2 (MM-31) these tests run through the V1 → V2 stage unchanged, beside `v1StoreOpensAsV2WithEmptyNewFields` and `migratedStoreKeepsOrganization` (see *Migration test* below). Once V2 ships, a `V2.store` fixture is made the same way. The test target copies the whole `Fixtures` folder, so a new fixture needs no change to `Package.swift`.
 
 The V1 fixture is 76 KB: one map (favorite, Graphite theme), a root, a child with a note that is collapsed and came from AI, a sibling, and a reference link between them, with fixed IDs and dates and non-default values where possible, so a stage that resets a field fails the test. `V1Fixture.write(to:)` writes it with the `SchemaV1` types and raw values only, never the current typealiases or mapping, so it still writes V1 after V2 ships. To regenerate it (only if the fixture is lost; a changed V1 fixture would test nothing that shipped):
 
@@ -69,9 +76,9 @@ cp /tmp/V1.store Packages/MindMapCore/Tests/MindMapPersistenceTests/Fixtures/V1.
 
 Inspect a copy, not the fixture: `sqlite3` leaves `-shm` and `-wal` files beside whatever it opens.
 
-## Schema V2 (planned, MM-31)
+## Schema V2 (MM-31)
 
-One schema change for everything V1 needs beyond V1: Recently Deleted (MM-19) and node organization (MM-32 to MM-37, designed in [[node-organization]]). One version, so one migration stage, one fixture and one CloudKit schema deployment, instead of a migration per feature. MM-31 builds it; MM-19 and the organization tasks only use its fields.
+Built in MM-31 (`SchemaV2.swift`); not shipped yet, so it can still change until the first release that writes it. One schema change for everything V1 needs beyond V1: Recently Deleted (MM-19) and node organization (MM-32 to MM-37, designed in [[node-organization]]). One version, so one migration stage, one fixture and one CloudKit schema deployment, instead of a migration per feature. MM-31 builds it; MM-19 and the organization tasks only use its fields.
 
 Everything below is additive: new optional properties and new record types, no rename, no type change, no removed property. SwiftData migrates that with one `MigrationStage.lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self)`, and CloudKit's production schema, which only ever grows, accepts it.
 
@@ -106,7 +113,14 @@ New typed IDs: `TagID`, `NodeTagID`, `GroupID`. Dates default to `Date.distantPa
 - The CloudKit rules above: every property optional or defaulted, no unique constraints, UUIDs instead of SwiftData relationships, raw strings with a fallback, deletes one record at a time (deleting a tag deletes each of its links as a record).
 - A record whose partner is missing is stored as it is. `GraphRepair` drops tag links whose node is gone, ignores those whose tag is missing (and deletes them after 30 days [Đề xuất]), merges duplicate tags and links, and fixes boundary runs ([[node-organization]], *Sync and repair*). Shared tags are repaired by the library, since no single map owns them.
 - Records stay far under CloudKit's 1 MB limit: names, titles and labels are short text; nothing large goes into these records.
-- `GraphState` loads a map's tags (its own and the shared ones it uses), tag links and groups beside its nodes and edges; `GraphChangeSet` records before and after values for each, so undo, redo and incremental saves work as for nodes. Duplicate records resolve as today: newest `updatedAt` wins.
+- `GraphState` loads a map's tags (its own and every shared tag, since the tag field offers all of them), tag links and groups beside its nodes and edges; `GraphChangeSet` records before and after values for each, so undo, redo and incremental saves work as for nodes. Duplicate records resolve as today: newest `updatedAt` wins. `create` stores only the map's own tags; `deleteMap` deletes the map's tags, links and groups, never shared tags.
+- A stored day (`startDate`, `dueDate`) this build cannot parse reads as nil and stays in storage until the topic's day is really changed; the same holds for every raw value above.
+
+### What keeps them valid
+
+`GraphValidator` reports four new issues, and `GraphRepair` fixes them after the tree: `danglingTagLink` (topic gone: deleted), `duplicateTagLink` (same topic and tag: the oldest kept), `duplicateTag` (map tags with one key: merged into the oldest, by `createdAt` then ID, links moved), `invalidGroup` (ends not a run under the parent: shrunk to the end still there, swapped if out of order, deleted with no member left). A link whose tag is missing is not an issue; repair deletes it once it is older than `GraphRepair.orphanedTagLinkLifetime` (30 days [Đề xuất]). A group kind this build does not know is never reported or changed. Crossing boundaries are not repaired.
+
+Commands keep the same rules inside `GraphTransaction`, so the engine's validation after each command covers them too: `removeNode` deletes the topic's tag links and the boundaries under it and moves the ends of boundaries it ends inward; `updateNode` does the same when a topic changes parent, and when an endpoint is reordered among its siblings the boundary keeps its members if the topic stays inside the run, otherwise the run becomes the siblings between the two ends. `removeTag` deletes every link to the tag.
 
 ### Migration test
 

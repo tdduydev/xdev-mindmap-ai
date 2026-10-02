@@ -5,7 +5,9 @@ import MindMapDomain
 /// parent. Copies get new IDs and keep titles, notes, collapsed state, type and
 /// metadata. Cross-links with both ends inside the branch are copied too; links
 /// that leave the branch stay with the original only, since a copy pointing at
-/// the same outside topic is rarely what the user meant.
+/// the same outside topic is rarely what the user meant. Colour, symbol, task
+/// fields and tags are copied; so are boundaries whose parent is inside the
+/// branch, while a boundary around the copied topic itself stays with the original.
 public struct DuplicateBranchCommand: GraphCommand {
     public let nodeID: NodeID
     /// The ID of the copied top node, chosen up front so the caller can select it.
@@ -50,6 +52,32 @@ public struct DuplicateBranchCommand: GraphCommand {
                 targetNodeID: target,
                 edgeType: edge.edgeType,
                 label: edge.label,
+                createdAt: transaction.now,
+                lineStyle: edge.lineStyle,
+                arrowHeads: edge.arrowHeads,
+                color: edge.color
+            ))
+        }
+
+        for link in state.nodeTags.values.sorted(by: GraphValidator.oldestFirst) {
+            // A link still waiting for its tag to sync is not copied.
+            guard let nodeID = newIDs[link.nodeID], state.tag(link.tagID) != nil else { continue }
+            try transaction.insertNodeTag(MindNodeTag(
+                mapID: link.mapID, nodeID: nodeID, tagID: link.tagID, origin: link.origin, createdAt: transaction.now
+            ))
+        }
+
+        for group in state.groups.values.sorted(by: { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }) {
+            guard let parentID = group.parentNodeID.flatMap({ newIDs[$0] }) else { continue }
+            try transaction.insertGroup(MindGroup(
+                mapID: group.mapID,
+                kind: group.kind,
+                parentNodeID: parentID,
+                firstNodeID: group.firstNodeID.flatMap { newIDs[$0] },
+                lastNodeID: group.lastNodeID.flatMap { newIDs[$0] },
+                title: group.title,
+                color: group.color,
+                origin: group.origin,
                 createdAt: transaction.now
             ))
         }
@@ -66,7 +94,13 @@ public struct DuplicateBranchCommand: GraphCommand {
             isCollapsed: node.isCollapsed,
             nodeType: node.nodeType,
             metadata: node.metadata,
-            createdAt: now
+            createdAt: now,
+            color: node.color,
+            symbol: node.symbol,
+            taskState: node.taskState,
+            priority: node.priority,
+            startDate: node.startDate,
+            dueDate: node.dueDate
         )
     }
 }

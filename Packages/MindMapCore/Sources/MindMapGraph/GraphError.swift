@@ -21,6 +21,25 @@ public enum GraphError: Error, Hashable, Sendable {
     /// Merging only joins topics under the same parent.
     case notSiblings(NodeID)
     case cannotLinkToItself(NodeID)
+    case tagNotFound(TagID)
+    case tagAlreadyExists(TagID)
+    case nodeTagNotFound(NodeTagID)
+    case nodeTagAlreadyExists(NodeTagID)
+    /// Empty after trimming, or longer than `MindTag.maximumNameLength`.
+    case invalidTagName
+    /// Another tag of the same scope already has this name's key.
+    case tagNameTaken(TagID)
+    /// Shared tags are library data: they change through the repository, not
+    /// through one map's undo history.
+    case sharedTagIsLibraryData(TagID)
+    case groupNotFound(GroupID)
+    case groupAlreadyExists(GroupID)
+    /// The central topic has no siblings to frame.
+    case cannotGroupRoot
+    /// An existing boundary already frames exactly this run.
+    case groupAlreadyCoversRun(GroupID)
+    /// The run would overlap an existing boundary without one containing the other.
+    case groupsWouldCross(GroupID)
     /// The graph is structurally broken: given to the engine that way, or left
     /// that way by a command, whose result was then discarded.
     case invalidGraph(Set<GraphIssue>)

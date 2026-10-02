@@ -8,7 +8,7 @@ import MindMapDomain
 /// title; each merged topic's title and note are appended to the survivor's note
 /// as a paragraph. Cross-links are moved to the survivor, and a link that would
 /// end up joining the survivor to itself, or repeat an existing link of the same
-/// kind, is removed.
+/// kind, is removed. Tags of the merged topics move to the survivor too.
 public struct MergeNodesCommand: GraphCommand {
     public let survivorID: NodeID
     public let mergedIDs: [NodeID]
@@ -53,6 +53,7 @@ public struct MergeNodesCommand: GraphCommand {
         }
 
         try rewireEdges(of: Set(merged.map(\.id)), in: &transaction)
+        try moveTags(of: merged.map(\.id), in: &transaction)
 
         for node in merged {
             try transaction.removeNode(node.id)
@@ -89,6 +90,17 @@ public struct MergeNodesCommand: GraphCommand {
                 }
             }
         }
+    }
+
+    private func moveTags(of mergedIDs: [NodeID], in transaction: inout GraphTransaction) throws {
+        var present = Set(transaction.state.nodeTags.values.filter { $0.nodeID == survivorID }.map(\.tagID))
+        let moving = transaction.state.nodeTags.values
+            .filter { mergedIDs.contains($0.nodeID) }
+            .sorted(by: GraphValidator.oldestFirst)
+        for link in moving where present.insert(link.tagID).inserted {
+            try transaction.updateNodeTag(link.id) { $0.nodeID = survivorID }
+        }
+        // Links left on the merged topics go with them in `removeNode`.
     }
 
     private static func mergedNote(survivor: MindNode, merged: [MindNode]) -> String? {

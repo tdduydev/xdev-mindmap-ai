@@ -201,9 +201,10 @@ struct PersistenceControllerTests {
 
     @Test func migrationPlanEndsAtTheCurrentSchema() throws {
         let schemas = MindMapMigrationPlan.schemas
-        #expect(schemas.count == 1)
-        #expect(schemas.last.map { ObjectIdentifier($0) } == ObjectIdentifier(SchemaV1.self))
+        #expect(schemas.map { ObjectIdentifier($0) } == [ObjectIdentifier(SchemaV1.self), ObjectIdentifier(SchemaV2.self)])
+        #expect(ObjectIdentifier(CurrentSchema.self) == ObjectIdentifier(SchemaV2.self))
         #expect(SchemaV1.versionIdentifier == Schema.Version(1, 0, 0))
+        #expect(SchemaV2.versionIdentifier == Schema.Version(2, 0, 0))
     }
 }
 

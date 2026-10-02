@@ -12,6 +12,12 @@ public struct MindEdge: Identifiable, Hashable, Sendable, Codable {
     public var targetNodeID: NodeID
     public var edgeType: EdgeType
     public var label: String?
+    /// Nil keeps the look V1 derives from `edgeType`.
+    public var lineStyle: EdgeLineStyle?
+    /// Nil keeps the look V1 derives from `edgeType`.
+    public var arrowHeads: EdgeArrowHeads?
+    /// Nil is the cross-link colour.
+    public var color: TopicColor?
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -23,7 +29,10 @@ public struct MindEdge: Identifiable, Hashable, Sendable, Codable {
         edgeType: EdgeType = .relationship,
         label: String? = nil,
         createdAt: Date = .now,
-        updatedAt: Date? = nil
+        updatedAt: Date? = nil,
+        lineStyle: EdgeLineStyle? = nil,
+        arrowHeads: EdgeArrowHeads? = nil,
+        color: TopicColor? = nil
     ) {
         self.id = id
         self.mapID = mapID
@@ -31,6 +40,9 @@ public struct MindEdge: Identifiable, Hashable, Sendable, Codable {
         self.targetNodeID = targetNodeID
         self.edgeType = edgeType
         self.label = label
+        self.lineStyle = lineStyle
+        self.arrowHeads = arrowHeads
+        self.color = color
         self.createdAt = createdAt
         self.updatedAt = updatedAt ?? createdAt
     }

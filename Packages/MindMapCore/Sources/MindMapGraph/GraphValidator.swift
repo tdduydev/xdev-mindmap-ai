@@ -16,6 +16,16 @@ public enum GraphIssue: Hashable, Sendable {
     case cycle(NodeID)
     case danglingEdge(EdgeID)
     case selfLoopEdge(EdgeID)
+    /// A tag link whose topic is gone. A link whose tag is missing is not an
+    /// issue: the tag may still be on its way from another device.
+    case danglingTagLink(NodeTagID)
+    /// A second link between the same topic and tag; the oldest is kept.
+    case duplicateTagLink(NodeTagID)
+    /// A map tag whose key equals an older map tag's, from two devices
+    /// creating it offline. Shared tags are checked by the library.
+    case duplicateTag(TagID)
+    /// A boundary whose ends are not a run of siblings under its parent.
+    case invalidGroup(GroupID)
 }
 
 public enum GraphValidator {
@@ -49,7 +59,44 @@ public enum GraphValidator {
                 issues.insert(.selfLoopEdge(edge.id))
             }
         }
+        issues.formUnion(organizationIssues(in: state))
         return issues
+    }
+
+    static func organizationIssues(in state: GraphState) -> Set<GraphIssue> {
+        var issues: Set<GraphIssue> = []
+        var seenLinks: Set<TagLinkKey> = []
+        for link in state.nodeTags.values.sorted(by: oldestFirst) {
+            if state.nodes[link.nodeID] == nil {
+                issues.insert(.danglingTagLink(link.id))
+            } else if !seenLinks.insert(TagLinkKey(nodeID: link.nodeID, tagID: link.tagID)).inserted {
+                issues.insert(.duplicateTagLink(link.id))
+            }
+        }
+        var seenKeys: Set<String> = []
+        for tag in state.tags.values.sorted(by: oldestFirst) where tag.mapID == state.map.id {
+            if !seenKeys.insert(tag.key).inserted {
+                issues.insert(.duplicateTag(tag.id))
+            }
+        }
+        // A kind this build does not know is hidden and left as it is.
+        for group in state.groups.values where group.kind == .boundary && state.members(of: group) == nil {
+            issues.insert(.invalidGroup(group.id))
+        }
+        return issues
+    }
+
+    struct TagLinkKey: Hashable {
+        let nodeID: NodeID
+        let tagID: TagID
+    }
+
+    static func oldestFirst(_ lhs: MindNodeTag, _ rhs: MindNodeTag) -> Bool {
+        (lhs.createdAt, lhs.id) < (rhs.createdAt, rhs.id)
+    }
+
+    static func oldestFirst(_ lhs: MindTag, _ rhs: MindTag) -> Bool {
+        (lhs.createdAt, lhs.id) < (rhs.createdAt, rhs.id)
     }
 
     private static func reachableNodes(in state: GraphState) -> Set<NodeID> {

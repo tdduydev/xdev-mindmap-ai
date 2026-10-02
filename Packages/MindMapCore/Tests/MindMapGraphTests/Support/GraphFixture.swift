@@ -2,6 +2,7 @@ import Foundation
 import MindMapDomain
 @testable import MindMapGraph
 import Synchronization
+import Testing
 
 /// A clock tests can move by hand, so timestamps are predictable.
 final class TestClock: Sendable {
@@ -77,4 +78,24 @@ func sameContent(_ lhs: GraphState, _ rhs: GraphState) -> Bool {
     var leftMap = lhs.map
     leftMap.updatedAt = rhs.map.updatedAt
     return leftMap == rhs.map && lhs.nodes == rhs.nodes && lhs.edges == rhs.edges
+        && lhs.tags == rhs.tags && lhs.nodeTags == rhs.nodeTags && lhs.groups == rhs.groups
+}
+
+/// Runs a command, then checks that undo restores the state before it exactly
+/// and redo the state after it. Returns the change set.
+@discardableResult
+func expectUndoAndRedo(
+    _ command: any GraphCommand,
+    on fixture: inout GraphFixture,
+    sourceLocation: SourceLocation = #_sourceLocation
+) throws -> GraphChangeSet {
+    let before = fixture.state
+    let changes = try fixture.engine.execute(command)
+    let after = fixture.state
+    #expect(!changes.isEmpty, "the command changed nothing", sourceLocation: sourceLocation)
+    fixture.engine.undo()
+    #expect(sameContent(fixture.state, before), "undo", sourceLocation: sourceLocation)
+    fixture.engine.redo()
+    #expect(sameContent(fixture.state, after), "redo", sourceLocation: sourceLocation)
+    return changes
 }
