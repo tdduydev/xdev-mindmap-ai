@@ -1,6 +1,6 @@
 # Product
 
-**MindMap AI by xDev**: AI-native visual thinking for iPhone and iPad. Short name *MindMap AI*, tagline *Think. Draw. Connect.*, bundle ID `asia.xdev.mindmapai`, website <https://xdev.asia/mindmap>.
+**MindMap AI by xDev**: AI-native visual thinking for Mac, iPad and iPhone. Short name *MindMap AI*, tagline *Think. Draw. Connect.*, bundle ID `asia.xdev.mindmapai`, website <https://xdev.asia/mindmap>.
 
 ## Promise
 
@@ -15,7 +15,7 @@ AI is not a chatbot bolted onto a diagram tool. It works on the selected part of
 ## Principles
 
 1. **Native first.** Swift and SwiftUI. UIKit only where SwiftUI falls short, behind a small wrapper. No cross-platform UI frameworks, no web view as the app.
-2. **iPad first.** The iPad is where maps are made. The iPhone is a first-class companion for capture, voice, review, light editing and AI commands, with its own layouts rather than a shrunken iPad.
+2. **Mac first, then iPad and iPhone.** One SwiftUI multiplatform app. The Mac is built and run first (ADR 0006); the iPad follows as the touch and Apple Pencil platform; the iPhone is a first-class companion for capture, voice, review, light editing and AI commands, with its own layouts rather than a shrunken Mac or iPad.
 3. **Local first.** Every map works offline. Network, iCloud and AI being unavailable never blocks editing.
 4. **Backendless.** No xDev server, API, database or account in V1. A backend needs a written case (see ADR 0001).
 5. **Firebase optional.** If ever added (crash reports, analytics, remote config), it sits behind a protocol and the app runs without it.
@@ -23,7 +23,7 @@ AI is not a chatbot bolted onto a diagram tool. It works on the selected part of
 
 ## Platforms
 
-iPadOS (primary) and iOS, from version 26. Portrait and landscape, Split View, Stage Manager, keyboard, trackpad, mouse, Apple Pencil and touch, light and dark mode, Dynamic Type, VoiceOver. Mac is out of scope.
+macOS (developed first), iPadOS and iOS, all from version 26. Windows, keyboard, trackpad and mouse on the Mac; portrait and landscape, Split View, Stage Manager, Apple Pencil and touch on iPad; light and dark mode, Dynamic Type and VoiceOver everywhere.
 
 ## MVP scope
 
@@ -40,7 +40,7 @@ iPadOS (primary) and iOS, from version 26. Portrait and landscape, Split View, S
 
 ## Not in the MVP
 
-Real-time collaboration, team workspaces, any custom backend, Firebase authentication, comments, chat, project management or Gantt charts, a presentation engine, web, Android, Windows or macOS apps, a marketplace or plugins, public cloud sharing.
+Real-time collaboration, team workspaces, any custom backend, Firebase authentication, comments, chat, project management or Gantt charts, a presentation engine, web, Android or Windows apps, a marketplace or plugins, public cloud sharing.
 
 ## AI behaviour
 
@@ -56,4 +56,4 @@ StoreKit 2 when the time comes. Core mind mapping is never crippled and there ar
 
 ## Positioning
 
-App Store name *MindMap AI by xDev*, subtitle *Think, Draw & Brainstorm*. Keywords: AI mind map, visual thinking, brainstorm, Apple Pencil, iPad, notes, ideas, privacy, on-device AI. The product carries xDev subtly ("by xDev") and has its own identity; it must not look like XMind, MindNode, Freeform or Miro.
+App Store name *MindMap AI by xDev* (Mac App Store and App Store), subtitle *Think, Draw & Brainstorm*. Keywords: AI mind map, visual thinking, brainstorm, Apple Pencil, iPad, notes, ideas, privacy, on-device AI. The product carries xDev subtly ("by xDev") and has its own identity; it must not look like XMind, MindNode, Freeform or Miro.

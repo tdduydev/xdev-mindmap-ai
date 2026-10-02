@@ -6,14 +6,14 @@ Each bold ID is a task on xDev Hive (project `xdev-mindmap-ai-ios`) whose note h
 
 - **MM-0a** Core package: domain types, `GraphState`, `GraphCommand`, Add, Update, Delete and Reparent commands, `GraphValidator` (cycles refused), `GraphRepair`, `GraphEngine` with undo and redo, Swift Testing coverage.
 - **MM-0b** SwiftData persistence: schema V1 (CloudKit-ready, sync off), migration plan, `MapRepository` and its SwiftData actor, tests for create, save, reopen from disk and migration.
-- **MM-0c** App shell: Xcode project `MindMapAI` (`asia.xdev.mindmapai`, iOS 26), design system foundation, Library screen with empty state, minimal outline editor on the graph engine, English and Vietnamese strings, `scripts/ci.sh`.
-- **MM-0d** Documentation: README, architecture, data model, graph engine, privacy, ADRs 0001 to 0005, this roadmap, mirrored to Hive.
+- **MM-0c** App shell: multiplatform Xcode project `MindMapAI` (`asia.xdev.mindmapai`, version 26), run on macOS first, design system foundation, Library screen with empty state, minimal outline editor on the graph engine with the Edit menu's undo, English and Vietnamese strings, app tests on macOS, `scripts/ci.sh`.
+- **MM-0d** Documentation: README, architecture, data model, graph engine, privacy, ADRs 0001 to 0006, this roadmap, mirrored to Hive.
 
 No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 1. Graph engine
 
-- **MM-1** Remaining commands: duplicate branch, merge nodes, split node, promote and demote, connect and remove relationship, collapse and expand all. Bridge history to the native `UndoManager` (menu titles, shake and keyboard undo). Tests for each command and its undo.
+- **MM-1** Remaining commands: duplicate branch, merge nodes, split node, promote and demote, connect and remove relationship, collapse and expand all. Rename the map as a command, so it is undoable and cannot race the editor. Every new command gets an undo action name for the Edit menu (the `UndoManager` bridge exists since MM-0c). Tests for each command and its undo.
 
 ## 2. Persistence
 
@@ -21,7 +21,7 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 3. Basic canvas
 
-- **MM-3** Map editor on an infinite canvas: node rendering, pan, zoom, pinch, select, inline editing, add and delete nodes, viewport culling, VoiceOver elements for nodes. The outline editor stays as the accessible alternative.
+- **MM-3** Map editor on an infinite canvas, trackpad and mouse first: node rendering, pan, zoom, pinch, select, inline editing, add and delete nodes, viewport culling, VoiceOver elements for nodes. The outline editor stays as the accessible alternative.
 
 ## 4. Layout engine
 
@@ -45,7 +45,7 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 9. Apple Pencil
 
-- **MM-9** Structured mode (tap, select, drag, create) and sketch mode with PencilKit, drawings stored apart from nodes, ready for handwriting recognition later.
+- **MM-9** iPad only. Structured mode (tap, select, drag, create) and sketch mode with PencilKit, drawings stored apart from nodes, ready for handwriting recognition later.
 
 ## 10. Import and export
 
@@ -53,7 +53,7 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 11. Share and system integration
 
-- **MM-11** Share Extension (text, URLs, images, PDFs: add to a map or create one), App Intents and Shortcuts (new map, map from clipboard, add idea, open recent), Spotlight for map titles.
+- **MM-11** Share Extension on macOS and iOS (text, URLs, images, PDFs: add to a map or create one), App Intents and Shortcuts (new map, map from clipboard, add idea, open recent), Spotlight for map titles.
 
 ## 12. Polish
 

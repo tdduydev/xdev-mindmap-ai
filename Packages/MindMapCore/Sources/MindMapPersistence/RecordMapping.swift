@@ -19,12 +19,18 @@ extension MapRecord {
         )
     }
 
+    /// Every field; for a map stored for the first time.
     func update(from map: MindMap) {
+        updateGraphFields(from: map)
+        isFavorite = map.isFavorite
+    }
+
+    /// The fields the graph engine owns; library flags are not among them.
+    func updateGraphFields(from map: MindMap) {
         title = map.title
         rootNodeID = map.rootNodeID?.rawValue
         createdAt = map.createdAt
         updatedAt = map.updatedAt
-        isFavorite = map.isFavorite
         themeRaw = map.theme.rawValue
         layoutStyleRaw = map.layoutConfiguration.style.rawValue
     }

@@ -14,11 +14,13 @@ public protocol MapRepository: Sendable {
     /// Stores a whole new graph: a new map, a template or an import.
     func create(_ graph: GraphState) async throws
 
-    /// Writes only the records in `changes`, plus the map itself.
+    /// Writes only the records in `changes`, plus the map's graph fields (title,
+    /// root, edit time, theme, layout). Library flags such as favorite are left
+    /// alone, so an editor holding an older copy of the map cannot reset them.
     func save(_ changes: GraphChangeSet, map: MindMap) async throws
 
-    /// Map-level fields edited outside the editor, such as favorite or title.
-    func updateMap(_ map: MindMap) async throws
+    /// Marking a map as a favorite is not an edit: it does not move `updatedAt`.
+    func setFavorite(_ isFavorite: Bool, for mapID: MapID) async throws
 
     func deleteMap(_ mapID: MapID) async throws
 }

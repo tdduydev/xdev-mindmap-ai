@@ -42,7 +42,7 @@ public actor SwiftDataMapRepository: MapRepository {
     }
 
     public func save(_ changes: GraphChangeSet, map: MindMap) async throws {
-        try upsertMap(map)
+        try mapRecord(for: map).updateGraphFields(from: map)
         try upsertNodes(changes.savedNodes)
         try deleteNodes(changes.deletedNodeIDs)
         try upsertEdges(changes.savedEdges)
@@ -50,8 +50,9 @@ public actor SwiftDataMapRepository: MapRepository {
         try modelContext.save()
     }
 
-    public func updateMap(_ map: MindMap) async throws {
-        try upsertMap(map)
+    public func setFavorite(_ isFavorite: Bool, for mapID: MapID) async throws {
+        guard let record = try mapRecords(for: mapID).first else { return }
+        record.isFavorite = isFavorite
         try modelContext.save()
     }
 
@@ -73,12 +74,19 @@ public actor SwiftDataMapRepository: MapRepository {
 
     // MARK: Writing
 
-    private func upsertMap(_ map: MindMap) throws {
+    /// The map's record, created with every field if it is not stored yet.
+    private func mapRecord(for map: MindMap) throws -> MapRecord {
         var records = try mapRecords(for: map.id)
-        let record = records.isEmpty ? insertedMapRecord(for: map.id) : records.removeFirst()
-        record.update(from: map)
+        guard !records.isEmpty else {
+            let record = MapRecord(mapID: map.id.rawValue)
+            record.update(from: map)
+            modelContext.insert(record)
+            return record
+        }
+        let record = records.removeFirst()
         // Duplicates of one map can only come from sync; fold them into one record.
         records.forEach(modelContext.delete)
+        return record
     }
 
     private func upsertNodes(_ nodes: [MindNode]) throws {
@@ -140,11 +148,5 @@ public actor SwiftDataMapRepository: MapRepository {
     private func mapRecords(for mapID: MapID) throws -> [MapRecord] {
         let id = mapID.rawValue
         return try modelContext.fetch(FetchDescriptor<MapRecord>(predicate: #Predicate { $0.mapID == id }))
-    }
-
-    private func insertedMapRecord(for mapID: MapID) -> MapRecord {
-        let record = MapRecord(mapID: mapID.rawValue)
-        modelContext.insert(record)
-        return record
     }
 }

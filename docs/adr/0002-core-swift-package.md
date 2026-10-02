@@ -11,7 +11,7 @@ The graph engine must stay independent of SwiftUI, SwiftData, CloudKit, AI and s
 
 Domain, graph and persistence code live in `Packages/MindMapCore`, a local Swift package with one library per layer: `MindMapDomain`, `MindMapGraph`, `MindMapPersistence`. Each module declares its dependencies, so the compiler rejects an import that breaks the layering. The app target holds the shell, features, design system and resources.
 
-The package lists macOS 26 next to iOS 26 only so `swift test` can run the core tests on the Mac host in seconds. There is no Mac product.
+The package supports macOS 26 and iOS 26. The Mac is a shipping platform (ADR 0006), and macOS support also lets `swift test` run the core tests on the Mac host in seconds.
 
 Later layers (layout, AI, import, export) become further modules of the same package.
 
