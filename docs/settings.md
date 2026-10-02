@@ -40,6 +40,8 @@ Keys follow the existing pattern `area.name` (`export.includeNotes`, `voiceInput
 
 Symbols: General `gearshape`, Export `square.and.arrow.up`, AI `sparkles`, Data `externaldrive` (`icloud` once sync ships), AI Apps `point.3.connected.trianglepath.dotted`, Pro `star`, Privacy `hand.raised`, About `info.circle`. Pane names on the Mac tab bar and the iOS list are the same.
 
+As built in MM-43: `SettingsPane` holds the order; Data and AI Apps are added by MM-45 and MM-46 (no empty panes before). `settings.pane` is read on the Mac only; a stored pane that is not offered (AI on an Intel Mac) opens General. The iOS list keeps no last page. The iPad item is **MindMap AI Settings…** (Cài đặt MindMap AI…), after `.appSettings`, with no shortcut because ⌘, belongs to the system's Settings item *[Inference: not checked on an iPad with a hardware keyboard]*.
+
 Columns in the tables below: **Free/Pro**, and **Task** (✅ already on `main`).
 
 ## General (Chung)
@@ -47,7 +49,7 @@ Columns in the tables below: **Free/Pro**, and **Task** (✅ already on `main`).
 | Row (en / vi) | Control and default | Store | Free/Pro | Task |
 | --- | --- | --- | --- | --- |
 | Appearance / Giao diện | Picker: System (Theo hệ thống), Light (Sáng), Dark (Tối). Default System | AppDefaults `appearance` | Free | ✅ MM-0f |
-| Theme for New Maps / Bộ màu cho sơ đồ mới | Picker: Standard (Tiêu chuẩn), xDev Blue, Graphite. Default Standard. The map's own theme stays in the map (Change Theme, MM-18). A Pro theme shows a `star` and opens the paywall when chosen without Pro; if Pro is refunded, new maps fall back to Standard and the stored value is kept | AppDefaults `newMap.theme`, later iCloud KVS [Đề xuất] | Standard free; others Pro (`ProFeature.extraThemes`) | MM-43 |
+| Theme for New Maps / Bộ màu cho sơ đồ mới | Picker: Standard (Tiêu chuẩn), xDev Blue, Graphite. Default Standard. The map's own theme stays in the map (Change Theme, MM-18). A Pro theme shows a `star` and opens the paywall when chosen without Pro; if Pro is refunded, new maps fall back to Standard and the stored value is kept | AppDefaults `newMap.theme`, later iCloud KVS [Đề xuất] | Standard free; others Pro (`ProFeature.extraThemes`) | ✅ MM-43 |
 
 Considered and left out [Đề xuất], each for a reason the next task should keep unless the product owner decides otherwise:
 
@@ -65,13 +67,15 @@ The export sheet starts from these values and writing a choice in the sheet upda
 
 | Row (en / vi) | Control and default | Store | Free/Pro | Task |
 | --- | --- | --- | --- | --- |
-| Include Notes / Kèm ghi chú | Switch, default on. Footer: "Applies to Markdown and plain text exports." | AppDefaults `export.includeNotes` | Free | ✅ MM-10 (move from General to Export in MM-43) |
-| PNG Resolution / Độ phân giải PNG | Picker: Standard (1×), High (2×), Very High (3×). Default High (2×) with Pro, Standard (1×) without; 2× and 3× show `star`. The stored choice is kept when Pro is missing; the sheet uses the highest allowed value | AppDefaults `export.png.scale` | 1× free; 2×, 3× Pro (`highResolutionPNGExport`) | MM-43 |
-| PDF Pages / Trang PDF | Picker: Fit to One Page (Vừa một trang), Actual Size on Several Pages (Kích thước thật, chia nhiều trang). Default Fit to One Page | AppDefaults `export.pdf.pages` | One page free; several pages Pro (`vectorPDFExport`) | MM-43 |
-| Paper Size / Khổ giấy | Picker: Automatic, A4, US Letter. Default Automatic = `PaperSize.preferred()` by region, so the app detects instead of asking (HIG Settings) | AppDefaults `export.pdf.paper` (absent = Automatic) | Free | MM-43 |
-| Background / Nền | Picker: Match Appearance (Theo giao diện), White (Trắng). Default Match Appearance; applies to PNG and PDF | AppDefaults `export.background` | Free | MM-43 |
+| Include Notes / Kèm ghi chú | Switch, default on. Footer: "Applies to Markdown and plain text exports." | AppDefaults `export.includeNotes` | Free | ✅ MM-10, moved to Export in MM-43 |
+| PNG Resolution / Độ phân giải PNG | Picker: Standard (1×), High (2×), Very High (3×). Default High (2×) with Pro, Standard (1×) without; 2× and 3× show `star`. The stored choice is kept when Pro is missing; the sheet uses the highest allowed value | AppDefaults `export.png.scale` (absent = the Pro-dependent default) | 1× free; 2×, 3× Pro (`highResolutionPNGExport`) | ✅ MM-43 |
+| PDF Pages / Trang PDF | Picker: Fit to One Page (Vừa một trang), Actual Size on Several Pages (Kích thước thật, chia nhiều trang). Default Fit to One Page | AppDefaults `export.pdf.pages` | One page free; several pages Pro (`vectorPDFExport`) | ✅ MM-43 |
+| Paper Size / Khổ giấy | Picker: Automatic, A4, US Letter. Default Automatic = `PaperSize.preferred()` by region, so the app detects instead of asking (HIG Settings) | AppDefaults `export.pdf.paper` (absent = Automatic) | Free | ✅ MM-43 |
+| Background / Nền | Picker: Match Appearance (Theo giao diện), White (Trắng). Default Match Appearance; applies to PNG and PDF | AppDefaults `export.background` | Free | ✅ MM-43 |
 
 The format itself is not a setting: the sheet remembers the last format used (`export.format`) [Đề xuất], a task option rather than a preference (HIG: task-specific options).
+
+As built in MM-43: `ExportPreferences` (`Features/Interchange/ExportOptions.swift`) reads the keys for the sheet and writes back only the options changed in it, so a paper size or resolution nobody touched stays Automatic or default. A Pro choice opens the paywall from Settings too, and is stored only if Pro is unlocked there; the sheet opens on the free counterpart of a stored Pro choice while Pro is missing.
 
 ## AI (AI)
 
@@ -149,7 +153,7 @@ If any row would say data reaches someone other than the person or their own app
 | Version / Phiên bản | `1.0.0 (42)`, numbers only | ✅ MM-0f |
 | Tagline | "Think. Draw. Connect." | ✅ |
 | Website / Trang web, Support / Hỗ trợ | Links (`AppLinks`) | ✅ MM-0f, MM-0h |
-| Acknowledgements / Ghi nhận [Đề xuất] | The bundled brand fonts' licences. *[Inference]* SIL OFL fonts ask for the copyright notice and licence to go with the software; check each font's licence in MM-43 and add the row only if one requires it | MM-43 |
+| Acknowledgements / Ghi nhận [Đề xuất] | Not added (MM-43). Both fonts are SIL OFL 1.1; its condition 2 asks that each copy of the fonts contain the copyright notice and licence, "either as stand-alone text files, human-readable headers or in the appropriate machine-readable metadata fields". `Fonts/OFL.txt`, with both families' copyright lines, ships in the app bundle next to the fonts, which meets that. *[Inference: my reading of the licence, not a legal review.]* Add the row if the product owner wants credits shown anyway | — |
 
 ## Menus and shortcuts
 
@@ -164,7 +168,8 @@ For each task below: Swift Testing for the defaults (a fresh `AppDefaults` suite
 ## Gotchas found while writing this
 
 - `VoiceInput` defaults to `UserDefaults.standard` and `EditorView` does not pass `AppDefaults.store`, so `voiceInput.language` escapes the UI-test suite. MM-44 passes `AppDefaults.store`.
-- Include Notes sits in the General tab on the Mac today (`SettingsView` puts `ExportSettingsSection` there); it moves to Export.
+- ~~Include Notes sits in the General tab on the Mac~~: moved to Export in MM-43.
+- The New Mind Map intent (Shortcuts, `MindMapIntentServices.newMap`), the Share Extension and imports still make Standard maps: they run in the package or the extension, which cannot see the Pro entitlement. Only New Mind Map and New Map with AI… in the app read Theme for New Maps.
 
 ## Open questions
 

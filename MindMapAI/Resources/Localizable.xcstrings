@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@, MindMap AI Pro" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, MindMap AI Pro"
+          }
+        }
+      }
+    },
     "%lld AI suggestions" : {
       "localizations" : {
         "en" : {
@@ -667,12 +677,32 @@
         }
       }
     },
+    "Automatic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tự động"
+          }
+        }
+      }
+    },
     "Background" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nền"
+          }
+        }
+      }
+    },
+    "Background applies to PNG and PDF. Automatic uses the usual paper of your region." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nền áp dụng cho PNG và PDF. Tự động dùng khổ giấy thông dụng ở khu vực của bạn."
           }
         }
       }
@@ -804,6 +834,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đổi bộ màu"
+          }
+        }
+      }
+    },
+    "Choices with a star come with MindMap AI Pro. Until it’s unlocked, exports use Standard (1×) and one page." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lựa chọn có dấu sao thuộc MindMap AI Pro. Khi chưa mở khoá, bản xuất dùng Chuẩn (1×) và một trang."
           }
         }
       }
@@ -944,6 +984,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không tải được danh sách sơ đồ."
+          }
+        }
+      }
+    },
+    "Couldn’t reach the App Store. Check your connection and try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không kết nối được App Store. Hãy kiểm tra kết nối mạng rồi thử lại."
           }
         }
       }
@@ -1256,6 +1306,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhân bản chủ đề"
+          }
+        }
+      }
+    },
+    "Each map keeps its own theme, which you can change while the map is open." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mỗi sơ đồ giữ bộ màu riêng, bạn đổi được khi đang mở sơ đồ đó."
           }
         }
       }
@@ -2053,6 +2113,16 @@
         }
       }
     },
+    "MindMap AI Settings…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cài đặt MindMap AI…"
+          }
+        }
+      }
+    },
     "MindMap AI Website" : {
       "localizations" : {
         "vi" : {
@@ -2252,6 +2322,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cửa sổ mới"
+          }
+        }
+      }
+    },
+    "New maps use Standard until MindMap AI Pro is unlocked." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ mới dùng bộ màu Tiêu chuẩn cho đến khi mở khoá MindMap AI Pro."
           }
         }
       }
@@ -2534,12 +2614,32 @@
         }
       }
     },
+    "PDF Pages" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trang PDF"
+          }
+        }
+      }
+    },
     "PNG Image" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ảnh PNG"
+          }
+        }
+      }
+    },
+    "PNG Resolution" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Độ phân giải PNG"
           }
         }
       }
@@ -2968,6 +3068,16 @@
         }
       }
     },
+    "Settings" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cài đặt"
+          }
+        }
+      }
+    },
     "Shorter" : {
       "localizations" : {
         "vi" : {
@@ -3374,6 +3484,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bộ màu"
+          }
+        }
+      }
+    },
+    "Theme for New Maps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ màu cho sơ đồ mới"
           }
         }
       }
