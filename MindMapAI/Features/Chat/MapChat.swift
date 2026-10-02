@@ -68,14 +68,18 @@ final class MapChat {
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var hasNoticedLeftOut = false
     @ObservationIgnored private let locale: Locale
+    /// Copy on an answer; tests pass their own so they leave the pasteboard alone.
+    @ObservationIgnored private let copyText: @MainActor (String) -> Void
     /// Saves and clears in order, so a clear cannot overtake the save before it.
     @ObservationIgnored private var lastWrite: Task<Void, Never>?
 
     /// `history` is the map's saved chat, oldest first.
-    init(session: EditorSession, assistant: AIAssistant, history: [ChatTurn] = [], locale: Locale = .current) {
+    init(session: EditorSession, assistant: AIAssistant, history: [ChatTurn] = [], locale: Locale = .current,
+         copyText: @escaping @MainActor (String) -> Void = Clipboard.copy) {
         self.session = session
         self.assistant = assistant
         self.locale = locale
+        self.copyText = copyText
         entries = history.map { turn in
             Entry(id: turn.id, question: turn.question, answer: turn.answer, citations: turn.citations, branch: turn.branch, state: .complete)
         }
@@ -173,6 +177,99 @@ final class MapChat {
     func title(of citation: ChatCitation) -> String {
         session.engine.state.node(citation.nodeID)?.title ?? citation.title
     }
+
+    // MARK: Answer actions
+
+    /// The last finished answer, for the AI menu's answer items.
+    var lastAnswer: Entry? {
+        entries.last.flatMap { $0.state == .complete ? $0 : nil }
+    }
+
+    func canCopy(_ entry: Entry) -> Bool {
+        entry.state == .complete && !entry.displayAnswer.isEmpty
+    }
+
+    /// Copy (FR-AI-10): the answer as plain text, citation handles left out.
+    func copy(_ entry: Entry) {
+        guard canCopy(entry) else { return }
+        copyText(entry.displayAnswer)
+        AccessibilityNotification.Announcement(String(localized: "Answer copied")).post()
+    }
+
+    /// The topic Add to Note writes to: the selected one, else the first cited
+    /// topic still in the map [Đề xuất]. With several topics selected the
+    /// answer goes to none of them rather than to a guess.
+    func noteTarget(for entry: Entry) -> NodeID? {
+        if !session.selectedIDs.isEmpty {
+            guard session.selectedIDs.count == 1, let id = session.selection,
+                  session.engine.state.node(id) != nil else { return nil }
+            return id
+        }
+        return entry.citations.first(where: exists)?.nodeID
+    }
+
+    /// The note's topic, by its current title, for the button's help.
+    func noteTargetTitle(for entry: Entry) -> String? {
+        noteTarget(for: entry).flatMap { session.engine.state.node($0)?.title }
+    }
+
+    func canAddToNote(_ entry: Entry) -> Bool {
+        canCopy(entry) && noteTarget(for: entry) != nil
+    }
+
+    /// Add to Note (FR-EDT-13): appends the answer to the topic's note after a
+    /// blank line, as one "Add Answer to Note" undo step. The answer is the
+    /// person's to keep from here, so it is plain text without handles.
+    @discardableResult
+    func addToNote(_ entry: Entry) -> Bool {
+        guard canAddToNote(entry), let id = noteTarget(for: entry),
+              let node = session.engine.state.node(id) else { return false }
+        let answer = entry.displayAnswer
+        let note = node.hasNote
+            ? (node.note ?? "").trimmingCharacters(in: .whitespacesAndNewlines) + "\n\n" + answer
+            : answer
+        guard session.perform(UpdateNodeCommand(nodeID: id, .note(note)), named: String(localized: "Add Answer to Note")) else { return false }
+        AccessibilityNotification.Announcement(String(localized: "Answer added to the note")).post()
+        return true
+    }
+
+    /// Ask Again is offered on the last question only, once its answer has
+    /// stopped coming: it replaces that answer, and a turn in the middle has
+    /// later turns built on it.
+    func canAskAgain(_ entry: Entry) -> Bool {
+        entry.id == entries.last?.id && !entry.isAnswering && canAskSuggestion
+    }
+
+    /// Ask Again: asks the last question once more, with its scope, in place
+    /// of its answer. The model starts from the turns before it, so it does
+    /// not see the answer it is replacing; the new answer is saved under the
+    /// same turn, and the old one is deleted at once so a retry that stops or
+    /// fails leaves nothing stale in the store.
+    func askAgain(_ entry: Entry) {
+        guard canAskAgain(entry), let provider = service.chatProvider else { return }
+        assistant.afterPrivacyNoticeShown { [weak self] in
+            guard let self, self.canAskAgain(entry) else { return }
+            self.entries.removeLast()
+            self.conversation = nil
+            let mapID = self.session.map.id
+            if entry.state == .complete {
+                self.write { repository in try await repository.deleteChatTurn(entry.id, from: mapID) }
+            }
+            self.send(entry.question, about: entry.branch, clearsDraft: false, with: provider)
+        }
+    }
+
+    var canCopyLastAnswer: Bool { lastAnswer.map(canCopy) ?? false }
+    var canAddLastAnswerToNote: Bool { lastAnswer.map(canAddToNote) ?? false }
+    var canAskLastQuestionAgain: Bool { entries.last.map(canAskAgain) ?? false }
+
+    func copyLastAnswer() { lastAnswer.map(copy) }
+
+    func addLastAnswerToNote() {
+        if let lastAnswer { addToNote(lastAnswer) }
+    }
+
+    func askLastQuestionAgain() { entries.last.map(askAgain) }
 
     // MARK: Intents
 

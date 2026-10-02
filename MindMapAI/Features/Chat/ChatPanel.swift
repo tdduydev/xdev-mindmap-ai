@@ -226,6 +226,7 @@ private struct ChatEntryView: View {
                     }
                 }
             }
+            actions
             if entry.state == .complete {
                 // HIG Generative AI: label what the model wrote and point to the sources.
                 Label {
@@ -238,6 +239,56 @@ private struct ChatEntryView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Copy, Add to Note and Ask Again (MM-79). Copy and Add to Note need a
+    /// finished answer; Ask Again is on the last question only, also after
+    /// it stopped or failed.
+    @ViewBuilder
+    private var actions: some View {
+        let isLast = entry.id == chat.entries.last?.id
+        if entry.state == .complete || (isLast && !entry.isAnswering) {
+            ChipFlowLayout(spacing: Spacing.xs) {
+                if entry.state == .complete {
+                    actionButton("Copy", systemImage: "doc.on.doc", id: AccessibilityID.Chat.copy) {
+                        chat.copy(entry)
+                    }
+                    .disabled(!chat.canCopy(entry))
+                    .help(Text("Copy the answer as plain text"))
+                    actionButton("Add to Note", systemImage: "note.text.badge.plus", id: AccessibilityID.Chat.addToNote) {
+                        chat.addToNote(entry)
+                    }
+                    .disabled(!chat.canAddToNote(entry))
+                    .help(addToNoteHelp)
+                }
+                if isLast {
+                    actionButton("Ask Again", systemImage: "arrow.clockwise", id: AccessibilityID.Chat.askAgain) {
+                        chat.askAgain(entry)
+                    }
+                    .disabled(!chat.canAskAgain(entry))
+                    .help(Text("Ask this question again for a new answer"))
+                }
+            }
+        }
+    }
+
+    /// Says where the answer would go, since the target is not on screen.
+    private var addToNoteHelp: Text {
+        guard let title = chat.noteTargetTitle(for: entry) else {
+            return Text("Select one topic to add the answer to its note")
+        }
+        return Text("Add the answer to the note of “\(title)”")
+    }
+
+    private func actionButton(_ title: LocalizedStringKey, systemImage: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.callout)
+                .frame(minHeight: Metrics.minimumHitTarget)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityIdentifier(id)
     }
 
     @ViewBuilder

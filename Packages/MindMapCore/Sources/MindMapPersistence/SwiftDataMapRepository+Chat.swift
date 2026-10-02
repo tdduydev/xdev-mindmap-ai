@@ -29,6 +29,13 @@ extension SwiftDataMapRepository: ChatHistoryStore {
         try commit()
     }
 
+    public func deleteChatTurn(_ turnID: UUID, from mapID: MapID) async throws {
+        let records = try modelContext.fetch(ChatTurnRecord.withID(turnID)).filter { $0.mapID == mapID.rawValue }
+        guard !records.isEmpty else { return }
+        records.forEach(modelContext.delete)
+        try commit()
+    }
+
     public func clearChat(for mapID: MapID) async throws {
         let records = try modelContext.fetch(ChatTurnRecord.inMap(mapID.rawValue))
         guard !records.isEmpty else { return }
