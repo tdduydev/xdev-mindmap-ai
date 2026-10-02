@@ -10,6 +10,7 @@ struct MapEditorView: View {
     @Bindable var assistant: AIAssistant
     @Environment(\.undoManager) private var undoManager
     @State private var showsKeyboardShortcuts = false
+    @Environment(FileTransfer.self) private var transfer: FileTransfer?
 
     var body: some View {
         Group {
@@ -120,6 +121,15 @@ struct MapEditorView: View {
         if assistant.service.showsEntryPoints {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
+            }
+        }
+        if let transfer {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    transfer.beginExport(session)
+                } label: {
+                    Label("Export…", systemImage: "square.and.arrow.up")
+                }
             }
         }
         // After the primary actions, so it sits at the trailing edge above the inspector.

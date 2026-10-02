@@ -4,7 +4,7 @@ The map on an infinite canvas (MM-3): drawing, pan, zoom, selection, editing a t
 
 ## Where it lives
 
-In the app target, `Features/Canvas`, not yet the `MindMapUI/MindMapCanvas` package that [[module-structure]] plans. The canvas draws with the design system, which is in the app target too, and only the app uses the canvas so far. A package would force both to become `public` API now and move `DesignSystem` out of the app ahead of the Share Extension (MM-11). The canvas code keeps the boundary ready: the camera (`CanvasViewport`), the scene (`CanvasScene`) and measuring (`TopicMeasurer`) take plain values and import no app type, so they can move when PNG/PDF export (MM-10) or another target needs them.
+In the app target, `Features/Canvas`, not yet the `MindMapUI/MindMapCanvas` package that [[module-structure]] plans. The canvas draws with the design system, which is in the app target too, and only the app uses the canvas so far. A package would force both to become `public` API now and move `DesignSystem` out of the app ahead of the Share Extension (MM-11). The canvas code keeps the boundary ready: the camera (`CanvasViewport`), the scene (`CanvasScene`) and measuring (`TopicMeasurer`) take plain values and import no app type, so they can move when PNG/PDF export (MM-10) or another target needs them. PNG/PDF export (MM-10) stays in the app target too and reuses them: it runs its own `CanvasLayoutPass` with `CanvasModel.layoutOptions`, and draws with `CanvasDrawing.make`, `EdgeLayer`, `TopicTitleText` and `CollapseBadgeLabel`, so a change to how the canvas draws a topic reaches exports ([[interchange]]).
 
 ## Parts
 

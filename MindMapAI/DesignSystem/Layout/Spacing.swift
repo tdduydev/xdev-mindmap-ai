@@ -47,4 +47,7 @@ enum Metrics {
     static let aiSheetWidth: CGFloat = 440
     /// The Mac's Keyboard Shortcuts sheet.
     static let shortcutsSheetSize = CGSize(width: 480, height: 560)
+
+    /// File ▸ Export… on the Mac.
+    static let exportSheetWidth: CGFloat = 440
 }

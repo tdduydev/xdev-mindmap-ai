@@ -7,6 +7,7 @@ struct LibraryView: View {
     let section: LibrarySection
     @Binding var selection: MapID?
     @State private var pendingDeletion: MindMap?
+    @Environment(FileTransfer.self) private var transfer: FileTransfer?
 
     var body: some View {
         let rows = rows
@@ -44,6 +45,15 @@ struct LibraryView: View {
                 // ⌘N lives in the File menu (MapCommands), which calls the same action.
                 Button(action: create) {
                     Label("New Mind Map", systemImage: "plus")
+                }
+            }
+            if let transfer {
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        transfer.beginImport(.newMap)
+                    } label: {
+                        Label("Import…", systemImage: "square.and.arrow.down")
+                    }
                 }
             }
         }

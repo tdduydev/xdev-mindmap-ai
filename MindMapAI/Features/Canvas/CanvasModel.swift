@@ -65,7 +65,10 @@ final class CanvasModel {
     @ObservationIgnored private var styles: [StyleKey: TopicStyle] = [:]
     /// What was selected before a marquee drag that adds to the selection.
     @ObservationIgnored private var marqueeBase: (ids: Set<NodeID>, primary: NodeID?) = ([], nil)
-    @ObservationIgnored let layoutOptions = LayoutOptions(
+    @ObservationIgnored let layoutOptions = CanvasModel.layoutOptions
+
+    /// Shared with export, so a picture of the map has the canvas's layout.
+    static let layoutOptions = LayoutOptions(
         horizontalSpacing: CanvasMetrics.layoutParentGap,
         verticalSpacing: CanvasMetrics.layoutSiblingGap
     )

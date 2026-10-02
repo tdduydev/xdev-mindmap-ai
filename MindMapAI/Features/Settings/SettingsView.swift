@@ -13,6 +13,7 @@ struct SettingsView: View {
                 Form {
                     GeneralSettingsSection()
                     AISettingsSection()
+                    ExportSettingsSection()
                 }
             }
             Tab("Privacy", systemImage: "hand.raised") {
@@ -29,6 +30,7 @@ struct SettingsView: View {
             Form {
                 GeneralSettingsSection()
                 AISettingsSection()
+                ExportSettingsSection()
                 PrivacySettingsSection()
                 AboutSettingsSection()
             }

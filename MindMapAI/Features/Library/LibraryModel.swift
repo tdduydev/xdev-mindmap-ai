@@ -134,7 +134,11 @@ final class LibraryModel {
 
     /// Creates a map whose root topic carries its title and returns its ID, so the caller can open it.
     func createMap() async -> MapID? {
-        let graph = GraphState.newMap(title: String(localized: "Untitled Map"))
+        await createMap(GraphState.newMap(title: String(localized: "Untitled Map")))
+    }
+
+    /// Stores a map built elsewhere, such as an imported file, and returns its ID.
+    func createMap(_ graph: GraphState) async -> MapID? {
         do {
             try await repository.create(graph)
             // The change stream may have delivered it already.

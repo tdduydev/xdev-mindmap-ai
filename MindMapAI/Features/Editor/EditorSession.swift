@@ -449,6 +449,17 @@ final class EditorSession {
         perform(ChangeThemeCommand(theme: theme), named: String(localized: "Change Theme"))
     }
 
+    /// Adds an imported file under the selected topic (the central topic when
+    /// nothing is selected), as one undo step (FR-IO-07), and selects its first topic.
+    @discardableResult
+    func importOutline(_ draft: OutlineDraft) -> Bool {
+        guard let parent = selection ?? rootID, !draft.isEmpty else { return false }
+        let command = InsertOutlineCommand(draft, under: parent)
+        guard perform(command, named: String(localized: "Import")) else { return false }
+        if let first = command.topNodeIDs.first { selection = first }
+        return true
+    }
+
     func undo() {
         if let undoManager, undoManager.canUndo {
             undoManager.undo()
