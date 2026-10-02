@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import MindMapDomain
 import MindMapGraph
@@ -64,10 +65,13 @@ struct IncrementalLayoutTests {
         #expect(updated == engine.layout(graph.state, sizes: sizes, options: options), "\(edit.name)")
 
         // Undo and redo are edits too, and must land on the same geometry.
-        let undone = try #require(graph.undo())
+        // #require cannot wrap a mutating call, so take the result first.
+        let undoResult = graph.undo()
+        let undone = try #require(undoResult)
         let afterUndo = engine.update(updated, graph: graph.state, sizes: sizes, options: options, changed: undone.layoutInvalidation)
         #expect(afterUndo == engine.layout(graph.state, sizes: sizes, options: options), "undo \(edit.name)")
-        let redone = try #require(graph.redo())
+        let redoResult = graph.redo()
+        let redone = try #require(redoResult)
         let afterRedo = engine.update(afterUndo, graph: graph.state, sizes: sizes, options: options, changed: redone.layoutInvalidation)
         #expect(afterRedo == updated, "redo \(edit.name)")
     }
