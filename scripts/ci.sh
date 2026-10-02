@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The check every change must pass before merging. There is no hosted CI, so
 # this runs locally: core tests on the Mac, app tests on macOS, a universal
-# macOS Release build, then an iOS Simulator build.
+# macOS Release build (Apple silicon and Intel), then an iOS Simulator build.
+# scripts/rosetta-tests.sh runs the tests as x86_64; it is slower and optional.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -34,8 +35,13 @@ xcodebuild build -quiet \
   -derivedDataPath "$derived" \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
 
+# Intel Macs get macOS 26 as their last release, so the shipped Mac app must
+# keep an x86_64 slice (MM-21). lipo fails quietly, so say what is missing.
 app_binary="$derived/Build/Products/Release/MindMap AI.app/Contents/MacOS/MindMap AI"
-lipo -verify_arch arm64 x86_64 "$app_binary"
+if ! lipo "$app_binary" -verify_arch arm64 x86_64; then
+  echo "error: the Release app is not universal; it has: $(lipo -archs "$app_binary")" >&2
+  exit 1
+fi
 
 step "iOS Simulator build"
 xcodebuild build -quiet \
