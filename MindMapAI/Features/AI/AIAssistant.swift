@@ -109,7 +109,7 @@ final class AIAssistant {
             return !node.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .summarize:
             return !session.engine.state.childIDs(of: id).isEmpty
-        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics:
+        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags:
             return true
         }
     }

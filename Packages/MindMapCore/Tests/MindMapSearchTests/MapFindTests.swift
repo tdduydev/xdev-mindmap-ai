@@ -34,3 +34,27 @@ struct MapFindTests {
         #expect(MapFind.matches(SearchQuery("empty"), in: state).isEmpty)
     }
 }
+
+@Suite("Find by tag")
+struct MapFindTagTests {
+    @Test func tagNamesMatchWithSearchFoldingAndHashWordsMatchOnlyTags() throws {
+        var engine = try GraphEngine(state: GraphState.newMap(title: "Plan"))
+        let rootID = try #require(engine.state.map.rootNodeID)
+        let a = NodeID()
+        let b = NodeID()
+        let c = NodeID()
+        try engine.execute(BatchCommand([
+            AddNodeCommand(nodeID: a, .child(of: rootID), title: "Budget"),
+            AddNodeCommand(nodeID: b, .child(of: rootID), title: "Việc nhà"),
+            AddNodeCommand(nodeID: c, .child(of: rootID), title: "Hotels"),
+            TagNodesCommand(nodeIDs: [a], add: [.named("Việc cần làm")]),
+            TagNodesCommand(nodeIDs: [c], add: [.named("Việc cần làm"), .named("Gấp")]),
+        ]))
+
+        #expect(MapFind.matches(SearchQuery("viec"), in: engine.state) == [a, b, c], "titles and tag names")
+        #expect(MapFind.matches(SearchQuery("#viec"), in: engine.state) == [a, c], "a # word matches tags only")
+        #expect(MapFind.matches(SearchQuery("#viec #gap"), in: engine.state) == [c])
+        #expect(MapFind.matches(SearchQuery("#viec hotel"), in: engine.state) == [c])
+        #expect(MapFind.matches(SearchQuery("#"), in: engine.state).isEmpty)
+    }
+}

@@ -17,6 +17,7 @@ public protocol AIProvider: Sendable {
     func rewrite(_ request: RewriteRequest) async throws -> AIRewrite
     func summarize(_ request: SummarizeRequest) async throws -> AISummary
     func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal
+    func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions
 
     /// The answer to a suggestion request as it is written, so the preview can
     /// show the first topics within seconds (NFR-PERF-07). The last snapshot is

@@ -95,6 +95,7 @@ extension AIFeature {
         case .rewrite: String(localized: "Rewriting the title…")
         case .summarize: String(localized: "Summarizing the branch…")
         case .findMissingTopics: String(localized: "Looking for missing topics…")
+        case .suggestTags: String(localized: "Suggesting tags…")
         }
     }
 
@@ -106,6 +107,7 @@ extension AIFeature {
         case .expandTopic: String(localized: "Suggested subtopics")
         case .brainstorm: String(localized: "Ideas")
         case .findMissingTopics: String(localized: "Possible missing topics")
+        case .suggestTags: String(localized: "Suggested tags")
         case .rewrite, .summarize: String(localized: "Suggestions")
         }
     }

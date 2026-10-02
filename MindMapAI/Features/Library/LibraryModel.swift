@@ -140,6 +140,9 @@ final class LibraryModel {
             await spotlightIndex?.remove(id)
         case .storeChanged:
             await load()
+        case .tagsChanged:
+            // Library search matches tag names.
+            invalidateSearch()
         }
     }
 

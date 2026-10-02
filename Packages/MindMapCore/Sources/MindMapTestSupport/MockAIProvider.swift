@@ -14,6 +14,7 @@ public final class MockAIProvider: AIProvider {
         case proposal(AIProposal)
         case rewrite(AIRewrite)
         case summary(AISummary)
+        case tags(AITagSuggestions)
         case failure(AIError)
         /// Partial proposals streamed before the last, complete one.
         case stream([AIProposal])
@@ -28,6 +29,7 @@ public final class MockAIProvider: AIProvider {
         case rewrite(RewriteRequest)
         case summarize(SummarizeRequest)
         case findMissingTopics(MissingTopicsRequest)
+        case suggestTags(SuggestTagsRequest)
     }
 
     private struct State {
@@ -88,6 +90,12 @@ public final class MockAIProvider: AIProvider {
         let answer = try await waitingNext(.summarize, language: request.context.language, recording: .summarize(request))
         guard case .summary(let summary) = answer else { throw AIError.generationFailed }
         return summary
+    }
+
+    public func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions {
+        let answer = try await waitingNext(.suggestTags, language: request.language, recording: .suggestTags(request))
+        guard case .tags(let tags) = answer else { throw AIError.generationFailed }
+        return tags
     }
 
     public func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error> {
@@ -168,6 +176,13 @@ extension AICapabilities {
         supportedLanguages: Set(AILanguage.allCases),
         contextSize: AIContextLimits.assumedContextSize
     )
+}
+
+extension AITagSuggestions {
+    /// Names per topic, unchecked, as a test scripts them.
+    public static func tags(_ names: [NodeID: [String]], order: [NodeID]) -> AITagSuggestions {
+        AITagSuggestions(entries: order.map { Entry(nodeID: $0, names: names[$0] ?? []) })
+    }
 }
 
 extension AIProposal {

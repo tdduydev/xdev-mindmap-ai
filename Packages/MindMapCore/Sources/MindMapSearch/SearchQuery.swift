@@ -25,6 +25,11 @@ public struct SearchQuery: Hashable, Sendable {
             .map(String.init)
     }
 
+    /// Words that are already folded, such as part of another query.
+    public init(terms: [String]) {
+        self.terms = terms.filter { !$0.isEmpty }
+    }
+
     public var isEmpty: Bool { terms.isEmpty }
 
     /// `folded` must already be `SearchText.fold`ed; indexes fold once and match many times.

@@ -7,6 +7,9 @@ public enum AIProposalLimits {
     public static let maximumGeneratedMapTopics = 30
     public static let maximumSuggestedTopics = 12
     public static let maximumRewriteSuggestions = 3
+    /// Topics one Suggest Tags request covers, and tags per topic.
+    public static let maximumTagSuggestionTopics = 12
+    public static let maximumTagsPerTopic = 3
 
     static func clamp(_ count: Int, to maximum: Int) -> Int {
         min(max(1, count), maximum)
