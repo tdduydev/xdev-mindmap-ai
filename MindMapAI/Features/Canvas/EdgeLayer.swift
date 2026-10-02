@@ -19,6 +19,9 @@ struct CanvasDrawing {
     var outlines: [Stroke: Path] = [:]
     var selection = Path()
     var selectionWidth: CGFloat = CanvasMetrics.selectionRingWidth
+    /// Edges into AI suggestions, and suggestions drawn as shapes, in the AI style.
+    var suggestionEdges = Path()
+    var suggestionShapes = Path()
 
     /// Only what meets the culling rectangle is built (FR-CNV-06).
     static func make(
@@ -32,6 +35,10 @@ struct CanvasDrawing {
 
         for (child, path) in scene.connectors(in: rect) {
             guard let topic = scene.topic(child) else { continue }
+            if topic.isSuggestion {
+                drawing.suggestionEdges.addCurve(path)
+                continue
+            }
             let style = model.style(for: topic, colorScheme: colorScheme, contrast: contrast)
             drawing.edges[Stroke(color: style.edgeColor, width: style.edgeWidth), default: Path()].addCurve(path)
         }
@@ -48,6 +55,10 @@ struct CanvasDrawing {
         for topic in model.visibleTopics {
             let style = model.style(for: topic, colorScheme: colorScheme, contrast: contrast)
             let shape = Path(roundedRect: topic.frame, cornerRadius: style.box.cornerRadius, style: .continuous)
+            if topic.isSuggestion {
+                drawing.suggestionShapes.addPath(shape)
+                continue
+            }
             drawing.fills[style.fill, default: Path()].addPath(shape)
             if let stroke = style.stroke {
                 drawing.outlines[Stroke(color: stroke, width: style.strokeWidth), default: Path()].addPath(shape)
@@ -71,6 +82,8 @@ struct CanvasDrawing {
 struct EdgeLayer: View {
     let drawing: CanvasDrawing
     let viewport: CanvasViewport
+    /// `Palette.ai` for the current appearance.
+    let aiStyle: AnyShapeStyle
 
     var body: some View {
         Canvas { context, _ in
@@ -84,6 +97,15 @@ struct EdgeLayer: View {
                 let dashed = StrokeStyle(lineWidth: CanvasMetrics.crossLinkWidth, lineCap: .round, dash: CanvasMetrics.crossLinkDash)
                 context.stroke(drawing.crossLinks, with: .color(Palette.crossLink), style: dashed)
                 context.fill(drawing.arrowheads, with: .color(Palette.crossLink))
+            }
+            if !drawing.suggestionEdges.isEmpty {
+                let dashed = StrokeStyle(lineWidth: CanvasMetrics.suggestionEdgeWidth, lineCap: .round, dash: CanvasMetrics.suggestionDash)
+                context.stroke(drawing.suggestionEdges, with: .style(aiStyle), style: dashed)
+            }
+            if !drawing.suggestionShapes.isEmpty {
+                context.fill(drawing.suggestionShapes, with: .color(Palette.canvasBackground))
+                let dashed = StrokeStyle(lineWidth: CanvasMetrics.suggestionEdgeWidth, dash: CanvasMetrics.suggestionDash)
+                context.stroke(drawing.suggestionShapes, with: .style(aiStyle), style: dashed)
             }
             for (fill, path) in drawing.fills {
                 context.fill(path, with: .color(fill.color))

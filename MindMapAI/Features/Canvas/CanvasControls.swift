@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The floating cluster over the canvas (FR-CNV-08): zoom, fit and add topic
 /// in one `GlassEffectContainer`, the only glass on the canvas. Each control
-/// is also a menu item with the same name. The AI button joins in MM-8.
+/// is also a menu item with the same name, the AI menu included.
 struct CanvasControls: View {
     let model: CanvasModel
 
@@ -21,6 +21,21 @@ struct CanvasControls: View {
                 control("Zoom In", systemImage: "plus.magnifyingglass", enabled: model.canZoomIn, action: model.zoomIn)
                 control("Zoom to Fit", systemImage: "arrow.up.left.and.arrow.down.right", enabled: model.canZoomToFit, action: model.zoomToFit)
                 control("Add Child Topic", systemImage: "arrow.turn.down.right", enabled: true, action: model.session.addChild)
+                if let assistant = model.assistant, assistant.service.showsEntryPoints {
+                    Menu {
+                        AIActionsMenu(assistant: assistant, includesGenerateMap: true)
+                    } label: {
+                        Label {
+                            Text("AI")
+                        } icon: {
+                            AISymbol()
+                        }
+                        .labelStyle(.iconOnly)
+                        .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
+                    }
+                    .menuIndicator(.hidden)
+                    .help(Text("AI"))
+                }
             }
             .buttonStyle(.glass)
         }

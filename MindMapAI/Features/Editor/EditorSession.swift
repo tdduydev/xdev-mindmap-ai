@@ -242,8 +242,10 @@ final class EditorSession {
 
     // MARK: Engine and history
 
+    /// Runs a command as one named undo step. Intents above use it; so does
+    /// `AIAssistant` for accepted suggestions, which are commands like any other.
     @discardableResult
-    private func perform(_ command: any GraphCommand, named name: String) -> Bool {
+    func perform(_ command: any GraphCommand, named name: String) -> Bool {
         do {
             let changes = try engine.execute(command)
             guard !changes.isEmpty else { return true }

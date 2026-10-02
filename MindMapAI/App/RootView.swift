@@ -4,6 +4,8 @@ import SwiftUI
 /// into a navigation stack by itself.
 struct RootView: View {
     let environment: AppEnvironment
+    @Environment(AIService.self) private var ai
+    @Environment(\.scenePhase) private var scenePhase
     @State private var router = AppRouter()
     @State private var library: LibraryModel
 
@@ -19,8 +21,14 @@ struct RootView: View {
             LibraryView(model: library, section: router.section ?? .all, selection: $router.selectedMapID)
         } detail: {
             if let mapID = router.selectedMapID {
-                EditorView(mapID: mapID, repository: environment.repository, onMapChange: library.didChange)
-                    .id(mapID)
+                EditorView(
+                    mapID: mapID,
+                    repository: environment.repository,
+                    onMapChange: library.didChange,
+                    generatesOnOpen: router.pendingMapGeneration == mapID,
+                    onGenerationStarted: { router.pendingMapGeneration = nil }
+                )
+                .id(mapID)
             } else {
                 ContentUnavailableView(
                     "No Map Selected",
@@ -30,6 +38,21 @@ struct RootView: View {
             }
         }
         .task { await library.load() }
+        // FR-AI-01: Apple Intelligence can be turned on or off while the app is away.
+        .task { await ai.refresh() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await ai.refresh() } }
+        }
+        .focusedSceneValue(\.newMapWithAIAction, ai.showsEntryPoints ? NewMapAction(perform: createMapWithAI) : nil)
+    }
+
+    /// A new map that opens on Generate Map (FR-AI-03).
+    private func createMapWithAI() {
+        Task {
+            guard let id = await library.createMap() else { return }
+            router.pendingMapGeneration = id
+            router.selectedMapID = id
+        }
     }
 }
 

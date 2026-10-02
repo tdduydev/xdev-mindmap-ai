@@ -11,6 +11,7 @@ struct CanvasView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
@@ -24,7 +25,11 @@ struct CanvasView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             background
-            EdgeLayer(drawing: CanvasDrawing.make(model: model, colorScheme: colorScheme, contrast: contrast), viewport: model.viewport)
+            EdgeLayer(
+                drawing: CanvasDrawing.make(model: model, colorScheme: colorScheme, contrast: contrast),
+                viewport: model.viewport,
+                aiStyle: Palette.ai(colorScheme: colorScheme, contrast: contrast, reduceTransparency: reduceTransparency)
+            )
                 .allowsHitTesting(false)
             if model.isDetailed {
                 topics
@@ -106,6 +111,7 @@ struct CanvasView: View {
 
     private var topics: some View {
         let selection = session.selection
+        let selectedSuggestion = model.selectedSuggestionPreviewID
         let rootID = session.rootID
         return ForEach(model.visibleTopics) { topic in
             if let spec = model.textSpec(for: topic) {
@@ -114,7 +120,7 @@ struct CanvasView: View {
                     style: model.style(for: topic, colorScheme: colorScheme, contrast: contrast),
                     spec: spec,
                     isRoot: topic.id == rootID,
-                    isSelected: topic.id == selection,
+                    isSelected: topic.id == (topic.isSuggestion ? selectedSuggestion : selection),
                     isEditing: topic.id == model.editingID,
                     model: model,
                     rotorNamespace: rotorNamespace
