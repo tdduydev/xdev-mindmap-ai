@@ -177,4 +177,63 @@ struct ImageCommandTests {
         #expect(Set(state.images(inBranchesOf: [fixture["A1"], fixture["A"]]).map(\.id)) == [onA.id, onA1.id])
         #expect(state.images(inBranchesOf: [fixture["Root"]]).count == 3)
     }
+
+    @Test func mergeMovesTheImageToASurvivorWithoutOne() throws {
+        var fixture = try Self.fixture()
+        let (a, b) = (fixture["A"], fixture["B"])
+        let image = Self.image(fixture)
+        try fixture.engine.execute(SetNodeImageCommand(nodeID: b, image: image))
+
+        let merged = try fixture.engine.execute(MergeNodesCommand(into: a, merging: [b]))
+        #expect(fixture.state.image(of: a)?.id == image.id)
+        // Moved, not deleted: nothing to write but the record's node.
+        #expect(merged.deletedImageIDs.isEmpty)
+
+        fixture.engine.undo()
+        #expect(fixture.state.image(of: b)?.id == image.id)
+        fixture.engine.redo()
+        #expect(fixture.state.image(of: a)?.id == image.id)
+    }
+
+    @Test func mergeKeepsTheSurvivorsImage() throws {
+        var fixture = try Self.fixture()
+        let (a, b) = (fixture["A"], fixture["B"])
+        let kept = Self.image(fixture)
+        let dropped = Self.image(fixture, data: Self.otherBytes)
+        try fixture.engine.execute(SetNodeImageCommand(nodeID: a, image: kept))
+        try fixture.engine.execute(SetNodeImageCommand(nodeID: b, image: dropped))
+
+        let merged = try fixture.engine.execute(MergeNodesCommand(into: a, merging: [b]))
+        #expect(fixture.state.images.keys.sorted() == [kept.id])
+        #expect(merged.deletedImageIDs == [dropped.id])
+
+        let undoneStep = fixture.engine.undo()
+        let undone = try #require(undoneStep)
+        #expect(undone.savedImages.first { $0.id == dropped.id }?.data == Self.otherBytes)
+    }
+
+    @Test func duplicateCopiesLoadedImagesWithNewIDs() throws {
+        var fixture = try Self.fixture()
+        let (a, a1) = (fixture["A"], fixture["A1"])
+        let onA = Self.image(fixture)
+        let onA1 = Self.image(fixture, data: Self.otherBytes)
+        try fixture.engine.execute(SetNodeImageCommand(nodeID: a, image: onA))
+        try fixture.engine.execute(SetNodeImageCommand(nodeID: a1, image: onA1))
+        // Only A's bytes are known (as after a reopen with only A loaded).
+        fixture.engine.imageData = [onA.id: Self.bytes]
+
+        let copyID = NodeID()
+        let duplicated = try fixture.engine.execute(DuplicateBranchCommand(nodeID: a, copyID: copyID))
+        let copy = try #require(fixture.state.image(of: copyID))
+        #expect(copy.id != onA.id)
+        #expect(copy.pixelWidth == onA.pixelWidth)
+        #expect(duplicated.savedImages.map(\.data) == [Self.bytes])
+        // A1's copy has no picture rather than a record with no file.
+        #expect(fixture.state.images.count == 3)
+
+        fixture.engine.undo()
+        #expect(fixture.state.images.count == 2)
+        fixture.engine.redo()
+        #expect(fixture.state.image(of: copyID)?.id == copy.id)
+    }
 }

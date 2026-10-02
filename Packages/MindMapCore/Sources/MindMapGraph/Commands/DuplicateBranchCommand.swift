@@ -67,6 +67,18 @@ public struct DuplicateBranchCommand: GraphCommand {
             ))
         }
 
+        // A copy is a new record with the same bytes. Without the bytes loaded
+        // (`GraphEngine.imageData`) it would be a record with no file, so the
+        // picture is left out instead.
+        for image in state.images(inBranchesOf: [nodeID]) {
+            guard let nodeID = newIDs[image.nodeID], let data = transaction.imageData[image.id] else { continue }
+            try transaction.insertImage(MindImage(
+                mapID: image.mapID, nodeID: nodeID, data: data, uniformType: image.uniformType,
+                pixelWidth: image.pixelWidth, pixelHeight: image.pixelHeight, byteCount: image.byteCount,
+                displayWidth: image.displayWidth, altText: image.altText, createdAt: transaction.now
+            ))
+        }
+
         for group in state.groups.values.sorted(by: { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }) {
             guard let parentID = group.parentNodeID.flatMap({ newIDs[$0] }) else { continue }
             try transaction.insertGroup(MindGroup(

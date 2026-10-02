@@ -8,7 +8,8 @@ import MindMapDomain
 /// title; each merged topic's title and note are appended to the survivor's note
 /// as a paragraph. Cross-links are moved to the survivor, and a link that would
 /// end up joining the survivor to itself, or repeat an existing link of the same
-/// kind, is removed. Tags of the merged topics move to the survivor too.
+/// kind, is removed. Tags of the merged topics move to the survivor too, and so
+/// does the first merged topic's image when the survivor has none.
 public struct MergeNodesCommand: GraphCommand {
     public let survivorID: NodeID
     public let mergedIDs: [NodeID]
@@ -54,6 +55,12 @@ public struct MergeNodesCommand: GraphCommand {
 
         try rewireEdges(of: Set(merged.map(\.id)), in: &transaction)
         try moveTags(of: merged.map(\.id), in: &transaction)
+        let current = transaction.state
+        if current.image(of: survivorID) == nil,
+           let image = merged.lazy.compactMap({ current.image(of: $0.id) }).first {
+            // Moved, not copied: the record and its stored file stay as they are.
+            try transaction.updateImage(image.id) { $0.nodeID = survivorID }
+        }
 
         for node in merged {
             try transaction.removeNode(node.id)
