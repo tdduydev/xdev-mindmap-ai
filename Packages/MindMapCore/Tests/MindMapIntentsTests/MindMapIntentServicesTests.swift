@@ -125,4 +125,26 @@ struct MindMapIntentServicesTests {
         #expect(try await services.maps(matching: "").map(\.id) == [trip.map.id, plan.map.id])
         #expect(try await services.recentMaps(limit: 1).map(\.id) == [trip.map.id])
     }
+
+    /// Shortcuts, Spotlight results and Add Idea never reach a map in Recently Deleted.
+    @Test func mapsInRecentlyDeletedAreLeftOut() async throws {
+        let live = GraphState.newMap(title: "Plan live", now: Date(timeIntervalSince1970: 1))
+        let binned = GraphState.newMap(title: "Plan binned", now: Date(timeIntervalSince1970: 2))
+        try await repository.create(live)
+        try await repository.create(binned)
+        try await repository.moveToRecentlyDeleted(binned.map.id, at: .now)
+
+        #expect(try await services.recentMaps().map(\.id) == [live.map.id])
+        #expect(try await services.maps(withIDs: [binned.map.id, live.map.id]).map(\.id) == [live.map.id])
+        #expect(try await services.maps(matching: "plan").map(\.id) == [live.map.id])
+        #expect(try await services.openRecent().id == live.map.id)
+        await #expect(throws: MindMapIntentServices.Failure.mapNotFound) {
+            try await services.open(binned.map.id)
+        }
+        await #expect(throws: MindMapIntentServices.Failure.mapNotFound) {
+            try await services.addIdea("Late idea", to: binned.map.id)
+        }
+        let untouched = try #require(try await repository.loadGraph(for: binned.map.id))
+        #expect(untouched.nodes == binned.nodes)
+    }
 }
