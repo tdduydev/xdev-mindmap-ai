@@ -20,7 +20,19 @@ struct MapEditorView: View {
             }
         }
         .safeAreaInset(edge: .top) {
-            AISuggestionBar(assistant: assistant)
+            VStack(spacing: 0) {
+                if session.isFinding {
+                    FindBar(session: session)
+                }
+                AISuggestionBar(assistant: assistant)
+            }
+        }
+        // The outline scrolls to a match itself; the canvas waits for the
+        // layout, which a branch Find just opened may not have yet.
+        .onChange(of: session.scrollRequest) { _, request in
+            guard request != nil, session.presentation == .canvas else { return }
+            canvas.revealSelection()
+            session.scrollRequest = nil
         }
         .safeAreaInset(edge: .bottom) {
             if session.saveFailed {
@@ -80,6 +92,9 @@ struct MapEditorView: View {
             .disabled(!session.canRedo)
         }
         ToolbarItemGroup(placement: .primaryAction) {
+            Button(action: session.showFind) {
+                Label("Find", systemImage: "magnifyingglass")
+            }
             Button(action: session.addChild) {
                 Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }

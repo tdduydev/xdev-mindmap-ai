@@ -72,6 +72,19 @@ public actor SwiftDataMapRepository: MapRepository {
         try modelContext.save()
     }
 
+    public func fetchTopicTexts() async throws -> [MapID: [String]] {
+        var descriptor = FetchDescriptor<NodeRecord>()
+        // Search reads only text; skipping the other columns keeps a large library cheap to scan.
+        descriptor.propertiesToFetch = [\.mapID, \.title, \.note]
+        var texts: [MapID: [String]] = [:]
+        for record in try modelContext.fetch(descriptor) {
+            let found = [record.title, record.note ?? ""].filter { !$0.isEmpty }
+            guard !found.isEmpty else { continue }
+            texts[MapID(record.mapID), default: []].append(contentsOf: found)
+        }
+        return texts
+    }
+
     // MARK: Writing
 
     /// The map's record, created with every field if it is not stored yet.

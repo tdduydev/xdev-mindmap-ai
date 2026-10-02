@@ -2,6 +2,7 @@ import Foundation
 import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
+import MindMapSearch
 import Observation
 import OSLog
 
@@ -17,7 +18,18 @@ final class LibraryModel {
     private(set) var hasLoaded = false
     var failure: Failure?
 
+    /// What the search field holds. Searching runs in `search()`, which the view
+    /// calls whenever this or `searchGeneration` changes.
+    var searchText = ""
+    private(set) var searchResults = LibrarySearchResults.empty
+    /// The query `searchResults` answers, so the view can tell "no results"
+    /// from "not searched yet".
+    private(set) var searchedQuery: SearchQuery?
+    /// Moves on whenever a map changes, so an open search runs again.
+    private(set) var searchGeneration = 0
+
     @ObservationIgnored private let repository: any MapRepository
+    @ObservationIgnored private var searchIndex: LibrarySearchIndex?
 
     init(repository: any MapRepository) {
         self.repository = repository
@@ -27,9 +39,66 @@ final class LibraryModel {
         section.maps(from: maps)
     }
 
+    struct SearchRow: Identifiable, Hashable {
+        let map: MindMap
+        let match: LibrarySearchMatch
+        var id: MapID { map.id }
+    }
+
+    var isSearching: Bool { !SearchQuery(searchText).isEmpty }
+
+    /// The section's maps that match the search, maps matching by title first.
+    func searchRows(in section: LibrarySection) -> [SearchRow] {
+        let maps = maps(in: section)
+        let byID = Dictionary(maps.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        return searchResults.ranked(maps.map(\.id)).compactMap { hit in
+            byID[hit.mapID].map { SearchRow(map: $0, match: hit.match) }
+        }
+    }
+
+    /// Runs the current search. The index of every map's text is built on the
+    /// first search after a change, off the main actor.
+    func search() async {
+        let query = SearchQuery(searchText)
+        guard !query.isEmpty else {
+            searchResults = .empty
+            searchedQuery = nil
+            return
+        }
+        let index: LibrarySearchIndex
+        if let searchIndex {
+            index = searchIndex
+        } else {
+            let generation = searchGeneration
+            do {
+                let texts = try await repository.fetchTopicTexts()
+                let documents = maps.map { map in
+                    MapSearchDocument(mapID: map.id, title: map.title, topicTexts: texts[map.id] ?? [])
+                }
+                index = await LibrarySearchIndex.build(documents: documents)
+            } catch {
+                Log.persistence.error("Loading text for search failed: \(error.localizedDescription, privacy: .public)")
+                failure = .load
+                return
+            }
+            // A map changed while the index was built; the next run builds it again.
+            if generation == searchGeneration { searchIndex = index }
+        }
+        let results = await index.searchInBackground(query)
+        guard !Task.isCancelled else { return }
+        searchResults = results
+        searchedQuery = query
+    }
+
+    private func invalidateSearch() {
+        searchIndex = nil
+        searchGeneration += 1
+    }
+
     func load() async {
         do {
             maps = try await repository.fetchMaps()
+            invalidateSearch()
         } catch {
             Log.persistence.error("Loading the library failed: \(error.localizedDescription, privacy: .public)")
             failure = .load
@@ -43,6 +112,7 @@ final class LibraryModel {
         do {
             try await repository.create(graph)
             maps.append(graph.map)
+            invalidateSearch()
             return graph.map.id
         } catch {
             Log.persistence.error("Creating a map failed: \(error.localizedDescription, privacy: .public)")
@@ -55,6 +125,7 @@ final class LibraryModel {
         do {
             try await repository.deleteMap(map.id)
             maps.removeAll { $0.id == map.id }
+            invalidateSearch()
         } catch {
             Log.persistence.error("Deleting a map failed: \(error.localizedDescription, privacy: .public)")
             failure = .save
@@ -81,5 +152,6 @@ final class LibraryModel {
         var updated = map
         updated.isFavorite = maps[index].isFavorite
         maps[index] = updated
+        invalidateSearch()
     }
 }
