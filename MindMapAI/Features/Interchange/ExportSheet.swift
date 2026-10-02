@@ -53,6 +53,10 @@ struct ExportSheet: View {
                     imageOptions
                 case .pdf:
                     pdfOptions
+                case .backup:
+                    Section {} footer: {
+                        Text("The whole map with its theme, colors, symbols, tasks, tags, connections and boundaries. Import it again with File ▸ Import….")
+                    }
                 }
             }
             .formStyle(.grouped)

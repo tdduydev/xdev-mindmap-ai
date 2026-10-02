@@ -50,6 +50,33 @@ GraphState.imported(from: draft, title: fileName)                               
 - **Limits.** A PNG's longest side is capped at `CanvasMetrics.exportMaximumPixels` (16,384 px); a larger map is drawn at a lower scale. `PDFPageLayout` is plain geometry: a fitted page turns landscape for a wide map and never enlarges a small one; several pages tile the map at actual size inside a 36 pt margin, centred on the grid, in reading order, in the orientation that needs fewer sheets. Each page draws the whole picture clipped to its tile, so a PDF of n pages holds the map's drawing n times.
 - **Pro.** PNG above 1× and PDFs over several pages ask `ProEntitlements` (`ProFeature.highResolutionImage`, `.multiPagePDF`); the sheet disables Export with one line when locked. Until MM-13's StoreKit entitlement lands everything is unlocked (`AllFeaturesUnlocked`). OPML is not built.
 
+## Map archive: the backup format (MM-54)
+
+Markdown keeps titles, notes and the tree only; tags, colours, symbols, tasks, connections, boundaries and the theme are lost (FR-ORG-10), so it is not a backup. `MapArchive` (`MindMapInterchange/MapArchive.swift`) is: one JSON file per map, holding every record of the map as the Codable domain values store it.
+
+```swift
+MapArchive(graph)                               // every record, sorted by ID
+try await MapArchive.exportData(graph)          // @concurrent, pretty JSON, sorted keys
+try await MapArchive.decode(data)               // throws MapArchiveError: notAnArchive, newerVersion(n), damaged
+archive.graph                                   // the map exactly as written, same IDs
+archive.importedGraph(sharedTags:)              // a new map: every ID new
+```
+
+```json
+{ "format": "asia.xdev.mindmapai.map", "version": 1,
+  "map": { … }, "nodes": [ … ], "edges": [ … ], "tags": [ … ], "nodeTags": [ … ], "groups": [ … ] }
+```
+
+- **Why JSON of the domain types.** No dependency, readable and diffable, and the domain values already are what SwiftData stores (`RecordMapping`), so a field added to the domain is in the file without a second mapping to keep in step. Open-ended values (`TopicColor`, `TaskState`, `GroupKind`…) are raw strings, so a value a newer build wrote survives this one.
+- **Version.** `format` marks the file as ours (any other JSON is refused, not read as an empty map); `version` is 1. A new optional field does not raise it: older builds skip unknown keys, newer ones read a missing key as nil. It goes up only when a field is renamed, removed or changes meaning, and then `decode` keeps reading every older layout and converts it. A file with a version above `currentVersion` is refused with "made by a newer version". A frozen version 1 file in `MapArchiveTests` must keep opening.
+- **Dates** stay seconds since 2001 as `Double` (the encoder's default). ISO 8601 would round to the millisecond, and an edit time that moves breaks newest-wins after sync.
+- **Same map, same bytes.** Records are sorted by ID and keys sorted, so two backups of one map compare with `diff`.
+- **What a map file holds.** The map (theme, layout, favourite), every topic with every field, connections, the map's tags and the shared tags its topics carry, tag links and boundaries. Library-only data stays out: unused shared tags, and `deletedAt` (an imported map is live).
+- **Importing never overwrites.** `importedGraph` gives the map and every record a new ID, keeping every other field, edit times included, so a backup can be imported next to its original or twice. A shared tag of the file joins the library's shared tag with the same `MindTag.key` when the caller passes the library's tags; otherwise it becomes a tag of the new map. The app passes none today, so a shared tag comes back as a map tag with the same name, colour and symbol (shared tags change only through library actions). A reference to a record the file lacks gets a fresh dangling ID, so `GraphRepair` handles the file like a map that lost a record in sync.
+- **When the domain grows** (MM-59 `summaryNodeID`, images): add the field to `importedGraph`'s copy and set it in `ArchiveFixture.everyField`. `importingKeepsEverythingButTheIDs` compares each record's JSON minus its IDs, so a field set in the fixture but not copied fails there. Image bytes, when they come, need a decision (base64 in the file or a folder per map). `NodeType` is still an enum: a file whose topic has a node type this build does not know fails as damaged until MM-59 turns it into a struct.
+
+**In the app.** File ▸ Export… has the format **MindMap AI Backup** (`ExportFormat.backup`, `.json`, always the whole map); File ▸ Import… reads a `.json` file as a backup and opens it as a new map (`MapImporter.readBackup`, `FileTransfer.importBackup`). Import into Map… refuses a backup with a message, since a backup is a whole map. Settings ▸ Data reuses both: Export All Maps (MM-45) writes `MapArchive.exportData` for each map into one folder, and its Import Maps… calls `FileTransfer.importFile`, so the menu and Settings share one reader and one writer. Errors (FR-IO-09): not a backup, made by a newer version, damaged.
+
 ## Not here
 
 - OPML (FR-IO-06): not planned for V1. It would be a third `InterchangeFormat` case over the same `OutlineDraft`.
