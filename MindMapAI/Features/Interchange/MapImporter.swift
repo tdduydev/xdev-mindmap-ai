@@ -17,6 +17,8 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
     case unreadableText(fileName: String)
     case emptyDocument(fileName: String)
     case couldNotRead(fileName: String)
+    /// The open panel reported an error instead of a file.
+    case couldNotOpenPanel
     /// The map or the new topics could not be saved.
     case couldNotSave
 
@@ -24,7 +26,7 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
         switch self {
         case .unsupportedType(let name), .unreadableText(let name), .emptyDocument(let name), .couldNotRead(let name):
             String(localized: "Can’t Import “\(name)”")
-        case .couldNotSave:
+        case .couldNotOpenPanel, .couldNotSave:
             String(localized: "Couldn’t Import File")
         }
     }
@@ -39,6 +41,8 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
             String(localized: "The file has no topics in it. MindMap AI reads headings and list items in Markdown, and one topic per line in plain text.")
         case .couldNotRead:
             String(localized: "MindMap AI couldn’t read the file. Check that it opens in another app, then try again.")
+        case .couldNotOpenPanel:
+            String(localized: "The file couldn’t be opened. Try again.")
         case .couldNotSave:
             String(localized: "The imported topics couldn’t be saved. Try again.")
         }

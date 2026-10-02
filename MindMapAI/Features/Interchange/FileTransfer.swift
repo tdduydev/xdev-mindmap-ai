@@ -60,7 +60,7 @@ final class FileTransfer {
             await importFile(at: url, into: destination)
         case .failure(let error):
             Log.interchange.error("The open panel failed: \(error.localizedDescription, privacy: .private)")
-            failure = .couldNotRead(fileName: "")
+            failure = .couldNotOpenPanel
         }
     }
 
@@ -85,7 +85,12 @@ final class FileTransfer {
             }
             openMap(id)
         case .openMap(let session):
-            if !session.importOutline(file.draft) { failure = .couldNotSave }
+            guard session.importOutline(file.draft) else {
+                failure = .couldNotSave
+                return
+            }
         }
+        // Counts only: titles and file names are the user's content (docs/privacy.md).
+        Log.interchange.info("Imported \(file.draft.items.count, privacy: .public) topics from \(file.format.rawValue, privacy: .public)")
     }
 }

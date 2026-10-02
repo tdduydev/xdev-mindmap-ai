@@ -36,6 +36,7 @@ struct MindMapAIApp: App {
             SidebarCommands()
             // Show/Hide Inspector (⌃⌘I) in the View menu, driving each window's `.inspector`.
             InspectorCommands()
+            FileTransferCommands()
         }
 
         #if os(macOS)

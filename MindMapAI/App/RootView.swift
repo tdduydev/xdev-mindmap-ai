@@ -6,12 +6,20 @@ struct RootView: View {
     let environment: AppEnvironment
     @Environment(AIService.self) private var ai
     @Environment(\.scenePhase) private var scenePhase
-    @State private var router = AppRouter()
+    @State private var router: AppRouter
     @State private var library: LibraryModel
+    @State private var transfer: FileTransfer
 
     init(environment: AppEnvironment) {
         self.environment = environment
-        _library = State(initialValue: LibraryModel(repository: environment.repository))
+        let router = AppRouter()
+        let library = LibraryModel(repository: environment.repository)
+        _router = State(initialValue: router)
+        _library = State(initialValue: library)
+        _transfer = State(initialValue: FileTransfer(
+            createMap: { await library.createMap($0) },
+            openMap: { router.selectedMapID = $0 }
+        ))
     }
 
     var body: some View {
@@ -44,6 +52,7 @@ struct RootView: View {
             if phase == .active { Task { await ai.refresh() } }
         }
         .focusedSceneValue(\.newMapWithAIAction, ai.showsEntryPoints ? NewMapAction(perform: createMapWithAI) : nil)
+        .modifier(FileTransferPresenter(transfer: transfer, entitlements: ai.entitlements))
     }
 
     /// A new map that opens on Generate Map (FR-AI-03).

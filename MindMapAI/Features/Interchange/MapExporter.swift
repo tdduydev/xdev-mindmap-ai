@@ -1,5 +1,7 @@
 import Foundation
+import MindMapDomain
 import MindMapGraph
+import MindMapInterchange
 import SwiftUI
 import UniformTypeIdentifiers
 

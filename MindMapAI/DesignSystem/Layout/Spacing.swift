@@ -45,4 +45,6 @@ enum Metrics {
     static let suggestionListHeight: CGFloat = 280
     /// AI sheets on the Mac, where a sheet takes its content's size.
     static let aiSheetWidth: CGFloat = 440
+    /// File ▸ Export… on the Mac.
+    static let exportSheetWidth: CGFloat = 440
 }

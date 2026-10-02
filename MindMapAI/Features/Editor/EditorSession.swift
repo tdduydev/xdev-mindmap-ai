@@ -1,6 +1,7 @@
 import Foundation
 import MindMapDomain
 import MindMapGraph
+import MindMapInterchange
 import MindMapPersistence
 import Observation
 import OSLog
@@ -254,6 +255,17 @@ final class EditorSession {
     /// Only branch colours change, so the layout and selection stay as they are (FR-THM-03).
     func changeTheme(to theme: MindMapTheme) {
         perform(ChangeThemeCommand(theme: theme), named: String(localized: "Change Theme"))
+    }
+
+    /// Adds an imported file under the selected topic (the central topic when
+    /// nothing is selected), as one undo step (FR-IO-07), and selects its first topic.
+    @discardableResult
+    func importOutline(_ draft: OutlineDraft) -> Bool {
+        guard let parent = selection ?? rootID, !draft.isEmpty else { return false }
+        let command = InsertOutlineCommand(draft, under: parent)
+        guard perform(command, named: String(localized: "Import")) else { return false }
+        if let first = command.topNodeIDs.first { selection = first }
+        return true
     }
 
     func undo() {

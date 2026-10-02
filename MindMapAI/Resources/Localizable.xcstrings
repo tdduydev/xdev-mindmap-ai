@@ -103,6 +103,16 @@
         }
       }
     },
+    "A4" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A4"
+          }
+        }
+      }
+    },
     "AI" : {
       "localizations" : {
         "vi" : {
@@ -199,6 +209,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kích thước thật"
+          }
+        }
+      }
+    },
+    "Actual Size on Several Pages" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kích thước thật, chia nhiều trang"
           }
         }
       }
@@ -373,6 +393,16 @@
         }
       }
     },
+    "Applies to Markdown and plain text exports." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áp dụng khi xuất Markdown và văn bản thuần."
+          }
+        }
+      }
+    },
     "As Canvas" : {
       "localizations" : {
         "vi" : {
@@ -399,6 +429,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đặt một câu hỏi để ý tưởng tập trung hơn, hoặc để trống để động não quanh chủ đề."
+          }
+        }
+      }
+    },
+    "Background" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nền"
           }
         }
       }
@@ -469,6 +509,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Khung vẽ"
+          }
+        }
+      }
+    },
+    "Can’t Import “%@”" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không nhập được “%@”"
           }
         }
       }
@@ -580,6 +630,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tiếp tục"
+          }
+        }
+      }
+    },
+    "Couldn’t Export Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không xuất được sơ đồ"
+          }
+        }
+      }
+    },
+    "Couldn’t Import File" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không nhập được tệp"
           }
         }
       }
@@ -844,6 +914,36 @@
         }
       }
     },
+    "Export" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xuất"
+          }
+        }
+      }
+    },
+    "Export Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xuất sơ đồ"
+          }
+        }
+      }
+    },
+    "Export…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xuất…"
+          }
+        }
+      }
+    },
     "Favorite" : {
       "localizations" : {
         "vi" : {
@@ -870,6 +970,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tìm chủ đề còn thiếu"
+          }
+        }
+      }
+    },
+    "Fit to One Page" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vừa một trang"
+          }
+        }
+      }
+    },
+    "Format" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Định dạng"
           }
         }
       }
@@ -964,12 +1084,53 @@
         }
       }
     },
+    "High (2×)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cao (2×)"
+          }
+        }
+      }
+    },
     "Ideas" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ý tưởng"
+          }
+        }
+      }
+    },
+    "Import" : {
+      "comment" : "Undo action name after File ▸ Import into Map…",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập"
+          }
+        }
+      }
+    },
+    "Import into Map…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập vào sơ đồ…"
+          }
+        }
+      }
+    },
+    "Import…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập…"
           }
         }
       }
@@ -990,6 +1151,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sang tiếng Việt"
+          }
+        }
+      }
+    },
+    "Include" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phạm vi"
+          }
+        }
+      }
+    },
+    "Include Notes" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kèm ghi chú"
           }
         }
       }
@@ -1094,6 +1275,36 @@
         }
       }
     },
+    "Markdown" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markdown"
+          }
+        }
+      }
+    },
+    "Markdown and plain text open in any text editor and can be imported again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markdown và văn bản thuần mở được bằng mọi trình soạn thảo và nhập lại được."
+          }
+        }
+      }
+    },
+    "Match Appearance" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theo giao diện"
+          }
+        }
+      }
+    },
     "Merge Topics" : {
       "localizations" : {
         "vi" : {
@@ -1136,6 +1347,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "MindMap AI không mở được nơi lưu dữ liệu. Hãy khởi động lại ứng dụng. Nếu vẫn lỗi, hãy liên hệ hỗ trợ của xDev."
+          }
+        }
+      }
+    },
+    "MindMap AI couldn’t read the file. Check that it opens in another app, then try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI không đọc được tệp. Hãy kiểm tra tệp mở được bằng ứng dụng khác rồi thử lại."
+          }
+        }
+      }
+    },
+    "MindMap AI imports Markdown (.md) and plain text (.txt) files." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI nhập được tệp Markdown (.md) và văn bản thuần (.txt)."
           }
         }
       }
@@ -1350,6 +1581,56 @@
         }
       }
     },
+    "PDF" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF"
+          }
+        }
+      }
+    },
+    "PNG Image" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ảnh PNG"
+          }
+        }
+      }
+    },
+    "Pages" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trang"
+          }
+        }
+      }
+    },
+    "Paper Size" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khổ giấy"
+          }
+        }
+      }
+    },
+    "Plain Text" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Văn bản thuần"
+          }
+        }
+      }
+    },
     "Possible missing topics" : {
       "localizations" : {
         "vi" : {
@@ -1470,6 +1751,16 @@
         }
       }
     },
+    "Resolution" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Độ phân giải"
+          }
+        }
+      }
+    },
     "Review…" : {
       "localizations" : {
         "vi" : {
@@ -1496,6 +1787,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang viết lại tiêu đề…"
+          }
+        }
+      }
+    },
+    "Selected Branch" : {
+      "comment" : "Glossary: a branch is a topic with all its subtopics (“nhánh”).",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhánh đang chọn"
           }
         }
       }
@@ -1556,6 +1858,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tiêu chuẩn"
+          }
+        }
+      }
+    },
+    "Standard (1×)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chuẩn (1×)"
           }
         }
       }
@@ -1706,6 +2018,66 @@
         }
       }
     },
+    "Text and lines stay sharp at any zoom, and the text can be searched." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chữ và đường nét luôn sắc nét khi phóng to, và tìm kiếm được chữ."
+          }
+        }
+      }
+    },
+    "The file couldn’t be made or saved. Try again, or choose another folder." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tạo hoặc lưu được tệp. Hãy thử lại hoặc chọn thư mục khác."
+          }
+        }
+      }
+    },
+    "The file couldn’t be opened. Try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được tệp. Hãy thử lại."
+          }
+        }
+      }
+    },
+    "The file has no topics in it. MindMap AI reads headings and list items in Markdown, and one topic per line in plain text." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không có chủ đề nào. MindMap AI đọc tiêu đề và mục danh sách trong Markdown, và mỗi dòng một chủ đề trong văn bản thuần."
+          }
+        }
+      }
+    },
+    "The file isn’t UTF-8 or UTF-16 text. Save it as UTF-8 Markdown or plain text, then try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải văn bản UTF-8 hay UTF-16. Hãy lưu thành Markdown hoặc văn bản thuần UTF-8 rồi thử lại."
+          }
+        }
+      }
+    },
+    "The imported topics couldn’t be saved. Try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không lưu được các chủ đề vừa nhập. Hãy thử lại."
+          }
+        }
+      }
+    },
     "The suggestions couldn’t be used. Try again." : {
       "localizations" : {
         "vi" : {
@@ -1722,6 +2094,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chủ đề đã bị xoá nên các đề xuất của nó cũng được gỡ đi."
+          }
+        }
+      }
+    },
+    "The whole map, collapsed branches as they are on the canvas." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cả sơ đồ, nhánh đang thu gọn giữ nguyên như trên canvas."
           }
         }
       }
@@ -1765,6 +2147,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tính năng này thuộc MindMap AI Pro."
+          }
+        }
+      }
+    },
+    "This option comes with MindMap AI Pro." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuỳ chọn này có trong MindMap AI Pro."
           }
         }
       }
@@ -1850,6 +2242,16 @@
         }
       }
     },
+    "US Letter" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "US Letter"
+          }
+        }
+      }
+    },
     "Undo" : {
       "localizations" : {
         "vi" : {
@@ -1901,6 +2303,16 @@
         }
       }
     },
+    "Very High (3×)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rất cao (3×)"
+          }
+        }
+      }
+    },
     "View As" : {
       "localizations" : {
         "vi" : {
@@ -1917,6 +2329,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trang web"
+          }
+        }
+      }
+    },
+    "White" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trắng"
+          }
+        }
+      }
+    },
+    "Whole Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cả sơ đồ"
           }
         }
       }

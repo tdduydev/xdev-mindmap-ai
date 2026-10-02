@@ -1,6 +1,7 @@
 import Foundation
 import MindMapDomain
 import MindMapInterchange
+import SwiftUI
 import UniformTypeIdentifiers
 
 /// A file type File ▸ Export… writes.
@@ -169,4 +170,19 @@ struct ExportOptions: Equatable {
 /// The export defaults kept in Settings (FR-SET-07).
 enum ExportPreferences {
     static let includeNotesKey = "export.includeNotes"
+}
+
+/// The default the export sheet starts from (FR-SET-07); the sheet's toggle changes it too.
+struct ExportSettingsSection: View {
+    @AppStorage(ExportPreferences.includeNotesKey) private var includeNotes = true
+
+    var body: some View {
+        Section {
+            Toggle("Include Notes", isOn: $includeNotes)
+        } header: {
+            Text("Export")
+        } footer: {
+            Text("Applies to Markdown and plain text exports.")
+        }
+    }
 }

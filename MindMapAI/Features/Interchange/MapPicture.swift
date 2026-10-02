@@ -134,10 +134,8 @@ struct MapPictureView: View {
                 aiStyle: AnyShapeStyle(Palette.crossLink)
             )
             ForEach(picture.scene.topics) { topic in
-                if let spec = picture.specs.spec(level: topic.level) {
-                    StaticTopicCard(topic: topic, style: styles.style(for: topic), spec: spec)
-                        .position(x: topic.frame.midX - frame.minX, y: topic.frame.midY - frame.minY)
-                }
+                StaticTopicCard(topic: topic, style: styles.style(for: topic), spec: picture.specs.spec(level: topic.level))
+                    .position(x: topic.frame.midX - frame.minX, y: topic.frame.midY - frame.minY)
             }
         }
         .frame(width: frame.width, height: frame.height)

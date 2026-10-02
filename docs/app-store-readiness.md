@@ -65,7 +65,7 @@ JPEG or PNG, no transparency, 1 to 10 per set ([screenshot specifications](https
 
 | Item | Requirement | Status |
 | --- | --- | --- |
-| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`. Import and export (MM-10) need user-selected file access, so add `ENABLE_USER_SELECTED_FILES = readwrite` (or the matching entitlement) then. |
+| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). |
 | 2.4.5(ii) | Packaged and submitted with Xcode, one self-contained bundle | Met: single app target |
 | 2.4.5(iii) | No launch at login and no processes left after quit without consent | Met: none planned |
 | 2.4.5(iv) | No downloading apps, code or resources that add features | Applies to any later downloadable local model; see 2.5.2 below |
@@ -111,7 +111,7 @@ App Store Connect rejects uploads that use a required-reason API without a decla
 | API | Codes that fit this app | Status |
 | --- | --- | --- |
 | UserDefaults (`@AppStorage`) | CA92.1 (the app's own defaults); 1C8F.1 once the Share Extension shares defaults through an App Group | CA92.1 declared in `MindMapAI/Resources/PrivacyInfo.xcprivacy` |
-| File timestamp | C617.1 (files in the app or CloudKit container), DDA9.1 (dates shown to the user), 3B52.1 (files the user picked) | Not used yet. Add when import, export or file dates arrive (MM-10). |
+| File timestamp | C617.1 (files in the app or CloudKit container), DDA9.1 (dates shown to the user), 3B52.1 (files the user picked) | Not used: import reads a picked file's contents only and export writes through the save panel (MM-10). Add 3B52.1 if a file's dates or size are ever read. |
 | System boot time, disk space, active keyboards | — | Not used |
 
 The manifest also sets `NSPrivacyTracking = false` with no tracking domains and no collected data types, which matches Data Not Collected. *[Inference, not verified]* Each extension carries its own `PrivacyInfo.xcprivacy`.
