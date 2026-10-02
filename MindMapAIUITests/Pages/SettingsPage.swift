@@ -79,7 +79,11 @@ struct SettingsPage {
         #if os(macOS)
         app.typeKey("w", modifierFlags: .command)
         #else
-        doneButton.tap()
+        // Done is on the list of panes only; a pane's page goes back to it first.
+        if !doneButton.exists {
+            app.navigationBars.buttons.element(boundBy: 0).tap()
+        }
+        doneButton.waitToExist().tap()
         #endif
     }
 }
