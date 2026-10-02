@@ -24,6 +24,14 @@ struct BranchPalette: Hashable, Sendable {
         ColorToken(light: 0xC2385E, dark: 0xFF7FA0, lightHighContrast: 0x972C49, darkHighContrast: 0xFF9FB8), // rose
         ColorToken(light: 0x1F8A55, dark: 0x4ADE9B, lightHighContrast: 0x186C42, darkHighContrast: 0x77E6B4), // green
     ])
+
+    /// Every branch the Standard blue, so levels are told apart by shape and weight only.
+    static let xdevBlue = BranchPalette(colors: [standard.colors[0]])
+
+    /// Every branch neutral, for printing and calm maps.
+    static let graphite = BranchPalette(colors: [
+        ColorToken(light: 0x5B6885, dark: 0x9DAAC7, lightHighContrast: 0x465270, darkHighContrast: 0xBAC4DA),
+    ])
 }
 
 /// A map's look. Themes change colour only, never layout, fonts or shapes.
@@ -31,11 +39,15 @@ struct MapTheme: Hashable, Sendable {
     let branches: BranchPalette
 
     static let standard = MapTheme(branches: .standard)
+    static let xdevBlue = MapTheme(branches: .xdevBlue)
+    static let graphite = MapTheme(branches: .graphite)
 
-    /// The theme stored on the map. xDev Blue and Graphite come with MM-18.
+    /// The theme stored on the map.
     init(_ theme: MindMapTheme) {
         switch theme {
         case .standard: self = .standard
+        case .xdevBlue: self = .xdevBlue
+        case .graphite: self = .graphite
         }
     }
 

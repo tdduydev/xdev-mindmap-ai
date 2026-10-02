@@ -10,7 +10,14 @@ struct SettingsView: View {
         #if os(macOS)
         TabView {
             Tab("General", systemImage: "gearshape") {
-                Form { GeneralSettingsSection() }
+                Form {
+                    GeneralSettingsSection()
+                    AISettingsSection()
+                    ExportSettingsSection()
+                }
+            }
+            Tab("Pro", systemImage: "star") {
+                Form { ProSettingsSection() }
             }
             Tab("Privacy", systemImage: "hand.raised") {
                 Form { PrivacySettingsSection() }
@@ -25,6 +32,9 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 GeneralSettingsSection()
+                ProSettingsSection()
+                AISettingsSection()
+                ExportSettingsSection()
                 PrivacySettingsSection()
                 AboutSettingsSection()
             }
@@ -32,6 +42,7 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .accessibilityIdentifier(AccessibilityID.Settings.done)
                 }
             }
         }
@@ -40,7 +51,7 @@ struct SettingsView: View {
 }
 
 struct GeneralSettingsSection: View {
-    @AppStorage(AppearancePreference.storageKey) private var appearance = AppearancePreference.system
+    @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
 
     var body: some View {
         Section("General") {
@@ -49,18 +60,21 @@ struct GeneralSettingsSection: View {
                     Text(option.title).tag(option)
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.Settings.appearance)
         }
     }
 }
 
-/// Plain statements of where data goes. Each row must stay true: add the AI
-/// row when on-device AI ships, and change Data Storage when iCloud sync does.
+/// Plain statements of where data goes. Each row must stay true: change Data
+/// Storage when iCloud sync ships, and the AI row if AI ever leaves the device.
 struct PrivacySettingsSection: View {
     var body: some View {
         Section {
             LabeledContent("Data Storage", value: String(localized: "On this device"))
             LabeledContent("xDev Servers", value: String(localized: "None. Your maps are never sent to xDev."))
             LabeledContent("Analytics", value: String(localized: "None"))
+            LabeledContent("AI", value: String(localized: "On this device. Nothing is sent to xDev."))
+            Link("Privacy Policy", destination: AppLinks.privacyPolicy)
         } header: {
             Text("Privacy")
         } footer: {
@@ -72,12 +86,13 @@ struct PrivacySettingsSection: View {
 struct AboutSettingsSection: View {
     var body: some View {
         Section("About") {
-            LabeledContent("MindMap AI", value: Self.version)
+            BrandMark()
+                .padding(.vertical, Spacing.xs)
+            LabeledContent("Version", value: Self.version)
             Text("Think. Draw. Connect.")
                 .foregroundStyle(.secondary)
-            Text("by xDev")
-                .foregroundStyle(.secondary)
             Link("Website", destination: AppLinks.website)
+            Link("Support", destination: AppLinks.support)
         }
     }
 
@@ -85,6 +100,7 @@ struct AboutSettingsSection: View {
         let info = Bundle.main.infoDictionary
         let marketing = info?["CFBundleShortVersionString"] as? String ?? "–"
         let build = info?["CFBundleVersion"] as? String ?? "–"
-        return String(localized: "Version \(marketing) (\(build))")
+        // Under a "Version" label, so the numbers alone; they read the same in every language.
+        return "\(marketing) (\(build))"
     }
 }

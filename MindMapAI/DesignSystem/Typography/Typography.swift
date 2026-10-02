@@ -9,6 +9,9 @@ enum Typography {
     static let rowTitle = Font.body.weight(.medium)
     static let rowDetail = Font.subheadline
     static let banner = Font.callout
+    /// "by xDev" under the wordmark in `BrandMark`.
+    static let brandByline = Font.subheadline
+    static let paywallTitle = Font.title2.weight(.semibold)
 
     /// Brand fonts for the canvas, the outline's topics, notes and display
     /// headlines. Each scales with Dynamic Type on iOS and iPadOS through

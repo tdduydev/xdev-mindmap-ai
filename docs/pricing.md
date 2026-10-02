@@ -11,7 +11,15 @@ Decided 2026-10-02: MindMap AI is free, with one **Pro** unlock at **USD 14.99**
 | Advanced AI: generate a map from a long description, summarize a whole map, find missing ideas | Expand a topic, brainstorm, rewrite, summarize a branch |
 | Voice input | Everything else: maps, topics, canvas, outline, search, iCloud sync, Recently Deleted |
 
-The list lives in one place in code (MM-13), so it can change without touching the features themselves.
+The list lives in one place in code, so it can change without touching the features themselves.
+
+## In code
+
+- Product ID `asia.xdev.mindmapai.pro`, non-consumable, in `MindMapAITests/MindMapAI.storekit` (local testing and the scheme's Run action). The App Store Connect product must use the same ID.
+- `ProFeature` (`MindMapAI/Features/Store/ProFeature.swift`) lists what Pro unlocks. A Pro feature asks `ProEntitlement.allows(_:)` before it runs and opens `PaywallView(feature:)` when the answer is no; free features never ask.
+- `ProEntitlement` reads `Transaction.currentEntitlements` at launch and whenever the app becomes active, listens to `Transaction.updates`, and finishes transactions. A refunded transaction locks Pro again. Nothing is cached in defaults.
+- Settings ▸ MindMap AI Pro shows the status, opens the paywall and has Restore Purchases (`AppStore.sync()`).
+- Family Sharing is on (decided 2026-10-02), in the configuration file and in App Store Connect. It cannot be turned off again once on.
 
 ## Market check
 

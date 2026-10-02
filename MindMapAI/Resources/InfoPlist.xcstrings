@@ -1,0 +1,42 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Asked the first time someone adds topics by voice.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI listens while you add topics by voice. Speech is turned into text on this device."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI nghe khi bạn thêm chủ đề bằng giọng nói. Giọng nói được chuyển thành chữ trên thiết bị này."
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription" : {
+      "comment" : "Asked the first time someone adds topics by voice.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI turns what you say into topics. Speech recognition runs on this device and nothing is sent to xDev."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI chuyển lời bạn nói thành chủ đề. Nhận dạng giọng nói chạy trên thiết bị này và không gửi gì tới xDev."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

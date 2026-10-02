@@ -17,6 +17,13 @@ public protocol AIProvider: Sendable {
     func rewrite(_ request: RewriteRequest) async throws -> AIRewrite
     func summarize(_ request: SummarizeRequest) async throws -> AISummary
     func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal
+
+    /// The answer to a suggestion request as it is written, so the preview can
+    /// show the first topics within seconds (NFR-PERF-07). The last snapshot is
+    /// complete and checked; earlier ones are for display only. Cancelling the
+    /// consuming task cancels the request. A default runs the one-shot method
+    /// and yields once.
+    func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error>
 }
 
 /// Why an AI request produced nothing. Each case maps to one calm message in

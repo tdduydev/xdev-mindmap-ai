@@ -17,6 +17,11 @@ let package = Package(
         .library(name: "MindMapAICore", targets: ["MindMapAICore"]),
         .library(name: "MindMapAIApple", targets: ["MindMapAIApple"]),
         .library(name: "MindMapTestSupport", targets: ["MindMapTestSupport"]),
+        .library(name: "MindMapInterchange", targets: ["MindMapInterchange"]),
+        .library(name: "MindMapSearch", targets: ["MindMapSearch"]),
+        .library(name: "MindMapSharing", targets: ["MindMapSharing"]),
+        .library(name: "MindMapIntents", targets: ["MindMapIntents"]),
+        .library(name: "MindMapCapture", targets: ["MindMapCapture"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -25,13 +30,13 @@ let package = Package(
         .target(name: "MindMapLayout", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph"]),
-        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"]),
+        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"], resources: [.copy("Fixtures")]),
         .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout"]),
         // AICore never imports FoundationModels, so the graph, the UI and tests
         // depend on plain values; only AIApple talks to the model.
         .target(name: "MindMapAICore", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .target(name: "MindMapAIApple", dependencies: ["MindMapAICore"]),
-        .target(name: "MindMapTestSupport", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore"]),
+        .target(name: "MindMapTestSupport", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore", "MindMapCapture"]),
         .testTarget(
             name: "MindMapAICoreTests",
             dependencies: ["MindMapAICore", "MindMapDomain", "MindMapGraph", "MindMapTestSupport"]
@@ -40,5 +45,33 @@ let package = Package(
             name: "MindMapAIAppleTests",
             dependencies: ["MindMapAIApple", "MindMapAICore", "MindMapGraph", "MindMapTestSupport"]
         ),
+        .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),
+        .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch"]),
+        // What the Share Extension and the App Intents do to maps, without UI
+        // or AI, so the extension links only the core it needs (NFR-PERF-08).
+        .target(
+            name: "MindMapSharing",
+            dependencies: ["MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapInterchange"]
+        ),
+        .testTarget(
+            name: "MindMapSharingTests",
+            dependencies: ["MindMapSharing", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapInterchange"]
+        ),
+        // App Intents, Shortcuts and Spotlight (MM-11). Here rather than in the
+        // app so the intents are an `AppIntentsPackage` any target can include.
+        .target(
+            name: "MindMapIntents",
+            dependencies: ["MindMapDomain", "MindMapPersistence", "MindMapInterchange", "MindMapSharing"]
+        ),
+        .testTarget(
+            name: "MindMapIntentsTests",
+            dependencies: ["MindMapIntents", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapSharing"]
+        ),
+        // Speech and the microphone sit behind `VoiceTranscribing`, so tests and
+        // the Simulator use `FakeVoiceTranscriber` instead of the device models.
+        .target(name: "MindMapCapture", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .testTarget(name: "MindMapCaptureTests", dependencies: ["MindMapCapture", "MindMapGraph", "MindMapTestSupport"]),
     ]
 )

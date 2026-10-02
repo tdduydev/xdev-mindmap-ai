@@ -75,13 +75,15 @@ Topic text on any of these fills stays `topicText`; it measures 9.2:1 or more on
 
 ### Themes
 
-A map's `theme` (already a field of `MindMap`, stored as a string with a fallback) picks the branch palette. *[Proposal]* three themes for V1, built in MM-18:
+A map's `theme` (`MindMapTheme`, stored as a raw string) picks the branch palette. Three themes for V1 (MM-18, FR-THM-02); Standard is free, the other two are MindMap AI Pro (docs/pricing.md):
 
-| Theme | Branch colours |
-| --- | --- |
-| Standard (default) | The six-colour palette above |
-| xDev Blue | Every branch blue: light `#0B6CF5`, dark `#4AAEFF`; levels told apart by shape and weight only |
-| Graphite | Every branch neutral: light `#5B6885`, dark `#9DAAC7`, for printing and calm maps |
+| Theme | Stored value | Branch colours (light / dark / light IC / dark IC) |
+| --- | --- | --- |
+| Standard (default) | `standard` | The six-colour palette above |
+| xDev Blue | `xdevBlue` | Every branch the Standard blue: `#0B6CF5` / `#4AAEFF` / `#0954BF` / `#77C2FF`; levels told apart by shape and weight only |
+| Graphite | `graphite` | Every branch neutral: `#5B6885` / `#9DAAC7` / `#465270` / `#BAC4DA`, for printing and calm maps |
+
+Fills and badges derive from the line colour as for Standard (`BranchColors`), so a theme is one `BranchPalette`. A stored value this build does not know (written by a newer version) opens as Standard; the map is not rewritten until the user edits it, but the next save does store `standard`. The theme is picked per map in View ▸ Theme and in the inspector (Show Inspector, ⌃⌘I); each pick is one "Change Theme" undo step (`ChangeThemeCommand`).
 
 Themes change colour only, never layout, fonts or shapes.
 
@@ -158,7 +160,7 @@ Edges are drawn under topics and never cross a topic's box; the layout engine (M
 | Collapsed | Badge with the number of hidden topics (`badgeFill`, `badge` text) |
 | Has note | `note.text` symbol, 11 pt, `topicTextSecondary`, after the title |
 | Search match | `searchMatchFill` behind the title, `searchMatchBorder` outline; the current match also gets the selection ring |
-| AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient before the title, title in `topicTextSecondary`; Accept and Discard buttons on hover or selection |
+| AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient on the top-leading corner, title in `topicTextSecondary`; Accept and Discard buttons under the topic on hover or selection. MM-8 put the symbol on the corner rather than before the title so the title keeps the measured width of a plain topic |
 | Accepted AI topic | Looks like any topic (its origin is kept in `metadata.origin`) |
 
 ## Elevation
@@ -221,6 +223,7 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 | `EmptyState` | `ContentUnavailableView` with a `display` headline on the canvas, system text in lists | Always with an action button |
 | `SyncStatusLine` | Caption text and symbol in the sidebar footer | Never an alert |
 | `TopicInspector` | `.inspector`, note editor in the `note` font | Sheet on iPhone |
+| `BrandMark` | `BrandMark` image set (from `docs/brand/mindmap-ai-icon-v1.png`, 64 pt at @1x/@2x/@3x) in a continuous rounded square, plus live text: "MindMap AI" in `display` (Space Grotesk SemiBold) and "by xDev" in `brandByline` | Lockup in the library's empty state and Settings ▸ About; icon alone, 32 pt, on the storage recovery screen. Never in the sidebar or toolbar. One VoiceOver element, "MindMap AI by xDev" |
 
 ## Accessibility
 
@@ -261,4 +264,4 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 
 - The exact list and colours of themes beyond Standard (MM-18).
 - Icon Composer appearances (MM-0j) and whether the app icon picks up the AI gradient.
-- Topic shapes or icons chosen by the user (not in V1).
+- Topic shapes chosen by the user (not in V1). Topic colour and symbol per topic are designed in [node-organization.md](node-organization.md) (MM-32).

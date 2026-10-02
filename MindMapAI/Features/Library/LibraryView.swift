@@ -1,17 +1,24 @@
 import MindMapDomain
+import MindMapSearch
 import SwiftUI
 
 struct LibraryView: View {
-    let model: LibraryModel
+    @Bindable var model: LibraryModel
     let section: LibrarySection
     @Binding var selection: MapID?
+    /// Shows a map in a window of its own (FR-LIB-10).
+    var openInNewWindow: ((MapID) -> Void)?
     @State private var pendingDeletion: MindMap?
+    @Environment(FileTransfer.self) private var transfer: FileTransfer?
 
     var body: some View {
-        let maps = model.maps(in: section)
+        let rows = rows
+        let maps = rows.map(\.map)
         List(selection: $selection) {
-            ForEach(maps) { map in
-                MapRow(map: map)
+            ForEach(rows) { row in
+                let map = row.map
+                MapRow(map: map, excerpt: row.excerpt)
+                    .accessibilityIdentifier(AccessibilityID.Library.map)
                     .contextMenu { menu(for: map) }
                     .swipeActions {
                         Button(role: .destructive) {
@@ -22,10 +29,19 @@ struct LibraryView: View {
                     }
             }
         }
+        .accessibilityIdentifier(AccessibilityID.Library.list)
         .overlay {
-            if model.hasLoaded, maps.isEmpty {
+            if model.isSearching {
+                if maps.isEmpty, model.searchedQuery == SearchQuery(model.searchText) {
+                    ContentUnavailableView.search(text: model.searchText)
+                }
+            } else if model.hasLoaded, maps.isEmpty {
                 emptyState
             }
+        }
+        .searchable(text: $model.searchText, prompt: Text("Maps and Topics"))
+        .task(id: SearchKey(text: model.searchText, generation: model.searchGeneration)) {
+            await model.search()
         }
         .navigationTitle(Text(section.title))
         .toolbar {
@@ -33,6 +49,16 @@ struct LibraryView: View {
                 // ⌘N lives in the File menu (MapCommands), which calls the same action.
                 Button(action: create) {
                     Label("New Mind Map", systemImage: "plus")
+                }
+                .accessibilityIdentifier(AccessibilityID.Library.newMap)
+            }
+            if let transfer {
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        transfer.beginImport(.newMap)
+                    } label: {
+                        Label("Import…", systemImage: "square.and.arrow.down")
+                    }
                 }
             }
         }
@@ -67,6 +93,14 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func menu(for map: MindMap) -> some View {
+        if let openInNewWindow {
+            Button {
+                openInNewWindow(map.id)
+            } label: {
+                Label("Open in New Window", systemImage: "macwindow.badge.plus")
+            }
+            Divider()
+        }
         Button {
             Task { await model.toggleFavorite(map) }
         } label: {
@@ -88,16 +122,45 @@ struct LibraryView: View {
     private var emptyState: some View {
         switch section {
         case .all:
+            // The first screen of a new install, so it carries the logo (FR-LIB-08).
             ContentUnavailableView {
-                Label("Start with one thought.", systemImage: "point.3.connected.trianglepath.dotted")
+                VStack(spacing: Spacing.lg) {
+                    BrandMark()
+                    Text("Start with one thought.")
+                }
             } actions: {
                 Button("New Mind Map", action: create)
                     .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier(AccessibilityID.Library.newMap)
             }
         case .recent:
             ContentUnavailableView("No Recent Maps", systemImage: "clock", description: Text("Maps you edit appear here."))
         case .favorites:
             ContentUnavailableView("No Favorites", systemImage: "star", description: Text("Mark a map as a favorite to find it here."))
+        }
+    }
+
+    private struct Row: Identifiable {
+        let map: MindMap
+        let excerpt: String?
+        var id: MapID { map.id }
+    }
+
+    private struct SearchKey: Equatable {
+        let text: String
+        let generation: Int
+    }
+
+    /// The section's maps, or while searching, the ones that match.
+    private var rows: [Row] {
+        guard model.isSearching else {
+            return model.maps(in: section).map { Row(map: $0, excerpt: nil) }
+        }
+        return model.searchRows(in: section).map { row in
+            switch row.match {
+            case .title: Row(map: row.map, excerpt: nil)
+            case .content(let excerpt): Row(map: row.map, excerpt: excerpt)
+            }
         }
     }
 
@@ -127,6 +190,8 @@ struct LibraryView: View {
 
 struct MapRow: View {
     let map: MindMap
+    /// Topic text that matched a search, shown when the title did not match.
+    var excerpt: String?
 
     var body: some View {
         HStack(spacing: Spacing.sm) {
@@ -134,6 +199,11 @@ struct MapRow: View {
                 Text(map.title.isEmpty ? String(localized: "Untitled Map") : map.title)
                     .font(Typography.rowTitle)
                     .lineLimit(1)
+                if let excerpt {
+                    Text(excerpt)
+                        .font(Typography.rowDetail)
+                        .lineLimit(1)
+                }
                 Text("Edited \(map.updatedAt, format: .relative(presentation: .named))")
                     .font(Typography.rowDetail)
                     .foregroundStyle(.secondary)

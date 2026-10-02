@@ -1,3 +1,5 @@
+import MindMapAICore
+import MindMapDomain
 import SwiftUI
 
 /// What the menus can act on in the frontmost window.
@@ -6,9 +8,25 @@ extension FocusedValues {
     @Entry var newMapAction: NewMapAction?
     /// Set while the canvas shows; the zoom commands act on it.
     @Entry var canvasModel: CanvasModel?
+    /// The AI side of the frontmost map, for the AI menu.
+    @Entry var aiAssistant: AIAssistant?
+    @Entry var newMapWithAIAction: NewMapAction?
+    @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
+    /// Voice input for the frontmost map (FR-AI-21).
+    @Entry var voiceInput: VoiceInput?
+    /// The map selected in the library, to show in a window of its own.
+    @Entry var openInNewWindowAction: OpenInNewWindowAction?
 }
 
 struct NewMapAction {
+    let perform: () -> Void
+}
+
+struct KeyboardShortcutsAction {
+    let perform: () -> Void
+}
+
+struct OpenInNewWindowAction {
     let perform: () -> Void
 }
 
@@ -16,9 +34,15 @@ struct NewMapAction {
 /// guidelines ask; on iPad the same commands fill the menu bar and the
 /// keyboard shortcut overlay.
 struct MapCommands: Commands {
+    let ai: AIService
     @FocusedValue(\.editorSession) private var editor
+    @FocusedValue(\.aiAssistant) private var assistant
+    @FocusedValue(\.newMapWithAIAction) private var newMapWithAI
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
+    @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
+    @FocusedValue(\.voiceInput) private var voice
+    @FocusedValue(\.openInNewWindowAction) private var openInNewWindow
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -29,6 +53,10 @@ struct MapCommands: Commands {
                 .disabled(newMap == nil)
             Button("New Window") { openWindow(id: MindMapAIApp.mainWindowID) }
                 .keyboardShortcut("n", modifiers: [.command, .option])
+            // One window per map (FR-LIB-10); a map already in a window brings that window forward.
+            Button("Open in New Window") { openInNewWindow?.perform() }
+                .keyboardShortcut("o", modifiers: [.command, .option])
+                .disabled(openInNewWindow == nil)
         }
 
         // View menu: canvas or outline (⌘1, ⌘2, as Finder's View As), then zoom.
@@ -53,6 +81,13 @@ struct MapCommands: Commands {
                 .keyboardShortcut("0", modifiers: [.command, .option])
                 .disabled(canvas?.canZoomToFit != true)
             Divider()
+            Picker("Theme", selection: themeBinding) {
+                ForEach(MindMapTheme.allCases) { theme in
+                    Text(theme.title).tag(theme)
+                }
+            }
+            .disabled(editor == nil)
+            Divider()
         }
 
         CommandMenu("Topic") {
@@ -62,16 +97,23 @@ struct MapCommands: Commands {
             Button("Add Child Topic") { editor?.addChild() }
                 .keyboardShortcut(.return, modifiers: [.command, .shift])
                 .disabled(editor == nil)
-            // Return opens the title on the canvas; it is not a menu key equivalent
-            // here, because a bare Return would then never reach text fields.
+            // Space opens the title on the canvas (Return adds a sibling there,
+            // FR-KBD-01). Neither is a menu key equivalent: a bare key in the menu
+            // would never reach text fields. Help ▸ Keyboard Shortcuts lists them.
             Button("Rename Topic") { canvas?.beginEditingSelection() }
                 .disabled(canvas == nil || editor?.canRenameSelection != true)
+            // ⇧⌘E: no standard Mac meaning, and ⌥⌘N is already New Window.
+            Button("Edit Note") { editor?.editSelectionNote() }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
+                .disabled(editor?.canEditSelectionNote != true)
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
+            Button("Add Topics by Voice…") { voice?.present() }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
+                .disabled(voice == nil || voice?.isPresented == true)
             Divider()
-            // ⇧Tab for Promote comes with the keyboard work in MM-5, where Tab is
-            // kept for typing while a title is being edited.
+            // ⇧Tab promotes on the canvas, for the same reason as Space above.
             Button("Promote Topic") { editor?.promoteSelection() }
                 .disabled(editor?.canPromoteSelection != true)
             Button("Demote Topic") { editor?.demoteSelection() }
@@ -83,12 +125,95 @@ struct MapCommands: Commands {
             .disabled(editor?.canToggleSelection != true)
             Divider()
             Button("Delete Topic") { editor?.deleteSelection() }
+                .keyboardShortcut(deleteTopicShortcut)
                 .disabled(editor?.canDeleteSelection != true)
         }
 
-        CommandGroup(replacing: .help) {
-            Link("MindMap AI Website", destination: AppLinks.website)
+        // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            Menu("Find") {
+                Button("Find…") { editor?.showFind() }
+                    .keyboardShortcut("f")
+                    .disabled(editor == nil)
+                Button("Find Next") { editor?.findNext() }
+                    .keyboardShortcut("g")
+                    .disabled(editor?.hasFindMatches != true)
+                Button("Find Previous") { editor?.findPrevious() }
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .disabled(editor?.hasFindMatches != true)
+            }
         }
+
+        // Hidden, like every AI entry point, where the device can never run
+        // Apple Intelligence (FR-AI-02); otherwise disabled with one line of why.
+        if ai.showsEntryPoints {
+            CommandMenu("AI") { aiMenu }
+        }
+
+        CommandGroup(replacing: .help) {
+            Button("Keyboard Shortcuts") { keyboardShortcuts?.perform() }
+                .disabled(keyboardShortcuts == nil)
+            Link("MindMap AI Help", destination: AppLinks.support)
+            Link("MindMap AI Website", destination: AppLinks.website)
+            Link("Privacy Policy", destination: AppLinks.privacyPolicy)
+        }
+    }
+
+    @ViewBuilder
+    private var aiMenu: some View {
+        if let note = AIAvailabilityText.explanation(for: ai.modelState) {
+            Text(note)
+        }
+        Button("New Map with AI…") { newMapWithAI?.perform() }
+            .disabled(newMapWithAI == nil || !ai.modelState.isReady)
+        Button("Generate Map…") { assistant?.requestGenerateMap() }
+            .keyboardShortcut("g", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.generateMap) != true)
+        Divider()
+        Button("Suggest Subtopics") { assistant?.expand() }
+            .keyboardShortcut("e", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.expandTopic) != true)
+        Button("Brainstorm Ideas…") { assistant?.requestBrainstorm() }
+            .keyboardShortcut("b", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.brainstorm) != true)
+        Menu("Rewrite Topic") {
+            ForEach(RewriteStyle.allCases, id: \.self) { style in
+                Button(style.title) { assistant?.rewrite(style: style) }
+            }
+        }
+        .disabled(assistant?.canRun(.rewrite) != true)
+        Button("Summarize Branch") { assistant?.summarize() }
+            .keyboardShortcut("u", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.summarize) != true)
+        Button("Find Missing Topics") { assistant?.findMissingTopics() }
+            .keyboardShortcut("m", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.findMissingTopics) != true)
+        Divider()
+        Button("Accept All Suggestions") { assistant?.acceptAll() }
+            .keyboardShortcut(.return, modifiers: [.command, .control])
+            .disabled(assistant?.canAcceptSuggestions != true)
+        Button("Discard Suggestions") { assistant?.discardAll() }
+            .keyboardShortcut(.delete, modifiers: [.command, .control])
+            .disabled(assistant?.hasSuggestions != true)
+        // ⌘. is the Mac's key for stopping an operation.
+        Button("Cancel AI Request") { assistant?.cancel() }
+            .keyboardShortcut(".")
+            .disabled(assistant?.isWorking != true)
+    }
+
+    /// The bare Delete key comes and goes with focus, so it stays with text
+    /// fields and with a selected suggestion (see `EditorSession.deleteKeyDeletesTopic`).
+    private var deleteTopicShortcut: KeyboardShortcut? {
+        guard editor?.deleteKeyDeletesTopic == true, assistant?.holdsDeleteKey != true else { return nil }
+        return KeyboardShortcut(.delete, modifiers: [])
+    }
+
+    private var themeBinding: Binding<MindMapTheme> {
+        Binding(
+            get: { editor?.map.theme ?? .standard },
+            set: { editor?.changeTheme(to: $0) }
+        )
     }
 
     private func presentationBinding(_ presentation: EditorPresentation) -> Binding<Bool> {

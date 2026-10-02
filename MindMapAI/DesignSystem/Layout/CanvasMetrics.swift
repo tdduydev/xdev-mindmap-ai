@@ -58,7 +58,17 @@ enum CanvasMetrics {
 
     static let dropTargetOutlineWidth: CGFloat = 2
     static let dropInsertionBarWidth: CGFloat = 3
+    static let dropTargetDash: [CGFloat] = [5, 3]
     static let dragSourceOpacity: Double = 0.6
+    /// How far a pointer or finger moves on a topic before it drags (MM-5).
+    static let dragStartDistance: CGFloat = 4
+    /// The top and bottom quarter of a topic drop beside it, the middle inside.
+    static let dropEdgeFraction: CGFloat = 0.25
+    /// The selection rectangle dragged on empty canvas.
+    static let marqueeStrokeWidth: CGFloat = 1
+    static let marqueeFillOpacity: Double = 0.12
+    /// On touch, a hold on empty canvas before a drag draws a selection rectangle.
+    static let marqueeHoldDuration: Double = 0.4
 
     /// Size of the note symbol after a title.
     static let noteSymbolSize: CGFloat = 11
@@ -85,6 +95,14 @@ enum CanvasMetrics {
     static let fitZoomLimits: ClosedRange<CGFloat> = zoomLimits.lowerBound...1
     /// Room left around the map by Zoom to Fit, in view points.
     static let fitPadding: CGFloat = 48
+    /// Room around the map in an exported PNG or PDF, in canvas points; wide
+    /// enough for a collapse badge beside an outermost topic.
+    static let exportPadding: CGFloat = 48
+    /// Paper margin of an exported PDF page, in PDF points (1/72 inch).
+    static let exportPageMargin: CGFloat = 36
+    /// The longest side of an exported PNG, in pixels. A larger map is drawn at
+    /// a lower scale rather than making an image other apps cannot open.
+    static let exportMaximumPixels: CGFloat = 16_384
     /// Room kept between a topic scrolled into view and the view's edge.
     static let revealMargin: CGFloat = 32
     /// Fraction of the visible size drawn beyond each edge, so panning does not

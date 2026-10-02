@@ -36,10 +36,15 @@ flowchart LR
 | --- | --- | --- |
 | `MindMapDomain` | Foundation | SwiftUI, SwiftData, CloudKit, AI |
 | `MindMapGraph` | Domain | SwiftUI, SwiftData, CloudKit, AI, screen coordinates |
-| `MindMapPersistence` | Domain, Graph, SwiftData | SwiftUI |
+| `MindMapPersistence` | Domain, Graph, SwiftData; Core Data only for its remote-change notification | SwiftUI |
 | `MindMapLayout` | Domain, Graph, Foundation geometry types | SwiftUI, SwiftData ([[layout-engine]]) |
 | `MindMapAICore` | Domain, Graph, NaturalLanguage | FoundationModels, SwiftUI, SwiftData |
 | `MindMapAIApple` | AICore, FoundationModels (on-device model only) | Private Cloud Compute, SwiftUI, SwiftData |
+| `MindMapInterchange` | Domain, Graph | SwiftUI, SwiftData, AI ([[interchange]]) |
+| `MindMapSearch` | Domain, Graph: folding (case, Vietnamese marks, đ), library index and ranking, Find in a map | SwiftUI, SwiftData, AI |
+| `MindMapSharing` | Domain, Graph, Persistence, Interchange | SwiftUI, AI ([[system-integration]]) |
+| `MindMapIntents` | Sharing, Persistence, AppIntents, CoreSpotlight | SwiftUI, AI |
+| Share Extension | Domain, Graph, Persistence, Interchange, Sharing, SwiftUI | AI, AppIntents |
 | App target | All of the above, SwiftUI | SwiftData records directly |
 
 The package boundary enforces these rules at compile time (ADR 0002). Later phases add packages the same way: layout, AI, import, export.
@@ -56,12 +61,14 @@ View action ─▶ EditorSession builds a GraphCommand
             ─▶ GraphChangeSet (only the touched records)
             ─▶ MapRepository.save on its own actor, in order
             ─▶ SwiftData (▸ CloudKit once sync is on)
+            ─▶ MapRepository.changes(): .saved(summary) to every window's LibraryModel
 ```
 
 - **Commands are the only way to change a graph.** Keyboard, menu, drag, import and accepted AI proposals all become commands, so they all get the same validation, undo and saving path. AI never writes to SwiftData.
 - **The engine is a value type.** `GraphEngine` holds a `GraphState` and its history. It has no clock, storage or UI of its own: tests drive it directly.
 - **Undo replays recorded values.** Each command's `GraphChangeSet` keeps every touched value before and after; undo applies it reversed (ADR 0003).
 - **Saving is incremental.** The repository writes only the records in the change set, plus the map's own record. Saves run on a `@ModelActor`, chained so they land in order, and never block the UI.
+- **The library listens, it does not poll.** Every window subscribes to the repository's change stream; writes from outside the repository arrive as `.storeChanged`, told apart from its own through persistent history ([[data-model]]).
 
 ## State
 
@@ -69,10 +76,20 @@ View action ─▶ EditorSession builds a GraphCommand
 | --- | --- | --- |
 | Domain content (maps, nodes, edges) | `GraphState` ▸ repository | Yes |
 | Undo history | `GraphEngine` | No |
-| Selection, focus, open sheets | `EditorSession`, views | No |
-| Navigation | `AppRouter` | No |
+| Selection, focus, open sheets | `EditorSession`, views | Selection and canvas or outline per window, as scene state (`EditorRestoration`) |
+| Navigation | `AppRouter` | Library section and open map per window, as scene state |
 | AI suggestions (Phase 8) | Separate suggestion state | Only once accepted, as commands |
 | Canvas camera, inline edit, canvas or outline | `CanvasModel`, `EditorSession.presentation` ([[canvas]]) | No; possibly per map later, as a preference |
+
+## Windows
+
+A map is open at most once in the app, whatever the number of windows (FR-PER-08). `OpenMaps` (in `AppEnvironment`) hands every window the same `OpenMap` (session, canvas model, AI assistant) for a map ID, so there is one engine and one save queue per map. Two sessions on one map would each save from a graph the other has not seen, and the later save would undo the earlier one in the store (`OpenMapsTests` shows it). When no window shows a map any more, `OpenMaps` keeps it until its last save is done, so reopening it at once gets the same session rather than a load that misses those saves.
+
+The interface keeps one window per map too: picking a map that another window shows brings that window forward (`WindowHandle`: `NSWindow` on the Mac, `UISceneSession` activation on iPad) and leaves the current window as it was. File ▸ Open in New Window (⌥⌘O, and the library's context menu) shows a map in a `WindowGroup(for: MapID.self)` window of its own; on iPad that is one window per map in Stage Manager. The window that showed the map lets go of it first.
+
+The engine's history is per map, but each window has its own `UndoManager`. A window that stops showing a map removes that map's actions from its undo manager, so ⌘Z there never reaches a map it no longer shows; the toolbar's Undo and Redo still step through the engine's history.
+
+Each window keeps its library section, open map and editor state (selected topic IDs, canvas or outline) in `@SceneStorage`, so relaunching brings windows back as they were (FR-PER-09). Only IDs are stored, never map content. Topics deleted since are left out.
 
 ## Concurrency
 
@@ -93,9 +110,10 @@ Errors that reach the user are categories with plain messages (could not save, c
 | Layer | How |
 | --- | --- |
 | Domain, Graph, Layout | Swift Testing in the package, `swift test` on the Mac host |
-| Persistence | Swift Testing with in-memory and on-disk stores |
+| Persistence | Swift Testing with in-memory and on-disk stores; a migration harness on a checked-in V1 store; opt-in load and save benchmarks ([[data-model]]) |
 | AI | `MindMapAICoreTests` with `MockAIProvider`; `MindMapAIAppleTests` run the real model only where `SystemLanguageModel.default.isAvailable` |
 | App | `MindMapAITests`, hosted on macOS: library and editor sessions end to end on an in-memory store |
-| Platforms | `scripts/ci.sh` also builds for the iOS Simulator; UI tests arrive with the canvas |
+| Platforms | `scripts/ci.sh` also builds for the iOS Simulator |
+| UI | `MindMapAIUITests` (XCUITest) on macOS and the iOS Simulator with `scripts/ui-tests.sh`, in the `-uitest` mode with fixture maps; see [[testing]] |
 
 There is no hosted CI. `scripts/ci.sh` is the gate before merging.

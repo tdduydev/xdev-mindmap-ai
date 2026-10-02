@@ -30,6 +30,7 @@
 | `ConnectNodesCommand` | Adds a cross-link (relationship or reference, optional trimmed label) | A missing end, a link to itself, the same link (ends, direction, type) twice |
 | `RemoveEdgeCommand` | Deletes a cross-link | A missing link |
 | `SetAllCollapsedCommand.collapseAll / .expandAll` | Collapses every topic with children except the root, or expands all; leaves untouched | Nothing |
+| `RevealNodeCommand` | Opens every collapsed ancestor of a topic, for Find; a visible topic is a no-op | A missing node |
 | `RenameMapCommand` | Sets the map's title; the central topic keeps its own | Nothing |
 | `BatchCommand` | Several commands as one atomic undo step | Anything any part refuses; nothing applies |
 
