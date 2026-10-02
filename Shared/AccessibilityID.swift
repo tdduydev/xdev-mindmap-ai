@@ -53,6 +53,16 @@ nonisolated enum AccessibilityID {
         static let addCentralTopic = "canvas.addCentralTopic"
     }
 
+    /// A topic's URL link (FR-ORG-26).
+    enum Link {
+        static let field = "link.field"
+        static let save = "link.save"
+        static let remove = "link.remove"
+        static let cancel = "link.cancel"
+        static let error = "link.error"
+        static let open = "link.open"
+    }
+
     enum Chat {
         static let panel = "chat.panel"
         static let field = "chat.field"

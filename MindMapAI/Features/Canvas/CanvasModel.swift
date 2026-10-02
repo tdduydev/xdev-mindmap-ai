@@ -515,6 +515,15 @@ final class CanvasModel {
         session.editSelectionNote()
     }
 
+    func editLink(_ id: NodeID) {
+        performFromContextMenu(on: id) { $0.selection = id; $0.beginEditingSelectionLink() }
+    }
+
+    func removeLink(_ id: NodeID) {
+        commitEditing()
+        session.removeLink(from: id)
+    }
+
     // MARK: Multi-selection
 
     /// How a click or tap on a topic changes the selection.

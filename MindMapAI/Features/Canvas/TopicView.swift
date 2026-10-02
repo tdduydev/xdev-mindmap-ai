@@ -61,6 +61,11 @@ struct TopicView: View {
         .overlay(alignment: .topTrailing) {
             if topic.hasNote, !topic.isSuggestion { noteMark }
         }
+        .overlay(alignment: .bottomTrailing) {
+            if let link = topic.link, let url = link.url, !topic.isSuggestion {
+                TopicLinkButton(link: link, url: url, style: style)
+            }
+        }
         .overlay {
             if isSelected { selectionRing }
         }
@@ -305,6 +310,7 @@ struct TopicContextMenu: View {
             .disabled(isRoot)
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
+        TopicLinkMenuItems(topic: topic, model: model)
         TagsMenu(session: model.session, targets: model.contextTargets(for: topic.id), onAddTag: { model.addTag(to: topic.id) })
         #if os(iOS)
         // Touch has no ⌘-click.
@@ -477,6 +483,7 @@ struct TopicAccessibility: ViewModifier {
                 }
             }
             .modifier(TagCustomContent(names: topic.tagNames))
+            .modifier(TopicLinkAccessibility(link: topic.isSuggestion ? nil : topic.link))
     }
 
     /// Accept and Discard for each suggested tag, as the chips offer them.
@@ -506,6 +513,7 @@ struct TopicAccessibility: ViewModifier {
         }
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
+        Button(topic.link == nil ? "Add Link…" : "Edit Link…") { model.editLink(topic.id) }
         Button("Add Tag…") { model.addTag(to: topic.id) }
         if !isRoot {
             Button("Delete Topic") { model.delete(topic.id) }

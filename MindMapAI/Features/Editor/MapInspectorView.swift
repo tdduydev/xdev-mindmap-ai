@@ -17,6 +17,10 @@ struct MapInspectorView: View {
                     TopicNoteEditor(session: session, nodeID: node.id, note: node.note)
                         .id(node.id)
                 }
+                Section("Link") {
+                    TopicLinkInspectorField(session: session, nodeID: node.id, link: node.link)
+                        .id(node.id)
+                }
                 Section {
                     TagField(session: session)
                 } header: {

@@ -57,6 +57,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.openInNewWindowAction) private var openInNewWindow
     @FocusedValue(\.libraryMapActions) private var libraryMap
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openURL) private var openURL
 
     var body: some Commands {
         // ⌘N makes a map, as New Document does in Mac apps; a new window moves to ⌥⌘N.
@@ -132,6 +133,19 @@ struct MapCommands: Commands {
             Button("Edit Note") { editor?.editSelectionNote() }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
                 .disabled(editor?.canEditSelectionNote != true)
+            // ⌘K is Add Link in Mail, Pages and most editors; ⌘L stays for Connections (decided 2026-10-02).
+            Button(editor?.selectionHasLink == true ? "Edit Link…" : "Add Link…") { editor?.beginEditingSelectionLink() }
+                .keyboardShortcut("k")
+                .disabled(editor?.canEditSelectionLink != true)
+            Button("Open Link") {
+                if let url = editor?.selectionLinkURL { openURL(url) }
+            }
+            .keyboardShortcut("o", modifiers: [.command, .shift])
+            .disabled(editor?.selectionLinkURL == nil)
+            Button("Remove Link") {
+                if let editor, let id = editor.selection { editor.removeLink(from: id) }
+            }
+            .disabled(editor?.selectionHasLink != true)
             // ⇧⌘T and ⌥⇧⌘T: free in the menus; this app has no Fonts panel (⌘T).
             Button("Add Tag…") { editor?.beginAddingTag() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])

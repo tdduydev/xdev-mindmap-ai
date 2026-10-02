@@ -177,6 +177,17 @@ private struct StaticTopicCard: View {
             }
         }
         .frame(width: topic.frame.width, height: topic.frame.height)
+        .overlay(alignment: .bottomTrailing) {
+            if let link = topic.link {
+                TopicLinkSymbol(link: link)
+                    .font(.system(size: CanvasMetrics.linkSymbolSize))
+                    .foregroundStyle(style.secondaryTextColor.color)
+                    .padding(Spacing.xxs)
+                    .background(Palette.canvasBackground, in: Circle())
+                    .alignmentGuide(.bottom) { $0[VerticalAlignment.center] }
+                    .alignmentGuide(.trailing) { $0[HorizontalAlignment.center] }
+            }
+        }
         .overlay(alignment: topic.side == .left ? .leading : .trailing) {
             if topic.hiddenDescendantCount > 0 {
                 CollapseBadgeLabel(count: topic.hiddenDescendantCount, style: style)
