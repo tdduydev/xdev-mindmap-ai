@@ -3496,6 +3496,16 @@
         }
       }
     },
+    "Open Settings (⌘,)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở cài đặt (⌘,)"
+          }
+        }
+      }
+    },
     "Open in New Window" : {
       "localizations" : {
         "vi" : {
