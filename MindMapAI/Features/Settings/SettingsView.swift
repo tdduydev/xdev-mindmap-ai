@@ -1,49 +1,50 @@
+import MindMapDomain
 import MindMapPersistence
 import SwiftUI
 
-/// Settings: a tabbed window on the Mac (⌘,), a sheet on iPad and iPhone.
+/// Settings: a window of panes on the Mac (⌘,), a list with one page per pane
+/// on iPad and iPhone, the way the system Settings app reads (docs/settings.md).
 struct SettingsView: View {
-    #if os(iOS)
+    @Environment(AIService.self) private var ai
+    #if os(macOS)
+    @AppStorage(SettingsPane.storageKey, store: AppDefaults.store) private var storedPane = SettingsPane.general
+    #else
+    @Environment(ProEntitlement.self) private var pro
     @Environment(\.dismiss) private var dismiss
     #endif
 
+    private var panes: [SettingsPane] { SettingsPane.available(showsAI: ai.showsEntryPoints) }
+
     var body: some View {
         #if os(macOS)
-        TabView {
-            Tab("General", systemImage: "gearshape") {
-                Form {
-                    GeneralSettingsSection()
-                    AISettingsSection()
-                    ExportSettingsSection()
+        // The last pane reopens (HIG Settings); the window title follows the pane by itself.
+        TabView(selection: Binding(get: { storedPane.resolved(in: panes) }, set: { storedPane = $0 })) {
+            ForEach(panes) { pane in
+                Tab(value: pane) {
+                    SettingsPaneView(pane: pane)
+                } label: {
+                    Label { Text(pane.title) } icon: { Image(systemName: pane.systemImage) }
                 }
-            }
-            Tab("Data", systemImage: "icloud") {
-                Form { CloudSyncSettingsSection() }
-            }
-            Tab("Pro", systemImage: "star") {
-                Form { ProSettingsSection() }
-            }
-            Tab("Privacy", systemImage: "hand.raised") {
-                Form { PrivacySettingsSection() }
-            }
-            Tab("About", systemImage: "info.circle") {
-                Form { AboutSettingsSection() }
+                .accessibilityIdentifier(AccessibilityID.Settings.pane(pane.rawValue))
             }
         }
-        .formStyle(.grouped)
         .frame(width: Metrics.settingsWidth)
         #else
         NavigationStack {
-            Form {
-                GeneralSettingsSection()
-                ProSettingsSection()
-                AISettingsSection()
-                ExportSettingsSection()
-                CloudSyncSettingsSection()
-                PrivacySettingsSection()
-                AboutSettingsSection()
+            List {
+                // Pro status on top, as the system app puts the account first.
+                Section {
+                    paneLink(.pro, value: pro.isUnlocked ? String(localized: "Unlocked") : String(localized: "Not unlocked"))
+                }
+                Section {
+                    ForEach(panes.filter { $0 != .pro }) { paneLink($0) }
+                }
             }
             .navigationTitle("Settings")
+            .navigationDestination(for: SettingsPane.self) { pane in
+                SettingsPaneView(pane: pane)
+                    .navigationTitle(Text(pane.title))
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
@@ -53,19 +54,131 @@ struct SettingsView: View {
         }
         #endif
     }
+
+    #if os(iOS)
+    private func paneLink(_ pane: SettingsPane, value: String? = nil) -> some View {
+        NavigationLink(value: pane) {
+            LabeledContent {
+                if let value { Text(value) }
+            } label: {
+                Label { Text(pane.title) } icon: { Image(systemName: pane.systemImage) }
+            }
+        }
+        .accessibilityIdentifier(AccessibilityID.Settings.pane(pane.rawValue))
+    }
+    #endif
+}
+
+/// One pane, the same view on every platform; only its container differs.
+struct SettingsPaneView: View {
+    let pane: SettingsPane
+
+    var body: some View {
+        Form {
+            switch pane {
+            case .general: GeneralSettingsSection()
+            case .export: ExportSettingsSection()
+            case .ai: AISettingsSection()
+            case .data: CloudSyncSettingsSection()
+            case .pro: ProSettingsSection()
+            case .privacy: PrivacySettingsSection()
+            case .about: AboutSettingsSection()
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+/// The panes, in the order of docs/settings.md. Data holds iCloud (MM-6);
+/// MM-45 adds the rest of it. AI Apps (MM-46, Mac only) slots in after Data
+/// once it is built.
+enum SettingsPane: String, CaseIterable, Identifiable {
+    case general
+    case export
+    case ai
+    case data
+    case pro
+    case privacy
+    case about
+
+    /// The Mac's last pane (HIG Settings: reopen the most recently viewed pane).
+    static let storageKey = "settings.pane"
+
+    var id: Self { self }
+
+    var title: LocalizedStringResource {
+        switch self {
+        case .general: "General"
+        case .export: "Export"
+        case .ai: "AI"
+        case .data: "Data"
+        case .pro: "Pro"
+        case .privacy: "Privacy"
+        case .about: "About"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .general: "gearshape"
+        case .export: "square.and.arrow.up"
+        case .ai: "sparkles"
+        case .data: "icloud"
+        case .pro: "star"
+        case .privacy: "hand.raised"
+        case .about: "info.circle"
+        }
+    }
+
+    /// AI goes where Apple Intelligence can never run, like every AI entry point.
+    static func available(showsAI: Bool) -> [SettingsPane] {
+        allCases.filter { showsAI || $0 != .ai }
+    }
+
+    /// A stored pane that is not offered here opens General.
+    func resolved(in panes: [SettingsPane]) -> SettingsPane {
+        panes.contains(self) ? self : .general
+    }
 }
 
 struct GeneralSettingsSection: View {
     @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
+    @AppStorage(NewMapPreferences.themeKey, store: AppDefaults.store) private var newMapTheme = MindMapTheme.standard
+    @Environment(ProEntitlement.self) private var pro
+    @State private var paywall: PendingProChoice?
+
+    private var themesLocked: Bool { !pro.allows(.extraThemes) }
 
     var body: some View {
-        Section("General") {
+        Section {
             Picker("Appearance", selection: $appearance) {
                 ForEach(AppearancePreference.allCases) { option in
                     Text(option.title).tag(option)
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Settings.appearance)
+            Picker("Theme for New Maps", selection: Binding(get: { newMapTheme }, set: choose)) {
+                ForEach(MindMapTheme.allCases) { theme in
+                    ProChoiceLabel(title: theme.title, isLocked: theme.requiresPro && themesLocked)
+                        .tag(theme)
+                }
+            }
+            .accessibilityIdentifier(AccessibilityID.Settings.newMapTheme)
+        } footer: {
+            if newMapTheme.requiresPro && themesLocked {
+                Text("New maps use Standard until MindMap AI Pro is unlocked.")
+            } else {
+                Text("Each map keeps its own theme, which you can change while the map is open.")
+            }
+        }
+        .proChoicePaywall($paywall)
+    }
+
+    private func choose(_ theme: MindMapTheme) {
+        if theme.requiresPro && themesLocked {
+            paywall = PendingProChoice(feature: .extraThemes) { newMapTheme = theme }
+        } else {
+            newMapTheme = theme
         }
     }
 }
@@ -95,6 +208,8 @@ struct PrivacySettingsSection: View {
     }
 }
 
+/// No Acknowledgements row: the fonts' SIL OFL asks for its notice to travel
+/// with the fonts, which `Fonts/OFL.txt` in the bundle does (docs/settings.md).
 struct AboutSettingsSection: View {
     var body: some View {
         Section("About") {

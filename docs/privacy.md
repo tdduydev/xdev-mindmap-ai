@@ -19,7 +19,7 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 
 ## Planned
 
-- **AI apps over MCP** ([mcp.md](mcp.md), ADR 0008, not built): off by default. Once the person connects an AI app such as Claude or ChatGPT, that app can read maps on the Mac and may send them to its own provider under its terms; xDev still receives nothing. The task that ships it adds a row to the table above and updates the privacy policy.
+- **AI apps over MCP** ([mcp.md](mcp.md), ADR 0008; server core built in MM-40, not in the app until MM-46): off by default. Once the person connects an AI app such as Claude or ChatGPT, that app can read maps on the Mac and may send them to its own provider under its terms; xDev still receives nothing. The task that ships it adds a row to the table above and updates the privacy policy.
 - **Chat** ([chat.md](chat.md), ADR 0009, not built): on the device like the other AI features; conversations are not saved [Đề xuất].
 
 ## Rules for the code

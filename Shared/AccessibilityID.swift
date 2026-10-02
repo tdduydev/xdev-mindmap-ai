@@ -42,6 +42,14 @@ nonisolated enum AccessibilityID {
 
     enum Settings {
         static let appearance = "settings.appearance"
+        static let newMapTheme = "settings.newMapTheme"
+        static let includeNotes = "settings.includeNotes"
+        static let pngResolution = "settings.pngResolution"
+        static let pdfPages = "settings.pdfPages"
+        static let paperSize = "settings.paperSize"
+        static let background = "settings.background"
+        /// The Mac tab or the iPad and iPhone row of a pane, by `SettingsPane` raw value.
+        static func pane(_ name: String) -> String { "settings.pane.\(name)" }
         static let done = "settings.done"
         static let iCloudSync = "settings.iCloudSync"
         static let iCloudStatus = "settings.iCloudStatus"

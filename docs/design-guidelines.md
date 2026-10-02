@@ -221,7 +221,7 @@ As of commit `1e18d58`; rows marked MM-0i were updated by that task.
 | Undo | Window `UndoManager` with action names (MM-0c); also toolbar Undo/Redo buttons | `MindMapAI/Features/Editor/OutlineEditorView.swift` |
 | View menu | `SidebarCommands()` adds View ▸ Show/Hide Sidebar with ⌃⌘S (MM-0i), next to `InspectorCommands()` | `MindMapAI/App/MindMapAIApp.swift` |
 | Help menu | Website only; no privacy policy or help page | `AppCommands.swift` |
-| Settings | Mac: `Settings` scene, tabs General, Privacy, About, applies at once, fixed 480 pt width. iPad and iPhone: sheet from a sidebar toolbar button. | `MindMapAI/Features/Settings/SettingsView.swift`, `MindMapAI/Features/Library/SidebarView.swift` |
+| Settings | Mac: `Settings` scene, one tab per pane (General, Export, AI, Pro, Privacy, About), last pane reopens, applies at once, fixed 480 pt width. iPad and iPhone: sheet from a sidebar toolbar button, a list with one page per pane; iPad App menu ▸ MindMap AI Settings… ([[settings]]). | `MindMapAI/Features/Settings/SettingsView.swift`, `MindMapAI/Features/Library/SidebarView.swift` |
 | Window title | The editor's `navigationTitle` is the map's title ("Untitled Map" when empty); the sidebar has no title on the Mac, so the app name never becomes the window title (MM-0i) | `MapEditorView.swift`, `SidebarView.swift` |
 | Toolbar labels | Toolbar and Topic menu both say "Add Child Topic", "Add Sibling Topic", "Delete Topic" (MM-0i) | `MapEditorView.swift` |
 | Hit targets | `Metrics.minimumHitTarget` 44 pt on iOS, 24 pt on macOS (inside HIG's 20–28 pt) | `MindMapAI/DesignSystem/Layout/Spacing.swift` |

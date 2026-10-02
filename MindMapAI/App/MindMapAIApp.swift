@@ -77,6 +77,9 @@ struct MindMapAIApp: App {
             // Show/Hide Inspector (⌃⌘I) in the View menu, driving each window's `.inspector`.
             InspectorCommands()
             FileTransferCommands()
+            #if os(iOS)
+            SettingsCommands()
+            #endif
         }
         // A refund or a purchase on another device can change while the app is in the background.
         .onChange(of: scenePhase) { _, phase in

@@ -105,9 +105,13 @@ public struct GraphState: Sendable {
     /// The topic's tag links whose tag is loaded, oldest first. A link whose
     /// tag has not synced yet is kept in storage but not shown.
     public func nodeTags(of nodeID: NodeID) -> [MindNodeTag] {
-        nodeTags.values
+        // Links made in one step share a timestamp; the tag's own place in the
+        // map's tag list breaks the tie before the random ID does, so chips keep
+        // one order on every device and every run.
+        let rank = { (link: MindNodeTag) in self.tags[link.tagID]?.sortOrder ?? 0 }
+        return nodeTags.values
             .filter { $0.nodeID == nodeID && tags[$0.tagID] != nil }
-            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+            .sorted { ($0.createdAt, rank($0), $0.id) < ($1.createdAt, rank($1), $1.id) }
     }
 
     public func tags(of nodeID: NodeID) -> [MindTag] {
