@@ -1,6 +1,7 @@
 import Foundation
 import MindMapIntents
 import MindMapPersistence
+import MindMapQuery
 import OSLog
 
 /// The app's long-lived services, built once at launch. Only the store opens
@@ -13,6 +14,8 @@ final class AppEnvironment {
     let openRequests: MapOpenRequests
     /// One session per open map, whatever the number of windows showing it.
     let openMaps: OpenMaps
+    /// Settings ▸ AI Apps and the MCP listener; started on the Mac only.
+    let aiApps: AIAppsHost
     /// Writes the UI test fixture; nil outside the UI test mode.
     private let seeding: Task<Void, Never>?
 
@@ -20,12 +23,18 @@ final class AppEnvironment {
         repository: any MapRepository,
         spotlightIndex: any MapSearchIndex = SpotlightMapIndex(),
         openRequests: MapOpenRequests = MapOpenRequests(),
+        aiAppClients: any AIAppClientStore = InMemoryAIAppClientStore(),
         seeding: Task<Void, Never>? = nil
     ) {
         self.repository = repository
         self.spotlightIndex = spotlightIndex
         self.openRequests = openRequests
-        openMaps = OpenMaps(repository: repository)
+        let openMaps = OpenMaps(repository: repository)
+        self.openMaps = openMaps
+        aiApps = AIAppsHost(
+            queries: MapQueries(repository: repository, graphs: OpenMapsGraphSource(openMaps: openMaps, repository: repository)),
+            store: aiAppClients
+        )
         self.seeding = seeding
     }
 
@@ -38,7 +47,10 @@ final class AppEnvironment {
             #if DEBUG
             initializeCloudKitSchemaIfAsked(sync: sync)
             #endif
-            return .ready(AppEnvironment(repository: try PersistenceController.makeRepository(at: storeLocation, sync: sync)))
+            return .ready(AppEnvironment(
+                repository: try PersistenceController.makeRepository(at: storeLocation, sync: sync),
+                aiAppClients: KeychainAIAppClientStore()
+            ))
         } catch {
             Log.persistence.fault("The store did not open: \(error.localizedDescription, privacy: .public)")
             return .failed

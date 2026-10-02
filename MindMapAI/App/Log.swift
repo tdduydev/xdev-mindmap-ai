@@ -12,4 +12,5 @@ enum Log {
     static let ai = Logger(subsystem: subsystem, category: "AI")
     static let interchange = Logger(subsystem: subsystem, category: "Interchange")
     static let windows = Logger(subsystem: subsystem, category: "Windows")
+    static let mcp = Logger(subsystem: subsystem, category: "MCP")
 }

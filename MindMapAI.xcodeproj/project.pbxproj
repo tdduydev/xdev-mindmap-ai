@@ -24,6 +24,8 @@
 		4D4D410000000000000B1126 /* MindMapInterchange in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1127 /* MindMapInterchange */; };
 		4D4D410000000000000B1128 /* MindMapSharing in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1129 /* MindMapSharing */; };
 		4D4D410000000000000C2001 /* MindMapCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C2002 /* MindMapCapture */; };
+		4D4D41460000000000000001 /* MindMapMCP in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41460000000000000002 /* MindMapMCP */; };
+		4D4D41460000000000000003 /* MindMapQuery in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41460000000000000004 /* MindMapQuery */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -127,6 +129,8 @@
 				4D4D41150000000000000002 /* MindMapSearch in Frameworks */,
 				4D4D410000000000000B1101 /* MindMapIntents in Frameworks */,
 				4D4D410000000000000C2001 /* MindMapCapture in Frameworks */,
+				4D4D41460000000000000001 /* MindMapMCP in Frameworks */,
+				4D4D41460000000000000003 /* MindMapQuery in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +220,8 @@
 				4D4D41150000000000000001 /* MindMapSearch */,
 				4D4D410000000000000B1102 /* MindMapIntents */,
 				4D4D410000000000000C2002 /* MindMapCapture */,
+				4D4D41460000000000000002 /* MindMapMCP */,
+				4D4D41460000000000000004 /* MindMapQuery */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -571,6 +577,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				"ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*]" = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -634,6 +641,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				"ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*]" = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -963,6 +971,14 @@
 		4D4D410000000000000C2002 /* MindMapCapture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapCapture;
+		};
+		4D4D41460000000000000002 /* MindMapMCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapMCP;
+		};
+		4D4D41460000000000000004 /* MindMapQuery */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapQuery;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

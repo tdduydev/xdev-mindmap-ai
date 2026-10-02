@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ can no longer read your maps. To connect it again, add it again and paste the new setup." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sẽ không đọc được sơ đồ của bạn nữa. Muốn kết nối lại, hãy thêm lại và dán thiết lập mới."
+          }
+        }
+      }
+    },
     "%@, MindMap AI Pro" : {
       "localizations" : {
         "vi" : {
@@ -275,6 +285,46 @@
         }
       }
     },
+    "AI App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng AI"
+          }
+        }
+      }
+    },
+    "AI Apps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng AI"
+          }
+        }
+      }
+    },
+    "AI apps are not available because your maps couldn’t be opened." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng được ứng dụng AI vì không mở được sơ đồ của bạn."
+          }
+        }
+      }
+    },
+    "AI apps you connect, like Claude or ChatGPT, can read the titles and notes of your maps and may send them to their own AI provider under that app’s terms. xDev receives nothing. Text in a map can try to steer the app that reads it." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng AI bạn kết nối, như Claude hay ChatGPT, đọc được tiêu đề và ghi chú trong sơ đồ của bạn và có thể gửi chúng tới nhà cung cấp AI của họ theo điều khoản của ứng dụng đó. xDev không nhận gì cả. Chữ trong sơ đồ có thể tìm cách điều khiển ứng dụng đọc nó."
+          }
+        }
+      }
+    },
     "AI can make mistakes. Suggestions change your map only when you accept them, and Undo takes them back." : {
       "localizations" : {
         "vi" : {
@@ -415,6 +465,16 @@
         }
       }
     },
+    "Add" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm"
+          }
+        }
+      }
+    },
     "Add AI Tags" : {
       "localizations" : {
         "vi" : {
@@ -431,6 +491,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm chủ đề AI"
+          }
+        }
+      }
+    },
+    "Add App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ứng dụng"
+          }
+        }
+      }
+    },
+    "Add App…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ứng dụng…"
           }
         }
       }
@@ -607,6 +687,26 @@
         }
       }
     },
+    "Add this to ~/.codex/config.toml, which the ChatGPT app, Codex CLI and Codex IDE extension share." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm đoạn này vào ~/.codex/config.toml, tệp mà ứng dụng ChatGPT, Codex CLI và tiện ích Codex cho IDE dùng chung."
+          }
+        }
+      }
+    },
+    "Add this to ~/.cursor/mcp.json, inside “mcpServers” if the file already has servers." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm đoạn này vào ~/.cursor/mcp.json, đặt trong “mcpServers” nếu tệp đã có máy chủ."
+          }
+        }
+      }
+    },
     "Add to Favorites" : {
       "localizations" : {
         "vi" : {
@@ -669,6 +769,16 @@
         }
       }
     },
+    "Address" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ"
+          }
+        }
+      }
+    },
     "Adds a topic under the central topic of a map. Without a map, the idea goes to the most recently edited one." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -691,6 +801,16 @@
         }
       }
     },
+    "Allow AI Apps to Read Maps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cho phép ứng dụng AI đọc sơ đồ"
+          }
+        }
+      }
+    },
     "Amber" : {
       "localizations" : {
         "vi" : {
@@ -707,6 +827,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thống kê sử dụng"
+          }
+        }
+      }
+    },
+    "Another app may be using port %@. Choose another port, then update the setup in each connected app." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có thể một ứng dụng khác đang dùng cổng %@. Hãy chọn cổng khác, rồi cập nhật thiết lập trong từng ứng dụng đã kết nối."
+          }
+        }
+      }
+    },
+    "App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng"
           }
         }
       }
@@ -1022,6 +1162,16 @@
         }
       }
     },
+    "Choose a port from 1024 to 65535." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn cổng từ 1024 đến 65535."
+          }
+        }
+      }
+    },
     "Clearer" : {
       "localizations" : {
         "vi" : {
@@ -1082,6 +1232,16 @@
         }
       }
     },
+    "Connected Apps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng đã kết nối"
+          }
+        }
+      }
+    },
     "Contact Support" : {
       "localizations" : {
         "vi" : {
@@ -1108,6 +1268,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sao chép"
+          }
+        }
+      }
+    },
+    "Couldn’t Add the App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thêm được ứng dụng"
           }
         }
       }
@@ -1162,6 +1332,16 @@
         }
       }
     },
+    "Couldn’t Revoke Access" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thu hồi được quyền"
+          }
+        }
+      }
+    },
     "Couldn’t Sync" : {
       "localizations" : {
         "vi" : {
@@ -1198,6 +1378,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không kết nối được App Store. Hãy kiểm tra kết nối mạng rồi thử lại."
+          }
+        }
+      }
+    },
+    "Couldn’t read the connected apps from the Keychain." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đọc được các ứng dụng đã kết nối từ Chuỗi khoá."
           }
         }
       }
@@ -2580,6 +2770,16 @@
         }
       }
     },
+    "MindMap AI must be open for AI apps to read your maps. Each app gets its own token, so you can revoke one without the others." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI phải đang mở thì ứng dụng AI mới đọc được sơ đồ. Mỗi ứng dụng có mã truy cập riêng, nên bạn thu hồi được từng ứng dụng."
+          }
+        }
+      }
+    },
     "MindMap AI uses Apple Intelligence on this device. Your maps and requests are processed here and are never sent to xDev." : {
       "localizations" : {
         "vi" : {
@@ -2666,6 +2866,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Xuất PDF vector nhiều trang"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên"
           }
         }
       }
@@ -2770,6 +2980,16 @@
         }
       }
     },
+    "No apps connected yet." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa kết nối ứng dụng nào."
+          }
+        }
+      }
+    },
     "No microphone is available." : {
       "localizations" : {
         "vi" : {
@@ -2856,6 +3076,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa mở khoá"
+          }
+        }
+      }
+    },
+    "Not used since MindMap AI opened" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa dùng từ khi mở MindMap AI"
           }
         }
       }
@@ -2960,6 +3190,16 @@
         }
       }
     },
+    "On: apps you connect can read your maps and handle them under their own terms" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật: ứng dụng bạn kết nối đọc được sơ đồ và xử lý chúng theo điều khoản của họ"
+          }
+        }
+      }
+    },
     "Only in this map. You can undo changes to them." : {
       "localizations" : {
         "vi" : {
@@ -3044,6 +3284,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mở sơ đồ sửa gần nhất."
+          }
+        }
+      }
+    },
+    "Other" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khác"
           }
         }
       }
@@ -3168,6 +3418,36 @@
         }
       }
     },
+    "Point the app at this address with Streamable HTTP and send the token in an Authorization: Bearer header." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trỏ ứng dụng tới địa chỉ này bằng Streamable HTTP và gửi mã truy cập trong header Authorization: Bearer."
+          }
+        }
+      }
+    },
+    "Port" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cổng"
+          }
+        }
+      }
+    },
+    "Port %@ Is Unavailable" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng được cổng %@"
+          }
+        }
+      }
+    },
     "Possible missing topics" : {
       "localizations" : {
         "vi" : {
@@ -3267,6 +3547,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thoát rồi mở lại MindMap AI để áp dụng thay đổi này."
+          }
+        }
+      }
+    },
+    "Read %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã đọc %@"
           }
         }
       }
@@ -3471,6 +3761,36 @@
         }
       }
     },
+    "Revoke" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu hồi"
+          }
+        }
+      }
+    },
+    "Revoke Access for “%@”?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu hồi quyền của “%@”?"
+          }
+        }
+      }
+    },
+    "Revoke…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu hồi…"
+          }
+        }
+      }
+    },
     "Rewrite Topic" : {
       "localizations" : {
         "vi" : {
@@ -3497,6 +3817,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hồng"
+          }
+        }
+      }
+    },
+    "Run MCP: Open User Configuration and add this to mcp.json, inside “servers” if the file already has servers." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chạy MCP: Open User Configuration rồi thêm đoạn này vào mcp.json, đặt trong “servers” nếu tệp đã có máy chủ."
+          }
+        }
+      }
+    },
+    "Run this command in Terminal." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chạy lệnh này trong Terminal."
           }
         }
       }
@@ -3748,6 +4088,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bắt đầu từ một ý tưởng."
+          }
+        }
+      }
+    },
+    "Starting…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang khởi động…"
           }
         }
       }
@@ -4094,6 +4444,16 @@
         }
       }
     },
+    "The app can no longer read your maps, but its token is still in the Keychain. Try again after reopening MindMap AI." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng không còn đọc được sơ đồ, nhưng mã truy cập vẫn còn trong Chuỗi khoá. Hãy thử lại sau khi mở lại MindMap AI."
+          }
+        }
+      }
+    },
     "The clipboard has no text to make a map from." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -4156,6 +4516,16 @@
         }
       }
     },
+    "The name is only for you, to tell apps apart in this list." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên chỉ để bạn phân biệt các ứng dụng trong danh sách này."
+          }
+        }
+      }
+    },
     "The purchase didn’t go through. Try again." : {
       "localizations" : {
         "vi" : {
@@ -4182,6 +4552,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thẻ sẽ được gỡ khỏi các chủ đề. Các chủ đề vẫn giữ nguyên."
+          }
+        }
+      }
+    },
+    "The token couldn’t be saved in the Keychain. Try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không lưu được mã truy cập vào Chuỗi khoá. Hãy thử lại."
           }
         }
       }
@@ -4307,6 +4687,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tính năng này thuộc MindMap AI Pro."
+          }
+        }
+      }
+    },
+    "This is the only time the token is shown. If you lose it, revoke this app and add it again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mã truy cập chỉ hiện lần này. Nếu làm mất, hãy thu hồi ứng dụng này rồi thêm lại."
           }
         }
       }
@@ -4464,6 +4854,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hãy thử lại. Nếu vẫn lỗi, hãy khởi động lại ứng dụng."
+          }
+        }
+      }
+    },
+    "Turn on Allow AI Apps to Read Maps so the app can connect." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật Cho phép ứng dụng AI đọc sơ đồ để ứng dụng kết nối được."
+          }
+        }
+      }
+    },
+    "Turning this off stops every app from reading; connected apps stay in the list." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt để ngừng cho mọi ứng dụng đọc; các ứng dụng đã kết nối vẫn còn trong danh sách."
           }
         }
       }
