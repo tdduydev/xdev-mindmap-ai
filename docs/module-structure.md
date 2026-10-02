@@ -31,6 +31,8 @@ Packages/
 │  ├─ MindMapIntents          ✓ (MM-11): entities, queries, intents, AppIntentsPackage, Spotlight index; see [[system-integration]]
 │  ├─ MindMapAICore           ✓ (MM-7): AIProvider, requests, AIProposal, ContextBuilder, ProposalTranslator, AICapabilities
 │  ├─ MindMapAIApple          ✓ (MM-7): Foundation Models provider, @Generable types, prompts catalog; Translation glue later
+│  ├─ MindMapQuery            planned (MM-39): reads for MCP and the chat, see [[mcp]] and [[chat]]
+│  ├─ MindMapMCP              planned (MM-39): JSON-RPC and loopback HTTP server, Mac only at run time
 │  ├─ MindMapCapture          ✓ speech (MM-20): `VoiceTranscribing`, `AppleSpeechTranscriber`, `SpokenTopics`; OCR, PDF text, ink later
 │  └─ MindMapTestSupport      fixtures, MockAIProvider (✓ MM-7), in-memory repository (tests only)
 ├─ MindMapUI/                 SwiftUI, no SwiftData
