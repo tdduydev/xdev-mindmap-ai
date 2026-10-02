@@ -42,7 +42,7 @@ A cold simulator, or a Mac running many builds at once, can take a minute to lau
 
 UI tests launch the app with `-uitest` (`Shared/UITestLaunch.swift`). The mode is read in Debug builds only (`UITestMode`); a Release build ignores the arguments, and without `-uitest` the app behaves exactly as shipped. In the mode:
 
-- **Store:** SwiftData in memory (`PersistenceController.makeRepository(at: .inMemory)`), seeded with a fixture before the library loads. Nothing a test does survives the launch, and the person's maps are never read.
+- **Store:** SwiftData in memory (`PersistenceController.makeRepository(at: .inMemory)`), seeded with a fixture before the library loads. Nothing a test does survives the launch, and the person's maps are never read (the App Group store is not opened). Spotlight gets a no-op index (`NoSearchIndex`), so fixture maps never show in the Mac's search.
 - **Preferences:** a throwaway `UserDefaults` suite, emptied at launch (`AppDefaults.store`). Every `@AppStorage` and defaults reader in the app uses `AppDefaults.store`, never `.standard`, so tests do not share preferences with the real app on the Mac. `-key value` launch arguments are copied in, so a test can start with a preference set (`arguments: ["-appearance", "dark"]`).
 - **No onboarding:** first-run screens start as seen. Today that is the AI privacy notice; a test that checks it passes `-ai.privacyNoticeShown NO`.
 - **No animation:** `Motion` returns no animation, and on iOS `UIView` animations are off, so a query never finds a view halfway through moving.
@@ -68,7 +68,7 @@ Titles are data, not interface text, so they are the same in every language. Tes
 Identifiers live in one enum, `AccessibilityID` (`Shared/AccessibilityID.swift`), compiled into both the app and the UI test target: renaming one breaks the build instead of a test run.
 
 - Form: `area.element` in lowerCamelCase: `library.newMap`, `editor.addChild`, `outline.topic`, `settings.appearance`.
-- Repeated elements (library rows, outline rows, canvas topics) share one identifier. A test tells them apart by label or value, which is the title the person sees, not by an index in the identifier.
+- Repeated elements (library rows, outline rows, canvas topics) share one identifier. A test tells them apart by label or value, which is the title the person sees, not by an index in the identifier. Which of the two holds the title can differ by platform (a combined library row is a static text with the title in its value on macOS, a cell with it in its label on iOS); the page object checks both.
 - Every interactive control a test needs gets an identifier. Do not find controls by their label: labels are translated.
 - Identifiers are not shown to VoiceOver and never contain map content.
 
