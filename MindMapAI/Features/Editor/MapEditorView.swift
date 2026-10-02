@@ -9,6 +9,7 @@ struct MapEditorView: View {
     let canvas: CanvasModel
     @Bindable var assistant: AIAssistant
     @Environment(\.undoManager) private var undoManager
+    @State private var showsKeyboardShortcuts = false
 
     var body: some View {
         Group {
@@ -20,7 +21,19 @@ struct MapEditorView: View {
             }
         }
         .safeAreaInset(edge: .top) {
-            AISuggestionBar(assistant: assistant)
+            VStack(spacing: 0) {
+                if session.isFinding {
+                    FindBar(session: session)
+                }
+                AISuggestionBar(assistant: assistant)
+            }
+        }
+        // The outline scrolls to a match itself; the canvas waits for the
+        // layout, which a branch Find just opened may not have yet.
+        .onChange(of: session.scrollRequest) { _, request in
+            guard request != nil, session.presentation == .canvas else { return }
+            canvas.revealSelection()
+            session.scrollRequest = nil
         }
         .safeAreaInset(edge: .bottom) {
             if session.saveFailed {
@@ -33,11 +46,14 @@ struct MapEditorView: View {
         .inspector(isPresented: $session.isInspectorPresented) {
             MapInspectorView(session: session)
         }
-        .navigationTitle(session.map.title)
+        // The window title on the Mac: the map, never the app name.
+        .navigationTitle(session.displayTitle)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         #if os(macOS)
+        // Delete when the menu's Delete Topic shortcut is off: on a selected
+        // suggestion, or where SwiftUI did not report the content's focus.
         .onDeleteCommand {
             // Delete on a selected suggestion discards it rather than a topic.
             if let suggestion = assistant.selectedSuggestion {
@@ -50,6 +66,8 @@ struct MapEditorView: View {
         .toolbar { toolbar }
         .focusedSceneValue(\.editorSession, session)
         .focusedSceneValue(\.aiAssistant, assistant)
+        .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
+        .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
@@ -66,6 +84,14 @@ struct MapEditorView: View {
             .pickerStyle(.segmented)
             .help(Text("View As"))
         }
+        // Design system: a multi-selection shows its count in the toolbar.
+        ToolbarItem {
+            if session.selectedIDs.count > 1 {
+                Text("\(session.selectedIDs.count) topics selected")
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
+        }
         ToolbarItemGroup {
             Button(action: session.undo) {
                 Label("Undo", systemImage: "arrow.uturn.backward")
@@ -77,14 +103,17 @@ struct MapEditorView: View {
             .disabled(!session.canRedo)
         }
         ToolbarItemGroup(placement: .primaryAction) {
+            Button(action: session.showFind) {
+                Label("Find", systemImage: "magnifyingglass")
+            }
             Button(action: session.addChild) {
-                Label("Add Child", systemImage: "arrow.turn.down.right")
+                Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }
             Button(action: session.addSibling) {
-                Label("Add Sibling", systemImage: "plus")
+                Label("Add Sibling Topic", systemImage: "plus")
             }
             Button(role: .destructive, action: session.deleteSelection) {
-                Label("Delete", systemImage: "trash")
+                Label("Delete Topic", systemImage: "trash")
             }
             .disabled(!session.canDeleteSelection)
         }

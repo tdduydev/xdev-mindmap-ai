@@ -11,9 +11,14 @@ extension FocusedValues {
     /// The AI side of the frontmost map, for the AI menu.
     @Entry var aiAssistant: AIAssistant?
     @Entry var newMapWithAIAction: NewMapAction?
+    @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
 }
 
 struct NewMapAction {
+    let perform: () -> Void
+}
+
+struct KeyboardShortcutsAction {
     let perform: () -> Void
 }
 
@@ -27,6 +32,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.newMapWithAIAction) private var newMapWithAI
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
+    @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -77,8 +83,9 @@ struct MapCommands: Commands {
             Button("Add Child Topic") { editor?.addChild() }
                 .keyboardShortcut(.return, modifiers: [.command, .shift])
                 .disabled(editor == nil)
-            // Return opens the title on the canvas; it is not a menu key equivalent
-            // here, because a bare Return would then never reach text fields.
+            // Space opens the title on the canvas (Return adds a sibling there,
+            // FR-KBD-01). Neither is a menu key equivalent: a bare key in the menu
+            // would never reach text fields. Help ▸ Keyboard Shortcuts lists them.
             Button("Rename Topic") { canvas?.beginEditingSelection() }
                 .disabled(canvas == nil || editor?.canRenameSelection != true)
             // ⇧⌘E: no standard Mac meaning, and ⌥⌘N is already New Window.
@@ -89,8 +96,7 @@ struct MapCommands: Commands {
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
             Divider()
-            // ⇧Tab for Promote comes with the keyboard work in MM-5, where Tab is
-            // kept for typing while a title is being edited.
+            // ⇧Tab promotes on the canvas, for the same reason as Space above.
             Button("Promote Topic") { editor?.promoteSelection() }
                 .disabled(editor?.canPromoteSelection != true)
             Button("Demote Topic") { editor?.demoteSelection() }
@@ -102,7 +108,24 @@ struct MapCommands: Commands {
             .disabled(editor?.canToggleSelection != true)
             Divider()
             Button("Delete Topic") { editor?.deleteSelection() }
+                .keyboardShortcut(deleteTopicShortcut)
                 .disabled(editor?.canDeleteSelection != true)
+        }
+
+        // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            Menu("Find") {
+                Button("Find…") { editor?.showFind() }
+                    .keyboardShortcut("f")
+                    .disabled(editor == nil)
+                Button("Find Next") { editor?.findNext() }
+                    .keyboardShortcut("g")
+                    .disabled(editor?.hasFindMatches != true)
+                Button("Find Previous") { editor?.findPrevious() }
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .disabled(editor?.hasFindMatches != true)
+            }
         }
 
         // Hidden, like every AI entry point, where the device can never run
@@ -112,6 +135,8 @@ struct MapCommands: Commands {
         }
 
         CommandGroup(replacing: .help) {
+            Button("Keyboard Shortcuts") { keyboardShortcuts?.perform() }
+                .disabled(keyboardShortcuts == nil)
             Link("MindMap AI Help", destination: AppLinks.support)
             Link("MindMap AI Website", destination: AppLinks.website)
             Link("Privacy Policy", destination: AppLinks.privacyPolicy)
@@ -158,6 +183,13 @@ struct MapCommands: Commands {
         Button("Cancel AI Request") { assistant?.cancel() }
             .keyboardShortcut(".")
             .disabled(assistant?.isWorking != true)
+    }
+
+    /// The bare Delete key comes and goes with focus, so it stays with text
+    /// fields and with a selected suggestion (see `EditorSession.deleteKeyDeletesTopic`).
+    private var deleteTopicShortcut: KeyboardShortcut? {
+        guard editor?.deleteKeyDeletesTopic == true, assistant?.holdsDeleteKey != true else { return nil }
+        return KeyboardShortcut(.delete, modifiers: [])
     }
 
     private var themeBinding: Binding<MindMapTheme> {

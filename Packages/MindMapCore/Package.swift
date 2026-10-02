@@ -18,6 +18,7 @@ let package = Package(
         .library(name: "MindMapAIApple", targets: ["MindMapAIApple"]),
         .library(name: "MindMapTestSupport", targets: ["MindMapTestSupport"]),
         .library(name: "MindMapInterchange", targets: ["MindMapInterchange"]),
+        .library(name: "MindMapSearch", targets: ["MindMapSearch"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -26,7 +27,7 @@ let package = Package(
         .target(name: "MindMapLayout", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph"]),
-        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"]),
+        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"], resources: [.copy("Fixtures")]),
         .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout"]),
         // AICore never imports FoundationModels, so the graph, the UI and tests
         // depend on plain values; only AIApple talks to the model.
@@ -43,5 +44,7 @@ let package = Package(
         ),
         .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),
+        .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch"]),
     ]
 )

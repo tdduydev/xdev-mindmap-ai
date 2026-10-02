@@ -14,10 +14,12 @@ struct SidebarView: View {
                 Image(systemName: section.systemImage)
             }
         }
-        .navigationTitle("MindMap AI")
         #if os(macOS)
+        // No title here: on the Mac it can end up as the window title, and the
+        // HIG asks for the content's name there, not the app's.
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         #else
+        .navigationTitle("MindMap AI")
         // The Mac opens Settings from the app menu (⌘,); iPad and iPhone need a button.
         .toolbar {
             ToolbarItem {

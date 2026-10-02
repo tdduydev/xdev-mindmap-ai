@@ -78,10 +78,10 @@ struct PrivacySettingsSection: View {
 struct AboutSettingsSection: View {
     var body: some View {
         Section("About") {
-            LabeledContent("MindMap AI", value: Self.version)
+            BrandMark()
+                .padding(.vertical, Spacing.xs)
+            LabeledContent("Version", value: Self.version)
             Text("Think. Draw. Connect.")
-                .foregroundStyle(.secondary)
-            Text("by xDev")
                 .foregroundStyle(.secondary)
             Link("Website", destination: AppLinks.website)
             Link("Support", destination: AppLinks.support)
@@ -92,6 +92,7 @@ struct AboutSettingsSection: View {
         let info = Bundle.main.infoDictionary
         let marketing = info?["CFBundleShortVersionString"] as? String ?? "–"
         let build = info?["CFBundleVersion"] as? String ?? "–"
-        return String(localized: "Version \(marketing) (\(build))")
+        // Under a "Version" label, so the numbers alone; they read the same in every language.
+        return "\(marketing) (\(build))"
     }
 }

@@ -95,13 +95,17 @@ struct TopicNoteTests {
         let undoManager = undoManager(for: session)
         let rootID = try #require(session.rootID)
 
-        step(undoManager) { session.setNote("", for: rootID) }
+        // Not wrapped in `step`: an explicit undo group counts as a step even
+        // when empty, while a run-loop event that registers nothing does not.
+        session.setNote("", for: rootID)
+        #expect(!session.engine.canUndo)
         #expect(!undoManager.canUndo)
 
         step(undoManager) { session.setNote("Kept", for: rootID) }
-        step(undoManager) { session.setNote("Kept", for: rootID) }
+        session.setNote("Kept", for: rootID)
         undoManager.undo()
         #expect(session.selectedNode?.note == nil)
+        #expect(!session.engine.canUndo)
     }
 
     @Test func aDeletedTopicIgnoresALateNote() async throws {

@@ -13,7 +13,9 @@
 		4D4D410000000000000C3001 /* MindMapLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C3002 /* MindMapLayout */; };
 		4D4D410000000000000C8001 /* MindMapAICore in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8002 /* MindMapAICore */; };
 		4D4D410000000000000C8003 /* MindMapAIApple in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8004 /* MindMapAIApple */; };
+		4D4D410000000000000C5001 /* MindMapInterchange in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C5002 /* MindMapInterchange */; };
 		4D4D410000000000000C8005 /* MindMapTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8006 /* MindMapTestSupport */; };
+		4D4D41150000000000000002 /* MindMapSearch in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41150000000000000001 /* MindMapSearch */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +57,8 @@
 				4D4D410000000000000C3001 /* MindMapLayout in Frameworks */,
 				4D4D410000000000000C8001 /* MindMapAICore in Frameworks */,
 				4D4D410000000000000C8003 /* MindMapAIApple in Frameworks */,
+				4D4D410000000000000C5001 /* MindMapInterchange in Frameworks */,
+				4D4D41150000000000000002 /* MindMapSearch in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,6 +117,8 @@
 				4D4D410000000000000C3002 /* MindMapLayout */,
 				4D4D410000000000000C8002 /* MindMapAICore */,
 				4D4D410000000000000C8004 /* MindMapAIApple */,
+				4D4D410000000000000C5002 /* MindMapInterchange */,
+				4D4D41150000000000000001 /* MindMapSearch */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -555,9 +561,17 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapAIApple;
 		};
+		4D4D410000000000000C5002 /* MindMapInterchange */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapInterchange;
+		};
 		4D4D410000000000000C8006 /* MindMapTestSupport */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapTestSupport;
+		};
+		4D4D41150000000000000001 /* MindMapSearch */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapSearch;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

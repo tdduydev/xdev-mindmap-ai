@@ -36,11 +36,12 @@ flowchart LR
 | --- | --- | --- |
 | `MindMapDomain` | Foundation | SwiftUI, SwiftData, CloudKit, AI |
 | `MindMapGraph` | Domain | SwiftUI, SwiftData, CloudKit, AI, screen coordinates |
-| `MindMapPersistence` | Domain, Graph, SwiftData | SwiftUI |
+| `MindMapPersistence` | Domain, Graph, SwiftData; Core Data only for its remote-change notification | SwiftUI |
 | `MindMapLayout` | Domain, Graph, Foundation geometry types | SwiftUI, SwiftData ([[layout-engine]]) |
 | `MindMapAICore` | Domain, Graph, NaturalLanguage | FoundationModels, SwiftUI, SwiftData |
 | `MindMapAIApple` | AICore, FoundationModels (on-device model only) | Private Cloud Compute, SwiftUI, SwiftData |
 | `MindMapInterchange` | Domain, Graph | SwiftUI, SwiftData, AI ([[interchange]]) |
+| `MindMapSearch` | Domain, Graph: folding (case, Vietnamese marks, đ), library index and ranking, Find in a map | SwiftUI, SwiftData, AI |
 | App target | All of the above, SwiftUI | SwiftData records directly |
 
 The package boundary enforces these rules at compile time (ADR 0002). Later phases add packages the same way: layout, AI, import, export.
@@ -57,12 +58,14 @@ View action ─▶ EditorSession builds a GraphCommand
             ─▶ GraphChangeSet (only the touched records)
             ─▶ MapRepository.save on its own actor, in order
             ─▶ SwiftData (▸ CloudKit once sync is on)
+            ─▶ MapRepository.changes(): .saved(summary) to every window's LibraryModel
 ```
 
 - **Commands are the only way to change a graph.** Keyboard, menu, drag, import and accepted AI proposals all become commands, so they all get the same validation, undo and saving path. AI never writes to SwiftData.
 - **The engine is a value type.** `GraphEngine` holds a `GraphState` and its history. It has no clock, storage or UI of its own: tests drive it directly.
 - **Undo replays recorded values.** Each command's `GraphChangeSet` keeps every touched value before and after; undo applies it reversed (ADR 0003).
 - **Saving is incremental.** The repository writes only the records in the change set, plus the map's own record. Saves run on a `@ModelActor`, chained so they land in order, and never block the UI.
+- **The library listens, it does not poll.** Every window subscribes to the repository's change stream; writes from outside the repository arrive as `.storeChanged`, told apart from its own through persistent history ([[data-model]]).
 
 ## State
 
@@ -94,7 +97,7 @@ Errors that reach the user are categories with plain messages (could not save, c
 | Layer | How |
 | --- | --- |
 | Domain, Graph, Layout | Swift Testing in the package, `swift test` on the Mac host |
-| Persistence | Swift Testing with in-memory and on-disk stores |
+| Persistence | Swift Testing with in-memory and on-disk stores; a migration harness on a checked-in V1 store; opt-in load and save benchmarks ([[data-model]]) |
 | AI | `MindMapAICoreTests` with `MockAIProvider`; `MindMapAIAppleTests` run the real model only where `SystemLanguageModel.default.isAvailable` |
 | App | `MindMapAITests`, hosted on macOS: library and editor sessions end to end on an in-memory store |
 | Platforms | `scripts/ci.sh` also builds for the iOS Simulator; UI tests arrive with the canvas |

@@ -26,11 +26,24 @@ final class CanvasModel {
     private(set) var scene: CanvasScene = .empty
     private(set) var viewport = CanvasViewport()
     /// The topic whose title is being edited in place.
-    private(set) var editingID: NodeID?
+    private(set) var editingID: NodeID? {
+        didSet { reportKeyboardFocus() }
+    }
+    /// Whether the canvas itself holds keyboard focus. Set by the view.
+    var hasKeyboardFocus = false {
+        didSet { reportKeyboardFocus() }
+    }
     /// The title as typed so far; committed as one Rename Topic command.
     var editingDraft = ""
     /// True while a drag pans the canvas, for the closed-hand pointer.
     private(set) var isPanning = false
+    /// Topics being dragged to a new place, while the drag lasts.
+    private(set) var drag: TopicDrag?
+    /// The selection rectangle being dragged, in view points.
+    private(set) var marquee: CGRect?
+    /// Counts drops refused because they aim into a moving branch, so the view
+    /// can play feedback each time.
+    private(set) var refusedDrops = 0
 
     @ObservationIgnored var initialPlacement = InitialPlacement.centralTopic
     @ObservationIgnored private var needsInitialPlacement = true
@@ -50,6 +63,8 @@ final class CanvasModel {
     /// A topic to scroll into view (and maybe edit) once the layout has it.
     @ObservationIgnored private var pendingReveal: (id: NodeID, edit: Bool)?
     @ObservationIgnored private var styles: [StyleKey: TopicStyle] = [:]
+    /// What was selected before a marquee drag that adds to the selection.
+    @ObservationIgnored private var marqueeBase: (ids: Set<NodeID>, primary: NodeID?) = ([], nil)
     @ObservationIgnored let layoutOptions = LayoutOptions(
         horizontalSpacing: CanvasMetrics.layoutParentGap,
         verticalSpacing: CanvasMetrics.layoutSiblingGap
@@ -318,7 +333,14 @@ final class CanvasModel {
         }
     }
 
-    /// Return on the canvas, or the Rename Topic menu item.
+    /// A title being typed keeps Delete for the text; the focused canvas
+    /// lets it be Delete Topic's shortcut (see `EditorSession.deleteKeyDeletesTopic`).
+    private func reportKeyboardFocus() {
+        let focus: EditorSession.KeyboardFocus = editingID != nil ? .editingText : hasKeyboardFocus ? .content : .elsewhere
+        session.reportKeyboardFocus(focus, from: .canvas)
+    }
+
+    /// Space on the canvas, or the Rename Topic menu item.
     @discardableResult
     func beginEditingSelection() -> Bool {
         guard editingID == nil, let id = session.selection, scene.topic(id) != nil else { return false }
@@ -385,6 +407,217 @@ final class CanvasModel {
     func editNote(_ id: NodeID) {
         select(id)
         session.editSelectionNote()
+    }
+
+    // MARK: Multi-selection
+
+    /// How a click or tap on a topic changes the selection.
+    enum SelectionGesture {
+        /// A plain click: that topic alone.
+        case replace
+        /// ⌘-click: in or out of the selection.
+        case toggle
+        /// ⇧-click: added to the selection.
+        case add
+    }
+
+    func click(_ id: NodeID, _ gesture: SelectionGesture) {
+        // A suggestion is not a topic yet, so it never joins a multi-selection.
+        if assistant?.suggestionID(forPreview: id) != nil { return select(id) }
+        if editingID != nil, editingID != id { commitEditing() }
+        assistant?.selectedSuggestion = nil
+        switch gesture {
+        case .replace: session.selection = id
+        case .toggle: session.toggleSelected(id)
+        case .add: session.addToSelection(id)
+        }
+    }
+
+    /// Starts a selection rectangle on empty canvas. With `adding`, topics
+    /// already selected stay selected (⇧-drag); otherwise the rectangle alone
+    /// decides (⌘-drag, or a hold and drag on touch).
+    func beginMarquee(at viewPoint: CGPoint, adding: Bool) {
+        commitEditing()
+        marqueeBase = adding ? (session.selectedIDs, session.selection) : ([], nil)
+        marquee = CGRect(origin: viewPoint, size: .zero)
+        session.setSelection(marqueeBase.ids, primary: marqueeBase.primary)
+    }
+
+    func updateMarquee(from start: CGPoint, to current: CGPoint) {
+        guard marquee != nil else { return }
+        let rect = CGRect(x: min(start.x, current.x), y: min(start.y, current.y), width: abs(current.x - start.x), height: abs(current.y - start.y))
+        marquee = rect
+        let canvasRect = CGRect(origin: viewport.toCanvas(rect.origin), size: CGSize(width: rect.width / viewport.scale, height: rect.height / viewport.scale))
+        let hit = scene.topics(in: canvasRect).filter { !$0.isSuggestion }
+        let primary = marqueeBase.primary ?? hit.first?.id
+        session.setSelection(marqueeBase.ids.union(hit.map(\.id)), primary: primary)
+    }
+
+    func endMarquee() {
+        marquee = nil
+        marqueeBase = ([], nil)
+    }
+
+    /// ⌘A on the canvas.
+    func selectAll() {
+        commitEditing()
+        session.selectAll()
+    }
+
+    // MARK: Keyboard
+
+    /// The keys the canvas handles itself rather than through the menu bar, so
+    /// they never reach the menu while a title field is typing (FR-KBD-01).
+    enum Key {
+        /// Return.
+        case addSibling
+        /// Tab.
+        case addChild
+        /// ⇧Tab.
+        case promote
+        /// Space.
+        case rename
+        /// An arrow; with ⇧ it adds the topic it reaches to the selection.
+        case move(CanvasDirection, extending: Bool)
+        /// Esc: back to the primary topic alone, or the end of a drag.
+        case cancel
+    }
+
+    /// Acts on a key; false when the key is not the canvas's to take, so it
+    /// goes on to the system. Nothing happens while a title is being edited.
+    func handle(_ key: Key) -> Bool {
+        guard editingID == nil else { return false }
+        if case .cancel = key, drag != nil {
+            drag = nil
+            return true
+        }
+        guard drag == nil, marquee == nil else { return true }
+        switch key {
+        case .addSibling:
+            session.addSibling()
+        case .addChild:
+            session.addChild()
+        case .promote:
+            // Tab keys are always taken, so focus does not jump out of the canvas.
+            session.promoteSelection()
+        case .rename:
+            return beginEditingSelection()
+        case .move(let direction, let extending):
+            return moveSelection(direction, extending: extending)
+        case .cancel:
+            guard session.selectedIDs.count > 1 else { return false }
+            session.selection = session.selection
+        }
+        return true
+    }
+
+    /// Arrow keys walk the map as drawn (see `CanvasScene.neighbour`).
+    private func moveSelection(_ direction: CanvasDirection, extending: Bool) -> Bool {
+        guard let current = session.selection, scene.topic(current) != nil else {
+            guard let root = session.rootID, scene.topic(root) != nil else { return false }
+            session.selection = root
+            reveal(root)
+            return true
+        }
+        // At the end of a row the key is still the canvas's; nothing to beep about.
+        guard let next = scene.neighbour(of: current, toward: direction) else { return true }
+        if extending {
+            session.addToSelection(next.id)
+        } else {
+            session.selection = next.id
+        }
+        reveal(next.id)
+        return true
+    }
+
+    // MARK: Drag and drop
+
+    /// Dragged topics and where they would land if dropped now.
+    struct TopicDrag: Equatable {
+        /// The branches that move, in outline order.
+        let ids: [NodeID]
+        /// The topic under the pointer, drawn following it.
+        let leadID: NodeID
+        /// Pointer position minus the lead topic's centre, in view points.
+        let grabOffset: CGSize
+        /// The pointer, in view points.
+        var location: CGPoint
+        var drop: TopicDrop?
+        /// The pointer is over one of the moving branches, where nothing can go.
+        var isRefused = false
+    }
+
+    /// A drag starting on a topic moves the selection if the topic is in it,
+    /// else the topic alone. The central topic does not move.
+    func beginDrag(_ id: NodeID, at viewPoint: CGPoint) {
+        guard drag == nil, id != session.rootID, let topic = scene.topic(id), !topic.isSuggestion else { return }
+        commitEditing()
+        if !session.isSelected(id) { session.selection = id }
+        let ids = session.movableBranchRoots
+        guard !ids.isEmpty else { return }
+        let centre = viewport.toView(CGPoint(x: topic.frame.midX, y: topic.frame.midY))
+        drag = TopicDrag(ids: ids, leadID: id, grabOffset: CGSize(width: viewPoint.x - centre.x, height: viewPoint.y - centre.y), location: viewPoint)
+    }
+
+    func updateDrag(to viewPoint: CGPoint) {
+        guard var drag else { return }
+        drag.location = viewPoint
+        (drag.drop, drag.isRefused) = dropTarget(at: viewPoint, moving: drag.ids)
+        self.drag = drag
+    }
+
+    /// Drops where the indicator shows. A refused drop moves nothing and plays
+    /// feedback (FR-KBD-04).
+    func endDrag() {
+        guard let drag else { return }
+        self.drag = nil
+        if let drop = drag.drop {
+            session.move(drag.ids, to: drop)
+        } else if drag.isRefused {
+            refusedDrops += 1
+            AccessibilityNotification.Announcement(String(localized: "A topic can’t move into its own branch.")).post()
+        }
+    }
+
+    /// The drop under a view point, or whether it is refused.
+    func dropTarget(at viewPoint: CGPoint, moving ids: [NodeID]) -> (drop: TopicDrop?, refused: Bool) {
+        let point = viewport.toCanvas(viewPoint)
+        guard let (topic, zone) = scene.dropZone(at: point, slack: layoutOptions.verticalSpacing / 2, edgeFraction: CanvasMetrics.dropEdgeFraction) else {
+            return (nil, false)
+        }
+        // Suggestions are drawn in the gaps but are not topics to drop on.
+        guard !topic.isSuggestion else { return (nil, false) }
+        let drop: TopicDrop = switch zone {
+        case .before: .before(topic.id)
+        case .after: .after(topic.id)
+        case .inside: .child(of: topic.id)
+        }
+        return session.canMove(ids, to: drop) ? (drop, false) : (nil, true)
+    }
+
+    /// Where the drop indicator goes, in canvas points: the new parent's frame
+    /// for `.child`, a bar in the gap before or after the anchor otherwise.
+    func dropIndicator(for drop: TopicDrop) -> (frame: CGRect, isBar: Bool)? {
+        guard let anchor = scene.topic(drop.anchor) else { return nil }
+        let gap = layoutOptions.verticalSpacing / 2
+        switch drop {
+        case .child:
+            return (anchor.frame, false)
+        case .before:
+            return (CGRect(x: anchor.frame.minX, y: anchor.frame.minY - gap, width: anchor.frame.width, height: 0), true)
+        case .after:
+            return (CGRect(x: anchor.frame.minX, y: anchor.frame.maxY + gap, width: anchor.frame.width, height: 0), true)
+        }
+    }
+
+    // MARK: Context menu
+
+    /// A context menu acts on the selection when it opens on a selected topic,
+    /// else on that topic alone, as Finder does.
+    func performFromContextMenu(on id: NodeID, _ action: (EditorSession) -> Void) {
+        commitEditing()
+        if !session.isSelected(id) { session.selection = id }
+        action(session)
     }
 
     // MARK: Styles
