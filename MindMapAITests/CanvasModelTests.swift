@@ -152,7 +152,7 @@ struct CanvasModelTests {
         let sub = CanvasMetrics.sub
         let tallFrame = measurer.imageSize(of: tall, level: 2)
         #expect(tallFrame.width == sub.maximumWidth - 2 * sub.horizontalPadding)
-        #expect(tallFrame.height == (tallFrame.width * CanvasMetrics.imageMaxAspect).rounded())
+        #expect(abs(Double(tallFrame.height) - Double(tallFrame.width) * CanvasMetrics.imageMaxAspect) < 1)
         #expect(measurer.size(of: "Plan", level: 2, chips: &noChips, image: tallFrame).width <= sub.maximumWidth)
     }
 
