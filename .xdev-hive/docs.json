@@ -6,6 +6,7 @@
     {"file": "docs/module-structure.md", "key": "module-structure", "title": "Module structure"},
     {"file": "docs/data-model.md", "key": "data-model", "title": "Data model"},
     {"file": "docs/graph-engine.md", "key": "graph-engine", "title": "Graph engine"},
+    {"file": "docs/layout-engine.md", "key": "layout-engine", "title": "Layout engine"},
     {"file": "docs/ai-architecture.md", "key": "ai-architecture", "title": "AI architecture"},
     {"file": "docs/on-device-ai.md", "key": "on-device-ai", "title": "On-device AI"},
     {"file": "docs/cloudkit-sync.md", "key": "cloudkit-sync", "title": "iCloud sync"},
