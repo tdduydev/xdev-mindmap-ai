@@ -24,6 +24,7 @@ let package = Package(
         .library(name: "MindMapCapture", targets: ["MindMapCapture"]),
         .library(name: "MindMapQuery", targets: ["MindMapQuery"]),
         .library(name: "MindMapMCP", targets: ["MindMapMCP"]),
+        .library(name: "MindMapImages", targets: ["MindMapImages"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -97,6 +98,10 @@ let package = Package(
             dependencies: ["MindMapMCP", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapQuery"],
             resources: [.copy("Fixtures")]
         ),
+        // Topic images (MM-63): ImageIO and Core Graphics only, so the same
+        // processing runs on every platform and in `swift test`.
+        .target(name: "MindMapImages", dependencies: ["MindMapDomain"]),
+        .testTarget(name: "MindMapImagesTests", dependencies: ["MindMapImages", "MindMapDomain"]),
         // A developer tool, not shipped: serves sample maps so the MCP Inspector
         // and real clients can be pointed at the server before the app hosts it.
         .executableTarget(
