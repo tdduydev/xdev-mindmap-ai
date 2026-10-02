@@ -29,4 +29,19 @@ struct TopicTextTests {
 
         #expect(try await repository.fetchTopicTexts().isEmpty)
     }
+
+    @Test func countsTopicsPerMap() async throws {
+        let repository = try PersistenceController.makeRepository(at: .inMemory)
+        let graph = try SwiftDataMapRepositoryTests.sampleGraph()
+        let other = GraphState.newMap(title: "Other")
+        try await repository.create(graph)
+        try await repository.create(other)
+
+        let counts = try await repository.fetchTopicCounts()
+
+        #expect(counts[graph.map.id] == graph.nodes.count)
+        #expect(counts[other.map.id] == 1)
+        try await repository.deleteMap(other.map.id)
+        #expect(try await repository.fetchTopicCounts()[other.map.id] == nil)
+    }
 }

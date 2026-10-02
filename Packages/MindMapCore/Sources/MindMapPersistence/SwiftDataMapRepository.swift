@@ -226,6 +226,16 @@ public actor SwiftDataMapRepository: MapRepository {
         return texts
     }
 
+    public func fetchTopicCounts() async throws -> [MapID: Int] {
+        var descriptor = FetchDescriptor<NodeRecord>()
+        descriptor.propertiesToFetch = [\.mapID]
+        var counts: [MapID: Int] = [:]
+        for record in try modelContext.fetch(descriptor) {
+            counts[MapID(record.mapID), default: 0] += 1
+        }
+        return counts
+    }
+
     // MARK: Writing
 
     /// Every write ends here, so every transaction carries this repository's author.

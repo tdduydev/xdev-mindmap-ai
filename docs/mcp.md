@@ -1,6 +1,6 @@
 # MCP server: AI apps read your maps
 
-Design for MM-39, 2026-10-02. Nothing here is built yet. Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
+Design for MM-39, 2026-10-02. Only the shared query layer is built (MM-47); the server is not. Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
 
 ## Summary
 
@@ -136,13 +136,14 @@ Decision [Đề xuất]: build our own, as ADR 0008 records. Test against the pr
 
 ## Shared query layer
 
-The MCP tools and the chat's tools ([chat.md](chat.md)) read maps the same way, so both go through one new target, `MindMapQuery` in `MindMapCore` (Domain, Graph, Search, Interchange, the `MapRepository` protocol; no UI, no AI, no network):
+Built in MM-47 (Q1). The MCP tools and the chat's tools ([chat.md](chat.md)) read maps the same way, so both go through one target, `MindMapQuery` in `MindMapCore` (Domain, Graph, Persistence for the `MapRepository` protocol, Search; no UI, no AI, no network, no logging):
 
 ```swift
 public struct TopicRef: Hashable, Sendable, Codable { public var mapID: MapID; public var nodeID: NodeID }
 
 public protocol GraphSource: Sendable {          // the open map's live state first, else the store
     func graph(for mapID: MapID) async throws -> GraphState?
+    func openMapIDs() async -> Set<MapID>        // default []: maps whose live graph may be ahead of the store
 }
 
 public struct MapQueries: Sendable {
@@ -154,10 +155,18 @@ public struct MapQueries: Sendable {
 }
 ```
 
-- Topic search runs `LibrarySearchIndex` to find maps, then `MapFind.matches` on each match's graph for topic hits, ranked title before content as in the library.
-- `GraphSource` in the app asks `OpenMaps` first, so a client sees what the editor shows, not an older save *[Inference]*.
-- `TextLimit` cuts by characters for MCP and by estimated tokens (`TokenEstimator`) for the chat; both report what was left out.
-- Recently Deleted maps are never returned.
+| Call | Behaviour |
+| --- | --- |
+| `maps` | Live maps, most recently edited first; `matching` folds like Find. Topic counts come from `MapRepository.fetchTopicCounts()` (no graph loaded); an open map's title, count and edit time come from its live graph |
+| `outline` | Pre-order from the central topic or `branch`, collapsed branches included. `depth` 0 is the start topic alone. Stops at the first topic that does not fit, so the rows are always a prefix of the tree; reports `omittedTopicCount` (cut by the limit) and `deeperTopicCount` (below `depth`). The first topic is always returned, with its note cut (`isNoteCut`) when the note alone is over the limit. Returns structured rows (ID, depth, title, note, child count): MCP writes them as Markdown with IDs, the chat with handles |
+| `search` | `LibrarySearchIndex` over the store's text picks maps, every open map is searched too (its edits may not be saved yet), then `MapFind.matches` on each graph. Title hits before note hits; within each, maps most recently edited first and topics in reading order. Each hit has the path from the central topic and, for a note hit, the note line with most query words (shortened to 160 characters around the match). `in:` a map that is not live throws `mapNotFound` |
+| `topic` | Title, note, path, children, tag names, task state, priority, dates, cross-links with direction and label. Nil when the map is not live or the topic does not exist |
+
+- `GraphSource` in the app asks `OpenMaps` first, so a client sees what the editor shows, not an older save. `RepositoryGraphSource` reads only the store (tests, or no open maps). The app's source is built in C1 or M2.
+- `TextLimit(budget:perTopic:measure:)` takes the measure from the caller: `.characters(n)` for MCP, `TokenEstimator.estimate` for the chat (passed in from `MindMapAIApple`), so `MindMapQuery` does not import `MindMapAICore`. `perTopic` is the bullet, indentation and the ID or handle the caller adds.
+- Recently Deleted maps are never returned. Every call checks the map against `fetchMaps()` as well as `deletedAt`, since an editor's copy of a map may not know the library moved it to Recently Deleted.
+- Errors: `MapQueryError.mapNotFound` and `.topicNotFound`; M1 maps both to invalid-params.
+- Changed from the design: no dependency on `MindMapInterchange` (the outline is structured rows, not `MarkdownOutline.export` text, so each caller can name topics its own way); `GraphSource.openMapIDs()` added so library search does not miss unsaved edits; `MapRepository.fetchTopicCounts()` added for `list_maps`.
 
 ## Proposed tasks
 
@@ -165,7 +174,7 @@ For the leader to create; the names are placeholders.
 
 | | Task | Done when | Depends on |
 | --- | --- | --- | --- |
-| Q1 | Query layer `MindMapQuery` | `MapQueries` and `TopicRef` as above; Vietnamese and English tests for search (diacritics, đ), outline limits, deleted maps left out, live state preferred; docs updated | MM-15, MM-31 (done) |
+| Q1 | Query layer `MindMapQuery` ✓ MM-47 | `MapQueries` and `TopicRef` as above; Vietnamese and English tests for search (diacritics, đ), outline limits, deleted maps left out, live state preferred; docs updated | MM-15, MM-31 (done) |
 | M1 | MCP server core `MindMapMCP` | JSON-RPC for 2026-07-28 and 2025-11-25; the four read tools; Streamable HTTP on loopback with token and `Origin` checks; size and rate limits; tests with recorded requests from Claude Code, Cursor and VS Code; MCP Inspector run noted | Q1 |
 | M2 | MCP in the Mac app | Settings ▸ AI Apps (off by default), clients and Keychain tokens, copy snippets for Claude Code, ChatGPT desktop (Codex config), Cursor and VS Code; reading indicator; menu items; `network.server`; privacy.md, privacy policy, Review Notes; en and vi; UI test for the switch | M1 |
 | M3 | Spike: helper in the Mac App Store | A sandboxed `mindmap-mcp` relay in `Contents/Helpers`, launched by Claude Desktop from a TestFlight build; answer whether App Review and signing accept it, and whether a `.mcpb` can point at it. Ship it (M4) only if yes | M2 |

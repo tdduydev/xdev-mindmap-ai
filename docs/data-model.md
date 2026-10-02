@@ -152,6 +152,7 @@ Deleting a map sets `MapRecord.deletedAt` and keeps every record (FR-LIB-11, DR-
 | `moveToRecentlyDeleted(_:at:)`, `restoreMap(_:)` | Set or clear `deletedAt` on every record of the map (sync duplicates included); `updatedAt` does not move |
 | `deleteMap(_:)` | Deletes the map and all its nodes, edges, tags, tag links and groups, one record at a time |
 | `purgeDeletedMaps(deletedBefore:)` | `deleteMap` for every map deleted before the cutoff, in one commit; with nothing due it writes nothing |
+| `fetchTopicCounts()` | Topics per map from node records alone, no graph loaded, for `list_maps` (MM-47). Counts deleted maps too; `MapQueries` filters by `fetchMaps()` |
 | `loadGraph(for:)` | Still loads a deleted map; `EditorSession.open` returns `.recentlyDeleted` and `QuickCapture.add` throws `mapNotFound` for it |
 
 `RecentlyDeleted.retention` is 30 days of elapsed time, not calendar days. `LibraryModel.load()` purges first, so maps past the period go whenever the app opens or comes back to the foreground; there is no background task. `LibraryModel` keeps live maps in `maps` and deleted ones in `deletedMaps`; search, sections other than Recently Deleted and Spotlight read only `maps`.

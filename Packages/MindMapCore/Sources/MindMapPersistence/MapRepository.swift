@@ -66,4 +66,9 @@ public protocol MapRepository: Sendable {
     /// The title and note of every topic, by map, for library search. Empty
     /// titles and notes are left out.
     func fetchTopicTexts() async throws -> [MapID: [String]]
+
+    /// How many topics each map has, central topic included, without loading
+    /// any graph, so a list of maps can show sizes (MCP `list_maps`). Maps with
+    /// no topics are left out.
+    func fetchTopicCounts() async throws -> [MapID: Int]
 }
