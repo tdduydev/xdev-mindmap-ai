@@ -1,13 +1,13 @@
 import MindMapDomain
 import SwiftUI
 
-/// The minimal editor: the map as an indented outline. The canvas replaces it
-/// as the main view in a later phase; the outline stays as the accessible one.
+/// The map as an indented outline: the way to use a map without the canvas,
+/// for VoiceOver and the keyboard. Toolbar and menus come from `MapEditorView`.
 struct OutlineEditorView: View {
     @Bindable var session: EditorSession
-    @Environment(\.undoManager) private var undoManager
     @FocusState private var focusedNode: NodeID?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var isListFocused: Bool
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -31,11 +31,7 @@ struct OutlineEditorView: View {
                 session.scrollRequest = nil
             }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if session.isFinding {
-                FindBar(session: session)
-            }
-        }
+        .focused($isListFocused)
         .overlay {
             if session.rows.isEmpty {
                 ContentUnavailableView {
@@ -46,59 +42,23 @@ struct OutlineEditorView: View {
                 }
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            if session.saveFailed {
-                SaveFailedBanner()
-            }
-        }
-        .navigationTitle(session.map.title)
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        #if os(macOS)
-        .onDeleteCommand(perform: session.deleteSelection)
-        #endif
-        .toolbar { toolbar }
-        .focusedSceneValue(\.editorSession, session)
-        .onAppear { session.undoManager = undoManager }
-        .onChange(of: undoManager) { _, manager in session.undoManager = manager }
-        .onChange(of: session.focusRequest) { _, request in
+        .onChange(of: session.focusRequest, initial: true) { _, request in
             guard let request else { return }
             focusedNode = request
             session.focusRequest = nil
         }
         .onChange(of: focusedNode) { _, node in
             if let node { session.selection = node }
+            reportKeyboardFocus()
         }
+        .onChange(of: isListFocused) { reportKeyboardFocus() }
+        .onAppear(perform: reportKeyboardFocus)
     }
 
-    @ToolbarContentBuilder
-    private var toolbar: some ToolbarContent {
-        ToolbarItemGroup {
-            Button(action: session.undo) {
-                Label("Undo", systemImage: "arrow.uturn.backward")
-            }
-            .disabled(!session.canUndo)
-            Button(action: session.redo) {
-                Label("Redo", systemImage: "arrow.uturn.forward")
-            }
-            .disabled(!session.canRedo)
-        }
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button(action: session.showFind) {
-                Label("Find", systemImage: "magnifyingglass")
-            }
-            Button(action: session.addChild) {
-                Label("Add Child", systemImage: "arrow.turn.down.right")
-            }
-            Button(action: session.addSibling) {
-                Label("Add Sibling", systemImage: "plus")
-            }
-            Button(role: .destructive, action: session.deleteSelection) {
-                Label("Delete", systemImage: "trash")
-            }
-            .disabled(!session.canDeleteSelection)
-        }
+    /// Delete Topic's bare-Delete shortcut follows this (see `EditorSession.deleteKeyDeletesTopic`).
+    private func reportKeyboardFocus() {
+        let focus: EditorSession.KeyboardFocus = focusedNode != nil ? .editingText : isListFocused ? .content : .elsewhere
+        session.reportKeyboardFocus(focus, from: .outline)
     }
 }
 
@@ -134,7 +94,7 @@ struct OutlineRow: View {
             disclosure
             TextField("Topic", text: $draft, prompt: Text("Untitled Topic"))
                 .textFieldStyle(.plain)
-                .font(isRoot ? Typography.rootTopic : Typography.topic)
+                .font(isRoot ? Typography.Content.outlineRoot.font : Typography.Content.outlineTopic.font)
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
@@ -147,7 +107,7 @@ struct OutlineRow: View {
             }
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
-        .listRowBackground(isFindMatch ? Palette.searchMatch : nil)
+        .listRowBackground(isFindMatch ? Palette.searchMatchFill : nil)
         // Undo changes the title from outside; show it unless the user is typing here.
         .onChange(of: row.node.title) { _, title in
             if focus.wrappedValue != row.id { draft = title }

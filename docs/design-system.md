@@ -40,7 +40,7 @@ From the xDev design tokens (`xdev-hive/packages/ui/src/tokens/primitives.css`).
 | `selectionRing` | = accent | = accent | = accent | = accent | 2 pt ring, 3 pt with Increase Contrast |
 | `crossLink` | `#5B6885` (5.3:1) | `#9DAAC7` (6.4:1) | `#344568` | `#E8ECF8` | Cross-link lines and arrowheads |
 | `searchMatchFill` | `#FFF4DB` | `#3D3423` | `#FFE7B3` | `#4A3B1E` | Find results behind the title |
-| `searchMatchBorder` | `#F5C86B` | `#7A5D22` | `#9A5B00` | `#FFC35C` | Outline of a find result |
+| `searchMatchBorder` | `#B26A00` (4.0:1) | `#FFC35C` (9.4:1) | `#8B5300` | `#FFD285` | Outline of a find result |
 | `favorite` | `#B26A00` (was `#F2A516`, 2.1:1 on white, below the 3:1 for graphics) | `#FFC35C` | `#9A5B00` | `#FFD285` | Star |
 | `warningFill` / `warningText` | `#FFF4DB` / `#9A5B00` | `#3D3423` / `#FFC35C` | `#FFE7B3` / `#7A4600` | `#4A3B1E` / `#FFD285` | Save-failure banner (existing assets) |
 | `danger` | `#C62828` | `#FF8A8A` | `#A51F1F` | `#FFB4B4` | Destructive confirmation text |
@@ -75,13 +75,15 @@ Topic text on any of these fills stays `topicText`; it measures 9.2:1 or more on
 
 ### Themes
 
-A map's `theme` (already a field of `MindMap`, stored as a string with a fallback) picks the branch palette. *[Proposal]* three themes for V1, built in MM-18:
+A map's `theme` (`MindMapTheme`, stored as a raw string) picks the branch palette. Three themes for V1 (MM-18, FR-THM-02); Standard is free, the other two are MindMap AI Pro (docs/pricing.md):
 
-| Theme | Branch colours |
-| --- | --- |
-| Standard (default) | The six-colour palette above |
-| xDev Blue | Every branch blue: light `#0B6CF5`, dark `#4AAEFF`; levels told apart by shape and weight only |
-| Graphite | Every branch neutral: light `#5B6885`, dark `#9DAAC7`, for printing and calm maps |
+| Theme | Stored value | Branch colours (light / dark / light IC / dark IC) |
+| --- | --- | --- |
+| Standard (default) | `standard` | The six-colour palette above |
+| xDev Blue | `xdevBlue` | Every branch the Standard blue: `#0B6CF5` / `#4AAEFF` / `#0954BF` / `#77C2FF`; levels told apart by shape and weight only |
+| Graphite | `graphite` | Every branch neutral: `#5B6885` / `#9DAAC7` / `#465270` / `#BAC4DA`, for printing and calm maps |
+
+Fills and badges derive from the line colour as for Standard (`BranchColors`), so a theme is one `BranchPalette`. A stored value this build does not know (written by a newer version) opens as Standard; the map is not rewritten until the user edits it, but the next save does store `standard`. The theme is picked per map in View ▸ Theme and in the inspector (Show Inspector, ⌃⌘I); each pick is one "Change Theme" undo step (`ChangeThemeCommand`).
 
 Themes change colour only, never layout, fonts or shapes.
 
@@ -97,7 +99,7 @@ Used for: the `sparkles` symbol on AI buttons and menu items, the dashed outline
 
 ## Typography
 
-Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with `OFL.txt`, registered through `UIAppFonts` (iOS) and `ATSApplicationFontsPath` (macOS).
+Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with one `OFL.txt` holding both families' copyright lines (the synchronized group copies resources flat into the bundle, so two files named `OFL.txt` would collide). `BrandFont.registerAll()` registers them with CoreText for the process when the app starts, on iOS and macOS alike: the generated Info.plist cannot hold the `UIAppFonts` array, and one code path is easier to test than two plist keys. Space Grotesk ships as a static SemiBold file (`SpaceGrotesk-SemiBold.ttf`, an instance of the variable font) so its PostScript name is fixed: upstream publishes static Light, Regular, Medium and Bold only, so this file is `SpaceGrotesk[wght].ttf` instanced at `wght` 600 with fontTools' `varLib.instancer`, named `Space Grotesk` / `SemiBold`. PostScript names: `BeVietnamPro-Regular`, `BeVietnamPro-Medium`, `BeVietnamPro-SemiBold`, `SpaceGrotesk-SemiBold`.
 
 Content styles (canvas points at 100% zoom). On iOS and iPadOS each is `Font.custom(_:size:relativeTo:)`, so it scales with Dynamic Type; macOS has no Dynamic Type and uses the size as is.
 
@@ -158,7 +160,7 @@ Edges are drawn under topics and never cross a topic's box; the layout engine (M
 | Collapsed | Badge with the number of hidden topics (`badgeFill`, `badge` text) |
 | Has note | `note.text` symbol, 11 pt, `topicTextSecondary`, after the title |
 | Search match | `searchMatchFill` behind the title, `searchMatchBorder` outline; the current match also gets the selection ring |
-| AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient before the title, title in `topicTextSecondary`; Accept and Discard buttons on hover or selection |
+| AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient on the top-leading corner, title in `topicTextSecondary`; Accept and Discard buttons under the topic on hover or selection. MM-8 put the symbol on the corner rather than before the title so the title keeps the measured width of a plain topic |
 | Accepted AI topic | Looks like any topic (its origin is kept in `metadata.origin`) |
 
 ## Elevation
@@ -221,6 +223,7 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 | `EmptyState` | `ContentUnavailableView` with a `display` headline on the canvas, system text in lists | Always with an action button |
 | `SyncStatusLine` | Caption text and symbol in the sidebar footer | Never an alert |
 | `TopicInspector` | `.inspector`, note editor in the `note` font | Sheet on iPhone |
+| `BrandMark` | `BrandMark` image set (from `docs/brand/mindmap-ai-icon-v1.png`, 64 pt at @1x/@2x/@3x) in a continuous rounded square, plus live text: "MindMap AI" in `display` (Space Grotesk SemiBold) and "by xDev" in `brandByline` | Lockup in the library's empty state and Settings ▸ About; icon alone, 32 pt, on the storage recovery screen. Never in the sidebar or toolbar. One VoiceOver element, "MindMap AI by xDev" |
 
 ## Accessibility
 
@@ -244,14 +247,14 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 
 | Swift name | Holds |
 | --- | --- |
-| `Palette` | Semantic colours (asset catalog colour sets with Any, Dark and High Contrast appearances) |
+| `Palette` | Semantic colours (asset catalog colour sets with Any, Dark and High Contrast appearances); `Palette.Tokens` holds the same values for code that computes with them, and a test keeps the two equal |
 | `BranchPalette`, `MapTheme` | Branch colours per theme and the derived fills (computed, so no asset per derived colour) |
 | `Typography` | Chrome styles (system) and `Typography.Content` (brand fonts, `relativeTo`) |
 | `Spacing`, `Radius`, `Metrics` | Existing scales |
 | `CanvasMetrics` | The canvas table above |
 | `Elevation` | The drag shadow |
 | `Motion` | Durations, curves and the Reduce Motion rule |
-| `TopicStyle` | Resolves fill, stroke, font, padding and radius for a level, theme, colour scheme and contrast setting |
+| `TopicStyle` | `resolve(level:branch:theme:colorScheme:contrast:)`: fill, stroke, font, padding and radius for a level, the index of its level-1 branch, theme, colour scheme and contrast setting |
 
 - A debug-only `DesignSystemGallery` view shows every token and topic state in both modes for review and screenshots.
 - Colour sets are named after their token (`CanvasBackground`, `TopicText`…), each with Any, Dark, and High Contrast variants.

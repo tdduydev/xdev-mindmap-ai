@@ -13,16 +13,38 @@ let package = Package(
         .library(name: "MindMapDomain", targets: ["MindMapDomain"]),
         .library(name: "MindMapGraph", targets: ["MindMapGraph"]),
         .library(name: "MindMapPersistence", targets: ["MindMapPersistence"]),
+        .library(name: "MindMapLayout", targets: ["MindMapLayout"]),
+        .library(name: "MindMapAICore", targets: ["MindMapAICore"]),
+        .library(name: "MindMapAIApple", targets: ["MindMapAIApple"]),
+        .library(name: "MindMapTestSupport", targets: ["MindMapTestSupport"]),
+        .library(name: "MindMapInterchange", targets: ["MindMapInterchange"]),
         .library(name: "MindMapSearch", targets: ["MindMapSearch"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
         .target(name: "MindMapGraph", dependencies: ["MindMapDomain"]),
         .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph"]),
-        .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .target(name: "MindMapLayout", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph"]),
         .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"]),
+        .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout"]),
+        // AICore never imports FoundationModels, so the graph, the UI and tests
+        // depend on plain values; only AIApple talks to the model.
+        .target(name: "MindMapAICore", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .target(name: "MindMapAIApple", dependencies: ["MindMapAICore"]),
+        .target(name: "MindMapTestSupport", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore"]),
+        .testTarget(
+            name: "MindMapAICoreTests",
+            dependencies: ["MindMapAICore", "MindMapDomain", "MindMapGraph", "MindMapTestSupport"]
+        ),
+        .testTarget(
+            name: "MindMapAIAppleTests",
+            dependencies: ["MindMapAIApple", "MindMapAICore", "MindMapGraph", "MindMapTestSupport"]
+        ),
+        .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),
+        .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch"]),
     ]
 )

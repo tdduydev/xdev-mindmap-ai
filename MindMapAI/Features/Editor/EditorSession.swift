@@ -24,6 +24,20 @@ final class EditorSession {
     /// A node whose title field should take focus, such as one just created.
     var focusRequest: NodeID?
     private(set) var saveFailed = false
+    /// Where the window's keyboard focus is, as far as this editor knows.
+    /// The canvas and the outline report it through `reportKeyboardFocus`.
+    private(set) var keyboardFocus: KeyboardFocus = .elsewhere
+    /// Canvas or outline; both show the same map and selection (FR-CNV-12).
+    var presentation: EditorPresentation = .canvas {
+        // The view that had focus is gone; the one that replaces it reports its own.
+        didSet { if presentation != oldValue { keyboardFocus = .elsewhere } }
+    }
+    /// Whether the inspector shows beside the map.
+    var isInspectorPresented = false
+
+    /// Called with every change the map goes through (command, undo, redo),
+    /// so the canvas lays out only what changed.
+    @ObservationIgnored var onGraphChange: ((GraphChangeSet) -> Void)?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false
@@ -90,6 +104,26 @@ final class EditorSession {
     var canUndo: Bool { engine.canUndo }
     var canRedo: Bool { engine.canRedo }
     var canDeleteSelection: Bool { selection != nil && selection != rootID }
+    var canRenameSelection: Bool { selection.flatMap { engine.state.node($0) } != nil }
+
+    /// A bare Delete in the menu bar is matched before the focused view sees
+    /// the key, so it is the Delete Topic shortcut only while the editor holds
+    /// focus outside a text field: otherwise it would eat Delete in a title
+    /// being typed, or delete a topic while the library list is focused.
+    var deleteKeyDeletesTopic: Bool { keyboardFocus == .content && canDeleteSelection }
+
+    /// The display name of the map, also the editor's window title.
+    var displayTitle: String {
+        map.title.isEmpty ? String(localized: "Untitled Map") : map.title
+    }
+
+    /// Takes a view's report of where focus is. The canvas and the outline
+    /// swap with no set order of appearing and disappearing, so a late report
+    /// from the one no longer shown is ignored.
+    func reportKeyboardFocus(_ focus: KeyboardFocus, from source: EditorPresentation) {
+        guard source == presentation else { return }
+        keyboardFocus = focus
+    }
 
     var canToggleSelection: Bool {
         guard let selection else { return false }
@@ -157,6 +191,9 @@ final class EditorSession {
         guard let node = engine.state.node(id) else { return }
         let name = node.isCollapsed ? String(localized: "Expand Topic") : String(localized: "Collapse Topic")
         perform(UpdateNodeCommand(nodeID: id, .isCollapsed(!node.isCollapsed)), named: name)
+        // Collapsing an ancestor of the selection (the canvas badge, a VoiceOver
+        // action) would leave Delete and Rename acting on a topic nobody sees.
+        keepSelectionVisible()
     }
 
     func toggleSelectionCollapsed() {
@@ -229,6 +266,11 @@ final class EditorSession {
 
     func renameMap(to title: String) {
         perform(RenameMapCommand(title: title), named: String(localized: "Rename Map"))
+    }
+
+    /// Only branch colours change, so the layout and selection stay as they are (FR-THM-03).
+    func changeTheme(to theme: MindMapTheme) {
+        perform(ChangeThemeCommand(theme: theme), named: String(localized: "Change Theme"))
     }
 
     func undo() {
@@ -316,8 +358,10 @@ final class EditorSession {
 
     // MARK: Engine and history
 
+    /// Runs a command as one named undo step. Intents above use it; so does
+    /// `AIAssistant` for accepted suggestions, which are commands like any other.
     @discardableResult
-    private func perform(_ command: any GraphCommand, named name: String) -> Bool {
+    func perform(_ command: any GraphCommand, named name: String) -> Bool {
         do {
             let changes = try engine.execute(command)
             guard !changes.isEmpty else { return true }
@@ -369,6 +413,7 @@ final class EditorSession {
         guard !changes.isEmpty else { return }
         let map = engine.state.map
         onMapChange(map)
+        onGraphChange?(changes)
         if !findText.isEmpty { updateFind(selectingFirst: false) }
         let previous = lastSave
         lastSave = Task { [repository, weak self] in
@@ -415,5 +460,23 @@ final class EditorSession {
         if index > 0 { return siblings[index - 1] }
         if index + 1 < siblings.count { return siblings[index + 1] }
         return parentID
+    }
+}
+
+enum EditorPresentation: String, CaseIterable, Identifiable {
+    case canvas
+    case outline
+
+    var id: Self { self }
+}
+
+extension EditorSession {
+    enum KeyboardFocus {
+        /// Focus is outside the editor, such as in the sidebar or the library.
+        case elsewhere
+        /// The editor's content has focus and no text is being edited.
+        case content
+        /// A topic title or another text field in the editor is being edited.
+        case editingText
     }
 }

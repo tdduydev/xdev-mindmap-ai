@@ -1,0 +1,209 @@
+import MindMapDomain
+import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
+
+/// The map on an infinite canvas: pan, zoom, select, edit in place. Edges are
+/// one SwiftUI `Canvas`; topics are views, and only those in view are built.
+struct CanvasView: View {
+    @Bindable var model: CanvasModel
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
+    @Namespace private var rotorNamespace
+    @FocusState private var isFocused: Bool
+    @State private var drag: (start: CGPoint, last: CGSize)?
+    @State private var pinchStartScale: CGFloat?
+
+    private var session: EditorSession { model.session }
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            background
+            EdgeLayer(
+                drawing: CanvasDrawing.make(model: model, colorScheme: colorScheme, contrast: contrast),
+                viewport: model.viewport,
+                aiStyle: Palette.ai(colorScheme: colorScheme, contrast: contrast, reduceTransparency: reduceTransparency)
+            )
+                .allowsHitTesting(false)
+            if model.isDetailed {
+                topics
+            } else {
+                topicShapesForAccessibility
+            }
+        }
+        .clipped()
+        .overlay(alignment: .bottomTrailing) {
+            if session.rootID != nil {
+                CanvasControls(model: model)
+                    .padding(Spacing.lg)
+            }
+        }
+        .overlay {
+            if session.rootID == nil { emptyState }
+        }
+        .onGeometryChange(for: CGSize.self) { $0.size } action: { model.setViewSize($0) }
+        .simultaneousGesture(pinch)
+        #if os(macOS)
+        .background(CanvasScrollInput(model: model))
+        #else
+        .gesture(CanvasScrollInput(model: model))
+        #endif
+        .focusable()
+        .focused($isFocused)
+        .focusEffectDisabled()
+        .onKeyPress(.return) { model.beginEditingSelection() ? .handled : .ignored }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(verbatim: session.map.title))
+        .accessibilityRotor(Text("Topics")) {
+            ForEach(model.scene.topics) { topic in
+                AccessibilityRotorEntry(rotorLabel(topic), id: topic.id, in: rotorNamespace) {
+                    model.reveal(topic.id)
+                }
+            }
+        }
+        .focusedSceneValue(\.canvasModel, model)
+        .onAppear {
+            #if os(iOS)
+            if dynamicTypeSize.isAccessibilitySize {
+                model.initialPlacement = .firstLevel
+            } else if horizontalSizeClass == .compact {
+                model.initialPlacement = .firstLevelWidth
+            }
+            #endif
+            model.setTextSpecs(textSpecs)
+            model.revealSelection()
+            model.takeFocusRequest()
+            model.hasKeyboardFocus = isFocused
+        }
+        .onChange(of: isFocused) { _, focused in model.hasKeyboardFocus = focused }
+        .onChange(of: dynamicTypeSize) { model.setTextSpecs(textSpecs) }
+        .onChange(of: session.focusRequest) { model.takeFocusRequest() }
+        .onChange(of: session.selection) {
+            if model.editingID == nil { isFocused = true }
+        }
+        .onChange(of: model.editingID) { _, editing in
+            // Keys go back to the canvas after editing, so Return can edit again.
+            if editing == nil { isFocused = true }
+        }
+    }
+
+    // MARK: Layers
+
+    private var background: some View {
+        Rectangle()
+            .fill(Palette.canvasBackground)
+            .contentShape(Rectangle())
+            .gesture(pan)
+            .onTapGesture(count: 2) { model.doubleTap(at: $0) }
+            .simultaneousGesture(SpatialTapGesture().onEnded { value in
+                model.tap(at: value.location)
+                isFocused = true
+            })
+            #if os(macOS)
+            .pointerStyle(model.isPanning ? .grabActive : .grabIdle)
+            #endif
+            .accessibilityHidden(true)
+    }
+
+    private var topics: some View {
+        let selection = session.selection
+        let selectedSuggestion = model.selectedSuggestionPreviewID
+        let rootID = session.rootID
+        return ForEach(model.visibleTopics) { topic in
+            if let spec = model.textSpec(for: topic) {
+                TopicView(
+                    topic: topic,
+                    style: model.style(for: topic, colorScheme: colorScheme, contrast: contrast),
+                    spec: spec,
+                    isRoot: topic.id == rootID,
+                    isSelected: topic.id == (topic.isSuggestion ? selectedSuggestion : selection),
+                    isEditing: topic.id == model.editingID,
+                    model: model,
+                    rotorNamespace: rotorNamespace
+                )
+                .scaleEffect(model.viewport.scale)
+                .position(model.viewport.toView(CGPoint(x: topic.frame.midX, y: topic.frame.midY)))
+            }
+        }
+    }
+
+    /// Below the detail zoom the topics are shapes in the edge layer; these
+    /// empty frames keep one VoiceOver element per topic in view.
+    private var topicShapesForAccessibility: some View {
+        let selection = session.selection
+        let rootID = session.rootID
+        let viewport = model.viewport
+        return ForEach(model.visibleTopics) { topic in
+            Color.clear
+                .frame(width: topic.frame.width * viewport.scale, height: topic.frame.height * viewport.scale)
+                .modifier(TopicAccessibility(topic: topic, isRoot: topic.id == rootID, isSelected: topic.id == selection, model: model))
+                .accessibilityRotorEntry(id: topic.id, in: rotorNamespace)
+                .position(viewport.toView(CGPoint(x: topic.frame.midX, y: topic.frame.midY)))
+                .allowsHitTesting(false)
+        }
+    }
+
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label("Empty Map", systemImage: "point.3.connected.trianglepath.dotted")
+        } actions: {
+            Button("Add Central Topic", action: session.addRoot)
+                .buttonStyle(.borderedProminent)
+        }
+    }
+
+    // MARK: Gestures
+
+    /// Drag on empty canvas pans (mouse drag on the Mac, one finger on touch).
+    private var pan: some Gesture {
+        DragGesture()
+            .onChanged { value in
+                // A gesture cancelled without `onEnded` leaves an old drag behind;
+                // a new start location means a new drag.
+                let last = drag?.start == value.startLocation ? drag?.last ?? .zero : .zero
+                model.pan(by: CGSize(width: value.translation.width - last.width, height: value.translation.height - last.height))
+                drag = (value.startLocation, value.translation)
+                model.setPanning(true)
+            }
+            .onEnded { _ in
+                drag = nil
+                model.setPanning(false)
+            }
+    }
+
+    /// Pinch on a trackpad or touch screen zooms around where it started.
+    private var pinch: some Gesture {
+        MagnifyGesture()
+            .onChanged { value in
+                let start = pinchStartScale ?? model.viewport.scale
+                pinchStartScale = start
+                model.zoom(to: start * value.magnification, anchor: value.startLocation)
+            }
+            .onEnded { _ in pinchStartScale = nil }
+    }
+
+    // MARK: Helpers
+
+    private func rotorLabel(_ topic: CanvasTopic) -> Text {
+        topic.title.isEmpty ? Text("Untitled Topic") : Text(verbatim: topic.title)
+    }
+
+    /// Topic fonts at the current Dynamic Type size. Only iOS and iPadOS scale
+    /// content text; the Mac has no Dynamic Type.
+    private var textSpecs: TopicTextSpecs {
+        #if os(iOS)
+        let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(dynamicTypeSize))
+        return .make { style in
+            UIFontMetrics(forTextStyle: style.textStyle.uiTextStyle).scaledValue(for: style.size, compatibleWith: traits)
+        }
+        #else
+        return .designSizes()
+        #endif
+    }
+}
