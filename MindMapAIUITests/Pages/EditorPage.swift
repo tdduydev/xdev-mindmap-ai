@@ -67,7 +67,7 @@ struct EditorPage {
 
     /// Editor toolbar buttons a test taps, with the symbol each shows.
     enum ToolbarAction {
-        case find, addChild, addSibling, delete, inspector
+        case find, addChild, addSibling, delete, inspector, voice, export
 
         var identifier: String {
             switch self {
@@ -76,6 +76,8 @@ struct EditorPage {
             case .addSibling: AccessibilityID.Editor.addSibling
             case .delete: AccessibilityID.Editor.delete
             case .inspector: AccessibilityID.Editor.inspector
+            case .voice: AccessibilityID.Editor.voice
+            case .export: AccessibilityID.Editor.export
             }
         }
 
@@ -87,6 +89,8 @@ struct EditorPage {
             case .addSibling: "plus"
             case .delete: "trash"
             case .inspector: "sidebar.trailing"
+            case .voice: "mic"
+            case .export: "square.and.arrow.up"
             }
         }
     }
@@ -98,8 +102,10 @@ struct EditorPage {
         let button = app.buttons[action.identifier].firstMatch
         #if os(iOS)
         if !button.waitForExistence(timeout: MindMapApp.timeout / 6) {
-            // UIKit's identifier for the navigation bar's More button.
-            app.buttons["OverflowBarButtonItem"].firstMatch.waitToExist(file: file, line: line).tapOrClick()
+            // UIKit's identifier for the navigation bar's More button; with the
+            // keyboard up its shortcuts bar has one too, before the toolbar's.
+            let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
+            overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist(file: file, line: line).tapOrClick()
             app.collectionViews.buttons.containing(.image, identifier: action.symbol).firstMatch
                 .waitToExist(file: file, line: line).tapOrClick()
             return

@@ -17,6 +17,16 @@ nonisolated enum UITestAI: String, CaseIterable {
     case ready
     /// A device that can never run Apple Intelligence: every AI entry point is hidden.
     case ineligible
+
+    /// What Suggest Subtopics proposes in the `ready` mode, in this order.
+    static let subtopics = ["Budget", "Timeline", "Risks"]
+}
+
+/// What voice input hears in the UI test mode, where the Simulator has no
+/// speech model: one topic per sentence, then nothing more.
+nonisolated enum UITestVoice {
+    static let heard = "Call the venue. Book the flights."
+    static let topics = ["Call the venue", "Book the flights"]
 }
 
 /// The maps a UI test can start with. Titles are data, not interface text,
