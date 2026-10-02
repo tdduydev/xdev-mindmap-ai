@@ -21,7 +21,7 @@ Nothing below is ever committed or written to Hive. If the machine is replaced, 
 | `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8` | App Store Connect API key "MindMap AI CI", role App Manager | 600 |
 | `~/.appstoreconnect/mindmap.env` | `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH` | 600 |
 | `~/.appstoreconnect/signing/` | Private keys of the two distribution certificates, the keychain password | 700 / 600 |
-| `~/Library/Keychains/mindmap-build.keychain-db` | Keychain with the Apple Distribution and Mac Installer Distribution identities and the Apple WWDR G3 intermediate | — |
+| `~/Library/Keychains/mindmap-build.keychain-db` | Keychain with the Apple Distribution and Mac Installer Distribution identities, the Apple Development identity (created through the API on 2026-10-03 for `scripts/init-cloudkit-schema.sh`, expires 2027-10-02; the Mac mini is registered as device "hc-duytd20-macmini") and the Apple WWDR G3 intermediate | — |
 | `~/Library/Developer/Xcode/UserData/Provisioning Profiles/` | Profiles "MindMap AI Mac App Store" (app) and "MindMap AI Share Mac App Store" (Share Extension, bundle ID `asia.xdev.mindmapai.share`, created 2026-10-02 with the same Apple Distribution certificate as the app, expires 2027-10-02), both MAC_APP_STORE | — |
 
 The API key has the App Manager role, which cannot use Xcode's cloud-managed distribution certificates. So the certificates were created through the API from locally generated keys, and the export signs manually. A key with the Admin role would allow cloud signing instead; it was not created, to keep the key's rights small.

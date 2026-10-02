@@ -180,11 +180,28 @@ public struct MindImage: Identifiable, Hashable, Sendable, Codable {
         self.updatedAt = updatedAt ?? createdAt
     }
 
+    /// The picture's frame on the canvas, in points: its display width (or
+    /// Medium) but no wider than `maximumWidth`, the aspect ratio of its
+    /// pixels kept up to `maximumAspect` (height ÷ width; a taller picture is
+    /// cropped to fill). Known before the bytes load, so layout does not jump
+    /// when they arrive; an image with no pixel size yet is square.
+    public func displaySize(maximumWidth: Double, maximumAspect: Double) -> (width: Double, height: Double) {
+        let width = max(0, min(displayWidth ?? Self.defaultDisplayWidth, maximumWidth))
+        let aspect = pixelWidth > 0 && pixelHeight > 0 ? Double(pixelHeight) / Double(pixelWidth) : 1
+        return (width.rounded(), (width * min(aspect, maximumAspect)).rounded())
+    }
+
     /// The same image without its bytes, as the graph holds it.
     public var withoutData: MindImage {
         var copy = self
         copy.data = nil
         return copy
+    }
+
+    /// Nil (Medium) for a width that is not finite or not positive.
+    public static func normalizedDisplayWidth(_ width: Double?) -> Double? {
+        guard let width, width.isFinite, width > 0 else { return nil }
+        return width
     }
 
     /// Trimmed and cut to `maximumAltTextLength` characters; nil for blank text.

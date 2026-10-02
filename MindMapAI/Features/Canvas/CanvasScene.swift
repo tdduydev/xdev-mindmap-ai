@@ -158,6 +158,8 @@ nonisolated struct TopicMeasure: Equatable, Sendable {
     let level: Int
     /// What the chips say; a renamed tag measures the topic again.
     var chipLabels: [String] = []
+    /// The picture's frame, nil without one; a resize measures the topic again.
+    var imageSize: CGSize?
     let size: CGSize
     /// The chips with their measured widths.
     var chips: [TopicChip] = []
@@ -199,12 +201,15 @@ nonisolated struct CanvasLayoutPass: Sendable {
         var changed = changed
 
         let tags = graph.tagsByNode()
+        let images = graph.imagesByNode()
         var chips: [NodeID: [TopicChip]] = [:]
         for item in outline {
             guard let node = graph.node(item.nodeID) else { continue }
             var topicChips = TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
             let labels = topicChips.map(\.label)
-            if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth, known.chipLabels == labels {
+            let imageSize = images[item.nodeID].map { measurer.imageSize(of: $0, level: item.depth) }
+            if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth, known.chipLabels == labels,
+               known.imageSize == imageSize {
                 sizes[item.nodeID] = known.size
                 // The kinds can change under the same labels (a tag renamed to another's name).
                 chips[item.nodeID] = zip(topicChips, known.chips).map { chip, measured in
@@ -216,9 +221,11 @@ nonisolated struct CanvasLayoutPass: Sendable {
             }
             // A move changes the level of a whole branch, and the level picks the
             // font, so a topic the change set never named can still change size.
-            let size = measurer.size(of: node.title, level: item.depth, chips: &topicChips)
+            let size = measurer.size(of: node.title, level: item.depth, chips: &topicChips, image: imageSize)
             if measures[item.nodeID]?.size != size { changed.insert(item.nodeID) }
-            measures[item.nodeID] = TopicMeasure(title: node.title, level: item.depth, chipLabels: labels, size: size, chips: topicChips)
+            measures[item.nodeID] = TopicMeasure(
+                title: node.title, level: item.depth, chipLabels: labels, imageSize: imageSize, size: size, chips: topicChips
+            )
             sizes[item.nodeID] = size
             chips[item.nodeID] = topicChips
         }

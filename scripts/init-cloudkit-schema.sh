@@ -7,7 +7,7 @@
 #
 #   scripts/init-cloudkit-schema.sh
 #
-# Needs a Mac signed in to iCloud, with an Xcode account in team M6C7NX9MUZ for
+# Needs a Mac signed in to iCloud (System Settings › Apple Account), with an Xcode account in team M6C7NX9MUZ for
 # automatic signing (or the App Store Connect key in ~/.appstoreconnect, as on
 # the Mac mini). Rerun after every schema change, before deploying it.
 set -euo pipefail
@@ -17,11 +17,11 @@ if [[ -z "${DEVELOPER_DIR:-}" && "$(xcode-select -p)" == *CommandLineTools* ]]; 
   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 fi
 
-# CloudKit creates the schema through the signed-in account; without one the
-# app keeps a local store and nothing reaches CloudKit.
-if ! defaults read MobileMeAccounts Accounts 2>/dev/null | grep -q AccountID; then
-  echo "This Mac is not signed in to iCloud, so CloudKit cannot create the schema." >&2
-  exit 1
+# On the Mac mini the development identity lives in the build keychain
+# (docs/release.md); elsewhere Xcode's own account signs.
+keychain="$HOME/Library/Keychains/mindmap-build.keychain-db"
+if [[ -f "$HOME/.appstoreconnect/signing/keychain.pass" && -f "$keychain" ]]; then
+  security unlock-keychain -p "$(cat "$HOME/.appstoreconnect/signing/keychain.pass")" "$keychain"
 fi
 
 auth=()
@@ -37,7 +37,7 @@ xcodebuild build -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI -configuration Debug \
   -destination 'platform=macOS' -derivedDataPath "$derived" \
   -allowProvisioningUpdates ${auth[@]+"${auth[@]}"} \
-  DEVELOPMENT_TEAM=M6C7NX9MUZ CODE_SIGN_STYLE=Automatic \
+  DEVELOPMENT_TEAM=M6C7NX9MUZ CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY="Apple Development" \
   MINDMAP_ICLOUD=YES MINDMAP_MAC_APP_GROUP=YES
 
 app=$(find "$derived/Build/Products/Debug" -maxdepth 1 -name '*.app' | head -n 1)
@@ -64,5 +64,8 @@ if [[ "$result" == *"schema initialized"* ]]; then
   echo "then Deploy Schema Changes to production."
   exit 0
 fi
-echo "${result:-No result logged within 5 minutes. Is iCloud on for MindMap AI in Settings?}" >&2
+# Without an iCloud account the app keeps a local store and never tries, so
+# nothing is logged. (macOS 27 no longer has the MobileMeAccounts defaults an
+# up-front check could read.)
+echo "${result:-No result logged within 5 minutes. Is this Mac signed in to iCloud, and is iCloud on for MindMap AI in Settings?}" >&2
 exit 1
