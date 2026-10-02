@@ -68,6 +68,7 @@ The app's menus:
 | Edit | Undo/Redo with the command's action name, Cut, Copy, Paste branch (MM-5), Select All, Find ⌘F |
 | View | Show/Hide Sidebar, Show/Hide Inspector, Zoom In ⌘+, Zoom Out ⌘−, Actual Size ⌘0, Zoom to Fit, Enter Full Screen |
 | Topic | Add Sibling, Add Child, Promote, Demote, Collapse/Expand, Delete (the Delete key) |
+| Format (MM-32, MM-33, MM-37) | Topic Color, Topic Symbol, Link line, arrows and colour, Boundary Color; tags, tasks, filter and Focus items in Topic and View are listed in [node-organization.md](node-organization.md) |
 | AI (MM-8) | Generate Map…, Expand Topic, Brainstorm…, Rewrite ▸, Summarize, Find Missing Ideas; disabled with a reason when AI is unavailable |
 | Help | MindMap AI Help, Website, Privacy Policy |
 

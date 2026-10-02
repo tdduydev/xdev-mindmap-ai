@@ -56,7 +56,7 @@ records ─▶ GraphState(map:nodes:edges:)   duplicates: newest updatedAt wins;
 - `migratedStoreKeepsNewEdits` saves a command into the opened store and reads it back from a second container.
 - `planEndsAtTheSchemaTheAppOpens` checks that the plan's versions increase, that there is one stage per step, and that the container the app opens uses the plan's last schema.
 
-When SchemaV2 arrives (MM-19), these tests stay as they are and keep passing through the new stage; MM-19 adds what V2 must hold after migration (for example, an empty `deletedAt` on every V1 map) and, once V2 ships, a `V2.store` fixture made the same way. The test target copies the whole `Fixtures` folder, so a new fixture needs no change to `Package.swift`.
+When SchemaV2 arrives (MM-31, see below), these tests stay as they are and keep passing through the new stage; MM-31 adds what V2 must hold after migration (for example, an empty `deletedAt` on every V1 map and no tags) and, once V2 ships, a `V2.store` fixture made the same way. The test target copies the whole `Fixtures` folder, so a new fixture needs no change to `Package.swift`.
 
 The V1 fixture is 76 KB: one map (favorite, Graphite theme), a root, a child with a note that is collapsed and came from AI, a sibling, and a reference link between them, with fixed IDs and dates and non-default values where possible, so a stage that resets a field fails the test. `V1Fixture.write(to:)` writes it with the `SchemaV1` types and raw values only, never the current typealiases or mapping, so it still writes V1 after V2 ships. To regenerate it (only if the fixture is lost; a changed V1 fixture would test nothing that shipped):
 
@@ -68,6 +68,64 @@ cp /tmp/V1.store Packages/MindMapCore/Tests/MindMapPersistenceTests/Fixtures/V1.
 ```
 
 Inspect a copy, not the fixture: `sqlite3` leaves `-shm` and `-wal` files beside whatever it opens.
+
+## Schema V2 (planned, MM-31)
+
+One schema change for everything V1 needs beyond V1: Recently Deleted (MM-19) and node organization (MM-32 to MM-37, designed in [[node-organization]]). One version, so one migration stage, one fixture and one CloudKit schema deployment, instead of a migration per feature. MM-31 builds it; MM-19 and the organization tasks only use its fields.
+
+Everything below is additive: new optional properties and new record types, no rename, no type change, no removed property. SwiftData migrates that with one `MigrationStage.lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self)`, and CloudKit's production schema, which only ever grows, accepts it.
+
+### New properties on V1 records
+
+| Record | Property | Type, default | Meaning |
+| --- | --- | --- | --- |
+| `MapRecord` | `deletedAt` | `Date?` | Set when the map goes to Recently Deleted (FR-LIB-11, DR-07); `nil` for a live map |
+| `NodeRecord` | `colorToken` | `String?` | `TopicColor` raw value; `nil` follows the theme |
+| `NodeRecord` | `symbol` | `String?` | SF Symbol name from the catalogue, or one emoji |
+| `NodeRecord` | `taskStateRaw` | `String?` | `nil` not a task, `open`, `done`; unknown reads as `open` |
+| `NodeRecord` | `priority` | `Int?` | 1 high, 2 medium, 3 low; above 3 reads as low |
+| `NodeRecord` | `startDate`, `dueDate` | `String?` | A calendar day, ISO 8601 `YYYY-MM-DD`, so it does not shift with the time zone |
+| `EdgeRecord` | `lineStyleRaw` | `String?` | `solid`, `dashed`, `dotted`; `nil` derives the look from `edgeTypeRaw` as V1 draws it |
+| `EdgeRecord` | `arrowHeadsRaw` | `String?` | `none`, `end`, `start`, `both`; `nil` derives from `edgeTypeRaw` |
+| `EdgeRecord` | `colorToken` | `String?` | `nil` is the `crossLink` colour |
+
+`EdgeRecord.label` is already in V1 and needs no change.
+
+### New records
+
+| Record (domain value) | Properties | Notes |
+| --- | --- | --- |
+| `TagRecord` (`MindTag`) | `tagID: UUID`, `mapID: UUID?`, `name: String = ""`, `colorToken: String?`, `symbol: String?`, `sortOrder: Double = 0`, `createdAt`, `updatedAt` | `mapID` nil is a shared tag, offered in every map. No unique name: duplicates from offline devices are merged by repair (tag key: NFC, case folded, diacritics kept) |
+| `NodeTagRecord` (`MindNodeTag`) | `linkID: UUID`, `mapID: UUID`, `nodeID: UUID`, `tagID: UUID`, `originRaw: String = "user"`, `createdAt`, `updatedAt` | One per topic and tag, so concurrent tagging on two devices merges. `mapID` is the topic's map, also for shared tags, so loading a map fetches its links by `mapID` |
+| `GroupRecord` (`MindGroup`) | `groupID: UUID`, `mapID: UUID`, `kindRaw: String = "boundary"`, `parentNodeID: UUID?`, `firstNodeID: UUID?`, `lastNodeID: UUID?`, `title: String?`, `colorToken: String?`, `originRaw: String = "user"`, `createdAt`, `updatedAt` | A boundary over the siblings from first to last under the parent. A kind this build does not know is hidden and kept |
+
+New typed IDs: `TagID`, `NodeTagID`, `GroupID`. Dates default to `Date.distantPast` as in V1. The record names follow V1 (`…Record`); the domain values are `MindTag`, `MindNodeTag` and `MindGroup`, beside `MindNode` and `MindEdge`.
+
+### Rules the new records keep
+
+- The CloudKit rules above: every property optional or defaulted, no unique constraints, UUIDs instead of SwiftData relationships, raw strings with a fallback, deletes one record at a time (deleting a tag deletes each of its links as a record).
+- A record whose partner is missing is stored as it is. `GraphRepair` drops tag links whose node is gone, ignores those whose tag is missing (and deletes them after 30 days [Đề xuất]), merges duplicate tags and links, and fixes boundary runs ([[node-organization]], *Sync and repair*). Shared tags are repaired by the library, since no single map owns them.
+- Records stay far under CloudKit's 1 MB limit: names, titles and labels are short text; nothing large goes into these records.
+- `GraphState` loads a map's tags (its own and the shared ones it uses), tag links and groups beside its nodes and edges; `GraphChangeSet` records before and after values for each, so undo, redo and incremental saves work as for nodes. Duplicate records resolve as today: newest `updatedAt` wins.
+
+### Migration test
+
+`MigrationHarnessTests` keeps opening `V1.store` through the plan, now `[SchemaV1, SchemaV2]` with one stage. MM-31 asserts that the V1 fixture's map, nodes and edge come through with every value, that every V1 map has `deletedAt == nil`, every node and edge has `nil` in the new fields (so it draws as before), and that there are no tags, tag links or groups. `V1Fixture.write` keeps using `SchemaV1` types only. When V2 ships, a `V2.store` fixture with a tag, a shared tag, a tag link, a task, a styled link and a boundary is added the same way, so V3 is tested against real V2 data.
+
+### Not in V2
+
+Kept out on purpose. A property shipped to CloudKit production can never be removed, so fields wait for the feature that uses them:
+
+| Feature | Needs (in a later schema) |
+| --- | --- |
+| Apple Pencil sketches (MM-9, iPad) | A drawing record with external storage, with attachments |
+| Summary topics | `GroupRecord.summaryNodeID` and a `summary` node type |
+| Floating topics, several main topics | Node position (`positionX`, `positionY`) and `floating` node type |
+| Saved filters and views | A `SavedViewRecord` |
+| Links to other maps | `EdgeRecord.targetMapID` |
+| Structure per branch | A per-node layout override |
+| Images and attachments | An `AttachmentRecord` with external storage |
+| Custom properties | Property definition and value records |
 
 ## Change stream
 

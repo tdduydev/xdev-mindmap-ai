@@ -8,6 +8,7 @@
     {"file": "docs/graph-engine.md", "key": "graph-engine", "title": "Graph engine"},
     {"file": "docs/layout-engine.md", "key": "layout-engine", "title": "Layout engine"},
     {"file": "docs/canvas.md", "key": "canvas", "title": "Canvas"},
+    {"file": "docs/node-organization.md", "key": "node-organization", "title": "Node organization"},
     {"file": "docs/interchange.md", "key": "interchange", "title": "Interchange"},
     {"file": "docs/system-integration.md", "key": "system-integration", "title": "System integration"},
     {"file": "docs/ai-architecture.md", "key": "ai-architecture", "title": "AI architecture"},
