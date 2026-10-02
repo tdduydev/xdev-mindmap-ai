@@ -181,6 +181,16 @@
         }
       }
     },
+    "Contact Support": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liên hệ hỗ trợ"
+          }
+        }
+      }
+    },
     "Couldn’t Open Map": {
       "localizations": {
         "vi": {
@@ -444,6 +454,16 @@
     "MindMap AI": {
       "shouldTranslate": false
     },
+    "MindMap AI Help": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trợ giúp MindMap AI"
+          }
+        }
+      }
+    },
     "MindMap AI Website": {
       "localizations": {
         "vi": {
@@ -574,6 +594,16 @@
         }
       }
     },
+    "Privacy Policy": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chính sách quyền riêng tư"
+          }
+        }
+      }
+    },
     "Promote Topic": {
       "localizations": {
         "vi": {
@@ -670,6 +700,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bắt đầu từ một ý tưởng."
+          }
+        }
+      }
+    },
+    "Support": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hỗ trợ"
           }
         }
       }
