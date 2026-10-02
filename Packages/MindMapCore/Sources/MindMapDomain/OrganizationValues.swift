@@ -98,6 +98,13 @@ public enum TopicSymbol {
         return isSymbolName(trimmed) ? trimmed : String(first)
     }
 
+    /// The symbol when it is an emoji, which text exports can carry; nil for
+    /// an SF Symbol name, which has no text form.
+    public static func emoji(_ symbol: String?) -> String? {
+        guard let symbol, !symbol.isEmpty, !isSymbolName(symbol) else { return nil }
+        return symbol
+    }
+
     public static func isSymbolName(_ text: String) -> Bool {
         !text.isEmpty && text.unicodeScalars.allSatisfy { scalar in
             ("a"..."z").contains(scalar) || ("0"..."9").contains(scalar) || scalar == "."

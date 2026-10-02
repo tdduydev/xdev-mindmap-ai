@@ -47,7 +47,7 @@ public enum PlainTextOutline {
         var lines: [String] = []
         for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
             let indent = String(repeating: "\t", count: depth)
-            var title = escapedTitle(TextLines.singleLine(node.title))
+            var title = escapedTitle(TextLines.exportTitle(of: node))
             if let link = node.link, link.url != nil {
                 title += title.isEmpty ? "<\(link.string)>" : " <\(link.string)>"
             }

@@ -46,7 +46,7 @@ public enum MarkdownOutline {
     ) throws -> String {
         var writer = Writer()
         for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
-            var title = TextLines.singleLine(node.title)
+            var title = TextLines.exportTitle(of: node)
             // Only a link this build opens: anything else would not read back as one.
             let link = node.link.flatMap { $0.url == nil ? nil : $0 }
             // A title that is link markup but no link must read back as text.
