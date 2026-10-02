@@ -15,6 +15,10 @@ public final class MockAIProvider: AIProvider {
         case rewrite(AIRewrite)
         case summary(AISummary)
         case failure(AIError)
+        /// Partial proposals streamed before the last, complete one.
+        case stream([AIProposal])
+        /// Never answers; the request ends only when its task is cancelled.
+        case hang
     }
 
     public enum Request: Hashable, Sendable {
@@ -57,36 +61,78 @@ public final class MockAIProvider: AIProvider {
     }
 
     public func generateMap(_ request: GenerateMapRequest) async throws -> AIProposal {
-        try proposal(from: next(.generateMap, language: request.language, recording: .generateMap(request)))
+        try proposal(from: await waitingNext(.generateMap, language: request.language, recording: .generateMap(request)))
     }
 
     public func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
-        try proposal(from: next(.expandTopic, language: request.context.language, recording: .expandTopic(request)))
+        try proposal(from: await waitingNext(.expandTopic, language: request.context.language, recording: .expandTopic(request)))
     }
 
     public func brainstorm(_ request: BrainstormRequest) async throws -> AIProposal {
-        try proposal(from: next(.brainstorm, language: request.context.language, recording: .brainstorm(request)))
+        try proposal(from: await waitingNext(.brainstorm, language: request.context.language, recording: .brainstorm(request)))
     }
 
     public func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal {
         try proposal(
-            from: next(.findMissingTopics, language: request.context.language, recording: .findMissingTopics(request))
+            from: await waitingNext(.findMissingTopics, language: request.context.language, recording: .findMissingTopics(request))
         )
     }
 
     public func rewrite(_ request: RewriteRequest) async throws -> AIRewrite {
-        let answer = try next(.rewrite, language: request.outputLanguage, recording: .rewrite(request))
+        let answer = try await waitingNext(.rewrite, language: request.outputLanguage, recording: .rewrite(request))
         guard case .rewrite(let rewrite) = answer else { throw AIError.generationFailed }
         return rewrite
     }
 
     public func summarize(_ request: SummarizeRequest) async throws -> AISummary {
-        let answer = try next(.summarize, language: request.context.language, recording: .summarize(request))
+        let answer = try await waitingNext(.summarize, language: request.context.language, recording: .summarize(request))
         guard case .summary(let summary) = answer else { throw AIError.generationFailed }
         return summary
     }
 
+    public func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error> {
+        let recorded: Request = switch request {
+        case .generateMap(let request): .generateMap(request)
+        case .expandTopic(let request): .expandTopic(request)
+        case .brainstorm(let request): .brainstorm(request)
+        case .findMissingTopics(let request): .findMissingTopics(request)
+        }
+        let answer = Result { try next(request.feature, language: request.language, recording: recorded) }
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    switch try answer.get() {
+                    case .stream(let proposals):
+                        for (index, proposal) in proposals.enumerated() {
+                            try Task.checkCancellation()
+                            continuation.yield(ProposalSnapshot(proposal: proposal, isComplete: index == proposals.count - 1))
+                            await Task.yield()
+                        }
+                    case .hang:
+                        try await Task.sleep(for: .seconds(3_600))
+                    case let other:
+                        continuation.yield(ProposalSnapshot(proposal: try proposal(from: other), isComplete: true))
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
     // MARK: Script
+
+    /// `next`, where a `.hang` answer waits until the task is cancelled.
+    private func waitingNext(_ feature: AIFeature, language: AILanguage, recording request: Request) async throws -> Answer {
+        let answer = try next(feature, language: language, recording: request)
+        if case .hang = answer {
+            try await Task.sleep(for: .seconds(3_600))
+            throw CancellationError()
+        }
+        return answer
+    }
 
     private func next(_ feature: AIFeature, language: AILanguage, recording request: Request) throws -> Answer {
         let answer: Answer? = state.withLock { current in
@@ -106,8 +152,11 @@ public final class MockAIProvider: AIProvider {
     }
 
     private func proposal(from answer: Answer) throws -> AIProposal {
-        guard case .proposal(let proposal) = answer else { throw AIError.generationFailed }
-        return proposal
+        switch answer {
+        case .proposal(let proposal): return proposal
+        case .stream(let proposals): return try proposals.last ?? { throw AIError.generationFailed }()
+        default: throw AIError.generationFailed
+        }
     }
 }
 

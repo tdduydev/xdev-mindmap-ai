@@ -75,3 +75,30 @@ extension GeneratedTopicList {
         )
     }
 }
+
+// Partial answers, while the model is still writing. A topic shows once its
+// title has started; for a tree, its IDs come first in the schema, so they are
+// complete by then. The translator checks only the final answer.
+
+extension GeneratedMindMap.PartiallyGenerated {
+    func proposal(limit: Int) -> AIProposal {
+        let topics = (self.topics ?? []).compactMap { topic -> ProposedTopic? in
+            guard let id = topic.temporaryID, let parent = topic.parentTemporaryID, let title = topic.title, !title.isEmpty else {
+                return nil
+            }
+            return ProposedTopic(temporaryID: id, parentTemporaryID: parent, title: title)
+        }
+        return AIProposal(feature: .generateMap, anchor: .root, suggestedMapTitle: title, topics: Array(topics.prefix(limit)))
+    }
+}
+
+extension GeneratedTopicList.PartiallyGenerated {
+    func proposal(for feature: AIFeature, anchor: ProposalAnchor, limit: Int) -> AIProposal {
+        let titles = (topics ?? []).compactMap { $0.title }.filter { !$0.isEmpty }
+        return AIProposal(
+            feature: feature,
+            anchor: anchor,
+            topics: titles.prefix(limit).enumerated().map { ProposedTopic(temporaryID: "s\($0.offset + 1)", title: $0.element) }
+        )
+    }
+}
