@@ -9,6 +9,8 @@ enum Typography {
     static let rowTitle = Font.body.weight(.medium)
     static let rowDetail = Font.subheadline
     static let banner = Font.callout
+    /// The sync line under the library sidebar: present, never loud.
+    static let statusLine = Font.caption
     /// "by xDev" under the wordmark in `BrandMark`.
     static let brandByline = Font.subheadline
     static let paywallTitle = Font.title2.weight(.semibold)

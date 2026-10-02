@@ -205,7 +205,7 @@ struct TagTests {
         let first = try await open()
         let undoManager = undoManager(for: first)
         let second = try await open()
-        let observing = Task { await second.observeLibraryTags() }
+        let observing = Task { await second.observeStore() }
         defer { observing.cancel() }
         // The subscription starts before the action below.
         await Task.yield()

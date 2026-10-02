@@ -27,10 +27,16 @@ public struct GraphEngine: Sendable {
     public var canUndo: Bool { history.canUndo }
     public var canRedo: Bool { history.canRedo }
 
+    /// Names of the steps Undo can take, oldest first, as `execute` got them.
+    /// The window rebuilds its undo actions from these after a change from
+    /// outside drops some steps (`takeStored`).
+    public var undoStepNames: [String?] { history.undoNames }
+
     /// Runs a command as one undo step and returns what it changed. A command
     /// that changes nothing returns an empty set and leaves history alone.
+    /// `name` is kept with the step, for the Edit menu.
     @discardableResult
-    public mutating func execute(_ command: any GraphCommand) throws -> GraphChangeSet {
+    public mutating func execute(_ command: any GraphCommand, named name: String? = nil) throws -> GraphChangeSet {
         let now = clock()
         var transaction = GraphTransaction(state: state, now: now)
         try command.execute(in: &transaction)
@@ -47,24 +53,45 @@ public struct GraphEngine: Sendable {
 
         next.touch(at: now)
         state = next
-        history.record(changes)
+        history.record(changes, named: name)
         return changes
+    }
+
+    /// Forgets every undo and redo step.
+    public mutating func clearHistory() {
+        history.clear()
     }
 
     /// Reverts the last step and returns the change set that did it.
     @discardableResult
     public mutating func undo() -> GraphChangeSet? {
         guard let changes = history.popUndo() else { return nil }
-        let reversed = changes.reversed()
-        state.apply(reversed)
-        state.touch(at: clock())
-        return reversed
+        return step(applying: changes.reversed())
     }
 
     @discardableResult
     public mutating func redo() -> GraphChangeSet? {
         guard let changes = history.popRedo() else { return nil }
-        state.apply(changes)
+        return step(applying: changes)
+    }
+
+    /// Steps kept across a change from outside were checked against what it
+    /// touched, but not against every rule, so each one is validated before
+    /// it lands. One that would break the graph clears history instead and
+    /// changes nothing; without such a change, steps replay as recorded.
+    private mutating func step(applying changes: GraphChangeSet) -> GraphChangeSet? {
+        if history.isPruned {
+            var next = state
+            next.apply(changes)
+            guard GraphValidator.validate(next).isEmpty else {
+                history.clear()
+                return nil
+            }
+            state = next
+        } else {
+            // Copying a 10,000-topic state on every undo is not needed here.
+            state.apply(changes)
+        }
         state.touch(at: clock())
         return changes
     }
@@ -73,9 +100,17 @@ public struct GraphEngine: Sendable {
 /// Linear undo history of recorded change sets, capped so a long session
 /// cannot grow memory without bound.
 struct CommandHistory: Sendable {
+    struct Step: Sendable {
+        let changes: GraphChangeSet
+        let name: String?
+    }
+
     let limit: Int
-    private var undoStack: [GraphChangeSet] = []
-    private var redoStack: [GraphChangeSet] = []
+    private(set) var undoStack: [Step] = []
+    private(set) var redoStack: [Step] = []
+    /// Some steps were dropped after a change from outside, so the ones left
+    /// no longer form an unbroken chain back to the opened map.
+    private(set) var isPruned = false
 
     init(limit: Int) {
         self.limit = max(1, limit)
@@ -83,9 +118,10 @@ struct CommandHistory: Sendable {
 
     var canUndo: Bool { !undoStack.isEmpty }
     var canRedo: Bool { !redoStack.isEmpty }
+    var undoNames: [String?] { undoStack.map(\.name) }
 
-    mutating func record(_ changes: GraphChangeSet) {
-        undoStack.append(changes)
+    mutating func record(_ changes: GraphChangeSet, named name: String? = nil) {
+        undoStack.append(Step(changes: changes, name: name))
         if undoStack.count > limit {
             undoStack.removeFirst(undoStack.count - limit)
         }
@@ -95,17 +131,25 @@ struct CommandHistory: Sendable {
     mutating func clear() {
         undoStack.removeAll()
         redoStack.removeAll()
+        isPruned = false
     }
 
     mutating func popUndo() -> GraphChangeSet? {
-        guard let changes = undoStack.popLast() else { return nil }
-        redoStack.append(changes)
-        return changes
+        guard let step = undoStack.popLast() else { return nil }
+        redoStack.append(step)
+        return step.changes
     }
 
     mutating func popRedo() -> GraphChangeSet? {
-        guard let changes = redoStack.popLast() else { return nil }
-        undoStack.append(changes)
-        return changes
+        guard let step = redoStack.popLast() else { return nil }
+        undoStack.append(step)
+        return step.changes
+    }
+
+    /// Keeps the undo steps `keep` accepts, in order, and empties redo.
+    mutating func retainUndoSteps(where keep: (Int) -> Bool) {
+        undoStack = undoStack.indices.filter(keep).map { undoStack[$0] }
+        redoStack.removeAll()
+        isPruned = true
     }
 }

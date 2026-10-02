@@ -218,16 +218,6 @@ extension EditorSession {
             tagFailure = .couldNotSave
         }
     }
-
-    /// Follows library tag changes made in other windows, for as long as the
-    /// editor is on screen. A change this window made arrives here too and
-    /// changes nothing the second time.
-    func observeLibraryTags() async {
-        for await change in await repository.changes() {
-            guard case .tagsChanged(let tags) = change else { continue }
-            applyLibraryChange(tags)
-        }
-    }
 }
 
 extension TagFailure {

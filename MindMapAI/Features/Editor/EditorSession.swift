@@ -83,6 +83,20 @@ final class EditorSession {
     @ObservationIgnored let clipboard: any TextClipboard
     @ObservationIgnored private let onMapChange: (MindMap) -> Void
     @ObservationIgnored private var lastSave: Task<Void, Never>?
+    /// Moves with every change this editor saves, so taking in the store can
+    /// tell whether an edit came in while it was loading (`EditorSession+Sync`).
+    @ObservationIgnored private(set) var editGeneration = 0
+    enum RemovedElsewhere {
+        case deleted
+        case recentlyDeleted
+    }
+
+    /// Another device deleted the map, or moved it to Recently Deleted, while
+    /// it was open here. The window stops showing the editor, so nothing
+    /// saved afterwards can bring the map back by accident.
+    var removedElsewhere: RemovedElsewhere?
+    @ObservationIgnored var isTakingStoredChanges = false
+    @ObservationIgnored var takesStoredChangesAgain = false
 
     init(
         engine: GraphEngine,
@@ -601,7 +615,7 @@ final class EditorSession {
     @discardableResult
     func perform(_ command: any GraphCommand, named name: String) -> Bool {
         do {
-            let changes = try engine.execute(command)
+            let changes = try engine.execute(command, named: name)
             guard !changes.isEmpty else { return true }
             persist(changes)
             registerUndo(named: name)
@@ -613,7 +627,7 @@ final class EditorSession {
         }
     }
 
-    private func registerUndo(named name: String?) {
+    func registerUndo(named name: String?) {
         guard let undoManager else { return }
         undoManager.registerUndo(withTarget: self) { session in
             MainActor.assumeIsolated { session.stepBack(named: name) }
@@ -622,7 +636,12 @@ final class EditorSession {
     }
 
     private func stepBack(named name: String?) {
-        guard let changes = engine.undo() else { return }
+        guard let changes = engine.undo() else {
+            // The engine refused a step kept across a change from another
+            // device and cleared its history; the menu must not offer it again.
+            dropUndoActionsLater()
+            return
+        }
         persist(changes)
         // Registering while the undo manager is undoing puts this on its redo stack.
         if let undoManager {
@@ -635,10 +654,21 @@ final class EditorSession {
     }
 
     private func stepForward(named name: String?) {
-        guard let changes = engine.redo() else { return }
+        guard let changes = engine.redo() else {
+            dropUndoActionsLater()
+            return
+        }
         persist(changes)
         registerUndo(named: name)
         keepSelectionValid()
+    }
+
+    /// Not from inside the undo manager's own undo or redo.
+    private func dropUndoActionsLater() {
+        Task { [weak self] in
+            guard let self else { return }
+            undoManager?.removeAllActions(withTarget: self)
+        }
     }
 
     /// Takes in tag records the library changed (`SharedTagActions`), from this
@@ -652,6 +682,25 @@ final class EditorSession {
         if !findText.isEmpty { updateFind(selectingFirst: false) }
     }
 
+    /// Takes in the map as stored after a write from outside (`EditorSession+Sync`)
+    /// and shows what changed. Already stored, so nothing is saved.
+    func takeStored(_ stored: GraphState) throws -> GraphEngine.StoredChangeResult {
+        let result = try engine.takeStored(stored, now: .now)
+        guard !result.changes.isEmpty else { return result }
+        onMapChange(engine.state.map)
+        onGraphChange?(result.changes)
+        keepSelectionValid()
+        if !findText.isEmpty { updateFind(selectingFirst: false) }
+        return result
+    }
+
+    /// Forgets every undo step, when the window's undo manager cannot take
+    /// them back as they are (`EditorSession+Sync`).
+    func clearHistory() {
+        engine.clearHistory()
+        undoManager?.removeAllActions(withTarget: self)
+    }
+
     /// Waits until every change made so far is saved, for example before the app quits.
     func flush() async {
         await lastSave?.value
@@ -660,6 +709,7 @@ final class EditorSession {
     /// Saves run one after another, in the order the changes happened.
     private func persist(_ changes: GraphChangeSet) {
         guard !changes.isEmpty else { return }
+        editGeneration += 1
         let map = engine.state.map
         onMapChange(map)
         onGraphChange?(changes)
@@ -716,7 +766,7 @@ final class EditorSession {
     }
 
     /// Undo and redo can remove selected topics; keep the ones still there.
-    private func keepSelectionValid() {
+    func keepSelectionValid() {
         let state = engine.state
         let remaining = selectedIDs.filter { state.node($0) != nil }
         guard remaining != selectedIDs || primarySelection.map({ state.node($0) == nil }) == true else { return }

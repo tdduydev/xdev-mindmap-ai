@@ -15,6 +15,7 @@ struct SidebarView: View {
             }
         }
         .accessibilityIdentifier(AccessibilityID.Sidebar.list)
+        .safeAreaInset(edge: .bottom, spacing: 0) { CloudSyncStatusLine() }
         #if os(macOS)
         // No title here: on the Mac it can end up as the window title, and the
         // HIG asks for the content's name there, not the app's.

@@ -81,7 +81,7 @@ struct MapEditorView: View {
             Text(failure.message)
         }
         // Shared tag changes from other windows; this window's own arrive too and change nothing.
-        .task { await session.observeLibraryTags() }
+        .task { await session.observeStore() }
         // The window title on the Mac: the map, never the app name.
         .navigationTitle(session.displayTitle)
         #if os(iOS)

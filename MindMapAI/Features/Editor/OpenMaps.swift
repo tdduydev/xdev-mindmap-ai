@@ -137,11 +137,9 @@ final class OpenMaps {
     /// Whether `mapID` is loaded, for tests.
     func isOpen(_ mapID: MapID) -> Bool { maps[mapID] != nil }
 
-    /// The editor's graph of an open map, which may be ahead of the store: what
-    /// the chat and AI apps read (`OpenMapsGraphSource`).
-    func liveGraph(for mapID: MapID) -> GraphState? {
-        maps[mapID]?.session.engine.state
-    }
+    /// The editor's graph of an open map, which may be ahead of the store
+    /// (AI apps and the chat read this, `OpenMapsGraphSource`).
+    func liveGraph(for mapID: MapID) -> GraphState? { maps[mapID]?.session.engine.state }
 
     var openMapIDs: Set<MapID> { Set(maps.keys) }
 

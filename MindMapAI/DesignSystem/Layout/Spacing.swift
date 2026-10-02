@@ -52,6 +52,10 @@ enum Metrics {
 
     /// File ▸ Export… on the Mac.
     static let exportSheetWidth: CGFloat = 440
+    /// Settings ▸ AI Apps ▸ Add App…: wide enough for a config snippet's longest line.
+    static let addAppSheetWidth: CGFloat = 520
+    /// The port field, five digits.
+    static let portFieldWidth: CGFloat = 72
 
     /// Room for a few lines of note in the inspector before it grows.
     static let noteEditorMinHeight: CGFloat = 120
