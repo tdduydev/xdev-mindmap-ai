@@ -11,8 +11,8 @@ import SwiftUI
 @Observable
 final class CanvasModel {
     enum InitialPlacement {
-        /// Actual size with the central topic in the middle (Mac, iPad).
-        case centralTopic
+        /// The whole map fitted to the view, never above actual size (Mac, iPad).
+        case wholeMap
         /// The central topic and its children fitted to the width (iPhone).
         case firstLevelWidth
         /// The central topic and its children fitted to the view, at
@@ -24,7 +24,11 @@ final class CanvasModel {
     /// AI suggestions to draw with the map; nil where AI is not offered.
     let assistant: AIAssistant?
     private(set) var scene: CanvasScene = .empty
-    private(set) var viewport = CanvasViewport()
+    private(set) var viewport = CanvasViewport() {
+        didSet {
+            if !isPlacingInitially, viewport != oldValue { keepsInitialPlacement = false }
+        }
+    }
     /// The topic whose title is being edited in place.
     private(set) var editingID: NodeID? {
         didSet { reportKeyboardFocus() }
@@ -47,8 +51,14 @@ final class CanvasModel {
     /// The topic under the pointer, for its + buttons (MM-57).
     private(set) var hoveredID: NodeID?
 
-    @ObservationIgnored var initialPlacement = InitialPlacement.centralTopic
+    @ObservationIgnored var initialPlacement = InitialPlacement.wholeMap
     @ObservationIgnored private var needsInitialPlacement = true
+    /// Until the person moves the camera or edits the map, the first view is
+    /// placed again when the view or the layout changes: a window opens at one
+    /// size and settles at another, an inspector takes width, Dynamic Type
+    /// remeasures. Otherwise the map fitted to the first size ends up cut off.
+    @ObservationIgnored private var keepsInitialPlacement = false
+    @ObservationIgnored private var isPlacingInitially = false
     @ObservationIgnored private var specs: TopicTextSpecs?
     /// Bumped when the text settings change, so a pass started with the old
     /// ones does not store its sizes.
@@ -133,6 +143,8 @@ final class CanvasModel {
     }
 
     private func graphDidChange(_ changes: GraphChangeSet) {
+        // Refitting after an edit would zoom away from what was just changed.
+        keepsInitialPlacement = false
         pendingChanges.formUnion(changes.layoutInvalidation)
         if let map = changes.map, map.before?.theme != map.after?.theme { styles = [:] }
         scheduleLayout()
@@ -198,6 +210,10 @@ final class CanvasModel {
     // MARK: Camera
 
     func setViewSize(_ size: CGSize) {
+        if keepsInitialPlacement {
+            placeInitially { $0.size = size }
+            return
+        }
         if viewport.size == .zero {
             viewport.size = size
         } else {
@@ -206,15 +222,25 @@ final class CanvasModel {
         placeInitiallyIfNeeded()
     }
 
-    /// FR-CNV-01: the first time the map shows, the central topic is in the middle.
+    /// FR-CNV-01: the first time the map shows, the whole map is in view (MM-84).
     private func placeInitiallyIfNeeded() {
-        guard needsInitialPlacement, viewport.size.width > 0, viewport.size.height > 0,
-              let root = session.rootID.flatMap(scene.topic) else { return }
+        if keepsInitialPlacement {
+            placeInitially()
+            return
+        }
+        guard needsInitialPlacement, viewport.size.width > 0, viewport.size.height > 0, !scene.isEmpty else { return }
         needsInitialPlacement = false
+        keepsInitialPlacement = true
+        placeInitially()
+    }
+
+    private func placeInitially(adjusting change: (inout CanvasViewport) -> Void = { _ in }) {
+        isPlacingInitially = true
+        defer { isPlacingInitially = false }
+        change(&viewport)
         switch initialPlacement {
-        case .centralTopic:
-            viewport.scale = 1
-            viewport.center(on: CGPoint(x: root.frame.midX, y: root.frame.midY))
+        case .wholeMap:
+            viewport.fit(scene.bounds, padding: CanvasMetrics.fitPadding, limits: CanvasMetrics.fitZoomLimits)
         case .firstLevelWidth:
             viewport.fitWidth(scene.firstLevelBounds, padding: CanvasMetrics.revealMargin, limits: CanvasMetrics.fitZoomLimits)
         case .firstLevel:

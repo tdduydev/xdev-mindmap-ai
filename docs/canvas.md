@@ -43,6 +43,12 @@ Only the view knows how a title wraps, so the canvas measures. Each level has a 
 - Below 30% (`CanvasMetrics.detailZoomThreshold`) titles are under 4 pt and unreadable; topics become filled shapes in the edge layer, so a zoomed-out large map draws one `Canvas`, not hundreds of views. A tap there selects the topic under it; a double tap edits it and zooms back to 100%.
 - Zoom to Fit stops at 10%, so a tall map does not always fit: the 1,000-topic test map is 2,487 × 15,812 pt and shows about 680 topics in a 1000 × 700 view.
 
+### First view (FR-CNV-01, MM-84)
+
+- On Mac and iPad a map opens as Zoom to Fit does: the whole map in view with `CanvasMetrics.fitPadding` around it, never above 100%, so a small map opens at actual size in the middle and a large one is not cut off. Only a map that needs less than 10% still overflows (see above).
+- On iPhone (compact width) the central topic and its children are fitted to the width, and at accessibility text sizes to the view (`CanvasModel.InitialPlacement`), since the whole map would be too small to read there.
+- Until the camera moves (pan, zoom, reveal, editing a title) or the map is edited, the first view is placed again whenever the view size or the layout changes. The window settling at its restored size, the inspector opening or Dynamic Type remeasuring would otherwise leave a map fitted to a size the view no longer has. `viewport`'s `didSet` notices any other camera change and stops this.
+
 ### Measured (Mac M1)
 
 `timingsForAThousandTopics` and `frameWorkForAThousandTopics` print these; they do not fail on time. The release column comes from running those two tests with `-configuration Release ENABLE_TESTABILITY=YES ENABLE_HARDENED_RUNTIME=NO` (the hardened runtime refuses to load the test bundle into a Release app).
@@ -99,7 +105,7 @@ The rules are in [[node-organization]] *Floating topics*; the commands are MindM
 
 ## Accessibility
 
-Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does; "Floating topic, m subtopics" for a floating topic), actions Collapse/Expand, Add Child Topic, Add Sibling Topic and Detach Topic (not on the central topic or a floating topic), Attach to Topic… (floating topics only), Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map, floating branches after the main tree, and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. At accessibility text sizes (iOS, iPadOS) the canvas opens with the central topic and its children fitted to the view. The outline stays the full alternative (FR-EDT-16).
+Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does; "Floating topic, m subtopics" for a floating topic), actions Collapse/Expand, Add Child Topic, Add Sibling Topic and Detach Topic (not on the central topic or a floating topic), Attach to Topic… (floating topics only), Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map, floating branches after the main tree, and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. At accessibility text sizes (iOS, iPadOS) the canvas opens with the central topic and its children fitted to the view (see First view). The outline stays the full alternative (FR-EDT-16).
 
 ## Not done yet
 
