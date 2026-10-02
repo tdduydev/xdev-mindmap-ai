@@ -1,6 +1,6 @@
 # AI architecture
 
-Status: planned for Phases 7 and 8. Nothing here is implemented yet; this is the design those phases follow.
+Status: planned for Phases 7 and 8. Nothing here is implemented yet; this is the design those phases follow. What the platform offers, per OS and device, is in [on-device-ai.md](on-device-ai.md).
 
 ## Flow
 
@@ -31,7 +31,8 @@ protocol AIProvider: Sendable {
 }
 ```
 
-- `AppleFoundationModelProvider` is the first and only implementation: on-device, private, no token, no xDev billing.
+- `AppleFoundationModelProvider` is the first and only implementation: on-device, private, no token, no xDev billing. It lives in `MindMapAIApple`; the protocol and value types live in `MindMapAICore`, which never imports FoundationModels ([module-structure.md](module-structure.md)).
+- Private Cloud Compute is not used: it runs on Apple's servers, which the privacy promise rules out.
 - `MockAIProvider` drives tests: structured responses, invalid responses, validation failures.
 - Cloud providers (OpenAI, Anthropic, Gemini) are not built unless requested. If one is ever added, the request shows which provider processes it.
 
@@ -48,11 +49,11 @@ The translator checks temporary IDs (unique, parents exist, no loops) before pro
 
 ## Capability
 
-`AIAvailability` reports available, not supported on this device, Apple Intelligence off, or model not ready. The UI hides or disables AI entry points with one line of explanation. The rest of the app does not depend on it. Models load on first use, never at launch.
+`AICapabilities` reports, per feature: model ready, language unsupported, device not eligible, Apple Intelligence off, or model downloading; plus the context size, Vietnamese dictation, translation and OCR. The UI hides or disables AI entry points with one line of explanation. The rest of the app does not depend on it. Capabilities are checked again when the app becomes active; models load on first use, never at launch.
 
 ## Context and language
 
-Context is built on purpose and bounded (depth and node limits), never the whole map. Prompts carry the user's language and keep mixed-language content as written ("Thiết kế backend architecture cho HIS sử dụng .NET").
+Context is built on purpose and bounded (depth and node limits), never the whole map. The on-device model has about 4,096 tokens (read `contextSize`), and Vietnamese costs roughly one token per character, so the budget is tight. Instructions are in English, name the user's locale and the output language, and keep mixed-language content as written ("Thiết kế backend architecture cho HIS sử dụng .NET"). Prompts are versioned per model generation.
 
 ## Suggestion state
 
