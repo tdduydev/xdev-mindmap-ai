@@ -20,6 +20,8 @@ struct EditorView: View {
     /// Voice input belongs to this window: its microphone and sheet are not shared
     /// with another window showing the same map, while the topics it adds are.
     @State private var voice: VoiceInput?
+    /// The chat's microphone, per window for the same reason.
+    @State private var dictation: ChatDictation?
 
     var body: some View {
         Group {
@@ -30,8 +32,8 @@ struct EditorView: View {
                 if let gone = map.session.removedElsewhere {
                     // Deleted on another device while open here (FR-SYN-04).
                     Self.unavailable(gone == .deleted ? .missing : .recentlyDeleted)
-                } else if let voice {
-                    MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, chat: map.chat, voice: voice)
+                } else if let voice, let dictation {
+                    MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, chat: map.chat, voice: voice, dictation: dictation)
                         .onChange(of: EditorRestoration(map.session)) { _, state in
                             restoration = state
                         }
@@ -50,6 +52,7 @@ struct EditorView: View {
                 restoration?.apply(to: map.session)
                 restoration = EditorRestoration(map.session)
                 voice = VoiceInput(session: map.session, transcriber: Self.transcriber, entitlements: ai.entitlements)
+                dictation = ChatDictation(chat: map.chat, transcriber: Self.transcriber, entitlements: ai.entitlements)
                 if generatesOnOpen {
                     onGenerationStarted()
                     map.assistant.requestGenerateMap()

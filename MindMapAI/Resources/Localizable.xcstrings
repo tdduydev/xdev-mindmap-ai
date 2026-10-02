@@ -1430,6 +1430,16 @@
         }
       }
     },
+    "Ask by Voice" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi bằng giọng nói"
+          }
+        }
+      }
+    },
     "Ask this question again for a new answer" : {
       "localizations" : {
         "vi" : {
@@ -3057,6 +3067,26 @@
         }
       }
     },
+    "Listening. The words go into the question field." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang nghe. Lời nói được ghi vào ô câu hỏi."
+          }
+        }
+      }
+    },
+    "Listening…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang nghe…"
+          }
+        }
+      }
+    },
     "Loading price…" : {
       "localizations" : {
         "vi" : {
@@ -3546,6 +3576,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chọn một chủ đề để thêm câu trả lời vào ghi chú của nó"
+          }
+        }
+      }
+    },
+    "Stop Asking by Voice" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dừng hỏi bằng giọng nói"
           }
         }
       }

@@ -10,6 +10,7 @@ struct MapEditorView: View {
     @Bindable var assistant: AIAssistant
     @Bindable var chat: MapChat
     @Bindable var voice: VoiceInput
+    let dictation: ChatDictation
     @Environment(\.undoManager) private var undoManager
     @State private var showsKeyboardShortcuts = false
     @Environment(FileTransfer.self) private var transfer: FileTransfer?
@@ -53,7 +54,7 @@ struct MapEditorView: View {
         // on iPhone); showing one hides the other.
         .inspector(isPresented: trailingPanelBinding) {
             if chat.isPresented {
-                ChatPanel(chat: chat)
+                ChatPanel(chat: chat, dictation: dictation)
             } else {
                 MapInspectorView(session: session)
             }
@@ -115,6 +116,7 @@ struct MapEditorView: View {
         .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
         .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
         .focusedSceneValue(\.voiceInput, voice)
+        .focusedSceneValue(\.chatDictation, dictation)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }

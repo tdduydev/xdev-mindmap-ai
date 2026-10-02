@@ -64,6 +64,29 @@ final class ChatUITests: XCTestCase {
         XCTAssertFalse(chat.suggestions.firstMatch.exists, "suggestions are for an empty chat")
     }
 
+    /// Ask by voice (MM-80): the words land in the field and nothing is asked.
+    /// Pro is a StoreKit purchase the Simulator may or may not keep, so a
+    /// locked run checks the paywall instead.
+    @MainActor
+    func testAskByVoiceFillsTheFieldWithoutAsking() {
+        let app = openPlan()
+        let chat = ChatPage(app: app.app)
+
+        chat.open()
+        chat.microphone.waitToExist().tapOrClick()
+
+        let close = app.app.buttons[AccessibilityID.Paywall.close].firstMatch
+        let heard = NSPredicate(format: "value CONTAINS %@", UITestVoice.topics[0])
+        let filled = chat.field.waitForExistence(timeout: MindMapApp.timeout / 3)
+            && XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: heard, object: chat.field)], timeout: MindMapApp.timeout / 3) == .completed
+        if filled {
+            XCTAssertEqual(chat.answers.count, 0, "voice never asks on its own")
+            app.app.buttons[AccessibilityID.Chat.cancelVoice].firstMatch.waitToExist().tapOrClick()
+        } else {
+            XCTAssertTrue(close.waitForExistence(timeout: MindMapApp.timeout / 3), "without Pro the microphone opens the paywall")
+        }
+    }
+
     @MainActor
     func testHiddenWhereAppleIntelligenceCannotRun() {
         let app = openPlan(ai: .ineligible)
@@ -105,6 +128,7 @@ struct ChatPage {
     var citations: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.citation) }
     var suggestions: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.suggestion) }
     var scope: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Chat.scope].firstMatch }
+    var microphone: XCUIElement { app.buttons[AccessibilityID.Chat.microphone].firstMatch }
 
     /// A question bubble, which VoiceOver reads as "You asked: …". The Mac
     /// puts that text in `value`, iOS in `label`.
