@@ -37,6 +37,17 @@ final class LibraryModel {
         hasLoaded = true
     }
 
+    /// Keep each window's library current while its view is alive. Subscribe
+    /// before the first fetch so a concurrent write cannot fall between them.
+    func observeChanges() async {
+        let stream = await repository.changes()
+        await load()
+        for await _ in stream {
+            if Task.isCancelled { break }
+            await load()
+        }
+    }
+
     /// Creates a map whose root topic carries its title and returns its ID, so the caller can open it.
     func createMap() async -> MapID? {
         let graph = GraphState.newMap(title: String(localized: "Untitled Map"))

@@ -1,4 +1,5 @@
 import Foundation
+import CoreData
 import MindMapDomain
 import MindMapGraph
 import SwiftData
@@ -7,6 +8,37 @@ import SwiftData
 /// saving never blocks the UI.
 @ModelActor
 public actor SwiftDataMapRepository: MapRepository {
+    private var subscribers: [UUID: AsyncStream<MapRepositoryChange>.Continuation] = [:]
+    private var observers: [any NSObjectProtocol] = []
+
+    public func changes() async -> AsyncStream<MapRepositoryChange> {
+        if observers.isEmpty {
+            for name in [ModelContext.didSave, .NSPersistentStoreRemoteChange] {
+                observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { [weak self] _ in
+                    Task { await self?.publish(.refresh) }
+                })
+            }
+        }
+        let id = UUID()
+        let (stream, continuation) = AsyncStream<MapRepositoryChange>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        subscribers[id] = continuation
+        continuation.onTermination = { [weak self] _ in
+            Task { await self?.removeSubscriber(id) }
+        }
+        return stream
+    }
+
+    private func removeSubscriber(_ id: UUID) {
+        subscribers.removeValue(forKey: id)
+        if subscribers.isEmpty {
+            observers.forEach(NotificationCenter.default.removeObserver)
+            observers.removeAll()
+        }
+    }
+
+    private func publish(_ change: MapRepositoryChange) {
+        for subscriber in subscribers.values { subscriber.yield(change) }
+    }
     public func fetchMaps() async throws -> [MindMap] {
         let descriptor = FetchDescriptor<MapRecord>(sortBy: [SortDescriptor(\.updatedAt, order: .reverse)])
         return try modelContext.fetch(descriptor).map(\.domainValue)
@@ -39,6 +71,7 @@ public actor SwiftDataMapRepository: MapRepository {
             modelContext.insert(record)
         }
         try modelContext.save()
+        publish(.updated(graph.map.id))
     }
 
     public func save(_ changes: GraphChangeSet, map: MindMap) async throws {
@@ -48,12 +81,14 @@ public actor SwiftDataMapRepository: MapRepository {
         try upsertEdges(changes.savedEdges)
         try deleteEdges(changes.deletedEdgeIDs)
         try modelContext.save()
+        publish(.updated(map.id))
     }
 
     public func setFavorite(_ isFavorite: Bool, for mapID: MapID) async throws {
         guard let record = try mapRecords(for: mapID).first else { return }
         record.isFavorite = isFavorite
         try modelContext.save()
+        publish(.updated(mapID))
     }
 
     public func deleteMap(_ mapID: MapID) async throws {
@@ -70,6 +105,7 @@ public actor SwiftDataMapRepository: MapRepository {
             modelContext.delete(record)
         }
         try modelContext.save()
+        publish(.deleted(mapID))
     }
 
     // MARK: Writing

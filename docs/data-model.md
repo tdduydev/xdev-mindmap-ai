@@ -47,3 +47,7 @@ records ─▶ GraphState(map:nodes:edges:)   duplicates: newest updatedAt wins;
 ## Migrations
 
 `SchemaV1` is a `VersionedSchema`; `MindMapMigrationPlan` lists every shipped schema. A schema change adds `SchemaV2`, a migration stage and a test that opens a V1 store with the new plan. A shipped schema is never edited in place.
+
+The small `Tests/MindMapPersistenceTests/Fixtures/V1.store` SQLite file is an immutable V1 input for that test. It has one map, a root topic and a child with a note. To regenerate it from the V1 model definitions, run the `generateV1FixtureWhenRequested` package test with `MM2_FIXTURE_OUTPUT=/private/tmp/V1.store`, checkpoint that SQLite file with `sqlite3 /private/tmp/V1.store 'PRAGMA wal_checkpoint(TRUNCATE);'`, and copy it into `Fixtures`. Future schema tests copy the fixture to a temporary path before opening it through `PersistenceController`, so migration never changes the checked-in source.
+
+`MM2_BENCHMARK=1` enables the package's on-disk 1,000/10,000-topic load and one-command save benchmark. Creation is excluded from load timing. The repository's `changes()` stream invalidates library snapshots after local commits and observed SwiftData/Core Data saves; each window subscribes while its root view is active.

@@ -2,9 +2,18 @@ import Foundation
 import MindMapDomain
 import MindMapGraph
 
+public enum MapRepositoryChange: Sendable, Equatable {
+    case updated(MapID)
+    case deleted(MapID)
+    /// Another context or process changed the store; consumers should fetch again.
+    case refresh
+}
+
 /// Where maps live. Features talk to this protocol, never to SwiftData, so the
 /// store can change and tests can use an in-memory one.
 public protocol MapRepository: Sendable {
+    /// Changes after subscription. Consumers fetch their own current snapshot first.
+    func changes() async -> AsyncStream<MapRepositoryChange>
     /// Every map, most recently edited first. Nodes are not loaded.
     func fetchMaps() async throws -> [MindMap]
 

@@ -29,7 +29,7 @@ struct RootView: View {
                 )
             }
         }
-        .task { await library.load() }
+        .task { await library.observeChanges() }
     }
 }
 

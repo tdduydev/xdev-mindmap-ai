@@ -20,6 +20,6 @@ let package = Package(
         .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph"]),
-        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"]),
+        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"], resources: [.copy("Fixtures/V1.store")]),
     ]
 )
