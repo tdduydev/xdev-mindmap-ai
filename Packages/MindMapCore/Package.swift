@@ -23,6 +23,7 @@ let package = Package(
         .library(name: "MindMapIntents", targets: ["MindMapIntents"]),
         .library(name: "MindMapCapture", targets: ["MindMapCapture"]),
         .library(name: "MindMapQuery", targets: ["MindMapQuery"]),
+        .library(name: "MindMapMCP", targets: ["MindMapMCP"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -83,6 +84,21 @@ let package = Package(
         .testTarget(
             name: "MindMapQueryTests",
             dependencies: ["MindMapQuery", "MindMapDomain", "MindMapGraph", "MindMapPersistence"]
+        ),
+        // The MCP server (ADR 0008): our own JSON-RPC over HTTP on loopback with
+        // the Network framework, no SDK. Reads only through MindMapQuery.
+        .target(name: "MindMapMCP", dependencies: ["MindMapDomain", "MindMapQuery"]),
+        .testTarget(
+            name: "MindMapMCPTests",
+            dependencies: ["MindMapMCP", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapQuery"],
+            resources: [.copy("Fixtures")]
+        ),
+        // A developer tool, not shipped: serves sample maps so the MCP Inspector
+        // and real clients can be pointed at the server before the app hosts it.
+        .executableTarget(
+            name: "mindmap-mcp-dev",
+            dependencies: ["MindMapMCP", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapQuery"],
+            path: "Sources/MindMapMCPDevServer"
         ),
     ]
 )
