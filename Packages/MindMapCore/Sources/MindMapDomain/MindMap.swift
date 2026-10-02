@@ -11,6 +11,9 @@ public struct MindMap: Identifiable, Hashable, Sendable, Codable {
     public var isFavorite: Bool
     public var theme: MindMapTheme
     public var layoutConfiguration: LayoutConfiguration
+    /// When the map went to Recently Deleted; nil for a live map. Library
+    /// data like `isFavorite`, never set by a graph command.
+    public var deletedAt: Date?
 
     public init(
         id: MapID = MapID(),
@@ -20,7 +23,8 @@ public struct MindMap: Identifiable, Hashable, Sendable, Codable {
         updatedAt: Date? = nil,
         isFavorite: Bool = false,
         theme: MindMapTheme = .standard,
-        layoutConfiguration: LayoutConfiguration = LayoutConfiguration()
+        layoutConfiguration: LayoutConfiguration = LayoutConfiguration(),
+        deletedAt: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -30,6 +34,7 @@ public struct MindMap: Identifiable, Hashable, Sendable, Codable {
         self.isFavorite = isFavorite
         self.theme = theme
         self.layoutConfiguration = layoutConfiguration
+        self.deletedAt = deletedAt
     }
 }
 

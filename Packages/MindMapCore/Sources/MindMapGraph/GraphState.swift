@@ -11,6 +11,10 @@ public struct GraphState: Sendable {
     public private(set) var map: MindMap
     public private(set) var nodes: [NodeID: MindNode]
     public private(set) var edges: [EdgeID: MindEdge]
+    /// The map's own tags and the shared (library) tags loaded with it.
+    public private(set) var tags: [TagID: MindTag]
+    public private(set) var nodeTags: [NodeTagID: MindNodeTag]
+    public private(set) var groups: [GroupID: MindGroup]
 
     /// Children of each parent in display order. Derived from `nodes` and kept
     /// in step by the mutation primitives, so reading children never sorts.
@@ -23,7 +27,16 @@ public struct GraphState: Sendable {
 
     /// Builds a state from stored values without checking invariants. Data that
     /// arrived through sync can be inconsistent, so run `GraphRepair` before editing.
-    public init(map: MindMap, nodes: some Sequence<MindNode>, edges: some Sequence<MindEdge>) {
+    ///
+    /// Tags of other maps are dropped; shared tags (`mapID` nil) are kept.
+    public init(
+        map: MindMap,
+        nodes: some Sequence<MindNode>,
+        edges: some Sequence<MindEdge>,
+        tags: [MindTag] = [],
+        nodeTags: [MindNodeTag] = [],
+        groups: [MindGroup] = []
+    ) {
         self.map = map
         var nodeTable: [NodeID: MindNode] = [:]
         for node in nodes where node.mapID == map.id {
@@ -38,7 +51,21 @@ public struct GraphState: Sendable {
         }
         self.nodes = nodeTable
         self.edges = edgeTable
+        self.tags = Self.newestByID(tags.filter { $0.mapID == nil || $0.mapID == map.id })
+        self.nodeTags = Self.newestByID(nodeTags.filter { $0.mapID == map.id })
+        self.groups = Self.newestByID(groups.filter { $0.mapID == map.id })
         self.childIndex = Self.makeChildIndex(for: nodeTable)
+    }
+
+    /// Sync can deliver the same record twice; the newest copy wins.
+    private static func newestByID<Value: Identifiable>(_ values: [Value]) -> [Value.ID: Value]
+    where Value: StoredValue {
+        var table: [Value.ID: Value] = [:]
+        for value in values {
+            if let existing = table[value.id], existing.updatedAt > value.updatedAt { continue }
+            table[value.id] = value
+        }
+        return table
     }
 
     // MARK: Reading
@@ -63,6 +90,59 @@ public struct GraphState: Sendable {
 
     public func edges(touching id: NodeID) -> [MindEdge] {
         edges.values.filter { $0.sourceNodeID == id || $0.targetNodeID == id }
+    }
+
+    // MARK: Reading organization
+
+    public func tag(_ id: TagID) -> MindTag? {
+        tags[id]
+    }
+
+    public func group(_ id: GroupID) -> MindGroup? {
+        groups[id]
+    }
+
+    /// The topic's tag links whose tag is loaded, oldest first. A link whose
+    /// tag has not synced yet is kept in storage but not shown.
+    public func nodeTags(of nodeID: NodeID) -> [MindNodeTag] {
+        nodeTags.values
+            .filter { $0.nodeID == nodeID && tags[$0.tagID] != nil }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+    }
+
+    public func tags(of nodeID: NodeID) -> [MindTag] {
+        nodeTags(of: nodeID).compactMap { tags[$0.tagID] }
+    }
+
+    /// The tag a typed name refers to: a shared tag first, then a map tag, as
+    /// the tag field offers them. Nil when no tag has the name's key.
+    public func tag(named name: String) -> MindTag? {
+        guard let normalized = MindTag.normalizedName(name) else { return nil }
+        let key = MindTag.key(for: normalized)
+        let matches = tags.values
+            .filter { $0.key == key }
+            .sorted { ($0.isShared ? 0 : 1, $0.createdAt, $0.id) < ($1.isShared ? 0 : 1, $1.createdAt, $1.id) }
+        return matches.first
+    }
+
+    /// The siblings a group covers, in display order. Nil when the group is not
+    /// a boundary this build knows or its endpoints are not a run of siblings.
+    public func members(of group: MindGroup) -> [NodeID]? {
+        guard group.kind == .boundary,
+              let parentID = group.parentNodeID, nodes[parentID] != nil,
+              let firstID = group.firstNodeID, let lastID = group.lastNodeID
+        else { return nil }
+        let siblings = childIDs(of: parentID)
+        guard let first = siblings.firstIndex(of: firstID), let last = siblings.firstIndex(of: lastID), first <= last
+        else { return nil }
+        return Array(siblings[first...last])
+    }
+
+    /// Boundaries over children of `parentID`.
+    public func groups(under parentID: NodeID) -> [MindGroup] {
+        groups.values
+            .filter { $0.parentNodeID == parentID }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
     }
 
     // MARK: Mutation primitives
@@ -110,6 +190,33 @@ public struct GraphState: Sendable {
         edges.removeValue(forKey: id)
     }
 
+    mutating func upsertTag(_ tag: MindTag) {
+        tags[tag.id] = tag
+    }
+
+    @discardableResult
+    mutating func removeTag(_ id: TagID) -> MindTag? {
+        tags.removeValue(forKey: id)
+    }
+
+    mutating func upsertNodeTag(_ link: MindNodeTag) {
+        nodeTags[link.id] = link
+    }
+
+    @discardableResult
+    mutating func removeNodeTag(_ id: NodeTagID) -> MindNodeTag? {
+        nodeTags.removeValue(forKey: id)
+    }
+
+    mutating func upsertGroup(_ group: MindGroup) {
+        groups[group.id] = group
+    }
+
+    @discardableResult
+    mutating func removeGroup(_ id: GroupID) -> MindGroup? {
+        groups.removeValue(forKey: id)
+    }
+
     mutating func setMap(_ newMap: MindMap) {
         precondition(newMap.id == map.id, "A graph cannot switch to another map")
         map = newMap
@@ -136,8 +243,25 @@ public struct GraphState: Sendable {
                 removeEdge(id)
             }
         }
+        apply(changes.tags, upsert: { $0.upsertTag($1) }, remove: { $0.removeTag($1) })
+        apply(changes.nodeTags, upsert: { $0.upsertNodeTag($1) }, remove: { $0.removeNodeTag($1) })
+        apply(changes.groups, upsert: { $0.upsertGroup($1) }, remove: { $0.removeGroup($1) })
         if let map = changes.map?.after {
             setMap(map)
+        }
+    }
+
+    private mutating func apply<ID, Value>(
+        _ changes: [ID: EntityChange<Value>],
+        upsert: (inout GraphState, Value) -> Void,
+        remove: (inout GraphState, ID) -> Void
+    ) {
+        for (id, change) in changes {
+            if let after = change.after {
+                upsert(&self, after)
+            } else {
+                remove(&self, id)
+            }
         }
     }
 
@@ -188,6 +312,7 @@ extension GraphState: Equatable {
     /// Equal when the stored content is equal; the child index is derived.
     public static func == (lhs: GraphState, rhs: GraphState) -> Bool {
         lhs.map == rhs.map && lhs.nodes == rhs.nodes && lhs.edges == rhs.edges
+            && lhs.tags == rhs.tags && lhs.nodeTags == rhs.nodeTags && lhs.groups == rhs.groups
     }
 }
 
@@ -202,6 +327,15 @@ struct SiblingOrderKey: Comparable {
         (lhs.sortOrder, lhs.createdAt, lhs.id) < (rhs.sortOrder, rhs.createdAt, rhs.id)
     }
 }
+
+/// A stored value that sync can deliver more than once.
+protocol StoredValue {
+    var updatedAt: Date { get }
+}
+
+extension MindTag: StoredValue {}
+extension MindNodeTag: StoredValue {}
+extension MindGroup: StoredValue {}
 
 extension MindNode {
     var siblingOrderKey: SiblingOrderKey {

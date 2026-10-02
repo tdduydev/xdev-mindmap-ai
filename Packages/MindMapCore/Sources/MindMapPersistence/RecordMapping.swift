@@ -15,7 +15,8 @@ extension MapRecord {
             updatedAt: updatedAt,
             isFavorite: isFavorite,
             theme: MindMapTheme(storedValue: themeRaw),
-            layoutConfiguration: LayoutConfiguration(style: LayoutStyle(rawValue: layoutStyleRaw) ?? .horizontalTree)
+            layoutConfiguration: LayoutConfiguration(style: LayoutStyle(rawValue: layoutStyleRaw) ?? .horizontalTree),
+            deletedAt: deletedAt
         )
     }
 
@@ -23,6 +24,7 @@ extension MapRecord {
     func update(from map: MindMap) {
         updateGraphFields(from: map)
         isFavorite = map.isFavorite
+        deletedAt = map.deletedAt
     }
 
     /// The fields the graph engine owns; library flags are not among them.
@@ -49,7 +51,13 @@ extension NodeRecord {
             nodeType: NodeType(rawValue: nodeTypeRaw) ?? .topic,
             metadata: NodeMetadata(origin: NodeOrigin(rawValue: originRaw) ?? .user),
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            color: colorToken.map(TopicColor.init),
+            symbol: symbol,
+            taskState: taskStateRaw.map(TaskState.init),
+            priority: priority.map(TaskPriority.init),
+            startDate: startDate.flatMap(CalendarDay.init(isoString:)),
+            dueDate: dueDate.flatMap(CalendarDay.init(isoString:))
         )
     }
 
@@ -63,6 +71,19 @@ extension NodeRecord {
         originRaw = node.metadata.origin.rawValue
         createdAt = node.createdAt
         updatedAt = node.updatedAt
+        colorToken = node.color?.rawValue
+        symbol = node.symbol
+        taskStateRaw = node.taskState?.rawValue
+        priority = node.priority?.rawValue
+        Self.store(node.startDate, in: &startDate)
+        Self.store(node.dueDate, in: &dueDate)
+    }
+
+    /// A stored day this build cannot read showed as nil; it is kept unless
+    /// the topic's day was really changed.
+    private static func store(_ day: CalendarDay?, in stored: inout String?) {
+        guard stored.flatMap(CalendarDay.init(isoString:)) != day else { return }
+        stored = day?.isoString
     }
 }
 
@@ -79,7 +100,10 @@ extension EdgeRecord {
             edgeType: edgeType,
             label: label,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            lineStyle: lineStyleRaw.map(EdgeLineStyle.init),
+            arrowHeads: arrowHeadsRaw.map(EdgeArrowHeads.init),
+            color: colorToken.map(TopicColor.init)
         )
     }
 
@@ -90,5 +114,85 @@ extension EdgeRecord {
         label = edge.label
         createdAt = edge.createdAt
         updatedAt = edge.updatedAt
+        lineStyleRaw = edge.lineStyle?.rawValue
+        arrowHeadsRaw = edge.arrowHeads?.rawValue
+        colorToken = edge.color?.rawValue
+    }
+}
+
+extension TagRecord {
+    var domainValue: MindTag {
+        MindTag(
+            id: TagID(tagID),
+            mapID: mapID.map(MapID.init),
+            name: name,
+            color: colorToken.map(TopicColor.init),
+            symbol: symbol,
+            sortOrder: sortOrder,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    func update(from tag: MindTag) {
+        mapID = tag.mapID?.rawValue
+        name = tag.name
+        colorToken = tag.color?.rawValue
+        symbol = tag.symbol
+        sortOrder = tag.sortOrder
+        createdAt = tag.createdAt
+        updatedAt = tag.updatedAt
+    }
+}
+
+extension NodeTagRecord {
+    var domainValue: MindNodeTag {
+        MindNodeTag(
+            id: NodeTagID(linkID),
+            mapID: MapID(mapID),
+            nodeID: NodeID(nodeID),
+            tagID: TagID(tagID),
+            origin: NodeOrigin(rawValue: originRaw) ?? .user,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    func update(from link: MindNodeTag) {
+        nodeID = link.nodeID.rawValue
+        tagID = link.tagID.rawValue
+        originRaw = link.origin.rawValue
+        createdAt = link.createdAt
+        updatedAt = link.updatedAt
+    }
+}
+
+extension GroupRecord {
+    var domainValue: MindGroup {
+        MindGroup(
+            id: GroupID(groupID),
+            mapID: MapID(mapID),
+            kind: GroupKind(rawValue: kindRaw),
+            parentNodeID: parentNodeID.map(NodeID.init),
+            firstNodeID: firstNodeID.map(NodeID.init),
+            lastNodeID: lastNodeID.map(NodeID.init),
+            title: title,
+            color: colorToken.map(TopicColor.init),
+            origin: NodeOrigin(rawValue: originRaw) ?? .user,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    func update(from group: MindGroup) {
+        kindRaw = group.kind.rawValue
+        parentNodeID = group.parentNodeID?.rawValue
+        firstNodeID = group.firstNodeID?.rawValue
+        lastNodeID = group.lastNodeID?.rawValue
+        title = group.title
+        colorToken = group.color?.rawValue
+        originRaw = group.origin.rawValue
+        createdAt = group.createdAt
+        updatedAt = group.updatedAt
     }
 }

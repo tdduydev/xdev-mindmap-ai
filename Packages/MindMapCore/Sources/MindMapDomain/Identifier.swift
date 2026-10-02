@@ -35,3 +35,6 @@ extension Identifier: Comparable {
 public typealias MapID = Identifier<MindMap>
 public typealias NodeID = Identifier<MindNode>
 public typealias EdgeID = Identifier<MindEdge>
+public typealias TagID = Identifier<MindTag>
+public typealias NodeTagID = Identifier<MindNodeTag>
+public typealias GroupID = Identifier<MindGroup>

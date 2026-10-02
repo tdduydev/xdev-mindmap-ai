@@ -16,12 +16,22 @@ public struct GraphRepairResult: Sendable {
 /// dropping that content, the repair hangs it under the root where the user
 /// can see it. Only edges whose endpoints are gone are removed.
 ///
+/// Organization records are repaired after the tree: tag links whose topic is
+/// gone are deleted, links waiting for a tag that never arrived are deleted
+/// after `orphanedTagLinkLifetime`, duplicate map tags merge into the oldest,
+/// duplicate links keep the oldest, and boundaries shrink back to a valid run.
+///
 /// Choices are deterministic (timestamps, then IDs), so two devices repairing
 /// the same data independently produce the same result.
 public enum GraphRepair {
+    /// How long a tag link may wait for its tag to sync before it is deleted:
+    /// long enough for a device that was offline for weeks [Đề xuất].
+    public static let orphanedTagLinkLifetime: TimeInterval = 30 * 24 * 60 * 60
+
     public static func repair(_ state: GraphState, now: Date) throws -> GraphRepairResult {
         let issues = GraphValidator.validate(state)
-        guard !issues.isEmpty else {
+        let expiredLinks = expiredTagLinks(in: state, now: now)
+        guard !issues.isEmpty || !expiredLinks.isEmpty else {
             return GraphRepairResult(state: state, issues: [], changes: GraphChangeSet())
         }
 
@@ -40,7 +50,79 @@ public enum GraphRepair {
             }
         }
 
+        for id in expiredLinks where transaction.state.nodeTags[id] != nil {
+            try transaction.removeNodeTag(id)
+        }
+        try removeDanglingTagLinks(in: &transaction)
+        try mergeDuplicateTags(in: &transaction)
+        try removeDuplicateTagLinks(in: &transaction)
+        try repairGroups(in: &transaction)
+
         return GraphRepairResult(state: transaction.state, issues: issues, changes: transaction.changes)
+    }
+
+    // MARK: Organization
+
+    private static func expiredTagLinks(in state: GraphState, now: Date) -> [NodeTagID] {
+        state.nodeTags.values
+            .filter { state.tags[$0.tagID] == nil && now.timeIntervalSince($0.createdAt) > orphanedTagLinkLifetime }
+            .map(\.id)
+            .sorted()
+    }
+
+    private static func removeDanglingTagLinks(in transaction: inout GraphTransaction) throws {
+        let state = transaction.state
+        for link in state.nodeTags.values.sorted(by: GraphValidator.oldestFirst) where state.node(link.nodeID) == nil {
+            try transaction.removeNodeTag(link.id)
+        }
+    }
+
+    /// Map tags with one key fold into the oldest: their links move to it and
+    /// the duplicates go. Shared tags belong to the library's repair.
+    private static func mergeDuplicateTags(in transaction: inout GraphTransaction) throws {
+        let mapID = transaction.state.map.id
+        let byKey = Dictionary(grouping: transaction.state.tags.values.filter { $0.mapID == mapID }, by: \.key)
+        for key in byKey.keys.sorted() {
+            guard let tags = byKey[key]?.sorted(by: GraphValidator.oldestFirst), let survivor = tags.first else { continue }
+            for duplicate in tags.dropFirst() {
+                try transaction.moveTagLinks(from: duplicate.id, to: survivor.id)
+                try transaction.removeTag(duplicate.id)
+            }
+        }
+    }
+
+    private static func removeDuplicateTagLinks(in transaction: inout GraphTransaction) throws {
+        var seen: Set<GraphValidator.TagLinkKey> = []
+        for link in transaction.state.nodeTags.values.sorted(by: GraphValidator.oldestFirst)
+        where !seen.insert(GraphValidator.TagLinkKey(nodeID: link.nodeID, tagID: link.tagID)).inserted {
+            try transaction.removeNodeTag(link.id)
+        }
+    }
+
+    /// Shrinks a boundary to the ends still under its parent, swaps ends that
+    /// are out of order, and deletes a boundary with no member left. Crossing
+    /// boundaries from two devices are drawn as they are and left alone.
+    private static func repairGroups(in transaction: inout GraphTransaction) throws {
+        let state = transaction.state
+        let broken = state.groups.values
+            .filter { $0.kind == .boundary && state.members(of: $0) == nil }
+            .sorted { $0.id < $1.id }
+        for group in broken {
+            guard let parentID = group.parentNodeID, state.node(parentID) != nil else {
+                try transaction.removeGroup(group.id)
+                continue
+            }
+            let siblings = state.childIDs(of: parentID)
+            let ends = [group.firstNodeID, group.lastNodeID].compactMap { $0.flatMap { siblings.firstIndex(of: $0) } }
+            guard let low = ends.min(), let high = ends.max() else {
+                try transaction.removeGroup(group.id)
+                continue
+            }
+            try transaction.updateGroup(group.id) { group in
+                group.firstNodeID = siblings[low]
+                group.lastNodeID = siblings[high]
+            }
+        }
     }
 
     private static func removeBrokenEdges(in transaction: inout GraphTransaction) throws {
