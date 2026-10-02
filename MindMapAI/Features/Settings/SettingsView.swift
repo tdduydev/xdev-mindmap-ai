@@ -72,11 +72,15 @@ struct SettingsView: View {
 /// One pane, the same view on every platform; only its container differs.
 struct SettingsPaneView: View {
     let pane: SettingsPane
+    @Environment(AIService.self) private var ai
 
     var body: some View {
         Form {
             switch pane {
-            case .general: GeneralSettingsSection()
+            case .general:
+                GeneralSettingsSection()
+                // No AI pane where Apple Intelligence can never run (an Intel Mac).
+                if !ai.showsEntryPoints { VoiceInputSettingsSection() }
             case .export: ExportSettingsSection()
             case .ai: AISettingsSection()
             case .data: CloudSyncSettingsSection()
@@ -184,9 +188,11 @@ struct GeneralSettingsSection: View {
 }
 
 /// Plain statements of where data goes. Each row must stay true: Data
-/// Storage follows sync; change the AI row if AI ever leaves the device.
+/// Storage follows sync, AI follows Use AI Features; change the AI row if AI
+/// ever leaves the device.
 struct PrivacySettingsSection: View {
     @Environment(CloudSyncMonitor.self) private var sync
+    @Environment(AIService.self) private var ai
 
     var body: some View {
         Section {
@@ -198,7 +204,12 @@ struct PrivacySettingsSection: View {
             )
             LabeledContent("xDev Servers", value: String(localized: "None. Your maps are never sent to xDev."))
             LabeledContent("Analytics", value: String(localized: "None"))
-            LabeledContent("AI", value: String(localized: "On this device. Nothing is sent to xDev."))
+            if let aiRow = PrivacyRows.ai(showsEntryPoints: ai.showsEntryPoints, isEnabled: ai.isEnabled) {
+                LabeledContent("AI", value: aiRow)
+                    .accessibilityIdentifier(AccessibilityID.Settings.privacyAI)
+            }
+            LabeledContent("Voice Input", value: PrivacyRows.voiceInput)
+                .accessibilityIdentifier(AccessibilityID.Settings.privacyVoiceInput)
             Link("Privacy Policy", destination: AppLinks.privacyPolicy)
         } header: {
             Text("Privacy")
@@ -206,6 +217,18 @@ struct PrivacySettingsSection: View {
             Text("MindMap AI keeps your maps on your devices. There is no account and no tracking.")
         }
     }
+}
+
+/// The Privacy rows that depend on a setting, apart from the view so tests can read them.
+enum PrivacyRows {
+    /// Nil where AI can never run, so the row is not shown.
+    static func ai(showsEntryPoints: Bool, isEnabled: Bool) -> String? {
+        guard showsEntryPoints else { return nil }
+        return isEnabled ? String(localized: "On this device. Nothing is sent to xDev.") : String(localized: "Turned off")
+    }
+
+    /// Speech is transcribed by SpeechAnalyzer on the device (docs/privacy.md).
+    static var voiceInput: String { String(localized: "On this device. Audio is not kept.") }
 }
 
 /// No Acknowledgements row: the fonts' SIL OFL asks for its notice to travel

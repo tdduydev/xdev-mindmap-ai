@@ -1,10 +1,14 @@
 import Foundation
 @testable import MindMapAI
+import MindMapCapture
 import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
 import SwiftUI
 import Testing
+#if os(macOS)
+import AppKit
+#endif
 
 /// Settings ▸ General and Export (MM-43): the defaults of docs/settings.md, Pro
 /// fallback, and that Settings and the places that use a value read one key.
@@ -145,6 +149,28 @@ struct SettingsTests {
         #expect(unlocked.imageScale == .triple)
         #expect(unlocked.pageMode == .multiplePages)
     }
+
+    // MARK: AI and voice (MM-44)
+
+    @Test func privacyRowsFollowUseAIFeatures() {
+        #expect(PrivacyRows.ai(showsEntryPoints: true, isEnabled: true) == String(localized: "On this device. Nothing is sent to xDev."))
+        #expect(PrivacyRows.ai(showsEntryPoints: true, isEnabled: false) == String(localized: "Turned off"))
+        #expect(PrivacyRows.ai(showsEntryPoints: false, isEnabled: true) == nil, "no AI row where AI can never run")
+        #expect(!PrivacyRows.voiceInput.isEmpty)
+    }
+
+    @Test func voiceInputLanguageDefaultsToThePreferredLanguage() {
+        #expect(VoiceInput.language(in: defaults, preferredLanguages: ["vi-VN", "en"]) == .vietnamese)
+        #expect(VoiceInput.language(in: defaults, preferredLanguages: ["fr-FR", "en-GB"]) == .english)
+        #expect(defaults.object(forKey: VoiceInput.languageKey) == nil)
+    }
+
+    #if os(macOS)
+    @Test func appleIntelligenceSettingsOpensSystemSettings() {
+        #expect(AppLinks.appleIntelligenceSettings.scheme == "x-apple.systempreferences")
+        #expect(NSWorkspace.shared.urlForApplication(toOpen: AppLinks.appleIntelligenceSettings) != nil)
+    }
+    #endif
 }
 
 private struct Locked: ProEntitlements {

@@ -39,7 +39,7 @@ struct AIAssistantTests {
             throw OpenFailed()
         }
         provider.setCapabilities(capabilities)
-        let service = AIService(provider: { [provider] in provider }, entitlements: entitlements)
+        let service = AIService(provider: { [provider] in provider }, entitlements: entitlements, defaults: defaults)
         await service.refresh()
         return AIAssistant(session: session, service: service, defaults: defaults, locale: Locale(identifier: "en_US"))
     }
@@ -236,6 +236,60 @@ struct AIAssistantTests {
 
         let ineligible = try await open(capabilities: .notEligible)
         #expect(!ineligible.service.showsEntryPoints)
+    }
+
+    @Test func useAIFeaturesIsOnByDefaultAndRemembered() async throws {
+        let assistant = try await open()
+        #expect(assistant.service.isEnabled)
+        #expect(defaults.object(forKey: AIService.enabledKey) == nil, "the default is not written")
+
+        assistant.service.isEnabled = false
+        #expect(defaults.bool(forKey: AIService.enabledKey) == false)
+        #expect(defaults.object(forKey: AIService.enabledKey) != nil)
+        let relaunched = AIService(provider: { [provider] in provider }, entitlements: AllFeaturesUnlocked(), defaults: defaults)
+        #expect(!relaunched.isEnabled)
+    }
+
+    @Test func turningAIOffTakesItOutOfTheEditorAtOnce() async throws {
+        let assistant = try await open()
+        #expect(assistant.service.showsControls)
+        #expect(assistant.service.unavailableReason == nil)
+
+        assistant.service.isEnabled = false
+
+        #expect(assistant.service.showsEntryPoints, "the menu bar keeps its AI menu")
+        #expect(!assistant.service.showsControls, "toolbar, canvas and topic menus hide AI")
+        #expect(assistant.service.unavailableReason == AIAvailabilityText.turnedOff)
+        for feature in AIFeature.allCases {
+            #expect(!assistant.canRun(feature), "\(feature) is disabled")
+        }
+        // A request asked for while off does nothing.
+        assistant.expand()
+        #expect(!assistant.isWorking)
+        #expect(assistant.suggestions == nil)
+
+        assistant.service.isEnabled = true
+        #expect(assistant.canRun(.expandTopic))
+    }
+
+    @Test func suggestionsOnTheCanvasStayWhenAIIsTurnedOff() async throws {
+        let assistant = try await open()
+        let session = assistant.session
+        let rootID = try #require(session.rootID)
+        provider.enqueue(.proposal(.suggestions(["Food"], under: rootID)), for: .expandTopic)
+        assistant.expand(rootID)
+        await assistant.requestSettled()
+
+        assistant.service.isEnabled = false
+
+        #expect(assistant.suggestions?.topics.map(\.title) == ["Food"])
+        #expect(assistant.canAcceptSuggestions)
+        assistant.acceptAll()
+        #expect(childTitles(of: rootID, in: session) == ["Flights", "Hotels", "Food"])
+        session.undo()
+        #expect(childTitles(of: rootID, in: session) == ["Flights", "Hotels"])
+        session.redo()
+        #expect(childTitles(of: rootID, in: session) == ["Flights", "Hotels", "Food"])
     }
 
     @Test func theFirstRequestShowsThePrivacyNoticeFirst() async throws {

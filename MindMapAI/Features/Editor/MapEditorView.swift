@@ -151,7 +151,7 @@ struct MapEditorView: View {
             }
             .help(Text("Add Topics by Voice"))
         }
-        if assistant.service.showsEntryPoints {
+        if assistant.service.showsControls {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
             }

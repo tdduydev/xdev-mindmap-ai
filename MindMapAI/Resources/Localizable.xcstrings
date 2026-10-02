@@ -285,6 +285,16 @@
         }
       }
     },
+    "AI is turned off in Settings." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI đang tắt trong Cài đặt."
+          }
+        }
+      }
+    },
     "AI runs on this device" : {
       "localizations" : {
         "vi" : {
@@ -543,6 +553,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm chủ đề bằng giọng nói"
+          }
+        }
+      }
+    },
+    "Add Topics by Voice listens in this language. Speech is turned into text on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề bằng giọng nói nghe theo ngôn ngữ này. Lời nói được chuyển thành chữ ngay trên thiết bị này."
           }
         }
       }
@@ -2950,6 +2970,16 @@
         }
       }
     },
+    "On this device. Audio is not kept." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trên thiết bị này. Âm thanh không được lưu lại."
+          }
+        }
+      }
+    },
     "On this device. Nothing is sent to xDev." : {
       "localizations" : {
         "vi" : {
@@ -2966,6 +2996,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chỉ có trong sơ đồ này. Bạn có thể hoàn tác các thay đổi."
+          }
+        }
+      }
+    },
+    "Open Apple Intelligence Settings…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở cài đặt Apple Intelligence…"
           }
         }
       }
@@ -4468,6 +4508,16 @@
         }
       }
     },
+    "Turned off" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã tắt"
+          }
+        }
+      }
+    },
     "Type a tag name, then press Return" : {
       "localizations" : {
         "vi" : {
@@ -4561,6 +4611,16 @@
         }
       }
     },
+    "Use AI Features" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng tính năng AI"
+          }
+        }
+      }
+    },
     "Use Title" : {
       "localizations" : {
         "vi" : {
@@ -4641,6 +4701,16 @@
         }
       }
     },
+    "Voice Input Language" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngôn ngữ nhập giọng nói"
+          }
+        }
+      }
+    },
     "Voice input is part of MindMap AI Pro." : {
       "localizations" : {
         "vi" : {
@@ -4687,6 +4757,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trang web"
+          }
+        }
+      }
+    },
+    "When off, AI actions are removed from maps and the AI menu is unavailable. Suggestions already on a map stay until you accept or discard them." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi tắt, các thao tác AI không còn trong sơ đồ và menu AI không dùng được. Các đề xuất đang có trên sơ đồ vẫn ở đó cho đến khi bạn chấp nhận hoặc bỏ."
           }
         }
       }

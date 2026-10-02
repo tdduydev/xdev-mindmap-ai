@@ -84,11 +84,13 @@ Hidden on devices that can never run Apple Intelligence, like every AI entry poi
 | Row (en / vi) | Control and default | Store | Free/Pro | Task |
 | --- | --- | --- | --- | --- |
 | Apple Intelligence / Apple Intelligence | Status text: Ready, Getting Ready, Off, Language Not Supported (`AIAvailabilityText`), with the footer that says what to do | Read from `AIService` | Free | ✅ MM-8 (FR-SET-05) |
-| Open Apple Intelligence Settings… / Mở cài đặt Apple Intelligence… | Button, shown only when the state is Off. Mac: opens the Apple Intelligence pane of System Settings; the `x-apple.systempreferences:` URL for it is not verified, so MM-44 checks it and otherwise opens System Settings with a one-line path. iPad, iPhone: no public URL to that page found (not verified); `openSettingsURLString` opens the app's own page, which is the wrong place, so show the path as text instead | — | Free | MM-44 |
-| Use AI Features / Dùng tính năng AI | Switch, default on. Off hides the AI menu items (disabled with "AI is turned off in Settings", since the Mac menu bar never hides items), the toolbar menu, canvas button, topic menu items, New Map with AI…, chat and Suggest Tags, Groups and Boundary titles. Suggestions already on a canvas stay until accepted or discarded. Nothing else changes | AppDefaults `ai.enabled` (device-local: AI availability differs per device) | Free | MM-44 |
+| Open Apple Intelligence Settings… / Mở cài đặt Apple Intelligence… | Button, shown only when the state is Off. Mac: opens `x-apple.systempreferences:com.apple.Siri-Settings.extension` (`AppLinks.appleIntelligenceSettings`), the pane titled "Apple Intelligence & Siri" on Macs with Apple Intelligence; its Info.plist sets `allowsXAppleSystemPreferencesURLScheme` (checked on macOS 27.0.1, not on macOS 26, and not by clicking: the test Mac's screen was locked). iPad, iPhone: no public URL to that page found (not verified); `openSettingsURLString` opens the app's own page, which is the wrong place, so the footer gives the path as text instead | — | Free | ✅ MM-44 |
+| Use AI Features / Dùng tính năng AI | Switch, default on. Off hides the AI menu items (disabled with "AI is turned off in Settings", since the Mac menu bar never hides items), the toolbar menu, canvas button, topic menu items, New Map with AI…, chat and Suggest Tags, Groups and Boundary titles. Suggestions already on a canvas stay until accepted or discarded. Nothing else changes | AppDefaults `ai.enabled` (device-local: AI availability differs per device) | Free | ✅ MM-44 |
 | Response Language / Ngôn ngữ trả lời | Picker: Automatic, English, Tiếng Việt. Default Automatic: the language of the request or the selected topics, else the app's language (FR-AI-13, [[chat]]). An explicit choice only sets "You MUST respond in …"; Rewrite ▸ in Vietnamese / in English keep their own target | AppDefaults `ai.responseLanguage` | Free | Left out (decided 2026-10-02): Automatic is the only behaviour until people ask for a choice |
-| Voice Input Language / Ngôn ngữ nhập giọng nói | Picker: English, Tiếng Việt. Default the first supported language in `Locale.preferredLanguages`. The voice sheet keeps its own picker on the same key, so the choice is made where it is used (HIG task-specific) and both show the same value | AppDefaults `voiceInput.language` (today read from `.standard`, see *Gotchas*) | Pro (`voiceInput`), row visible to everyone | MM-44 (MM-20 for the sheet) |
+| Voice Input Language / Ngôn ngữ nhập giọng nói | Picker: English, Tiếng Việt. Default the first supported language in `Locale.preferredLanguages`. The voice sheet keeps its own picker on the same key, so the choice is made where it is used (HIG task-specific) and both show the same value | AppDefaults `voiceInput.language` | Pro (`voiceInput`), row visible to everyone and changeable without Pro (the footer says voice is Pro), so the language is right once Pro unlocks | ✅ MM-44 (MM-20 for the sheet) |
 | Show AI Privacy Notice Again / Hiện lại thông báo quyền riêng tư AI | Not a row [Đề xuất]: the notice's content is always in Privacy; the flag `ai.privacyNoticeShown` stays internal | AppDefaults | — | — |
+
+As built in MM-44: `AIService.isEnabled` reads and writes `ai.enabled`, so the switch applies in every window at once. `AIService.showsControls` (device can run AI and the switch is on) gates the toolbar menu, the canvas button, the topic context menu and New Map with AI…; the menu bar's AI menu follows `showsEntryPoints` only, and every item in it is disabled through `AIAssistant.canRun`, which is false while off, under the line "AI is turned off in Settings." (`AIService.unavailableReason`). Accept All Suggestions and Discard Suggestions stay enabled for suggestions already on a canvas. The AI pane has three sections: Apple Intelligence status (with the Mac button), Use AI Features, Voice Input; on a device without Apple Intelligence the Voice Input section is in General. Voice input is not affected by Use AI Features: it uses Speech, not the language model. The chat (MM-41) reads `showsControls` too.
 
 Left out [Đề xuất]:
 
@@ -138,8 +140,8 @@ Each row states what is true on this device right now, so rows read the live sta
 | Data Storage / Lưu trữ dữ liệu | "On this device" while sync is off or unavailable; "On this device and in your private iCloud" while on | MM-45 (today ✅ fixed text) |
 | xDev Servers / Máy chủ xDev | "None. Your maps are never sent to xDev." Stays true with iCloud (the person's own iCloud), MCP (the person's own apps) and chat (on the device) | ✅ |
 | Analytics / Thống kê sử dụng | "None" | ✅ |
-| AI / AI | "On this device. Nothing is sent to xDev." Covers the chat too (Foundation Models on the device only, ADR 0009). "Turned off" when Use AI Features is off. Hidden on devices without AI | ✅ MM-8; MM-44 for the off state |
-| Voice Input / Nhập bằng giọng nói | "On this device. Audio is not kept." (privacy.md: neither stored nor sent) — missing today [Đề xuất] | MM-44 |
+| AI / AI | "On this device. Nothing is sent to xDev." Covers the chat too (Foundation Models on the device only, ADR 0009). "Turned off" when Use AI Features is off. Hidden on devices without AI | ✅ MM-8, MM-44 |
+| Voice Input / Nhập bằng giọng nói | "On this device. Audio is not kept." (privacy.md: neither stored nor sent) | ✅ MM-44 |
 | AI Apps / Ứng dụng AI (Mac) | "Off", or "On: apps you connect can read your maps and handle them under their own terms" | MM-46 |
 | Privacy Policy / Chính sách quyền riêng tư | Link to `AppLinks.privacyPolicy` | ✅ MM-0h |
 
@@ -167,7 +169,7 @@ For each task below: Swift Testing for the defaults (a fresh `AppDefaults` suite
 
 ## Gotchas found while writing this
 
-- `VoiceInput` defaults to `UserDefaults.standard` and `EditorView` does not pass `AppDefaults.store`, so `voiceInput.language` escapes the UI-test suite. MM-44 passes `AppDefaults.store`.
+- ~~`VoiceInput` defaults to `UserDefaults.standard`~~: it defaults to `AppDefaults.store` since MM-44, and reads the key again each time the sheet opens, so a change in Settings shows in a map that is already open.
 - ~~Include Notes sits in the General tab on the Mac~~: moved to Export in MM-43.
 - The New Mind Map intent (Shortcuts, `MindMapIntentServices.newMap`), the Share Extension and imports still make Standard maps: they run in the package or the extension, which cannot see the Pro entitlement. Only New Mind Map and New Map with AI… in the app read Theme for New Maps.
 
@@ -176,7 +178,7 @@ For each task below: Swift Testing for the defaults (a fresh `AppDefaults` suite
 1. **Backup format.** Markdown keeps titles, notes and task boxes but drops tags, colours, symbols, links, boundaries and themes (FR-ORG-10), so Export All Maps in Markdown is not a backup. A lossless archive (for example one JSON file per map from the Codable domain types, with a version field) is a new interchange format and needs a short design in [[interchange]] first. Recommendation [Đề xuất]: MM-45 ships Markdown export of all maps labelled "Export All Maps" (not "Back Up") and the lossless format is a separate task.
 2. **iCloud KVS** for theme and export defaults: decided 2026-10-02, yes, built after MM-6 and only while iCloud sync is on; never map content.
 3. **iCloud Sync switch** (FR-SYN-06, S) next to the system's per-app iCloud control: the system already lets people turn off iCloud for an app on iPhone and iPad *[Inference, not verified for CloudKit-only apps on macOS]*; HIG Settings warns against copies of system settings. Decided 2026-10-02: keep the in-app switch only where the system has no per-app control; otherwise show status and a path to System Settings. MM-6: the Mac gets the switch, iPad and iPhone the status; the Mac finding is *[Unverified]* until a person checks System Settings with the signed build ([[cloudkit-sync]], *Status and Settings*).
-4. **Response Language**: keep or drop (see AI).
+4. **Response Language**: dropped (decided 2026-10-02, see AI).
 
 ## Proposed task criteria (for the leader)
 

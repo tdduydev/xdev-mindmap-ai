@@ -122,7 +122,7 @@ final class AIAssistant {
     var modelAvailability: AIAvailability { service.modelState }
 
     func canRun(_ feature: AIFeature, on nodeID: NodeID? = nil) -> Bool {
-        guard !isWorking, availability(for: feature, on: nodeID).isReady else { return false }
+        guard service.isEnabled, !isWorking, availability(for: feature, on: nodeID).isReady else { return false }
         if feature == .generateMap { return session.rootID != nil }
         guard let id = target(nodeID), let node = session.engine.state.node(id) else { return false }
         switch feature {

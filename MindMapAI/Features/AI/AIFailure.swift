@@ -93,6 +93,8 @@ enum AIAvailabilityText {
         }
     }
 
+    static var turnedOff: String { String(localized: "AI is turned off in Settings.") }
+
     static var turnOnInstructions: String {
         #if os(macOS)
         String(localized: "To use AI, turn on Apple Intelligence in System Settings ▸ Apple Intelligence & Siri.")
