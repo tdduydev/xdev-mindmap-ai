@@ -24,6 +24,13 @@ if ! defaults read MobileMeAccounts Accounts 2>/dev/null | grep -q AccountID; th
   exit 1
 fi
 
+# On the Mac mini the development identity lives in the build keychain
+# (docs/release.md); elsewhere Xcode's own account signs.
+keychain="$HOME/Library/Keychains/mindmap-build.keychain-db"
+if [[ -f "$HOME/.appstoreconnect/signing/keychain.pass" && -f "$keychain" ]]; then
+  security unlock-keychain -p "$(cat "$HOME/.appstoreconnect/signing/keychain.pass")" "$keychain"
+fi
+
 auth=()
 if [[ -f "$HOME/.appstoreconnect/mindmap.env" ]]; then
   # shellcheck source=/dev/null
@@ -37,7 +44,7 @@ xcodebuild build -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI -configuration Debug \
   -destination 'platform=macOS' -derivedDataPath "$derived" \
   -allowProvisioningUpdates ${auth[@]+"${auth[@]}"} \
-  DEVELOPMENT_TEAM=M6C7NX9MUZ CODE_SIGN_STYLE=Automatic \
+  DEVELOPMENT_TEAM=M6C7NX9MUZ CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY="Apple Development" \
   MINDMAP_ICLOUD=YES MINDMAP_MAC_APP_GROUP=YES
 
 app=$(find "$derived/Build/Products/Debug" -maxdepth 1 -name '*.app' | head -n 1)
