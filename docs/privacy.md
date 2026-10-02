@@ -16,6 +16,11 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 | Spotlight | Map titles only, in the device's own index; maps moved to Recently Deleted or deleted are removed |
 | Clipboard | Read only when the user runs Map from Clipboard |
 
+## Planned
+
+- **AI apps over MCP** ([mcp.md](mcp.md), ADR 0008, not built): off by default. Once the person connects an AI app such as Claude or ChatGPT, that app can read maps on the Mac and may send them to its own provider under its terms; xDev still receives nothing. The task that ships it adds a row to the table above and updates the privacy policy.
+- **Chat** ([chat.md](chat.md), ADR 0009, not built): on the device like the other AI features; conversations are not saved [Đề xuất].
+
 ## Rules for the code
 
 - Never log map titles, node text, notes, drawings, imported documents or AI prompts. Use `os.Logger` with private interpolation for anything that might hold user content.
