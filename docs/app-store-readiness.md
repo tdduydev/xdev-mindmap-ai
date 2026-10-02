@@ -61,6 +61,8 @@ JPEG or PNG, no transparency, 1 to 10 per set ([screenshot specifications](https
 | iPhone 6.9-inch | 1260×2736, 1290×2796 or 1320×2868 | Yes, unless 6.5-inch screenshots are given |
 | iPhone 6.5-inch | 1284×2778 or 1242×2688 | Only without 6.9-inch |
 
+The in-app purchase needs its own review screenshot, of any size from this table ([In-App Purchase information](https://developer.apple.com/help/app-store-connect/reference/in-app-purchases-and-subscriptions/in-app-purchase-information)). `scripts/render-iap-screenshot.sh` makes it from the app's own `PaywallView` and the product in `MindMapAITests/MindMapAI.storekit`: `scripts/out/review/iap-pro.png`, 2880×1800, light, English. The test behind it (`IAPReviewScreenshotTests`) is off in `scripts/ci.sh`. ImageRenderer draws nothing for the paywall on macOS, because the grouped Form and its buttons are AppKit views, so the test puts the paywall in an off-screen window and AppKit draws that window. The title bar shows inactive gray traffic lights because the test host is never the active app.
+
 ## Mac App Store (2.4.5)
 
 | Item | Requirement | Status |
