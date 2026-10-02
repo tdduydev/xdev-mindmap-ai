@@ -12,6 +12,7 @@ struct LibraryView: View {
         List(selection: $selection) {
             ForEach(maps) { map in
                 MapRow(map: map)
+                    .accessibilityIdentifier(AccessibilityID.Library.map)
                     .contextMenu { menu(for: map) }
                     .swipeActions {
                         Button(role: .destructive) {
@@ -22,6 +23,7 @@ struct LibraryView: View {
                     }
             }
         }
+        .accessibilityIdentifier(AccessibilityID.Library.list)
         .overlay {
             if model.hasLoaded, maps.isEmpty {
                 emptyState
@@ -34,6 +36,7 @@ struct LibraryView: View {
                 Button(action: create) {
                     Label("New Mind Map", systemImage: "plus")
                 }
+                .accessibilityIdentifier(AccessibilityID.Library.newMap)
             }
         }
         .focusedSceneValue(\.newMapAction, NewMapAction(perform: create))
@@ -93,6 +96,7 @@ struct LibraryView: View {
             } actions: {
                 Button("New Mind Map", action: create)
                     .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier(AccessibilityID.Library.newMap)
             }
         case .recent:
             ContentUnavailableView("No Recent Maps", systemImage: "clock", description: Text("Maps you edit appear here."))

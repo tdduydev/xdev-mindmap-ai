@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 @main
 struct MindMapAIApp: App {
@@ -7,11 +10,15 @@ struct MindMapAIApp: App {
     @State private var launch = AppEnvironment.live()
     /// Shared by every window and Settings; the model itself loads on first use.
     @State private var ai = AIService()
-    @AppStorage(AppearancePreference.storageKey) private var appearance = AppearancePreference.system
+    @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
 
     init() {
         // Before any view resolves a brand font by name.
         BrandFont.registerAll()
+        #if os(iOS)
+        // Transitions and keyboard animations too, which SwiftUI's Motion does not drive.
+        if UITestMode.isActive { UIView.setAnimationsEnabled(false) }
+        #endif
     }
 
     var body: some Scene {

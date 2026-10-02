@@ -60,6 +60,7 @@ struct CanvasView: View {
         .onKeyPress(.return) { model.beginEditingSelection() ? .handled : .ignored }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: session.map.title))
+        .accessibilityIdentifier(AccessibilityID.Canvas.canvas)
         .accessibilityRotor(Text("Topics")) {
             ForEach(model.scene.topics) { topic in
                 AccessibilityRotorEntry(rotorLabel(topic), id: topic.id, in: rotorNamespace) {
@@ -153,6 +154,7 @@ struct CanvasView: View {
         } actions: {
             Button("Add Central Topic", action: session.addRoot)
                 .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier(AccessibilityID.Canvas.addCentralTopic)
         }
     }
 

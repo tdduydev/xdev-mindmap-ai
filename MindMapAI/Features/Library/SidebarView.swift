@@ -14,6 +14,7 @@ struct SidebarView: View {
                 Image(systemName: section.systemImage)
             }
         }
+        .accessibilityIdentifier(AccessibilityID.Sidebar.list)
         .navigationTitle("MindMap AI")
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)
@@ -26,6 +27,7 @@ struct SidebarView: View {
                 } label: {
                     Label("Settings", systemImage: "gearshape")
                 }
+                .accessibilityIdentifier(AccessibilityID.Sidebar.settings)
             }
         }
         .sheet(isPresented: $isShowingSettings) {

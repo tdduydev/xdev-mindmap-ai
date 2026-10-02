@@ -233,6 +233,7 @@ struct TopicAccessibility: ViewModifier {
             .accessibilityElement(children: isEditing ? .contain : .ignore)
             .accessibilityLabel(label)
             .accessibilityValue(Text(verbatim: value))
+            .accessibilityIdentifier(AccessibilityID.Canvas.topic)
             .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityAction { model.select(topic.id) }
             .accessibilityActions {

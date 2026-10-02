@@ -36,6 +36,7 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .accessibilityIdentifier(AccessibilityID.Settings.done)
                 }
             }
         }
@@ -44,7 +45,7 @@ struct SettingsView: View {
 }
 
 struct GeneralSettingsSection: View {
-    @AppStorage(AppearancePreference.storageKey) private var appearance = AppearancePreference.system
+    @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
 
     var body: some View {
         Section("General") {
@@ -53,6 +54,7 @@ struct GeneralSettingsSection: View {
                     Text(option.title).tag(option)
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.Settings.appearance)
         }
     }
 }

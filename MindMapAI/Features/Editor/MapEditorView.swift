@@ -62,27 +62,33 @@ struct MapEditorView: View {
             }
             .pickerStyle(.segmented)
             .help(Text("View As"))
+            .accessibilityIdentifier(AccessibilityID.Editor.presentation)
         }
         ToolbarItemGroup {
             Button(action: session.undo) {
                 Label("Undo", systemImage: "arrow.uturn.backward")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.undo)
             .disabled(!session.canUndo)
             Button(action: session.redo) {
                 Label("Redo", systemImage: "arrow.uturn.forward")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.redo)
             .disabled(!session.canRedo)
         }
         ToolbarItemGroup(placement: .primaryAction) {
             Button(action: session.addChild) {
                 Label("Add Child", systemImage: "arrow.turn.down.right")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.addChild)
             Button(action: session.addSibling) {
                 Label("Add Sibling", systemImage: "plus")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.addSibling)
             Button(role: .destructive, action: session.deleteSelection) {
                 Label("Delete", systemImage: "trash")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.delete)
             .disabled(!session.canDeleteSelection)
         }
         if assistant.service.showsEntryPoints {

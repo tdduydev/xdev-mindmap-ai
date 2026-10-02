@@ -19,6 +19,7 @@ struct OutlineEditorView: View {
                 )
             }
         }
+        .accessibilityIdentifier(AccessibilityID.Outline.list)
         .overlay {
             if session.rows.isEmpty {
                 ContentUnavailableView {
@@ -26,6 +27,7 @@ struct OutlineEditorView: View {
                 } actions: {
                     Button("Add Central Topic", action: session.addRoot)
                         .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier(AccessibilityID.Outline.addCentralTopic)
                 }
             }
         }
@@ -73,6 +75,7 @@ struct OutlineRow: View {
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
+                .accessibilityIdentifier(AccessibilityID.Outline.topic)
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
         // Undo changes the title from outside; show it unless the user is typing here.
@@ -100,6 +103,7 @@ struct OutlineRow: View {
         .disabled(!row.hasChildren)
         .accessibilityHidden(!row.hasChildren)
         .accessibilityLabel(row.node.isCollapsed ? Text("Expand") : Text("Collapse"))
+        .accessibilityIdentifier(AccessibilityID.Outline.disclosure)
     }
 
     private func commit() {
