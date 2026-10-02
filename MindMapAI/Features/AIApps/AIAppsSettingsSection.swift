@@ -40,7 +40,11 @@ private struct AIAppsSettingsContent: View {
                     .accessibilityIdentifier(AccessibilityID.Settings.aiAppsPort)
             }
             LabeledContent("Status") {
+                // A new view per status: a Form row keeps the accessibility
+                // value of the first text it showed, so the status still said "Off"
+                // after the port had opened (MM-89).
                 Text(statusTitle)
+                    .id(statusTitle)
                     .accessibilityIdentifier(AccessibilityID.Settings.aiAppsStatus)
             }
             if case .listening(let port) = host.status {
