@@ -8,6 +8,7 @@
     {"file": "docs/graph-engine.md", "key": "graph-engine", "title": "Graph engine"},
     {"file": "docs/layout-engine.md", "key": "layout-engine", "title": "Layout engine"},
     {"file": "docs/canvas.md", "key": "canvas", "title": "Canvas"},
+    {"file": "docs/interchange.md", "key": "interchange", "title": "Interchange"},
     {"file": "docs/ai-architecture.md", "key": "ai-architecture", "title": "AI architecture"},
     {"file": "docs/on-device-ai.md", "key": "on-device-ai", "title": "On-device AI"},
     {"file": "docs/cloudkit-sync.md", "key": "cloudkit-sync", "title": "iCloud sync"},
