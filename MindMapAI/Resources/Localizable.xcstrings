@@ -41,6 +41,16 @@
         }
       }
     },
+    "Add Link": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm liên kết"
+          }
+        }
+      }
+    },
     "Add Sibling": {
       "localizations": {
         "vi": {
@@ -147,6 +157,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Thu gọn"
+          }
+        }
+      }
+    },
+    "Collapse All": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thu gọn tất cả"
           }
         }
       }
@@ -261,6 +281,26 @@
         }
       }
     },
+    "Demote Topic": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đưa chủ đề xuống một cấp"
+          }
+        }
+      }
+    },
+    "Duplicate Topic": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhân bản chủ đề"
+          }
+        }
+      }
+    },
     "Edited %@": {
       "localizations": {
         "vi": {
@@ -287,6 +327,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mở rộng"
+          }
+        }
+      }
+    },
+    "Expand All": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở rộng tất cả"
           }
         }
       }
@@ -377,6 +427,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Đánh dấu yêu thích để tìm sơ đồ ở đây."
+          }
+        }
+      }
+    },
+    "Merge Topics": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gộp chủ đề"
           }
         }
       }
@@ -514,6 +574,16 @@
         }
       }
     },
+    "Promote Topic": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đưa chủ đề lên một cấp"
+          }
+        }
+      }
+    },
     "Recent": {
       "localizations": {
         "vi": {
@@ -534,12 +604,32 @@
         }
       }
     },
+    "Remove Link": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xoá liên kết"
+          }
+        }
+      }
+    },
     "Remove from Favorites": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Bỏ khỏi Yêu thích"
+          }
+        }
+      }
+    },
+    "Rename Map": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi tên sơ đồ"
           }
         }
       }
@@ -560,6 +650,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Đã có lỗi"
+          }
+        }
+      }
+    },
+    "Split Topic": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tách chủ đề"
           }
         }
       }

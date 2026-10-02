@@ -22,9 +22,18 @@
 | `UpdateNodeCommand` | Sets title, note, collapsed, type or metadata | A missing node. Setting the current value is a no-op. |
 | `DeleteNodeCommand` | Deletes nodes with their branches and touching edges; one undo step for a multi-selection | A missing node |
 | `ReparentNodeCommand` | Moves or reorders a node with its branch | Moving the root; moving under itself or its own descendant |
+| `DuplicateBranchCommand` | Copies a branch with new IDs right after the original; keeps notes, collapsed state, metadata, and links with both ends inside the branch | The root |
+| `MergeNodesCommand(into:merging:)` | Folds siblings into the first: their children move under it, their titles and notes are appended to its note, their links move to it (self-links and repeats dropped), then they are deleted | A missing node, a non-sibling, the root |
+| `SplitNodeCommand` | One topic per non-blank title line: the first line stays in the original (ID, children, note, links), the rest become siblings after it. One line is a no-op. | The root with several lines |
+| `PromoteNodeCommand` | Moves a branch to right after its parent | The root, a child of the root |
+| `DemoteNodeCommand` | Moves a branch to the end of its previous sibling, opening it | The root, a first child |
+| `ConnectNodesCommand` | Adds a cross-link (relationship or reference, optional trimmed label) | A missing end, a link to itself, the same link (ends, direction, type) twice |
+| `RemoveEdgeCommand` | Deletes a cross-link | A missing link |
+| `SetAllCollapsedCommand.collapseAll / .expandAll` | Collapses every topic with children except the root, or expands all; leaves untouched | Nothing |
+| `RenameMapCommand` | Sets the map's title; the central topic keeps its own | Nothing |
 | `BatchCommand` | Several commands as one atomic undo step | Anything any part refuses; nothing applies |
 
-Later phases add duplicate, merge, split, promote, connect and disconnect as more commands. Each one only describes its change.
+Each command only describes its change. `EditorSession` gives each one an undo action name for the Edit menu.
 
 ## Execution
 

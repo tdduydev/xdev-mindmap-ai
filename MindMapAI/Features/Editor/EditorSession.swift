@@ -83,6 +83,22 @@ final class EditorSession {
         selection.flatMap { engine.state.node($0)?.isCollapsed } ?? false
     }
 
+    /// The root has no siblings, so it cannot be copied next to itself.
+    var canDuplicateSelection: Bool { selection != nil && selection != rootID }
+
+    var canPromoteSelection: Bool {
+        selection.map { PromoteNodeCommand.canPromote($0, in: engine.state) } ?? false
+    }
+
+    var canDemoteSelection: Bool {
+        selection.map { DemoteNodeCommand.canDemote($0, in: engine.state) } ?? false
+    }
+
+    var canSplitSelection: Bool {
+        guard let selection, selection != rootID, let node = engine.state.node(selection) else { return false }
+        return SplitNodeCommand.lines(of: node.title).count > 1
+    }
+
     var rows: [Row] {
         let state = engine.state
         return state.visibleOutline().compactMap { item in
@@ -138,6 +154,64 @@ final class EditorSession {
         if perform(DeleteNodeCommand(nodeID: id), named: String(localized: "Delete Topic")) {
             selection = next
         }
+    }
+
+    /// Copies the selected branch right after it and selects the copy.
+    func duplicateSelection() {
+        guard let id = selection, canDuplicateSelection else { return }
+        let copyID = NodeID()
+        if perform(DuplicateBranchCommand(nodeID: id, copyID: copyID), named: String(localized: "Duplicate Topic")) {
+            selection = copyID
+        }
+    }
+
+    func promoteSelection() {
+        guard let id = selection, canPromoteSelection else { return }
+        perform(PromoteNodeCommand(nodeID: id), named: String(localized: "Promote Topic"))
+    }
+
+    func demoteSelection() {
+        guard let id = selection, canDemoteSelection else { return }
+        perform(DemoteNodeCommand(nodeID: id), named: String(localized: "Demote Topic"))
+    }
+
+    /// One topic per line of the selected title; the selection stays on the first line.
+    func splitSelection() {
+        guard let id = selection, canSplitSelection else { return }
+        perform(SplitNodeCommand(nodeID: id), named: String(localized: "Split Topic"))
+    }
+
+    /// Merges sibling topics into the first one, which becomes the selection.
+    /// Takes IDs because multi-selection arrives later (MM-5).
+    func merge(_ ids: [NodeID]) {
+        guard let survivor = ids.first, ids.count > 1 else { return }
+        if perform(MergeNodesCommand(into: survivor, merging: Array(ids.dropFirst())), named: String(localized: "Merge Topics")) {
+            selection = survivor
+        }
+    }
+
+    @discardableResult
+    func connect(_ source: NodeID, to target: NodeID, type: EdgeType = .relationship, label: String? = nil) -> EdgeID? {
+        let id = EdgeID()
+        let command = ConnectNodesCommand(edgeID: id, from: source, to: target, type: type, label: label)
+        return perform(command, named: String(localized: "Add Link")) ? id : nil
+    }
+
+    func removeLink(_ id: EdgeID) {
+        perform(RemoveEdgeCommand(edgeID: id), named: String(localized: "Remove Link"))
+    }
+
+    func collapseAll() {
+        perform(SetAllCollapsedCommand.collapseAll, named: String(localized: "Collapse All"))
+        keepSelectionVisible()
+    }
+
+    func expandAll() {
+        perform(SetAllCollapsedCommand.expandAll, named: String(localized: "Expand All"))
+    }
+
+    func renameMap(to title: String) {
+        perform(RenameMapCommand(title: title), named: String(localized: "Rename Map"))
     }
 
     func undo() {
@@ -233,6 +307,17 @@ final class EditorSession {
     private func keepSelectionValid() {
         if let selection, engine.state.node(selection) != nil { return }
         selection = rootID
+    }
+
+    /// After collapsing, a selected topic inside a closed branch would be
+    /// invisible; select its nearest visible ancestor instead.
+    private func keepSelectionVisible() {
+        guard let selection else { return }
+        let state = engine.state
+        let ancestors = state.ancestors(of: selection)
+        if let outermostClosed = ancestors.lastIndex(where: { state.node($0)?.isCollapsed == true }) {
+            self.selection = ancestors[outermostClosed]
+        }
     }
 
     /// Where the selection goes after `id` is deleted: the previous sibling,

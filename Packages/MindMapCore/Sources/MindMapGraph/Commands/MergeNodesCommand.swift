@@ -1,0 +1,105 @@
+import Foundation
+import MindMapDomain
+
+/// Folds sibling topics into one: the first selected topic stays, the others go.
+///
+/// Nothing the user wrote is lost. Children of the merged topics move under the
+/// survivor, after its own children, in the order given. The survivor keeps its
+/// title; each merged topic's title and note are appended to the survivor's note
+/// as a paragraph. Cross-links are moved to the survivor, and a link that would
+/// end up joining the survivor to itself, or repeat an existing link of the same
+/// kind, is removed.
+public struct MergeNodesCommand: GraphCommand {
+    public let survivorID: NodeID
+    public let mergedIDs: [NodeID]
+
+    public init(into survivorID: NodeID, merging mergedIDs: [NodeID]) {
+        self.survivorID = survivorID
+        self.mergedIDs = mergedIDs
+    }
+
+    public func execute(in transaction: inout GraphTransaction) throws {
+        let state = transaction.state
+        guard let survivor = state.node(survivorID) else { throw GraphError.nodeNotFound(survivorID) }
+
+        var seen: Set<NodeID> = [survivorID]
+        var merged: [MindNode] = []
+        for id in mergedIDs where seen.insert(id).inserted {
+            guard let node = state.node(id) else { throw GraphError.nodeNotFound(id) }
+            merged.append(node)
+        }
+        guard !merged.isEmpty else { return }
+        guard survivor.parentID != nil else { throw GraphError.rootHasNoSiblings }
+        for node in merged where node.parentID != survivor.parentID {
+            throw GraphError.notSiblings(node.id)
+        }
+
+        for node in merged {
+            for childID in state.childIDs(of: node.id) {
+                let sortOrder = try transaction.sortOrder(for: .last, under: survivorID, excluding: childID)
+                try transaction.updateNode(childID) { child in
+                    child.parentID = survivorID
+                    child.sortOrder = sortOrder
+                }
+            }
+        }
+
+        let note = Self.mergedNote(survivor: survivor, merged: merged)
+        let gainedChildren = merged.contains { !state.childIDs(of: $0.id).isEmpty }
+        try transaction.updateNode(survivorID) { node in
+            node.note = note
+            // Children moved into a collapsed topic would vanish from view.
+            if gainedChildren { node.isCollapsed = false }
+        }
+
+        try rewireEdges(of: Set(merged.map(\.id)), in: &transaction)
+
+        for node in merged {
+            try transaction.removeNode(node.id)
+        }
+    }
+
+    private func rewireEdges(of mergedIDs: Set<NodeID>, in transaction: inout GraphTransaction) throws {
+        struct LinkKey: Hashable {
+            let source: NodeID
+            let target: NodeID
+            let type: EdgeType
+        }
+        func remapped(_ id: NodeID) -> NodeID { mergedIDs.contains(id) ? survivorID : id }
+
+        var touched: [MindEdge] = []
+        var existing: Set<LinkKey> = []
+        for edge in transaction.state.edges.values {
+            if mergedIDs.contains(edge.sourceNodeID) || mergedIDs.contains(edge.targetNodeID) {
+                touched.append(edge)
+            } else {
+                existing.insert(LinkKey(source: edge.sourceNodeID, target: edge.targetNodeID, type: edge.edgeType))
+            }
+        }
+
+        // Oldest first, so which duplicate survives does not depend on dictionary order.
+        for edge in touched.sorted(by: { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }) {
+            let key = LinkKey(source: remapped(edge.sourceNodeID), target: remapped(edge.targetNodeID), type: edge.edgeType)
+            if key.source == key.target || !existing.insert(key).inserted {
+                try transaction.removeEdge(edge.id)
+            } else {
+                try transaction.updateEdge(edge.id) { edge in
+                    edge.sourceNodeID = key.source
+                    edge.targetNodeID = key.target
+                }
+            }
+        }
+    }
+
+    private static func mergedNote(survivor: MindNode, merged: [MindNode]) -> String? {
+        func trimmed(_ text: String?) -> String {
+            (text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        let added = merged
+            .map { [trimmed($0.title), trimmed($0.note)].filter { !$0.isEmpty }.joined(separator: "\n") }
+            .filter { !$0.isEmpty }
+        guard !added.isEmpty else { return survivor.note }
+        let own = trimmed(survivor.note).isEmpty ? [] : [survivor.note ?? ""]
+        return (own + added).joined(separator: "\n\n")
+    }
+}
