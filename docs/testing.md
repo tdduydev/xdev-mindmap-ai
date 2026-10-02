@@ -50,6 +50,8 @@ So every test or suite that creates an `SKTestSession` takes the `.storeKitTestL
 
 The lock is a file in the app's temporary directory. The test host is the sandboxed app, so that directory is in the app's container, which macOS keys by bundle ID: every worktree's run of `MindMapAITests` finds the same file. On a Mac running several builds, StoreKit still applies a purchase, refund or `clearTransactions()` late, sometimes after more than five seconds (MM-88). So `eventually` waits up to 30 seconds, and each test's `init` asks for the clear again and stops the test with a clear message if StoreKit still lists a transaction, rather than letting the next test fail on the previous test's purchase.
 
+The lock does not cover everything that touches the store. While a macOS UI test run (another worktree) launched the app, which carries the StoreKit configuration in the `MindMapAIUITests` scheme, a purchase never reached `Transaction.updates` or a refund left Pro unlocked for 30 seconds, then the same tests passed. Why the store changed is not proven. So `purchaseFromElsewhereUnlocksWhileRunning` and `refundLocksAgain` check whether StoreKit lost the transaction they made or another transaction unlocks Pro; only then do they clear the store and run again (up to three times, logging "StoreKit changed outside this test"). Any other failure still fails.
+
 ### Waiting and timing on a busy machine
 
 Agents and the leader run `scripts/ci.sh` in several worktrees at once, so any test that depends on a short span of real time fails at random (MM-88):
