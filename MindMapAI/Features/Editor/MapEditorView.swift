@@ -8,6 +8,7 @@ struct MapEditorView: View {
     @Bindable var session: EditorSession
     let canvas: CanvasModel
     @Bindable var assistant: AIAssistant
+    @Bindable var voice: VoiceInput
     @Environment(\.undoManager) private var undoManager
 
     var body: some View {
@@ -30,6 +31,9 @@ struct MapEditorView: View {
         .sheet(item: $assistant.sheet, onDismiss: assistant.sheetDismissed) { sheet in
             AISheet(assistant: assistant, sheet: sheet)
         }
+        .sheet(isPresented: $voice.isPresented, onDismiss: voice.sheetDismissed) {
+            VoiceInputSheet(voice: voice)
+        }
         .inspector(isPresented: $session.isInspectorPresented) {
             MapInspectorView(session: session)
         }
@@ -50,6 +54,7 @@ struct MapEditorView: View {
         .toolbar { toolbar }
         .focusedSceneValue(\.editorSession, session)
         .focusedSceneValue(\.aiAssistant, assistant)
+        .focusedSceneValue(\.voiceInput, voice)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
@@ -87,6 +92,10 @@ struct MapEditorView: View {
                 Label("Delete", systemImage: "trash")
             }
             .disabled(!session.canDeleteSelection)
+            Button(action: voice.present) {
+                Label("Add Topics by Voice", systemImage: "mic")
+            }
+            .help(Text("Add Topics by Voice"))
         }
         if assistant.service.showsEntryPoints {
             ToolbarItem(placement: .primaryAction) {

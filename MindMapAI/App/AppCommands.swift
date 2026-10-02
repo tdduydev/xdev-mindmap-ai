@@ -11,6 +11,8 @@ extension FocusedValues {
     /// The AI side of the frontmost map, for the AI menu.
     @Entry var aiAssistant: AIAssistant?
     @Entry var newMapWithAIAction: NewMapAction?
+    /// Voice input for the frontmost map (FR-AI-21).
+    @Entry var voiceInput: VoiceInput?
 }
 
 struct NewMapAction {
@@ -27,6 +29,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.newMapWithAIAction) private var newMapWithAI
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
+    @FocusedValue(\.voiceInput) private var voice
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -84,6 +87,9 @@ struct MapCommands: Commands {
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
+            Button("Add Topics by Voice…") { voice?.present() }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
+                .disabled(voice == nil || voice?.isPresented == true)
             Divider()
             // ⇧Tab for Promote comes with the keyboard work in MM-5, where Tab is
             // kept for typing while a title is being edited.

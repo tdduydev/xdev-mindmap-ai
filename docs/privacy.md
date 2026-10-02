@@ -10,6 +10,7 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 | xDev backend | None. Maps are never sent to xDev. |
 | Account | None required |
 | AI processing | On-device (Apple Foundation Models) where the device supports it |
+| Voice input | On-device (`SpeechAnalyzer`; `SFSpeechRecognizer` only asks the permission and never recognizes, since it sends Vietnamese to a server). Audio is neither stored nor sent; text stays in the sheet until the user adds it. Microphone and speech recognition access are asked the first time someone opens Add Topics by Voice |
 | Analytics | None in V1 |
 
 ## Rules for the code

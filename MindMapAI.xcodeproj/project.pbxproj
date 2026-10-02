@@ -14,6 +14,7 @@
 		4D4D410000000000000C8001 /* MindMapAICore in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8002 /* MindMapAICore */; };
 		4D4D410000000000000C8003 /* MindMapAIApple in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8004 /* MindMapAIApple */; };
 		4D4D410000000000000C8005 /* MindMapTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8006 /* MindMapTestSupport */; };
+		4D4D410000000000000C2001 /* MindMapCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C2002 /* MindMapCapture */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,7 @@
 				4D4D410000000000000C3001 /* MindMapLayout in Frameworks */,
 				4D4D410000000000000C8001 /* MindMapAICore in Frameworks */,
 				4D4D410000000000000C8003 /* MindMapAIApple in Frameworks */,
+				4D4D410000000000000C2001 /* MindMapCapture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,6 +115,7 @@
 				4D4D410000000000000C3002 /* MindMapLayout */,
 				4D4D410000000000000C8002 /* MindMapAICore */,
 				4D4D410000000000000C8004 /* MindMapAIApple */,
+				4D4D410000000000000C2002 /* MindMapCapture */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -361,12 +364,15 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MindMap AI listens while you add topics by voice. Speech is turned into text on this device.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MindMap AI turns what you say into topics. Speech recognition runs on this device and nothing is sent to xDev.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -407,12 +413,15 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MindMap AI listens while you add topics by voice. Speech is turned into text on this device.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MindMap AI turns what you say into topics. Speech recognition runs on this device and nothing is sent to xDev.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -558,6 +567,10 @@
 		4D4D410000000000000C8006 /* MindMapTestSupport */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapTestSupport;
+		};
+		4D4D410000000000000C2002 /* MindMapCapture */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapCapture;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

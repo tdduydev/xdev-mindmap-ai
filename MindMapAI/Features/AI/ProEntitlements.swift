@@ -6,6 +6,8 @@ enum ProFeature: Hashable, CaseIterable {
     /// Summarizing from the central topic, which covers the whole map.
     case wholeMapSummary
     case missingTopics
+    /// Adding topics by voice (FR-AI-21).
+    case voiceInput
 }
 
 /// Answers whether a Pro feature is unlocked. The AI code asks here, so the
