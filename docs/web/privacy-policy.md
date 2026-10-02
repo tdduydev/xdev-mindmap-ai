@@ -27,7 +27,7 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 
 **Where your maps are stored.** On your device. When iCloud sync is available in the app and you are signed in to iCloud, your maps are also stored in your own private iCloud account, under [Apple's privacy policy](https://www.apple.com/legal/privacy/), so they appear on your other devices. xDev cannot read your iCloud data. To stop syncing, turn off iCloud Sync in MindMap AI ▸ Settings ▸ Data on a Mac, or turn off iCloud for MindMap AI in the Settings app on iPhone and iPad; your maps stay on the device.
 
-**AI features.** AI features use Apple's on-device model (Apple Intelligence). Your text is processed on your device and is not sent to xDev. On devices without Apple Intelligence, the AI features are not shown.
+**AI features.** AI features use Apple's on-device model (Apple Intelligence). Your text is processed on your device and is not sent to xDev. Questions and answers in Ask About This Map are saved with the map they are about, stored and synced like the map, and deleted with it or with Clear Chat. On devices without Apple Intelligence, the AI features are not shown.
 
 **Voice input.** When voice input is available, speech is turned into text on your device and is not sent to xDev. The app asks for microphone and speech recognition access the first time you use it.
 

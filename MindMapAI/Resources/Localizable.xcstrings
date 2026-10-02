@@ -1333,6 +1333,16 @@
         }
       }
     },
+    "Clear the chat for this map?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá cuộc trò chuyện của sơ đồ này?"
+          }
+        }
+      }
+    },
     "Clearer" : {
       "localizations" : {
         "vi" : {
@@ -2568,6 +2578,16 @@
         }
       }
     },
+    "Its questions and answers are deleted. This can’t be undone." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các câu hỏi và câu trả lời sẽ bị xoá. Không thể hoàn tác."
+          }
+        }
+      }
+    },
     "Keep only the first selected topic" : {
       "localizations" : {
         "vi" : {
@@ -3512,6 +3532,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mở sơ đồ gần đây"
+          }
+        }
+      }
+    },
+    "Open Settings (⌘,)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở cài đặt (⌘,)"
           }
         }
       }

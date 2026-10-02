@@ -22,7 +22,7 @@ public enum MapRepositoryChange: Sendable, Equatable {
 
 /// Where maps live. Features talk to this protocol, never to SwiftData, so the
 /// store can change and tests can use an in-memory one.
-public protocol MapRepository: SharedTagActions {
+public protocol MapRepository: SharedTagActions, ChatHistoryStore {
     /// Every change committed after this call returns, in commit order, until
     /// the stream's task ends. Each window subscribes before its first fetch,
     /// so a write cannot fall between the fetch and the subscription.
@@ -66,7 +66,7 @@ public protocol MapRepository: SharedTagActions {
     /// Takes a map out of Recently Deleted.
     func restoreMap(_ mapID: MapID) async throws
 
-    /// Deletes a map and every record of it for good (DR-07).
+    /// Deletes a map and every record of it for good (DR-07), its chat included.
     func deleteMap(_ mapID: MapID) async throws
 
     /// Deletes for good every map that went to Recently Deleted before

@@ -227,6 +227,7 @@ public actor SwiftDataMapRepository: MapRepository {
         try deleteAll(GroupRecord.inMap(id))
         // One by one also removes each image's external file.
         try deleteAll(ImageRecord.inMap(id))
+        try deleteAll(ChatTurnRecord.inMap(id))
     }
 
     public func fetchTopicTexts() async throws -> [MapID: [String]] {
