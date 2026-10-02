@@ -8,6 +8,8 @@ struct EditorView: View {
     let repository: any MapRepository
     let onMapChange: (MindMap) -> Void
     @State private var opening: EditorSession.Opening?
+    /// Made once per opened map, so the camera survives switching to the outline and back.
+    @State private var canvas: CanvasModel?
 
     var body: some View {
         Group {
@@ -15,7 +17,9 @@ struct EditorView: View {
             case nil:
                 ProgressView()
             case .ready(let session):
-                OutlineEditorView(session: session)
+                if let canvas {
+                    MapEditorView(session: session, canvas: canvas)
+                }
             case .missing:
                 ContentUnavailableView(
                     "Map Not Found",
@@ -31,7 +35,9 @@ struct EditorView: View {
             }
         }
         .task {
-            opening = await EditorSession.open(mapID: mapID, repository: repository, onMapChange: onMapChange)
+            let opened = await EditorSession.open(mapID: mapID, repository: repository, onMapChange: onMapChange)
+            if case .ready(let session) = opened { canvas = CanvasModel(session: session) }
+            opening = opened
         }
     }
 }

@@ -1,11 +1,10 @@
 import MindMapDomain
 import SwiftUI
 
-/// The minimal editor: the map as an indented outline. The canvas replaces it
-/// as the main view in a later phase; the outline stays as the accessible one.
+/// The map as an indented outline: the way to use a map without the canvas,
+/// for VoiceOver and the keyboard. Toolbar and menus come from `MapEditorView`.
 struct OutlineEditorView: View {
     @Bindable var session: EditorSession
-    @Environment(\.undoManager) private var undoManager
     @FocusState private var focusedNode: NodeID?
 
     var body: some View {
@@ -30,55 +29,13 @@ struct OutlineEditorView: View {
                 }
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            if session.saveFailed {
-                SaveFailedBanner()
-            }
-        }
-        .navigationTitle(session.map.title)
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        #if os(macOS)
-        .onDeleteCommand(perform: session.deleteSelection)
-        #endif
-        .toolbar { toolbar }
-        .focusedSceneValue(\.editorSession, session)
-        .onAppear { session.undoManager = undoManager }
-        .onChange(of: undoManager) { _, manager in session.undoManager = manager }
-        .onChange(of: session.focusRequest) { _, request in
+        .onChange(of: session.focusRequest, initial: true) { _, request in
             guard let request else { return }
             focusedNode = request
             session.focusRequest = nil
         }
         .onChange(of: focusedNode) { _, node in
             if let node { session.selection = node }
-        }
-    }
-
-    @ToolbarContentBuilder
-    private var toolbar: some ToolbarContent {
-        ToolbarItemGroup {
-            Button(action: session.undo) {
-                Label("Undo", systemImage: "arrow.uturn.backward")
-            }
-            .disabled(!session.canUndo)
-            Button(action: session.redo) {
-                Label("Redo", systemImage: "arrow.uturn.forward")
-            }
-            .disabled(!session.canRedo)
-        }
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button(action: session.addChild) {
-                Label("Add Child", systemImage: "arrow.turn.down.right")
-            }
-            Button(action: session.addSibling) {
-                Label("Add Sibling", systemImage: "plus")
-            }
-            Button(role: .destructive, action: session.deleteSelection) {
-                Label("Delete", systemImage: "trash")
-            }
-            .disabled(!session.canDeleteSelection)
         }
     }
 }

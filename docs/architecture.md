@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
   subgraph App["MindMapAI (multiplatform app target)"]
-    Features["Features<br/>Library, Editor"]
+    Features["Features<br/>Library, Editor, Canvas"]
     DS["DesignSystem"]
     Shell["App shell<br/>AppEnvironment, AppRouter"]
   end
@@ -19,6 +19,7 @@ flowchart LR
   end
   Features --> Graph
   Features --> Persistence
+  Features --> Layout
   Shell --> Persistence
   Graph --> Domain
   Persistence --> Graph
@@ -71,7 +72,7 @@ View action ─▶ EditorSession builds a GraphCommand
 | Selection, focus, open sheets | `EditorSession`, views | No |
 | Navigation | `AppRouter` | No |
 | AI suggestions (Phase 8) | Separate suggestion state | Only once accepted, as commands |
-| Canvas viewport (Phase 3) | Canvas state | Possibly per map, as a preference |
+| Canvas camera, inline edit, canvas or outline | `CanvasModel`, `EditorSession.presentation` ([[canvas]]) | No; possibly per map later, as a preference |
 
 ## Concurrency
 
