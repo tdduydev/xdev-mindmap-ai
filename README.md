@@ -41,8 +41,8 @@ No third-party dependencies, no secrets, no server.
 ## Getting Started
 
 ```bash
-git clone git@github.com:tdduydev/xdev-mindmap-ai-ios.git
-cd xdev-mindmap-ai-ios
+git clone git@github.com:tdduydev/xdev-mindmap-ai.git
+cd xdev-mindmap-ai
 open MindMapAI.xcodeproj
 ```
 
