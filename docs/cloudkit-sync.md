@@ -99,4 +99,4 @@ With two devices on the same Apple Account and a build from step 4:
 - Whether `EditorSession.open` should stop saving tree repairs too (a topic whose parent has not arrived is moved under the root for good when the map is opened at that moment).
 - Whether the map record's `updatedAt` should come from the server's modification time, so "Recent" ordering agrees across devices.
 - Persistent history is never pruned; CloudKit mirroring needs it, so pruning waits for a measurement on a large store.
-- iCloud key-value store for taste preferences (decided 2026-10-02, after MM-6) is not built; see [settings.md](settings.md).
+- `PreferenceCloudSync` (MM-45) mirrors the default theme and export defaults through iCloud key-value storage only while the app opens its iCloud store. Device-specific choices and map content are excluded; see [settings.md](settings.md).

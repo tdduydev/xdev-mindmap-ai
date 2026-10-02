@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SidebarView: View {
     @Binding var selection: LibrarySection?
+    var environment: AppEnvironment? = nil
     #if os(iOS)
     @State private var isShowingSettings = false
     #endif
@@ -35,7 +36,10 @@ struct SidebarView: View {
             }
         }
         .sheet(isPresented: $isShowingSettings) {
-            SettingsView()
+            SettingsView(environment: environment, showRecentlyDeleted: {
+                selection = .recentlyDeleted
+                isShowingSettings = false
+            })
         }
         .focusedSceneValue(\.showSettingsAction, ShowSettingsAction { isShowingSettings = true })
         #endif
