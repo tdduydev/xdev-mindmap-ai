@@ -193,7 +193,7 @@ Chosen by the product owner on 2026-10-03 (FR-AI-09, FR-AI-11).
 - **The answer says so:** the prompt gets "Scope: only the branch “…”. The tools read only this branch. Begin the answer by saying it covers this branch." The instructions stay fixed; the title is map content and goes in the prompt only. The panel also shows "Branch: <title>" above the answer, so the scope is stated even if the model leaves it out.
 - **Saved with the turn, no schema change:** `ChatTurn.branch`, kept in the existing `citationsData` of `ChatTurnRecord` (SchemaV3 unchanged). A whole-map turn still stores MM-55's plain citation array; a branch turn stores `{ "citations": […], "branch": { "nodeID", "title" } }` (`SavedCitations`). A build that reads only the array keeps the turn and loses that turn's chips.
 - **Menu bar:** no new command. The picker and the suggestions are controls in the panel, like the question field; the scope follows the canvas selection.
-- **Not built:** asking by voice (a separate task). Buttons on an answer came with MM-79 ([Buttons on an answer](#buttons-on-an-answer-mm-79)).
+- **Not built here:** asking by voice came with MM-80 ([Ask by voice](#ask-by-voice-mm-80)). Buttons on an answer came with MM-79 ([Buttons on an answer](#buttons-on-an-answer-mm-79)).
 
 ## Buttons on an answer (MM-79)
 
@@ -204,6 +204,17 @@ Chosen by the product owner on 2026-10-03 (FR-AI-10, FR-EDT-13). Under each answ
 - **Ask Again** (the last question only, once its answer is finished, stopped or failed; disabled while the model is not ready): asks the same question with the same scope (`branch`) in place of that answer. The conversation is rebuilt from the turns before it, so the model does not see the answer it replaces. The old saved turn is deleted at once (`ChatHistoryStore.deleteChatTurn`, no schema change) and the new answer is saved as a new turn when it finishes, so a retry that stops or fails leaves no stale answer in the store. An earlier question has later turns built on it, so it has no Ask Again.
 - **Menu bar:** AI ▸ Copy Answer, Add Answer to Note, Ask Again act on the last answer and are disabled when it does not allow them. No shortcuts: none is approved yet, and ⌘C must stay Copy for the canvas and text.
 - **Not here:** Create Topics from Answer belongs to MM-51 (suggestions from the chat).
+
+## Ask by voice (MM-80)
+
+Chosen by the product owner on 2026-10-03 (FR-AI-27; speech as FR-AI-21; Pro as FR-STO-01). A microphone button in the question field, between the field and Ask.
+
+- **Same speech stack as Add Topics by Voice:** `ChatDictation` (one per window, like `VoiceInput`, since the microphone is not shared) uses the same `VoiceTranscribing` (`AppleSpeechTranscriber`: DictationTranscriber for vi, SpeechTranscriber for en) and reads Settings ▸ Voice Input Language through `VoiceInput.language(in:)` each time it starts. The first time, the system asks for the microphone and speech recognition, as for Add Topics by Voice. A missing speech model waits for Download Speech Model (App Review 4.2.3). Speech stays on the device and is never logged.
+- **Into the draft, never asked on its own [Đề xuất]:** the words go after what was typed (one space), the volatile guess shows as it is heard, and Ask stays the person's step. Stop Listening (the filled mic) keeps the words; the last ones still arrive. Cancel, in the line above the field, or Escape while listening, puts the draft back as it was before listening, unless the person edited the field meanwhile: their edit is kept, and later words follow it. Asking stops listening first, so no late words start the next question. Closing the panel stops listening and keeps the draft.
+- **Pro:** gated by `ProEntitlement.allows(.voiceInput)`. Without Pro the microphone opens the paywall (`PendingProChoice`), and listening starts if Pro is unlocked there. Shown only where the chat can ask (`MapChat.showsEntryPoints`).
+- **States:** "Getting ready…" and "Listening…" with Cancel in one footnote line above the field; download prompt and progress; a failure (permission denied, no microphone, unsupported language) as one line, announced to VoiceOver. The mic button's VoiceOver hint says the words go into the question field.
+- **Menu bar:** AI ▸ Ask by Voice (Stop Asking by Voice while listening) opens the panel and toggles the microphone; disabled where the chat is hidden or a step is under way. No shortcut: none is approved yet.
+- **Tests:** `ChatDictationTests` with `FakeVoiceTranscriber` (draft, appended to typed text, Cancel, edit while listening, paywall, Settings language, denied permission, download). UI test mode uses `UITestVoiceTranscriber`.
 
 ## Testing
 

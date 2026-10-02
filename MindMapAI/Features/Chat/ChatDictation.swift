@@ -3,7 +3,7 @@ import MindMapCapture
 import Observation
 import SwiftUI
 
-/// Ask by voice (MM-80, FR-AI-21): the microphone in the chat's question field.
+/// Ask by voice (MM-80, FR-AI-27): the microphone in the chat's question field.
 ///
 /// What is heard goes into the draft, after what was typed, so the person can
 /// fix it before asking; it never asks on its own [Đề xuất]. Cancel puts the
