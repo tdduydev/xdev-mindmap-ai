@@ -36,12 +36,16 @@ xcodebuild build -quiet \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
 
 # Intel Macs get macOS 26 as their last release, so the shipped Mac app must
-# keep an x86_64 slice (MM-21). lipo fails quietly, so say what is missing.
+# keep an x86_64 slice (MM-21). One arch per lipo call: given two, this lipo
+# takes the second for an input file. lipo fails quietly, so say
+# what is missing.
 app_binary="$derived/Build/Products/Release/MindMap AI.app/Contents/MacOS/MindMap AI"
-if ! lipo "$app_binary" -verify_arch arm64 x86_64; then
-  echo "error: the Release app is not universal; it has: $(lipo -archs "$app_binary")" >&2
-  exit 1
-fi
+for arch in arm64 x86_64; do
+  if ! lipo "$app_binary" -verify_arch "$arch"; then
+    echo "error: the Release app has no $arch slice; it has: $(lipo -archs "$app_binary")" >&2
+    exit 1
+  fi
+done
 
 step "iOS Simulator build"
 xcodebuild build -quiet \
