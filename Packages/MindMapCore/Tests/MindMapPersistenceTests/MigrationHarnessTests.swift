@@ -6,9 +6,9 @@ import SwiftData
 import Testing
 
 /// Opens stores written by shipped schemas with today's migration plan, the
-/// way an app update opens a user's library. A new schema (SchemaV2, MM-19)
-/// adds its stage to `MindMapMigrationPlan` and its own expectations here;
-/// these tests keep opening the V1 store through every stage, unchanged.
+/// way an app update opens a user's library. A new schema adds its stage to
+/// `MindMapMigrationPlan` and its own expectations here; these tests keep
+/// opening the V1 store through every stage, unchanged.
 @Suite("Migration harness")
 struct MigrationHarnessTests {
     @Test func currentPlanOpensTheV1Store() async throws {
@@ -19,6 +19,55 @@ struct MigrationHarnessTests {
 
         #expect(try await repository.fetchMaps() == [V1Fixture.graph.map])
         #expect(try await repository.loadGraph(for: V1Fixture.mapID) == V1Fixture.graph)
+    }
+
+    /// The plan is `[SchemaV1, SchemaV2]`: V1's data comes through with every
+    /// value, every V2 field is empty (so maps draw as before), and there are
+    /// no tags, tag links or boundaries yet.
+    @Test func v1StoreOpensAsV2WithEmptyNewFields() async throws {
+        let store = try FixtureStore(copying: "V1")
+        defer { store.remove() }
+        let container = try PersistenceController.makeContainer(at: .file(store.url))
+        #expect(container.schema.version == SchemaV2.versionIdentifier)
+
+        let context = ModelContext(container)
+        let maps = try context.fetch(FetchDescriptor<MapRecord>())
+        #expect(maps.map(\.mapID) == [V1Fixture.mapID.rawValue])
+        #expect(maps.allSatisfy { $0.deletedAt == nil })
+        let nodes = try context.fetch(FetchDescriptor<NodeRecord>())
+        #expect(nodes.count == 3)
+        for node in nodes {
+            #expect(node.colorToken == nil && node.symbol == nil && node.taskStateRaw == nil)
+            #expect(node.priority == nil && node.startDate == nil && node.dueDate == nil)
+        }
+        let edges = try context.fetch(FetchDescriptor<EdgeRecord>())
+        #expect(edges.map(\.label) == ["cites"])
+        #expect(edges.allSatisfy { $0.lineStyleRaw == nil && $0.arrowHeadsRaw == nil && $0.colorToken == nil })
+        #expect(try context.fetchCount(FetchDescriptor<TagRecord>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<NodeTagRecord>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<GroupRecord>()) == 0)
+
+        let graph = try #require(try await SwiftDataMapRepository(modelContainer: container).loadGraph(for: V1Fixture.mapID))
+        #expect(graph == V1Fixture.graph)
+        #expect(try GraphRepair.repair(graph, now: .now).changes.isEmpty)
+    }
+
+    /// A migrated V1 map takes the new records and keeps them.
+    @Test func migratedStoreKeepsOrganization() async throws {
+        let store = try FixtureStore(copying: "V1")
+        defer { store.remove() }
+        let repository = try PersistenceController.makeRepository(at: .file(store.url))
+        var engine = try GraphEngine(state: try #require(try await repository.loadGraph(for: V1Fixture.mapID)))
+
+        let changes = try engine.execute(BatchCommand([
+            TagNodesCommand(nodeIDs: [V1Fixture.childID], add: [.named("Việc")]),
+            SetTaskCommand(nodeIDs: [V1Fixture.siblingID], state: .set(.open), due: .set(CalendarDay(isoString: "2026-12-31"))),
+            AddGroupCommand(from: V1Fixture.childID, to: V1Fixture.siblingID, title: "Both"),
+        ]))
+        try await repository.save(changes, map: engine.state.map)
+
+        let reopened = try PersistenceController.makeRepository(at: .file(store.url))
+        #expect(try await reopened.loadGraph(for: V1Fixture.mapID) == engine.state)
     }
 
     /// Opening is not enough: the migrated store must take edits and keep them.
