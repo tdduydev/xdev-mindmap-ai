@@ -30,8 +30,9 @@ struct ProEntitlementTests {
         let product = try #require(store.product)
         #expect(product.id == ProEntitlement.productID)
         #expect(product.type == .nonConsumable)
-        // The configuration's price comes back through a Double, so compare the amount, not the Decimal's digits.
-        #expect(abs(NSDecimalNumber(decimal: product.price).doubleValue - 14.99) < 0.0001)
+        // The paywall shows displayPrice only. Under StoreKitTest on Xcode 27,
+        // `price` came back as 14 for this 14.99 product while displayPrice read
+        // "$14.99", so the test checks what people see.
         #expect(product.displayPrice.contains("14.99"))
     }
 

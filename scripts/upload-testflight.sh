@@ -7,7 +7,8 @@
 # with an Apple Distribution and a Mac Installer Distribution certificate kept in a
 # separate keychain (~/Library/Keychains/mindmap-build.keychain-db, password in
 # ~/.appstoreconnect/signing/keychain.pass) and the "MindMap AI Mac App Store"
-# provisioning profile. docs/release.md explains how they were made.
+# provisioning profiles of the app and of the Share Extension. docs/release.md
+# explains how they were made.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -61,6 +62,7 @@ cat > "$out/ExportOptions.plist" <<PLIST
   <key>provisioningProfiles</key>
   <dict>
     <key>asia.xdev.mindmapai</key><string>MindMap AI Mac App Store</string>
+    <key>asia.xdev.mindmapai.share</key><string>MindMap AI Share Mac App Store</string>
   </dict>
   <key>uploadSymbols</key><true/>
   <key>manageAppVersionAndBuildNumber</key><false/>
