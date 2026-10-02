@@ -82,8 +82,17 @@ struct LibraryPage {
     }
 
     func open(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
-        map(titled: title).waitToExist(file: file, line: line).tap()
-        return EditorPage(app: app).waitUntilOpen(file: file, line: line)
+        let row = map(titled: title).waitToExist(file: file, line: line)
+        let editor = EditorPage(app: app)
+        row.tap()
+        #if os(macOS)
+        // The first click on a Mac sometimes only brings the window forward,
+        // when a system prompt or another app held the focus at launch.
+        if !editor.presentationPicker.waitForExistence(timeout: MindMapApp.timeout / 3) {
+            row.tap()
+        }
+        #endif
+        return editor.waitUntilOpen(file: file, line: line)
     }
 
     /// Types into the search field; the list then shows the matching maps.
