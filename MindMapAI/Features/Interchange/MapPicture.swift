@@ -145,6 +145,15 @@ struct MapPictureView: View {
                 )
                     .position(x: topic.frame.midX - frame.minX, y: topic.frame.midY - frame.minY)
             }
+            // Callouts are part of the picture (FR-ORG-30); Markdown and text leave them out.
+            ForEach(picture.scene.topics.filter { $0.calloutFrame != nil }) { topic in
+                if let bubble = topic.calloutFrame, let callout = topic.callout {
+                    CalloutBubble(bubble: bubble, card: topic.frame) {
+                        CalloutText(text: callout, spec: picture.specs.callout)
+                    }
+                    .position(x: bubble.midX - frame.minX, y: bubble.midY + CanvasMetrics.calloutTailHeight / 2 - frame.minY)
+                }
+            }
         }
         .frame(width: frame.width, height: frame.height)
     }

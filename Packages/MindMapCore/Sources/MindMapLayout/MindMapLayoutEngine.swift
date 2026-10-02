@@ -15,7 +15,9 @@ public protocol MindMapLayoutEngine: Sendable {
     ///   the table gets `options.defaultNodeSize`.
     /// - Parameter callouts: The measured bubble of each topic with a callout
     ///   (FR-ORG-30). The bubble sits above the card and its room is reserved,
-    ///   so it never covers another topic.
+    ///   so it never covers another topic. A topic whose bubble changed for a
+    ///   reason other than a command (a bubble opened for typing) must be in
+    ///   `changed` on `update`, as for sizes.
     func layout(
         _ graph: GraphState,
         sizes: [NodeID: CGSize],

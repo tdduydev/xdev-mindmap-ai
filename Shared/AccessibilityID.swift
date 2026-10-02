@@ -98,6 +98,9 @@ nonisolated enum AccessibilityID {
         static let zoomToFit = "canvas.zoomToFit"
         /// The zoom level; its value is the scale, such as "100%".
         static let actualSize = "canvas.actualSize"
+        /// A callout bubble above a topic (FR-ORG-30), and its field while open.
+        static let callout = "canvas.callout"
+        static let calloutField = "canvas.calloutField"
     }
 
     /// A topic's URL link (FR-ORG-26).

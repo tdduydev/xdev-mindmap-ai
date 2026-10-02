@@ -165,6 +165,16 @@ struct MapCommands: Commands {
                 if let editor, let id = editor.selection { Task { await editor.removeImage(from: id) } }
             }
             .disabled(editor?.selectedImage == nil)
+            // ⌥⇧⌘↩ beside the other Add keys (MM-58); free in the standard menus.
+            Button(editor?.selectionHasCallout == true ? "Edit Callout" : "Add Callout") {
+                editor?.beginEditingSelectionCallout()
+            }
+            .keyboardShortcut(.return, modifiers: [.command, .option, .shift])
+            .disabled(editor?.canEditSelectionCallout != true)
+            Button("Remove Callout") {
+                if let editor, let id = editor.selection { editor.removeCallout(from: id) }
+            }
+            .disabled(editor?.selectionHasCallout != true)
             // ⇧⌘T and ⌥⇧⌘T: free in the menus; this app has no Fonts panel (⌘T).
             Button("Add Tag…") { editor?.beginAddingTag() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])

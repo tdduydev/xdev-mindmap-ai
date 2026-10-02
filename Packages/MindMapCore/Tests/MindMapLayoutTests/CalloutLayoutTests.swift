@@ -112,12 +112,17 @@ struct CalloutLayoutTests {
         #expect(idea.calloutFrame?.maxY == idea.frame.minY - options.calloutSpacing)
     }
 
-    /// A size passed for a topic whose callout is gone is ignored.
-    @Test func sizeWithoutCalloutTextIsIgnored() {
+    /// The caller picks the bubbles: the canvas gives one to a topic whose
+    /// callout is still being typed, before the node has any text. An empty
+    /// size draws none.
+    @Test func callerDecidesWhichTopicsHaveABubble() {
         let fixture = Self.fixture()
-        let layout = engine.layout(fixture.state, sizes: [:], callouts: [fixture["A"]: Self.bubble], options: options)
-        #expect(layout.nodes[fixture["A"]]?.calloutFrame == nil)
-        #expect(layout == engine.layout(fixture.state, sizes: [:], callouts: [:], options: options))
+        let layout = engine.layout(
+            fixture.state, sizes: [:], callouts: [fixture["A"]: Self.bubble, fixture["C"]: .zero], options: options
+        )
+        #expect(layout.nodes[fixture["A"]]?.calloutFrame?.size == Self.bubble)
+        #expect(layout.nodes[fixture["B"]]?.calloutFrame == nil)
+        #expect(layout.nodes[fixture["C"]]?.calloutFrame == nil)
     }
 
     @Test(arguments: BranchSides.allCases, [UInt64(3), 4, 5])

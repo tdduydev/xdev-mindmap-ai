@@ -143,10 +143,10 @@ private struct LayoutPass {
         sizes[id] ?? options.defaultNodeSize
     }
 
-    /// The bubble of a topic whose node has a callout; a size left over for a
-    /// topic whose callout was removed is ignored.
+    /// The caller decides which topics have a bubble: the canvas also gives
+    /// one to a topic whose callout is still being typed.
     private func calloutSize(of id: NodeID) -> CGSize? {
-        guard graph.node(id)?.callout != nil, let size = callouts[id], size.width > 0, size.height > 0 else { return nil }
+        guard let size = callouts[id], size.width > 0, size.height > 0 else { return nil }
         return size
     }
 
