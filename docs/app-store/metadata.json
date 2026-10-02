@@ -1,0 +1,217 @@
+{
+  "appInfo": {
+    "en-US": {
+      "name": "MindMap AI by xDev",
+      "subtitle": "Brainstorm & Organize Ideas"
+    },
+    "vi": {
+      "name": "MindMap AI by xDev",
+      "subtitle": "Sơ đồ tư duy, sắp xếp ý tưởng"
+    }
+  },
+  "version": {
+    "MAC_OS": {
+      "en-US": {
+        "description": "MindMap AI by xDev turns loose thoughts into a clear map you can edit. Type a topic, keep typing, and the map lays itself out.\n\nMAP YOUR THINKING\n• Automatic layout on an endless canvas, with zoom, collapse and expand\n• Return adds a sibling, Tab adds a child; drag to reorder or move a branch\n• Canvas and outline views of the same map\n• Notes, web links and tags on any topic\n• Search every map by title, topic or tag, with or without Vietnamese accents\n• Favorites, Recent, and Recently Deleted for 30 days\n• Undo and redo every change\n\nAI ON YOUR MAC, WITH APPLE INTELLIGENCE\n• Generate a map from a short description\n• Suggest Subtopics, Brainstorm Ideas, Suggest Tags and Summarize Branch\n• Rewrite a topic shorter, clearer, simpler or more formal, or in English or Vietnamese\n• Ask About This Map: answers point to the topics they used\n• AI results are labeled suggestions you can edit, accept or discard, and undo in one step\n\nIMPORT, EXPORT AND SHARE\n• Markdown and plain text import and export\n• PNG and PDF export, plus complete MindMap AI Backup files\n• Send text and links from other apps with the Share menu\n• Shortcuts actions, and Spotlight finds your maps by title\n\nMADE FOR THE MAC\n• A full menu bar with keyboard shortcuts\n• Each map in its own window\n• AI Apps: let AI apps on your Mac read your maps over the Model Context Protocol (MCP). Off by default, read-only, limited to this Mac, with a key for each app\n\nPRIVATE BY DESIGN\nNo account, no xDev server, no ads, and no data collected. Your maps are stored on your Mac, and AI runs on your Mac with Apple Intelligence. With AI Apps on, the apps you connect can read your maps and may send that text to their own AI provider.\n\nAI features require a Mac with Apple silicon and Apple Intelligence turned on, in a supported language. On other Macs they are hidden and everything else works.\n\nMINDMAP AI PRO\nMind mapping is free. Pro is a one-time purchase, not a subscription, and adds:\n• High-resolution PNG and multi-page vector PDF export\n• The xDev Blue and Graphite themes\n• Voice input in English or Vietnamese, recognized on your device\n• Advanced AI: generate a map from a long description, summarize a whole map, find missing topics\nPro works with Family Sharing, and one purchase also unlocks it on iPad and iPhone.",
+        "keywords": "mind,map,mapping,outline,notes,visual,thinking,concept,diagram,private,offline,markdown,mcp,study",
+        "promotionalText": "Type a topic and the map lays itself out. Brainstorm, rewrite and ask about your map with Apple Intelligence, right on your Mac. No account, no ads."
+      },
+      "vi": {
+        "description": "MindMap AI by xDev biến những suy nghĩ rời rạc thành một sơ đồ rõ ràng, sửa được. Gõ một chủ đề, gõ tiếp, sơ đồ tự sắp xếp.\n\nSƠ ĐỒ CHO MỌI Ý TƯỞNG\n• Bố cục tự động trên khung vẽ rộng, phóng to, thu nhỏ, thu gọn và mở rộng nhánh\n• Return thêm chủ đề cùng cấp, Tab thêm chủ đề con; kéo để sắp lại hoặc chuyển cả nhánh\n• Xem cùng một sơ đồ dạng khung vẽ hoặc dàn ý\n• Ghi chú, liên kết web và thẻ cho từng chủ đề\n• Tìm mọi sơ đồ theo tên, chủ đề hoặc thẻ, gõ có dấu hay không dấu đều được\n• Yêu thích, Gần đây, và Đã xoá gần đây giữ sơ đồ 30 ngày\n• Hoàn tác và làm lại mọi thay đổi\n\nAI NGAY TRÊN MÁY MAC, BẰNG APPLE INTELLIGENCE\n• Tạo sơ đồ từ một mô tả ngắn\n• Đề xuất chủ đề con, động não ý tưởng, gợi ý thẻ, tóm tắt nhánh\n• Viết lại chủ đề ngắn hơn, rõ hơn, đơn giản hơn, trang trọng hơn, hoặc sang tiếng Việt, tiếng Anh\n• Hỏi về sơ đồ này: câu trả lời chỉ ra những chủ đề đã dùng\n• Kết quả AI là đề xuất có nhãn AI: sửa, chấp nhận hoặc bỏ đi, và hoàn tác trong một bước\n\nNHẬP, XUẤT VÀ CHIA SẺ\n• Nhập và xuất Markdown, văn bản thuần\n• Xuất PNG, PDF và Bản sao lưu MindMap AI đầy đủ\n• Gửi văn bản và liên kết từ ứng dụng khác qua menu Chia sẻ\n• Tác vụ cho ứng dụng Phím tắt, và Spotlight tìm sơ đồ theo tên\n\nDÀNH RIÊNG CHO MAC\n• Thanh menu đầy đủ, kèm phím tắt bàn phím\n• Mỗi sơ đồ một cửa sổ riêng\n• Ứng dụng AI: cho các ứng dụng AI trên máy Mac đọc sơ đồ qua Model Context Protocol (MCP). Mặc định tắt, chỉ đọc, chỉ trong máy Mac này, mỗi ứng dụng một mã riêng\n\nRIÊNG TƯ NGAY TỪ THIẾT KẾ\nKhông tài khoản, không máy chủ xDev, không quảng cáo, không thu thập dữ liệu. Sơ đồ được lưu trên máy Mac, AI chạy ngay trên máy bằng Apple Intelligence. Khi bật Ứng dụng AI, các ứng dụng bạn kết nối có thể đọc sơ đồ và gửi nội dung đó tới nhà cung cấp AI của họ.\n\nTính năng AI cần máy Mac dùng chip Apple, đã bật Apple Intelligence với ngôn ngữ được hỗ trợ. Trên máy Mac khác, AI được ẩn, mọi thứ khác vẫn dùng bình thường.\n\nMINDMAP AI PRO\nVẽ sơ đồ tư duy là miễn phí. Pro mua một lần, không phải gói thuê bao, và thêm:\n• Xuất PNG độ phân giải cao và PDF vector nhiều trang\n• Bộ màu xDev Blue và Graphite\n• Nhập bằng giọng nói tiếng Việt hoặc tiếng Anh, nhận dạng ngay trên thiết bị\n• AI nâng cao: tạo sơ đồ từ mô tả dài, tóm tắt cả sơ đồ, tìm chủ đề còn thiếu\nPro dùng được với Chia sẻ trong gia đình, và một lần mua cũng mở khoá Pro trên iPad và iPhone.",
+        "keywords": "động não,ghi chú,học tập,kế hoạch,tóm tắt,mind,map,brainstorm,outline,notes,mcp",
+        "promotionalText": "Gõ một chủ đề, sơ đồ tự sắp xếp. Động não, viết lại và hỏi về sơ đồ bằng Apple Intelligence ngay trên máy Mac. Không cần tài khoản, không quảng cáo."
+      }
+    },
+    "IOS": {
+      "en-US": {
+        "description": "MindMap AI by xDev turns loose thoughts into a clear map you can edit, on iPhone and iPad. Add a topic, then the next, and the map lays itself out.\n\nMAP YOUR THINKING\n• Automatic layout on an endless canvas, with zoom, collapse and expand\n• Pinch to zoom, and tap + on a selected topic to add a child or a sibling\n• Canvas and outline views of the same map\n• Notes, web links and tags on any topic\n• Search every map by title, topic or tag, with or without Vietnamese accents\n• Favorites, Recent, and Recently Deleted for 30 days\n• Undo and redo every change\n\nAI ON YOUR DEVICE, WITH APPLE INTELLIGENCE\n• Generate a map from a short description\n• Suggest Subtopics, Brainstorm Ideas, Suggest Tags and Summarize Branch\n• Rewrite a topic shorter, clearer, simpler or more formal, or in English or Vietnamese\n• Ask About This Map: answers point to the topics they used\n• AI results are labeled suggestions you can edit, accept or discard, and undo in one step\n\nIMPORT, EXPORT AND SHARE\n• Markdown and plain text import and export\n• PNG and PDF export, plus complete MindMap AI Backup files\n• Send text and links from other apps to a map with the share sheet\n• Shortcuts actions, and Spotlight finds your maps by title\n\nPRIVATE BY DESIGN\nNo account, no xDev server, no ads, and no data collected. Your maps are stored on your device, and AI runs on your device with Apple Intelligence.\n\nAI features require an iPhone or iPad that supports Apple Intelligence, with Apple Intelligence turned on, in a supported language. On other devices they are hidden and everything else works.\n\nMINDMAP AI PRO\nMind mapping is free. Pro is a one-time purchase, not a subscription, and adds:\n• High-resolution PNG and multi-page vector PDF export\n• The xDev Blue and Graphite themes\n• Voice input in English or Vietnamese, recognized on your device\n• Advanced AI: generate a map from a long description, summarize a whole map, find missing topics\nPro works with Family Sharing, and one purchase also unlocks it on the Mac.",
+        "keywords": "mind,map,mapping,outline,notes,visual,thinking,concept,diagram,private,offline,markdown,study,plan",
+        "promotionalText": "Capture ideas on iPhone and iPad and watch them become a map. Brainstorm and ask about your map with Apple Intelligence, on your device. No account, no ads."
+      },
+      "vi": {
+        "description": "MindMap AI by xDev biến những suy nghĩ rời rạc thành một sơ đồ rõ ràng, sửa được, ngay trên iPhone và iPad. Thêm một chủ đề, rồi chủ đề tiếp theo, sơ đồ tự sắp xếp.\n\nSƠ ĐỒ CHO MỌI Ý TƯỞNG\n• Bố cục tự động trên khung vẽ rộng, phóng to, thu nhỏ, thu gọn và mở rộng nhánh\n• Chụm hai ngón để phóng to, thu nhỏ; chạm nút + trên chủ đề đang chọn để thêm chủ đề con hoặc cùng cấp\n• Xem cùng một sơ đồ dạng khung vẽ hoặc dàn ý\n• Ghi chú, liên kết web và thẻ cho từng chủ đề\n• Tìm mọi sơ đồ theo tên, chủ đề hoặc thẻ, gõ có dấu hay không dấu đều được\n• Yêu thích, Gần đây, và Đã xoá gần đây giữ sơ đồ 30 ngày\n• Hoàn tác và làm lại mọi thay đổi\n\nAI NGAY TRÊN THIẾT BỊ, BẰNG APPLE INTELLIGENCE\n• Tạo sơ đồ từ một mô tả ngắn\n• Đề xuất chủ đề con, động não ý tưởng, gợi ý thẻ, tóm tắt nhánh\n• Viết lại chủ đề ngắn hơn, rõ hơn, đơn giản hơn, trang trọng hơn, hoặc sang tiếng Việt, tiếng Anh\n• Hỏi về sơ đồ này: câu trả lời chỉ ra những chủ đề đã dùng\n• Kết quả AI là đề xuất có nhãn AI: sửa, chấp nhận hoặc bỏ đi, và hoàn tác trong một bước\n\nNHẬP, XUẤT VÀ CHIA SẺ\n• Nhập và xuất Markdown, văn bản thuần\n• Xuất PNG, PDF và Bản sao lưu MindMap AI đầy đủ\n• Gửi văn bản và liên kết từ ứng dụng khác vào sơ đồ qua bảng chia sẻ\n• Tác vụ cho ứng dụng Phím tắt, và Spotlight tìm sơ đồ theo tên\n\nRIÊNG TƯ NGAY TỪ THIẾT KẾ\nKhông tài khoản, không máy chủ xDev, không quảng cáo, không thu thập dữ liệu. Sơ đồ được lưu trên thiết bị, AI chạy ngay trên thiết bị bằng Apple Intelligence.\n\nTính năng AI cần iPhone hoặc iPad hỗ trợ Apple Intelligence, đã bật Apple Intelligence với ngôn ngữ được hỗ trợ. Trên thiết bị khác, AI được ẩn, mọi thứ khác vẫn dùng bình thường.\n\nMINDMAP AI PRO\nVẽ sơ đồ tư duy là miễn phí. Pro mua một lần, không phải gói thuê bao, và thêm:\n• Xuất PNG độ phân giải cao và PDF vector nhiều trang\n• Bộ màu xDev Blue và Graphite\n• Nhập bằng giọng nói tiếng Việt hoặc tiếng Anh, nhận dạng ngay trên thiết bị\n• AI nâng cao: tạo sơ đồ từ mô tả dài, tóm tắt cả sơ đồ, tìm chủ đề còn thiếu\nPro dùng được với Chia sẻ trong gia đình, và một lần mua cũng mở khoá Pro trên máy Mac.",
+        "keywords": "động não,ghi chú,học tập,kế hoạch,tóm tắt,mind,map,brainstorm,outline,notes,offline",
+        "promotionalText": "Ghi lại ý tưởng trên iPhone, iPad và xem chúng thành sơ đồ. Động não và hỏi về sơ đồ bằng Apple Intelligence ngay trên thiết bị. Không cần tài khoản, không quảng cáo."
+      }
+    }
+  },
+  "reviewNotes": "No account, login or demo account is needed: the app has no server. It collects no data (no analytics, no ads, no tracking); maps are stored on the device.\n\nAI: every AI feature uses Apple's Foundation Models framework (Apple Intelligence) on the device. Nothing is sent to xDev or to any cloud AI service. AI needs a device that supports Apple Intelligence (on the Mac: Apple silicon), with Apple Intelligence turned on and set to a supported language (the app supports English and Vietnamese). On a device that can never run it (for example an Intel Mac), the AI menu, the AI toolbar buttons and the AI tools on the paywall are hidden. When Apple Intelligence is off or still downloading, AI items stay visible but disabled, with one line that says why.\n\nCore mind mapping works without AI and can be reviewed on any device: create a map (New Mind Map: Cmd-N on the Mac, the + button in the library toolbar on iPad and iPhone), add topics with Return (sibling) and Tab (child) or the + buttons on a selected topic, switch between Canvas and Outline, add notes, links and tags, use Find, Undo and Redo, then Import and Export (Markdown, plain text, PNG, PDF, MindMap AI Backup) from the File menu on the Mac, or Import... in the library toolbar and Export... in the editor toolbar on iPad and iPhone.\n\nTo try AI on an eligible device: open a map, select a topic, then AI > Suggest Subtopics (Ctrl-Cmd-E on the Mac; the sparkles AI button in the editor toolbar on iPad and iPhone). Suggestions are labelled AI and change nothing until Accept; Accept is one undo step. Ask About This Map (AI menu, Ctrl-Cmd-A, or its editor toolbar button) answers questions about the open map and only reads it.\n\nIn-app purchase: one non-consumable, MindMap AI Pro (asia.xdev.mindmapai.pro), StoreKit 2, Family Sharing on. To reach the paywall: on the Mac, MindMap AI > Settings... (Cmd-,) > Pro > See What's in Pro...; on iPad and iPhone, the Settings (gear) button in the library sidebar > Pro > See What's in Pro.... Choosing a Pro option also opens it, for example Settings > General > Theme for New Maps > xDev Blue (any theme other than Standard), or Settings > Export > PNG Resolution > High (2x). Restore Purchases is in Settings > Pro and on the paywall. Pro covers high-resolution PNG and multi-page PDF export, extra themes, voice input and three advanced AI actions; everything else is free.\n\nVoice input (Pro): Add Topics by Voice (Topic menu on the Mac, microphone button in the editor toolbar) asks for microphone and speech recognition access the first time; recognition runs on the device and audio is not stored or sent.\n\nAI Apps (Mac only): lets AI apps the user already has (for example Claude Code or ChatGPT desktop) read their maps over the Model Context Protocol. It is off by default: Settings (Cmd-,) > AI Apps > \"Allow AI Apps to Read Maps\". While on, the app listens on http://127.0.0.1:51947/mcp only (loopback; the port can be changed there) and only while the app runs, which is why it has the network.server entitlement. Every request needs a token the user creates with Add App... (one per app, kept in the Keychain); the app never writes another app's files. Access is read-only (list, read and search maps). To test without an AI app: turn the switch on, choose Add App... > Other, copy the token, then run in Terminal:\ncurl -s http://127.0.0.1:51947/mcp -H \"Authorization: Bearer TOKEN\" -H \"Content-Type: application/json\" -H \"MCP-Protocol-Version: 2025-11-25\" -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"list_maps\",\"arguments\":{}}}'\nRevoke in the same pane stops the token at once. Nothing is sent to xDev.\n\nContact: duy@xdev.asia",
+  "iapPro": {
+    "en-US": {
+      "name": "MindMap AI Pro",
+      "description": "Advanced export, themes, voice and AI tools"
+    },
+    "vi": {
+      "name": "MindMap AI Pro",
+      "description": "Xuất nâng cao, bộ màu, giọng nói, công cụ AI"
+    }
+  },
+  "checks": {
+    "appInfo": {
+      "en-US": {
+        "name": {
+          "chars": 18,
+          "bytes": 18,
+          "limit": "30 chars",
+          "ok": true
+        },
+        "subtitle": {
+          "chars": 27,
+          "bytes": 27,
+          "limit": "30 chars",
+          "ok": true
+        }
+      },
+      "vi": {
+        "name": {
+          "chars": 18,
+          "bytes": 18,
+          "limit": "30 chars",
+          "ok": true
+        },
+        "subtitle": {
+          "chars": 29,
+          "bytes": 42,
+          "limit": "30 chars",
+          "ok": true
+        }
+      }
+    },
+    "version": {
+      "MAC_OS": {
+        "en-US": {
+          "description": {
+            "chars": 2295,
+            "bytes": 2341,
+            "limit": "4000 chars",
+            "ok": true
+          },
+          "keywords": {
+            "chars": 97,
+            "bytes": 97,
+            "limit": "100 bytes",
+            "ok": true,
+            "terms": 14,
+            "spaceAfterComma": false,
+            "overlapWithNameOrSubtitle": []
+          },
+          "promotionalText": {
+            "chars": 148,
+            "bytes": 148,
+            "limit": "170 chars",
+            "ok": true
+          }
+        },
+        "vi": {
+          "description": {
+            "chars": 2343,
+            "bytes": 3104,
+            "limit": "4000 chars",
+            "ok": true
+          },
+          "keywords": {
+            "chars": 79,
+            "bytes": 95,
+            "limit": "100 bytes",
+            "ok": true,
+            "terms": 11,
+            "spaceAfterComma": false,
+            "overlapWithNameOrSubtitle": []
+          },
+          "promotionalText": {
+            "chars": 148,
+            "bytes": 197,
+            "limit": "170 chars",
+            "ok": true
+          }
+        }
+      },
+      "IOS": {
+        "en-US": {
+          "description": {
+            "chars": 2001,
+            "bytes": 2041,
+            "limit": "4000 chars",
+            "ok": true
+          },
+          "keywords": {
+            "chars": 98,
+            "bytes": 98,
+            "limit": "100 bytes",
+            "ok": true,
+            "terms": 14,
+            "spaceAfterComma": false,
+            "overlapWithNameOrSubtitle": []
+          },
+          "promotionalText": {
+            "chars": 156,
+            "bytes": 156,
+            "limit": "170 chars",
+            "ok": true
+          }
+        },
+        "vi": {
+          "description": {
+            "chars": 2064,
+            "bytes": 2741,
+            "limit": "4000 chars",
+            "ok": true
+          },
+          "keywords": {
+            "chars": 83,
+            "bytes": 99,
+            "limit": "100 bytes",
+            "ok": true,
+            "terms": 11,
+            "spaceAfterComma": false,
+            "overlapWithNameOrSubtitle": []
+          },
+          "promotionalText": {
+            "chars": 166,
+            "bytes": 210,
+            "limit": "170 chars",
+            "ok": true
+          }
+        }
+      }
+    },
+    "reviewNotes": {
+      "chars": 3674,
+      "bytes": 3674,
+      "limit": "4000 bytes",
+      "ok": true
+    },
+    "iapPro": {
+      "en-US": {
+        "name": {
+          "chars": 14,
+          "bytes": 14,
+          "limit": "30 chars",
+          "ok": true
+        },
+        "description": {
+          "chars": 43,
+          "bytes": 43,
+          "limit": "45 chars",
+          "ok": true
+        }
+      },
+      "vi": {
+        "name": {
+          "chars": 14,
+          "bytes": 14,
+          "limit": "30 chars",
+          "ok": true
+        },
+        "description": {
+          "chars": 44,
+          "bytes": 56,
+          "limit": "45 chars",
+          "ok": true
+        }
+      }
+    },
+    "measuredWith": "python3: len(s) for chars, len(s.encode('utf-8')) for bytes; all strings NFC",
+    "problems": []
+  }
+}

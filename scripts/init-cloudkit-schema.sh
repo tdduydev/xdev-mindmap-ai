@@ -67,5 +67,7 @@ fi
 # Without an iCloud account the app keeps a local store and never tries, so
 # nothing is logged. (macOS 27 no longer has the MobileMeAccounts defaults an
 # up-front check could read.)
+# CloudKit can time out ("the requests timed out (a 30s wait failed)") on a busy
+# Mac or network; running the script again has been enough.
 echo "${result:-No result logged within 5 minutes. Is this Mac signed in to iCloud, and is iCloud on for MindMap AI in Settings?}" >&2
 exit 1

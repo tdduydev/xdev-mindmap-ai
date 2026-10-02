@@ -29,7 +29,7 @@ Ties (two devices giving siblings the same key) sort by `createdAt`, then ID, th
 
 ## Stored records (SwiftData)
 
-One record per map, node and edge: `MapRecord`, `NodeRecord`, `EdgeRecord`; since V2 also `TagRecord`, `NodeTagRecord` and `GroupRecord` (see *Schema V2*). A map is never one JSON blob, so sync, conflicts, search and history work per record.
+One record per map, node and edge: `MapRecord`, `NodeRecord`, `EdgeRecord`; since V2 also `TagRecord`, `NodeTagRecord` and `GroupRecord` (see *Schema V2*); since V3 `ChatTurnRecord` (see *Schema V3*). A map is never one JSON blob, so sync, conflicts, search and history work per record.
 
 Rules that keep the schema CloudKit-ready:
 
@@ -54,7 +54,7 @@ records ─▶ GraphState(map:nodes:edges:tags:nodeTags:groups:)
 
 ## Migrations
 
-`SchemaV1` and `SchemaV2` are `VersionedSchema`s; `MindMapMigrationPlan` (`MigrationPlan.swift`) lists every shipped schema, and `CurrentSchema` with the `…Record` typealiases there name the schema the app opens. A schema change adds `SchemaV2`, a migration stage and a test that opens a V1 store with the new plan. A shipped schema is never edited in place.
+`SchemaV1`, `SchemaV2` and `SchemaV3` are `VersionedSchema`s; `MindMapMigrationPlan` (`MigrationPlan.swift`) lists every schema, and `CurrentSchema` (V3) with the `…Record` typealiases there name the schema the app opens. A schema change adds a new `SchemaVn` (every model copied, since a versioned schema lists its own types), a migration stage and a test that opens the older fixtures with the new plan. A shipped schema is never edited in place: V1 shipped first, V2 from builds 202610030024 (macOS) and 202610030030 (iOS) ([[release]], *Uploads*).
 
 ### Migration harness
 
@@ -220,6 +220,38 @@ Links and callouts need no repair: they are fields of the node. Inside commands,
 
 V1 → (V2 with these fields, or V3): every V1 node has nil link, position and callout, every group nil `summaryNodeID`, no image records. A save-and-reopen test keeps a link, a floating topic, an image with its bytes, a summary and a callout. If V3 is made, the `V2.store` fixture gains no new fields (it is V2 as shipped) and the V3 test opens it.
 
+## Schema V3 (MM-55)
+
+V2 shipped to TestFlight before the chat was saved, so the chat is a new schema with one lightweight V2 → V3 stage, not a record added to V2 (`git merge-base --is-ancestor 9766bc0 a2b8ef3` is true: the uploads of 2026-10-03 contain `SchemaV2.swift`). V3 is V2 with one new record and nothing else changed.
+
+### New record: `ChatTurnRecord` (`ChatTurn`)
+
+| Property | Type | Meaning |
+| --- | --- | --- |
+| `turnID` | `UUID` | `ChatTurn.id` |
+| `mapID` | `UUID` | The map the chat belongs to, by UUID like every record |
+| `question` | `String` | As asked |
+| `answer` | `String` | As the model wrote it, handles in brackets (`[T3]`) included, so it goes back to the model unchanged |
+| `citationsData` | `Data?` | `[ChatCitation]` as JSON; nil when the answer cites nothing. Unreadable JSON loses the chips, not the turn |
+| `createdAt` | `Date` | When the answer finished; orders the conversation (then `turnID`) |
+
+- **One record per turn, not one per conversation:** two devices that ask at the same time each add a record, and no record grows with the conversation. *[Inference]* A conversation blob would be one CloudKit record rewritten on every answer, and the last writer would drop the other device's turns.
+- **Only finished turns** are saved; a stopped or failed answer stays in the panel until the map closes.
+- **Limit:** `ChatHistory.maximumTurns` = 100 turns (200 messages counting questions and answers) per map [Đề xuất]. `appendChatTurn` deletes the oldest beyond it in the same commit. What the model sees is smaller still: `AppleChatProvider` keeps only the latest turns that fit `ChatBudget` ([[chat]], *Budget*).
+- **Not an edit:** saving or clearing the chat does not move `updatedAt`, publish `.saved`, or add an undo step.
+- **Deleted with the map:** `deleteMap`, Delete Permanently and the 30-day purge delete the turns; Recently Deleted keeps them, so Restore brings the chat back.
+- **Sync:** the record follows the CloudKit rules above, so it mirrors with the map's records when iCloud is on. A duplicate from sync shows once (`chatTurns` folds by `turnID`).
+
+| `ChatHistoryStore` (refined by `MapRepository`) | Does |
+| --- | --- |
+| `chatTurns(for:)` | The map's turns, oldest first, at most the limit |
+| `appendChatTurn(_:to:at:)` | Inserts or updates by `turnID`, trims, commits |
+| `clearChat(for:)` | Clear Chat: deletes the map's turns |
+
+### Migration test
+
+`V2MigrationTests` opens `Fixtures/V2.store`, written by `V2Fixture.write` with `SchemaV2` types and raw values only (run `MINDMAP_WRITE_V2_FIXTURE=<path> swift test --filter writeV2Fixture` only if the fixture is lost). It holds a favorite map with the Graphite theme, a topic with every V2 node field (colour, symbol, task, priority, dates, link, callout), a floating topic, a styled relationship, a map tag and a shared tag with a link, a boundary and an image with its bytes. The test expects every value after the V2 → V3 stage, no chat turns, a graph `GraphRepair` leaves alone, and that the migrated store takes a chat turn and an edit and keeps both. `MigrationHarnessTests` still opens `V1.store`, now through both stages.
+
 ## Recently Deleted (MM-19)
 
 Deleting a map sets `MapRecord.deletedAt` and keeps every record (FR-LIB-11, DR-07). `deletedAt` is library data like `isFavorite`: `save(_:map:)` never writes it, so an editor still open on the map in another window keeps saving without bringing the map back.
@@ -229,7 +261,7 @@ Deleting a map sets `MapRecord.deletedAt` and keeps every record (FR-LIB-11, DR-
 | `fetchMaps()` | Live maps only (`deletedAt == nil`). Intents, the Share Extension (`QuickCapture`) and Spotlight read this, so they never offer a deleted map |
 | `fetchDeletedMaps()` | Maps in Recently Deleted, newest deletion first |
 | `moveToRecentlyDeleted(_:at:)`, `restoreMap(_:)` | Set or clear `deletedAt` on every record of the map (sync duplicates included); `updatedAt` does not move |
-| `deleteMap(_:)` | Deletes the map and all its nodes, edges, tags, tag links and groups, one record at a time |
+| `deleteMap(_:)` | Deletes the map and all its nodes, edges, tags, tag links, groups, images and chat turns, one record at a time |
 | `purgeDeletedMaps(deletedBefore:)` | `deleteMap` for every map deleted before the cutoff, in one commit; with nothing due it writes nothing |
 | `fetchTopicCounts()` | Topics per map from node records alone, no graph loaded, for `list_maps` (MM-47). Counts deleted maps too; `MapQueries` filters by `fetchMaps()` |
 | `loadGraph(for:)` | Still loads a deleted map; `EditorSession.open` returns `.recentlyDeleted` and `QuickCapture.add` throws `mapNotFound` for it |

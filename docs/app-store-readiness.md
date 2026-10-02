@@ -213,7 +213,7 @@ As of commit `1e18d58`:
 
 Items that cost little now and block a submission later. None are code changes in this task.
 
-1. **Publish the privacy policy and support pages** on xdev.asia from `docs/web/privacy-policy.md` and `docs/web/support.md` (English and Vietnamese), after choosing the support contact. The app already links them (MM-0h).
+1. ~~**Publish the privacy policy and support pages**~~ Done 2026-10-03: overview, privacy, terms and support pages are live on xdev.asia in English and Vietnamese (`/mindmap/`, `/vi/mindmap/`), contact duy@xdev.asia. The app links them (MM-0h).
 2. **Decide the version scheme** (`MARKETING_VERSION` 0.1.0 against "version 26" in the roadmap) before the first TestFlight upload; the build number must grow with every upload.
 3. **Create the App Store Connect record** for `asia.xdev.mindmapai` as a macOS app, reserving the name, and set the DSA trader status for the xDev account.
 4. **Add a release checklist** to MM-12: screenshots per device, Review Notes text for AI availability, privacy label answers, accessibility labels, age rating answers, quarantine check, CloudKit schema deployed.

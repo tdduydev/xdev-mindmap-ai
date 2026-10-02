@@ -69,7 +69,9 @@ final class AppEnvironment {
             try PersistenceController.initializeCloudKitSchema(containerIdentifier: identifier)
             Log.persistence.notice("CloudKit development schema initialized")
         } catch {
-            Log.persistence.error("Initializing the CloudKit schema failed: \(error.localizedDescription, privacy: .public)")
+            // A schema error names entities and attributes, never map content, so
+            // the whole error is logged: the description alone says only "Core Data error".
+            Log.persistence.error("Initializing the CloudKit schema failed: \(String(describing: error), privacy: .public)")
         }
     }
     #endif
