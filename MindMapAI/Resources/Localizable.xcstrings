@@ -2543,6 +2543,16 @@
     "Pro" : {
       "shouldTranslate" : false
     },
+    "Pro adds extra export formats, themes and voice input. Maps, topics, sync and everything else stay free." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro thêm định dạng xuất, theme và nhập bằng giọng nói. Sơ đồ, chủ đề, đồng bộ và mọi thứ khác vẫn miễn phí."
+          }
+        }
+      }
+    },
     "Pro adds extra export formats, themes, AI tools and voice input. Maps, topics, sync and everything else stay free." : {
       "localizations" : {
         "vi" : {

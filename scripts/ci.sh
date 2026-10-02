@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The check every change must pass before merging. There is no hosted CI, so
-# this runs locally: core tests on the Mac, app tests on macOS, then an iOS
-# Simulator build so the shared code keeps compiling for iPad and iPhone.
+# this runs locally: core tests on the Mac, app tests on macOS, a universal
+# macOS Release build (Apple silicon and Intel), then an iOS Simulator build.
+# scripts/rosetta-tests.sh runs the tests as x86_64; it is slower and optional.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -25,6 +26,26 @@ xcodebuild test -quiet \
   -derivedDataPath "$derived" \
   -only-testing:MindMapAITests \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+
+step "Universal macOS Release build"
+xcodebuild build -quiet \
+  -project MindMapAI.xcodeproj -scheme MindMapAI \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  -derivedDataPath "$derived" \
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+
+# Intel Macs get macOS 26 as their last release, so the shipped Mac app must
+# keep an x86_64 slice (MM-21). One arch per lipo call: given two, this lipo
+# takes the second for an input file. lipo fails quietly, so say
+# what is missing.
+app_binary="$derived/Build/Products/Release/MindMap AI.app/Contents/MacOS/MindMap AI"
+for arch in arm64 x86_64; do
+  if ! lipo "$app_binary" -verify_arch "$arch"; then
+    echo "error: the Release app has no $arch slice; it has: $(lipo -archs "$app_binary")" >&2
+    exit 1
+  fi
+done
 
 step "iOS Simulator build"
 xcodebuild build -quiet \

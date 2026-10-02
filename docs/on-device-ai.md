@@ -60,7 +60,7 @@ Check again each time the app becomes active, since people can turn Apple Intell
 | Ready | AI actions in the toolbar and node menus |
 | `modelNotReady` | AI actions show "Getting ready" and retry later |
 | `appleIntelligenceNotEnabled` | One line explaining how to turn on Apple Intelligence |
-| `deviceNotEligible` | AI entry points hidden; everything else unchanged |
+| `deviceNotEligible` | AI entry points and the AI tools on the paywall hidden; everything else unchanged. Every x86_64 build (Intel Mac, or Rosetta) reports this without asking the framework (MM-21) |
 | Language other than Vietnamese or English | *[Inference, untested]* translate to English with `TranslationSession`, generate, translate back |
 
 ## Prompting rules
