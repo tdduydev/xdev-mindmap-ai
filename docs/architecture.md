@@ -53,6 +53,10 @@ The package boundary enforces these rules at compile time (ADR 0002). Later phas
 
 One SwiftUI target builds for macOS, iPadOS and iOS (ADR 0006). macOS runs natively with the App Sandbox. Platform differences stay inside views (`#if os(macOS)` for a modifier, a separate file when a whole view differs); models, sessions and the core package never branch on platform. On macOS the window's `UndoManager` drives the engine's history, so the Edit menu and ⌘Z work as on any Mac app.
 
+The Mac app is universal (MM-21): the Release configuration builds `arm64 x86_64`, since macOS 26 is the last release for Intel Macs and the app targets 26. Debug builds only the active architecture. `scripts/ci.sh` fails if the Release app lacks either slice (`lipo -verify_arch`). On Intel the app is the same except AI: an x86_64 build never asks Foundation Models, `AppleCapabilityProbe` reports `deviceNotEligible`, so the AI menu, toolbar menu, topic menu items, canvas button, Settings section and the AI tools in the paywall are hidden ([[ai-architecture]]). Voice input stays: it uses Speech, not the language model.
+
+`scripts/rosetta-tests.sh` runs the core and app tests as x86_64 under Rosetta (`-destination 'platform=macOS,arch=x86_64'`). It is optional and slow, since it builds everything again for x86_64. What it covers: the Intel slice compiles, links and passes the same tests, and AI reports `deviceNotEligible`. What it does not: the real Intel GPU and performance, and how Foundation Models and Speech behave on a real Intel Mac (under Rosetta the framework says the model is available, which is why the probe answers by architecture). Before a release that claims Intel support, open the TestFlight build on a real Intel Mac with macOS 26 once.
+
 ## How an edit flows
 
 ```
@@ -111,9 +115,9 @@ Errors that reach the user are categories with plain messages (could not save, c
 | --- | --- |
 | Domain, Graph, Layout | Swift Testing in the package, `swift test` on the Mac host |
 | Persistence | Swift Testing with in-memory and on-disk stores; a migration harness on a checked-in V1 store; opt-in load and save benchmarks ([[data-model]]) |
-| AI | `MindMapAICoreTests` with `MockAIProvider`; `MindMapAIAppleTests` run the real model only where `SystemLanguageModel.default.isAvailable` |
+| AI | `MindMapAICoreTests` with `MockAIProvider`; `MindMapAIAppleTests` run the real model only where the probe reports it ready (never in an x86_64 build) |
 | App | `MindMapAITests`, hosted on macOS: library and editor sessions end to end on an in-memory store |
-| Platforms | `scripts/ci.sh` also builds for the iOS Simulator |
+| Platforms | `scripts/ci.sh` also builds a universal macOS Release app (checks both slices) and builds for the iOS Simulator; `scripts/rosetta-tests.sh` runs the tests as x86_64 |
 | UI | `MindMapAIUITests` (XCUITest) on macOS and the iOS Simulator with `scripts/ui-tests.sh`, in the `-uitest` mode with fixture maps; see [[testing]] |
 
 There is no hosted CI. `scripts/ci.sh` is the gate before merging.

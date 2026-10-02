@@ -15,7 +15,7 @@ Research for MM-0e, 2026-10-02. It is a checklist for shipping MindMap AI on the
 | Rule | Requirement | Status | Source |
 | --- | --- | --- | --- |
 | Minimum SDK | Xcode 26 and the 26 SDKs for every upload since 2026-04-28. iOS and iPadOS 27 SDK from April 2027. The macOS rule for 2027 is not verified. | Met: the project builds with Xcode 26 or later and targets OS 26 | [upcoming requirements](https://developer.apple.com/news/upcoming-requirements/), [news](https://developer.apple.com/news/?id=k1mtkt1k) |
-| Intel Macs | macOS 26 is the last release for Intel Macs. macOS 27 is the last release with Rosetta. | Foundation Models needs Apple silicon anyway; ship an arm64 and x86_64 build only if the product wants Intel customers on macOS 26 | [news 2026-09-01](https://developer.apple.com/news/?id=w5ngl9k2) |
+| Intel Macs | macOS 26 is the last release for Intel Macs. macOS 27 is the last release with Rosetta. | Met (MM-21): the Release app is universal (`arm64 x86_64`, checked in `scripts/ci.sh`); AI and the AI tools on the paywall are hidden on Intel. Not yet run on a real Intel Mac | [news 2026-09-01](https://developer.apple.com/news/?id=w5ngl9k2) |
 | Quarantine attribute | Remove `com.apple.quarantine` from every file in the bundle before upload (since 2025-02-18) | Applies if images or files are added from downloads; check with `xattr -r` before archiving | [upcoming requirements](https://developer.apple.com/news/upcoming-requirements/) |
 
 ## Completeness and metadata (2.1, 2.3)
