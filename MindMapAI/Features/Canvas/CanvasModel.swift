@@ -1,3 +1,4 @@
+import MindMapAICore
 import MindMapDomain
 import MindMapGraph
 import MindMapLayout
@@ -20,6 +21,8 @@ final class CanvasModel {
     }
 
     let session: EditorSession
+    /// AI suggestions to draw with the map; nil where AI is not offered.
+    let assistant: AIAssistant?
     private(set) var scene: CanvasScene = .empty
     private(set) var viewport = CanvasViewport()
     /// The topic whose title is being edited in place.
@@ -39,6 +42,9 @@ final class CanvasModel {
     @ObservationIgnored private var pendingChanges: Set<NodeID> = []
     @ObservationIgnored private var needsPass = false
     @ObservationIgnored private var needsFullLayout = true
+    /// Whether the last pass drew suggestions; the next one then starts over,
+    /// since the previous layout holds topics the map does not.
+    @ObservationIgnored private var lastPassHadSuggestions = false
     @ObservationIgnored private var isLayingOut = false
     @ObservationIgnored private var layoutTask: Task<Void, Never>?
     /// A topic to scroll into view (and maybe edit) once the layout has it.
@@ -49,10 +55,14 @@ final class CanvasModel {
         verticalSpacing: CanvasMetrics.layoutSiblingGap
     )
 
-    init(session: EditorSession) {
+    init(session: EditorSession, assistant: AIAssistant? = nil) {
         self.session = session
+        self.assistant = assistant
         session.onGraphChange = { [weak self] changes in
             self?.graphDidChange(changes)
+        }
+        assistant?.onSuggestionsChange = { [weak self] in
+            self?.suggestionsDidChange()
         }
     }
 
@@ -92,6 +102,11 @@ final class CanvasModel {
         scheduleLayout()
     }
 
+    private func suggestionsDidChange() {
+        needsFullLayout = true
+        scheduleLayout()
+    }
+
     private func graphDidChange(_ changes: GraphChangeSet) {
         pendingChanges.formUnion(changes.layoutInvalidation)
         if let map = changes.map, map.before?.theme != map.after?.theme { styles = [:] }
@@ -113,16 +128,27 @@ final class CanvasModel {
         while needsPass, let specs {
             needsPass = false
             let generation = specsGeneration
+            // Suggestions are laid out as topics of a preview graph, so they
+            // take their place in the tree without being part of the map.
+            var graph = session.engine.state
+            var suggested: Set<NodeID> = []
+            if let suggestions = assistant?.suggestions, !suggestions.isEmpty {
+                graph = suggestions.preview(in: session.engine)
+                suggested = Set(suggestions.drawableTopics(in: graph).keys)
+            }
+            let startOver = needsFullLayout || lastPassHadSuggestions || !suggested.isEmpty
             let pass = CanvasLayoutPass(
-                graph: session.engine.state,
-                previous: needsFullLayout ? nil : scene.layout,
+                graph: graph,
+                previous: startOver ? nil : scene.layout,
                 measures: measures,
                 changed: pendingChanges,
                 specs: specs,
-                options: layoutOptions
+                options: layoutOptions,
+                suggestions: suggested
             )
             pendingChanges = []
             needsFullLayout = false
+            lastPassHadSuggestions = !suggested.isEmpty
             let output = await pass.runInBackground()
             if generation == specsGeneration { measures = output.measures }
             apply(output.scene)
@@ -210,7 +236,28 @@ final class CanvasModel {
 
     func select(_ id: NodeID) {
         if editingID != nil, editingID != id { commitEditing() }
+        if let suggestion = assistant?.suggestionID(forPreview: id) {
+            assistant?.selectedSuggestion = suggestion
+            return
+        }
+        assistant?.selectedSuggestion = nil
         session.selection = id
+    }
+
+    /// The preview ID of the suggestion selected on the canvas.
+    var selectedSuggestionPreviewID: NodeID? {
+        guard let assistant, let id = assistant.selectedSuggestion else { return nil }
+        return assistant.suggestions?.topic(id)?.previewID
+    }
+
+    func acceptSuggestion(_ previewID: NodeID) {
+        guard let assistant, let id = assistant.suggestionID(forPreview: previewID) else { return }
+        assistant.accept(id)
+    }
+
+    func discardSuggestion(_ previewID: NodeID) {
+        guard let assistant, let id = assistant.suggestionID(forPreview: previewID) else { return }
+        assistant.discard(id)
     }
 
     /// A click or tap that no topic view took: on empty canvas it ends editing
@@ -222,6 +269,7 @@ final class CanvasModel {
         } else {
             commitEditing()
             session.selection = nil
+            assistant?.selectedSuggestion = nil
         }
     }
 
@@ -280,15 +328,23 @@ final class CanvasModel {
 
     /// Double-click or double-tap (FR-CNV-04).
     func beginEditing(_ id: NodeID) {
-        guard editingID != id, let topic = scene.topic(id), let node = session.engine.state.node(id) else { return }
+        guard editingID != id, let topic = scene.topic(id) else { return }
+        // A suggestion is edited the same way, but its title goes back to the
+        // suggestions, not to the map.
+        let suggestion = assistant?.suggestionID(forPreview: id)
+        guard suggestion != nil || session.engine.state.node(id) != nil else { return }
         commitEditing()
-        session.selection = id
+        if let suggestion {
+            assistant?.selectedSuggestion = suggestion
+        } else {
+            session.selection = id
+        }
         // A title field at 10% would be unreadable; come in to actual size around the topic.
         if !isDetailed {
             zoom(to: 1, anchor: viewport.toView(CGPoint(x: topic.frame.midX, y: topic.frame.midY)))
         }
         viewport.reveal(topic.frame, margin: CanvasMetrics.revealMargin)
-        editingDraft = node.title
+        editingDraft = topic.title
         editingID = id
     }
 
@@ -296,6 +352,10 @@ final class CanvasModel {
     func commitEditing() {
         guard let id = editingID else { return }
         editingID = nil
+        if let suggestion = assistant?.suggestionID(forPreview: id) {
+            assistant?.renameSuggestion(suggestion, to: editingDraft)
+            return
+        }
         guard let node = session.engine.state.node(id), node.title != editingDraft else { return }
         session.rename(id, to: editingDraft)
     }

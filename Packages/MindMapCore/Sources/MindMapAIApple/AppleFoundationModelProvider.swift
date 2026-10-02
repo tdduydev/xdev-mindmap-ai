@@ -105,6 +105,85 @@ public struct AppleFoundationModelProvider: AIProvider {
         return AISummary(nodeID: context.focus.nodeID, text: trimmed, isPartial: request.isPartial)
     }
 
+    // MARK: Streaming
+
+    public func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    try await stream(request) { continuation.yield($0) }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    private func stream(_ request: SuggestionRequest, yield: (ProposalSnapshot) -> Void) async throws {
+        switch request {
+        case .generateMap(let request):
+            let final = try await streamed(
+                .generateMap,
+                language: request.language,
+                userLocaleIdentifier: request.userLocaleIdentifier,
+                prompt: catalog.prompt(for: request),
+                generating: GeneratedMindMap.self
+            ) { yield(ProposalSnapshot(proposal: $0.proposal(limit: request.maximumTopics), isComplete: false)) }
+            let proposal = try checked(final.proposal(), limit: request.maximumTopics, feature: .generateMap)
+            yield(ProposalSnapshot(proposal: proposal, isComplete: true))
+        case .expandTopic(let request):
+            try await streamList(.expandTopic, context: request.context, prompt: catalog.prompt(for: request), limit: request.maximumTopics, yield: yield)
+        case .brainstorm(let request):
+            try await streamList(.brainstorm, context: request.context, prompt: catalog.prompt(for: request), limit: request.maximumTopics, yield: yield)
+        case .findMissingTopics(let request):
+            try await streamList(.findMissingTopics, context: request.context, prompt: catalog.prompt(for: request), limit: request.maximumTopics, yield: yield)
+        }
+    }
+
+    private func streamList(
+        _ feature: AIFeature,
+        context: AIContext,
+        prompt: String,
+        limit: Int,
+        yield: (ProposalSnapshot) -> Void
+    ) async throws {
+        let anchor = ProposalAnchor.node(context.focus.nodeID)
+        let final = try await streamed(
+            feature,
+            language: context.language,
+            userLocaleIdentifier: context.userLocaleIdentifier,
+            prompt: prompt,
+            generating: GeneratedTopicList.self
+        ) { yield(ProposalSnapshot(proposal: $0.proposal(for: feature, anchor: anchor, limit: limit), isComplete: false)) }
+        let proposal = try checked(final.proposal(for: feature, anchor: anchor, limit: limit), limit: limit, feature: feature)
+        yield(ProposalSnapshot(proposal: proposal, isComplete: true))
+    }
+
+    /// Streams partial answers to `partial` and returns the complete one.
+    private func streamed<Content: Generable>(
+        _ feature: AIFeature,
+        language: AILanguage,
+        userLocaleIdentifier: String,
+        prompt: String,
+        generating type: Content.Type,
+        partial: (Content.PartiallyGenerated) -> Void
+    ) async throws -> Content {
+        try await requireReady(feature, language: language)
+        let session = makeSession(for: feature, language: language, userLocaleIdentifier: userLocaleIdentifier)
+        do {
+            let stream = session.streamResponse(to: prompt, generating: type)
+            for try await snapshot in stream {
+                try Task.checkCancellation()
+                partial(snapshot.content)
+            }
+            return try await stream.collect().content
+        } catch {
+            throw mapped(error, feature: feature)
+        }
+    }
+
     // MARK: Plumbing
 
     private func respond<Content: Generable>(

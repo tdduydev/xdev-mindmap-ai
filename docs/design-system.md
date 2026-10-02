@@ -158,7 +158,7 @@ Edges are drawn under topics and never cross a topic's box; the layout engine (M
 | Collapsed | Badge with the number of hidden topics (`badgeFill`, `badge` text) |
 | Has note | `note.text` symbol, 11 pt, `topicTextSecondary`, after the title |
 | Search match | `searchMatchFill` behind the title, `searchMatchBorder` outline; the current match also gets the selection ring |
-| AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient before the title, title in `topicTextSecondary`; Accept and Discard buttons on hover or selection |
+| AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient on the top-leading corner, title in `topicTextSecondary`; Accept and Discard buttons under the topic on hover or selection. MM-8 put the symbol on the corner rather than before the title so the title keeps the measured width of a plain topic |
 | Accepted AI topic | Looks like any topic (its origin is kept in `metadata.origin`) |
 
 ## Elevation

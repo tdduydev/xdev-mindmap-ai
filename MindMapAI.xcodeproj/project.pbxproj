@@ -11,6 +11,9 @@
 		4D4D41000000000000000015 /* MindMapGraph in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41000000000000000012 /* MindMapGraph */; };
 		4D4D41000000000000000016 /* MindMapPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41000000000000000013 /* MindMapPersistence */; };
 		4D4D410000000000000C3001 /* MindMapLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C3002 /* MindMapLayout */; };
+		4D4D410000000000000C8001 /* MindMapAICore in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8002 /* MindMapAICore */; };
+		4D4D410000000000000C8003 /* MindMapAIApple in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8004 /* MindMapAIApple */; };
+		4D4D410000000000000C8005 /* MindMapTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8006 /* MindMapTestSupport */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +53,8 @@
 				4D4D41000000000000000015 /* MindMapGraph in Frameworks */,
 				4D4D41000000000000000016 /* MindMapPersistence in Frameworks */,
 				4D4D410000000000000C3001 /* MindMapLayout in Frameworks */,
+				4D4D410000000000000C8001 /* MindMapAICore in Frameworks */,
+				4D4D410000000000000C8003 /* MindMapAIApple in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,6 +62,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D4D410000000000000C8005 /* MindMapTestSupport in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,6 +111,8 @@
 				4D4D41000000000000000012 /* MindMapGraph */,
 				4D4D41000000000000000013 /* MindMapPersistence */,
 				4D4D410000000000000C3002 /* MindMapLayout */,
+				4D4D410000000000000C8002 /* MindMapAICore */,
+				4D4D410000000000000C8004 /* MindMapAIApple */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -127,6 +135,9 @@
 				4D4D41000000000000000019 /* MindMapAITests */,
 			);
 			name = MindMapAITests;
+			packageProductDependencies = (
+				4D4D410000000000000C8006 /* MindMapTestSupport */,
+			);
 			productName = MindMapAITests;
 			productReference = 4D4D41000000000000000018 /* MindMapAITests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -535,6 +546,18 @@
 		4D4D410000000000000C3002 /* MindMapLayout */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapLayout;
+		};
+		4D4D410000000000000C8002 /* MindMapAICore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapAICore;
+		};
+		4D4D410000000000000C8004 /* MindMapAIApple */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapAIApple;
+		};
+		4D4D410000000000000C8006 /* MindMapTestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapTestSupport;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
