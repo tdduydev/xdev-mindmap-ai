@@ -49,6 +49,6 @@ public struct LayoutConfiguration: Hashable, Sendable, Codable {
 }
 
 public enum LayoutStyle: String, Hashable, Sendable, Codable, CaseIterable {
-    /// Root on the left, children extending to the right.
+    /// Central topic in the middle, branches extending sideways (`HorizontalTreeLayout`).
     case horizontalTree
 }
