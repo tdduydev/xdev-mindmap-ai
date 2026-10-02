@@ -18,7 +18,7 @@ final class TopicLinkUITests: XCTestCase {
     @MainActor
     func testAddLinkFromTheInspector() {
         let (editor, field) = openPlanInspector()
-        field.tap()
+        field.tapOrClick()
         field.typeText("example.com/design\n")
 
         let open = editor.app.buttons[AccessibilityID.Link.open].firstMatch.waitToExist()
@@ -29,7 +29,7 @@ final class TopicLinkUITests: XCTestCase {
     @MainActor
     func testARefusedLinkSaysWhy() {
         let (editor, field) = openPlanInspector()
-        field.tap()
+        field.tapOrClick()
         field.typeText("javascript:alert(1)")
 
         editor.app.staticTexts[AccessibilityID.Link.error].firstMatch.waitToExist()

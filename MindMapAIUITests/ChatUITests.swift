@@ -23,8 +23,8 @@ final class ChatUITests: XCTestCase {
         chat.ask("Where are the interviews?")
 
         let citation = chat.citation(titled: UITestFixture.Title.interviews).waitToExist()
-        XCTAssertTrue(chat.answers.firstMatch.label.contains(UITestFixture.Title.interviews))
-        citation.tap()
+        XCTAssertTrue(chat.answers.firstMatch.shownText.contains(UITestFixture.Title.interviews))
+        citation.tapOrClick()
         #if os(macOS)
         // Beside the map on the Mac, the panel stays while the topic is shown.
         XCTAssertTrue(chat.field.exists)
@@ -40,7 +40,7 @@ final class ChatUITests: XCTestCase {
         chat.ask("Weather?")
 
         let answer = chat.answers.firstMatch.waitToExist()
-        XCTAssertEqual(answer.label, "The map does not seem to cover that.")
+        XCTAssertEqual(answer.shownText, "The map does not seem to cover that.")
         XCTAssertFalse(chat.citations.firstMatch.exists)
     }
 
@@ -95,11 +95,11 @@ struct ChatPage {
         if toolbarButton.waitForExistence(timeout: timeout) { return toolbarButton }
         let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
         guard overflow.count > 0 else { return nil }
-        overflow.element(boundBy: overflow.count - 1).tap()
+        overflow.element(boundBy: overflow.count - 1).tapOrClick()
         let item = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
         if item.waitForExistence(timeout: timeout) { return item }
         // Close the menu again, so the test sees the editor as it was.
-        app.tap()
+        app.tapOrClick()
         return nil
     }
 
@@ -108,14 +108,14 @@ struct ChatPage {
             XCTFail("No Ask About This Map button", file: file, line: line)
             return
         }
-        entry.tap()
+        entry.tapOrClick()
         field.waitToExist(file: file, line: line)
     }
 
     func ask(_ question: String, file: StaticString = #filePath, line: UInt = #line) {
         let field = field.waitToExist(file: file, line: line)
-        field.tap()
+        field.tapOrClick()
         field.typeText(question)
-        sendButton.waitToExist(file: file, line: line).tap()
+        sendButton.waitToExist(file: file, line: line).tapOrClick()
     }
 }
