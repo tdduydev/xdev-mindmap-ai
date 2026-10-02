@@ -10,6 +10,8 @@ extension FocusedValues {
     @Entry var canvasModel: CanvasModel?
     /// The AI side of the frontmost map, for the AI menu.
     @Entry var aiAssistant: AIAssistant?
+    /// Ask About This Map in the frontmost map window.
+    @Entry var mapChat: MapChat?
     @Entry var newMapWithAIAction: NewMapAction?
     @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
     /// Voice input for the frontmost map (FR-AI-21).
@@ -46,6 +48,7 @@ struct MapCommands: Commands {
     let ai: AIService
     @FocusedValue(\.editorSession) private var editor
     @FocusedValue(\.aiAssistant) private var assistant
+    @FocusedValue(\.mapChat) private var chat
     @FocusedValue(\.newMapWithAIAction) private var newMapWithAI
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
@@ -229,6 +232,14 @@ struct MapCommands: Commands {
             .keyboardShortcut("t", modifiers: [.command, .control])
             .disabled(assistant?.canRun(.suggestTags) != true)
         Divider()
+        // ⌃⌘A: free beside the other AI keys (⌃⌘G, E, B, U, M, T) and not a
+        // standard macOS shortcut; approved 2026-10-02.
+        Button("Ask About This Map…") { chat?.present() }
+            .keyboardShortcut("a", modifiers: [.command, .control])
+            .disabled(chat?.showsEntryPoints != true)
+        Button("Clear Chat") { chat?.clear() }
+            .disabled(chat?.canClear != true)
+        Divider()
         Button("Accept All Suggestions") { assistant?.acceptAll() }
             .keyboardShortcut(.return, modifiers: [.command, .control])
             .disabled(assistant?.canAcceptSuggestions != true)
@@ -236,9 +247,13 @@ struct MapCommands: Commands {
             .keyboardShortcut(.delete, modifiers: [.command, .control])
             .disabled(assistant?.hasSuggestions != true)
         // ⌘. is the Mac's key for stopping an operation.
-        Button("Cancel AI Request") { assistant?.cancel() }
-            .keyboardShortcut(".")
-            .disabled(assistant?.isWorking != true)
+        // It stops a chat answer too, so the chat needs no key of its own.
+        Button("Cancel AI Request") {
+            assistant?.cancel()
+            chat?.stop()
+        }
+        .keyboardShortcut(".")
+        .disabled(assistant?.isWorking != true && chat?.isAnswering != true)
     }
 
     /// The bare Delete key comes and goes with focus, so it stays with text

@@ -24,6 +24,7 @@
 		4D4D410000000000000B1126 /* MindMapInterchange in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1127 /* MindMapInterchange */; };
 		4D4D410000000000000B1128 /* MindMapSharing in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1129 /* MindMapSharing */; };
 		4D4D410000000000000C2001 /* MindMapCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C2002 /* MindMapCapture */; };
+		4D4D41000000000000410001 /* MindMapQuery in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41000000000000410002 /* MindMapQuery */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -127,6 +128,7 @@
 				4D4D41150000000000000002 /* MindMapSearch in Frameworks */,
 				4D4D410000000000000B1101 /* MindMapIntents in Frameworks */,
 				4D4D410000000000000C2001 /* MindMapCapture in Frameworks */,
+				4D4D41000000000000410001 /* MindMapQuery in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +218,7 @@
 				4D4D41150000000000000001 /* MindMapSearch */,
 				4D4D410000000000000B1102 /* MindMapIntents */,
 				4D4D410000000000000C2002 /* MindMapCapture */,
+				4D4D41000000000000410002 /* MindMapQuery */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -945,6 +948,10 @@
 		4D4D410000000000000C2002 /* MindMapCapture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapCapture;
+		};
+		4D4D41000000000000410002 /* MindMapQuery */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapQuery;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

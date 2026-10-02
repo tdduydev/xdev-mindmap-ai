@@ -14,16 +14,21 @@ final class AIService {
     @ObservationIgnored let entitlements: any ProEntitlements
     @ObservationIgnored private let makeProvider: () -> any AIProvider
     @ObservationIgnored private var cachedProvider: (any AIProvider)?
+    @ObservationIgnored private let makeChatProvider: (() -> any ChatProvider)?
+    @ObservationIgnored private var cachedChatProvider: (any ChatProvider)?
     @ObservationIgnored private var retry: Task<Void, Never>?
 
     /// How long to wait before asking again while the model downloads.
     static let downloadRetryInterval: Duration = .seconds(30)
 
+    /// `chatProvider` is nil where there is no library to read, so no chat.
     init(
         provider: @escaping () -> any AIProvider = { AppleFoundationModelProvider() },
+        chatProvider: (() -> any ChatProvider)? = nil,
         entitlements: any ProEntitlements
     ) {
         makeProvider = provider
+        makeChatProvider = chatProvider
         self.entitlements = entitlements
     }
 
@@ -31,6 +36,14 @@ final class AIService {
         if let cachedProvider { return cachedProvider }
         let provider = makeProvider()
         cachedProvider = provider
+        return provider
+    }
+
+    /// The chat's model (docs/chat.md), made on first use like `provider`.
+    var chatProvider: (any ChatProvider)? {
+        if let cachedChatProvider { return cachedChatProvider }
+        let provider = makeChatProvider?()
+        cachedChatProvider = provider
         return provider
     }
 

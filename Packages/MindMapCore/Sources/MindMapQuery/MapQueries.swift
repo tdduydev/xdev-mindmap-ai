@@ -266,6 +266,12 @@ public struct MapQueries: Sendable {
         return query.terms.filter { folded.contains($0) }.count
     }
 
+    /// `text` on one line, as titles are in every result: for callers that
+    /// write a title or note into a one-line format of their own.
+    public static func oneLine(_ text: String) -> String {
+        singleLine(text)
+    }
+
     /// Titles are one line in every output, as in Markdown export.
     static func singleLine(_ title: String) -> String {
         title.split(omittingEmptySubsequences: true) { $0.isNewline }.joined(separator: " ")

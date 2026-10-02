@@ -741,6 +741,16 @@
         }
       }
     },
+    "Apple Intelligence doesn’t support the language of this question yet." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence chưa hỗ trợ ngôn ngữ của câu hỏi này."
+          }
+        }
+      }
+    },
     "Apple Intelligence doesn’t support this language yet." : {
       "localizations" : {
         "vi" : {
@@ -801,12 +811,72 @@
         }
       }
     },
+    "Ask" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi"
+          }
+        }
+      }
+    },
+    "Ask About This Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về sơ đồ này"
+          }
+        }
+      }
+    },
+    "Ask About This Map…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về sơ đồ này…"
+          }
+        }
+      }
+    },
+    "Ask a Question" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt câu hỏi"
+          }
+        }
+      }
+    },
+    "Ask a question about this map. Answers come from its topics and name the ones they use." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt câu hỏi về sơ đồ này. Câu trả lời lấy từ các chủ đề của sơ đồ và ghi rõ chủ đề đã dùng."
+          }
+        }
+      }
+    },
     "Ask a question to focus the ideas, or leave it empty to brainstorm around the topic." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đặt một câu hỏi để ý tưởng tập trung hơn, hoặc để trống để động não quanh chủ đề."
+          }
+        }
+      }
+    },
+    "Ask about this map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về sơ đồ này"
           }
         }
       }
@@ -1008,6 +1078,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chọn một sơ đồ, hoặc bắt đầu sơ đồ mới."
+          }
+        }
+      }
+    },
+    "Clear Chat" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá cuộc trò chuyện"
           }
         }
       }
@@ -1564,6 +1644,16 @@
         }
       }
     },
+    "Earlier messages were left out to make room." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các tin nhắn trước đã được bỏ bớt để có chỗ."
+          }
+        }
+      }
+    },
     "Edit" : {
       "localizations" : {
         "vi" : {
@@ -1960,6 +2050,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang nghe: %@"
+          }
+        }
+      }
+    },
+    "Hide Chat" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn cuộc trò chuyện"
           }
         }
       }
@@ -2730,6 +2830,16 @@
         }
       }
     },
+    "No answer this time. Try again or ask another way." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lần này chưa có câu trả lời. Hãy thử lại hoặc hỏi cách khác."
+          }
+        }
+      }
+    },
     "No microphone is available." : {
       "localizations" : {
         "vi" : {
@@ -3171,6 +3281,16 @@
         }
       }
     },
+    "Reading the map…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang đọc sơ đồ…"
+          }
+        }
+      }
+    },
     "Ready" : {
       "localizations" : {
         "vi" : {
@@ -3532,6 +3652,16 @@
         }
       }
     },
+    "Show Topic on Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện chủ đề trên sơ đồ"
+          }
+        }
+      }
+    },
     "Simpler" : {
       "localizations" : {
         "vi" : {
@@ -3632,12 +3762,32 @@
         }
       }
     },
+    "Stop" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dừng"
+          }
+        }
+      }
+    },
     "Stop Listening" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dừng nghe"
+          }
+        }
+      }
+    },
+    "Stopped" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã dừng"
           }
         }
       }
@@ -4111,6 +4261,16 @@
     "Think. Draw. Connect." : {
       "shouldTranslate" : false
     },
+    "Thinking…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang suy nghĩ…"
+          }
+        }
+      }
+    },
     "This Apple Account hasn’t bought MindMap AI Pro." : {
       "localizations" : {
         "vi" : {
@@ -4167,6 +4327,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tuỳ chọn này có trong MindMap AI Pro."
+          }
+        }
+      }
+    },
+    "This question needs more room than the chat has. Clear the chat or ask about a smaller part of the map." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Câu hỏi này cần nhiều chỗ hơn cuộc trò chuyện còn lại. Hãy xoá cuộc trò chuyện hoặc hỏi về một phần nhỏ hơn của sơ đồ."
           }
         }
       }
@@ -4264,6 +4434,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đã thêm chủ đề"
+          }
+        }
+      }
+    },
+    "Topic no longer exists" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề không còn nữa"
           }
         }
       }
@@ -4541,6 +4721,16 @@
         }
       }
     },
+    "Written by AI. Check the cited topics." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do AI viết. Hãy kiểm tra các chủ đề được trích dẫn."
+          }
+        }
+      }
+    },
     "Written from part of the branch, which was too large to read in full." : {
       "localizations" : {
         "vi" : {
@@ -4557,6 +4747,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bạn"
+          }
+        }
+      }
+    },
+    "You asked: %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn hỏi: %@"
           }
         }
       }

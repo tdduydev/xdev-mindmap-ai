@@ -1,6 +1,6 @@
 # Chat: ask about your maps, on the device
 
-Design for MM-39, 2026-10-02. Nothing here is built yet. Decisions are in [ADR 0009](adr/0009-local-chat.md). The chat reads maps through the same query layer as the MCP server ([mcp.md](mcp.md#shared-query-layer)). [Đề xuất] marks proposals waiting for the product owner; *[Inference]* marks reasoning no source states. API names from WWDC26 come from the session pages and are not yet checked with the compiler.
+Design for MM-39, 2026-10-02. Ask in a map (C1) is built in MM-41; [What C1 built](#what-c1-built) lists the types and where it differs from this design. Decisions are in [ADR 0009](adr/0009-local-chat.md). The chat reads maps through the same query layer as the MCP server ([mcp.md](mcp.md#shared-query-layer)). [Đề xuất] marks proposals waiting for the product owner; *[Inference]* marks reasoning no source states. API names from WWDC26 come from the session pages and are not yet checked with the compiler.
 
 ## Summary
 
@@ -152,6 +152,32 @@ The product owner decides; the split lives in `ProFeature` only.
 | `ChatModel` | `MindMapAI/Features/Chat` | One per `OpenMap` (map scope) and one per library window; sends, cancels, opens citations, hands suggestions to `AIAssistant` |
 
 Errors map through `AIFailure`. Logs carry the scope, tool names, token counts and time to first token (`Log.ai`), never questions, answers or tool output.
+
+## What C1 built
+
+MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51), the library scope (C3, MM-52) and saving (MM-55) are not built.
+
+| Type | Where | Role |
+| --- | --- | --- |
+| `ChatScope` (`.map` only), `ChatTurn`, `ChatCitation`, `ChatMessage`, `ChatUpdate` | `MindMapAICore/Chat.swift` | Plain values. `ChatTurn` is `Codable` and keeps the answer with its handles, for MM-55 |
+| `ChatProvider`, `ChatConversation` | `MindMapAICore/Chat.swift` | `conversation(in:history:)` then `send(_:) -> AsyncThrowingStream<ChatUpdate, Error>`. `history` is how MM-55 hands a saved conversation back: its citations keep resolving and the latest turns that fit go back to the model |
+| `CitationTable` | `MindMapAICore` | Handles `T1`, `T2`… per conversation; `citations(in:)` keeps only handles a tool returned; `displayText` strips `[T3]` and a half-written handle |
+| `ChatBudget` | `MindMapAICore` | 700 instructions, 600 answer, two tool results of `min(600, contextSize / 7)` (at least 150), the rest for earlier turns [Đề xuất] |
+| `AppleChatProvider`, `AppleChatConversation` | `MindMapAIApple` | `SystemLanguageModel.default`, default guardrails, one `LanguageModelSession` per conversation. When the turns so far no longer fit, the session is rebuilt from a `Transcript` of the latest turns as plain text (tool output goes first); on `exceededContextWindowSize` it is rebuilt once from the last turn and the same question is asked again. A stopped answer drops the session, so the next question starts from the finished turns |
+| `searchTopics`, `readTopic`, `readBranch` | `MindMapAIApple/ChatTools.swift` over `ChatMapReader` | Three tools. `ChatMapReader` writes the plain text and holds no FoundationModels, so tests read it without a model |
+| `PromptCatalog.chatInstructions`, `chatPrompt` | `MindMapAIApple` | Instructions fixed and English; the prompt carries the map title, the question and "You MUST respond in …" for the question's language |
+| `MockChatProvider` | `MindMapTestSupport` | Scripted answers, failures and a hang |
+| `MapChat` | `MindMapAI/Features/Chat` | One per `OpenMap`, so every window on the map shares it. Asks after the AI privacy notice, stops, clears, opens citations through `EditorSession.showTopic` (Reveal Topic as in Find) |
+| `ChatPanel` | `MindMapAI/Features/Chat` | Shares the editor's `.inspector` with the topic inspector (one or the other); on iPhone `.inspector` is a sheet, which closes when a citation is opened |
+| `OpenMapsGraphSource`, `AppEnvironment.mapQueries` | `MindMapAI/Features/Chat` | Open maps read from the editor's live graph, the rest from the store; for M2 too |
+
+Differences from the design above:
+
+- **Not a new `AIFeature`.** Availability is `AICapabilities.chatAvailability(in:)`, the same rule as `availability(for:in:)`. MM-51 adds a feature case if suggestions need one.
+- **Errors** map to `ChatFailure` (its own messages: no "suggestions" wording), not `AIFailure`. `LanguageModelError` (27) is read beside `GenerationError`.
+- **Menu:** AI ▸ Ask About This Map… (⌃⌘A, approved 2026-10-02) and Clear Chat; Cancel AI Request (⌘.) stops a chat answer too, so the chat has no Stop item of its own. Toolbar: Ask About This Map, beside the AI menu.
+- **Use AI Features** (MM-44) does not exist yet; the chat is hidden exactly where the other AI entry points are (`AIService.showsEntryPoints`), and when the app has no store.
+- **UI test mode:** `-uitest-ai ready|ineligible` puts a scripted model in place of Apple Intelligence (Debug only, `UITestAIService.swift`): the chat cites the first topic whose title matches a word of the question.
 
 ## Testing
 

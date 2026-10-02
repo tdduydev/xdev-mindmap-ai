@@ -28,7 +28,7 @@ struct EditorView: View {
                 ProgressView()
             case .ready(let map):
                 if let voice {
-                    MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, voice: voice)
+                    MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, chat: map.chat, voice: voice)
                         .onChange(of: EditorRestoration(map.session)) { _, state in
                             restoration = state
                         }

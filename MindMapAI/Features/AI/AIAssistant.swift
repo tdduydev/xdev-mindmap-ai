@@ -383,6 +383,12 @@ final class AIAssistant {
 
     // MARK: Running
 
+    /// Runs `action` once the person has seen the on-device notice, showing
+    /// it first if they have not (FR-AI-19). The chat asks through here too.
+    func afterPrivacyNoticeShown(_ action: @escaping () -> Void) {
+        afterNotice(action)
+    }
+
     private func afterNotice(_ action: @escaping () -> Void) {
         if defaults.bool(forKey: Self.privacyNoticeKey) {
             action()

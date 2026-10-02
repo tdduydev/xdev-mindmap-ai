@@ -28,7 +28,7 @@ public struct TextLimit: Sendable {
     }
 
     /// The longest start of `text` that costs at most `remaining`.
-    func prefix(of text: String, fitting remaining: Int) -> String {
+    public func prefix(of text: String, fitting remaining: Int) -> String {
         guard remaining > 0 else { return "" }
         guard cost(text) > remaining else { return text }
         var low = 0

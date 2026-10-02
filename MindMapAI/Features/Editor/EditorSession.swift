@@ -559,12 +559,22 @@ final class EditorSession {
     /// revealed first, which changes the map and so is an undo step: the
     /// branch stays open after Find closes, as the person last saw it.
     private func showMatch(_ id: NodeID) {
+        currentMatch = id
+        showTopic(id)
+    }
+
+    /// Selects a topic and scrolls to it, opening its collapsed ancestors as
+    /// one "Reveal Topic" undo step, as Find does. For a chat citation too.
+    /// False when the topic no longer exists.
+    @discardableResult
+    func showTopic(_ id: NodeID) -> Bool {
+        guard engine.state.node(id) != nil else { return false }
         if RevealNodeCommand.isHidden(id, in: engine.state) {
             perform(RevealNodeCommand(nodeID: id), named: String(localized: "Reveal Topic"))
         }
-        currentMatch = id
         selection = id
         scrollRequest = id
+        return true
     }
 
     /// Typing in the find field selects the first visible match but opens no
