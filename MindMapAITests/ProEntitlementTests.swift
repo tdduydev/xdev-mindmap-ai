@@ -19,12 +19,54 @@ struct ProEntitlementTests {
         session = try SKTestSession(contentsOf: url)
         session.disableDialogs = true
         session.askToBuyEnabled = false
-        session.clearTransactions()
         // StoreKit applies the clear asynchronously; start each test from nothing
         // bought. A refunded transaction is no entitlement but still listed, and
-        // the Ask to Buy test must not find an earlier test's one.
-        let session = session
-        _ = await Self.eventually { await !Self.hasProEntitlement() && session.allTransactions().isEmpty }
+        // the Ask to Buy test must not find an earlier test's one. On a busy Mac
+        // the clear took over five seconds, and a test that went on anyway found
+        // the previous test's purchase (restoreWithNothingBought, MM-88), so the
+        // clear is asked again and a test never starts on a dirty store.
+        try await Self.clear(session)
+    }
+
+    private static func clear(_ session: SKTestSession) async throws {
+        var cleared = false
+        for _ in 0..<3 where !cleared {
+            session.clearTransactions()
+            cleared = await eventually { await !hasProEntitlement() && session.allTransactions().isEmpty }
+        }
+        try #require(cleared, "StoreKit still lists transactions after clearTransactions()")
+    }
+
+    /// Runs a scenario again, from a cleared store, when StoreKit changed under
+    /// it from outside this process. `StoreKitTestLock` keeps other runs of
+    /// these tests out, but not everything that touches the app's StoreKit
+    /// store: while a macOS UI test run launched the app, a purchase never
+    /// arrived or a refund left Pro unlocked for 30 s (MM-88). `attempt`
+    /// returns nil when the scenario held, or what went wrong and whether it
+    /// came from outside; only an outside change is retried.
+    private func retryingOutsideChanges(_ attempt: () async throws -> (problem: String, outside: Bool)?) async throws {
+        for run in 1...3 {
+            guard let failure = try await attempt() else { return }
+            guard failure.outside, run < 3 else {
+                Issue.record("\(failure.problem)")
+                return
+            }
+            print("StoreKit changed outside this test (\(failure.problem)); clearing and running again")
+            try await Self.clear(session)
+        }
+    }
+
+    /// True once StoreKit no longer lists the transaction this test made.
+    private func lost(_ transaction: StoreKit.Transaction) -> Bool {
+        !session.allTransactions().contains { UInt64($0.identifier) == transaction.id }
+    }
+
+    /// True when Pro comes from a transaction this test did not make.
+    private static func entitledByAnother(than transaction: StoreKit.Transaction) async -> Bool {
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let other) = result, other.productID == ProEntitlement.productID, other.id != transaction.id { return true }
+        }
+        return false
     }
 
     @Test func loadsTheProProductWithItsPrice() async throws {
@@ -77,24 +119,37 @@ struct ProEntitlementTests {
     /// A purchase from outside the app (another device, Ask to Buy approval)
     /// arrives through `Transaction.updates` while the app runs.
     @Test func purchaseFromElsewhereUnlocksWhileRunning() async throws {
-        let store = ProEntitlement()
-        await store.start()
-        #expect(!store.isUnlocked)
+        try await retryingOutsideChanges {
+            let store = ProEntitlement()
+            await store.start()
+            #expect(!store.isUnlocked)
 
-        _ = try await session.buyProduct(identifier: ProEntitlement.productID)
+            let transaction = try await session.buyProduct(identifier: ProEntitlement.productID)
 
-        #expect(await eventually { store.isUnlocked })
+            guard await eventually({ store.isUnlocked || lost(transaction) }) else {
+                return ("the purchase did not reach Transaction.updates", false)
+            }
+            return store.isUnlocked ? nil : ("StoreKit lost the purchase", true)
+        }
     }
 
     @Test func refundLocksAgain() async throws {
-        let store = ProEntitlement()
-        await store.start()
-        let transaction = try await session.buyProduct(identifier: ProEntitlement.productID)
-        #expect(await Self.eventually { await store.refresh(); return store.isUnlocked })
+        try await retryingOutsideChanges {
+            let store = ProEntitlement()
+            await store.start()
+            let transaction = try await session.buyProduct(identifier: ProEntitlement.productID)
+            guard await Self.eventually({ await store.refresh(); return store.isUnlocked || lost(transaction) }) else {
+                return ("the purchase did not unlock Pro", false)
+            }
+            if !store.isUnlocked { return ("StoreKit lost the purchase", true) }
 
-        try session.refundTransaction(identifier: UInt(transaction.id))
+            try session.refundTransaction(identifier: UInt(transaction.id))
 
-        #expect(await Self.eventually { await store.refresh(); return !store.isUnlocked })
+            if await Self.eventually({ await store.refresh(); return !store.isUnlocked }) { return nil }
+            return await Self.entitledByAnother(than: transaction)
+                ? ("another transaction unlocks Pro", true)
+                : ("the refund did not lock Pro", false)
+        }
     }
 
     @Test func askToBuyStaysPendingAndUnlocksOnApproval() async throws {
@@ -192,10 +247,13 @@ struct ProEntitlementTests {
     }
 
     /// Waits for a change that arrives asynchronously through `Transaction.updates`.
-    /// StoreKit delivers purchases, refunds and clears asynchronously, and later
-    /// still on a busy machine, so state is polled for up to five seconds.
-    private static func eventually(_ condition: () async -> Bool) async -> Bool {
-        for _ in 0..<50 {
+    /// StoreKit delivers purchases, refunds and clears asynchronously, and much
+    /// later on a Mac running several builds: five seconds was not enough
+    /// (MM-88). The deadline is in time, not tries, so a slow `condition` does
+    /// not stretch it; a met condition returns at once, so it costs nothing.
+    private static func eventually(within limit: Duration = .seconds(30), _ condition: () async -> Bool) async -> Bool {
+        let deadline = ContinuousClock.now + limit
+        while ContinuousClock.now < deadline {
             if await condition() { return true }
             try? await Task.sleep(for: .milliseconds(100))
         }
