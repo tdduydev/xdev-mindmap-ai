@@ -140,7 +140,9 @@ struct OrganizationPersistenceTests {
         let changes = try engine.execute(RenameMapCommand(title: "Renamed"))
         try await repository.save(changes, map: engine.state.map)
 
-        #expect(try await repository.fetchMaps().first?.deletedAt == deletedAt)
+        // fetchMaps lists live maps only (MM-19); the map must still be in Recently Deleted.
+        #expect(try await repository.fetchMaps().isEmpty)
+        #expect(try await repository.fetchDeletedMaps().first?.deletedAt == deletedAt)
     }
 
     /// Values from a newer version stay in storage after this build edits the topic.

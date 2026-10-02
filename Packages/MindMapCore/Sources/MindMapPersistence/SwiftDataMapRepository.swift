@@ -98,8 +98,17 @@ public actor SwiftDataMapRepository: MapRepository {
     // MARK: Reading and writing
 
     public func fetchMaps() async throws -> [MindMap] {
-        let descriptor = FetchDescriptor<MapRecord>(sortBy: [SortDescriptor(\.updatedAt, order: .reverse)])
+        let descriptor = FetchDescriptor<MapRecord>(
+            predicate: #Predicate { $0.deletedAt == nil },
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
         return try modelContext.fetch(descriptor).map(\.domainValue)
+    }
+
+    public func fetchDeletedMaps() async throws -> [MindMap] {
+        try deletedMapRecords()
+            .map(\.domainValue)
+            .sorted { ($0.deletedAt ?? .distantPast) > ($1.deletedAt ?? .distantPast) }
     }
 
     public func loadGraph(for mapID: MapID) async throws -> GraphState? {
@@ -153,10 +162,47 @@ public actor SwiftDataMapRepository: MapRepository {
         publish(.saved(record.domainValue))
     }
 
+    public func moveToRecentlyDeleted(_ mapID: MapID, at date: Date) async throws {
+        try setDeletedAt(date, for: mapID)
+    }
+
+    public func restoreMap(_ mapID: MapID) async throws {
+        try setDeletedAt(nil, for: mapID)
+    }
+
+    /// Every record of one map, duplicates from sync included, gets the same
+    /// value, so a duplicate cannot keep a restored map in Recently Deleted.
+    private func setDeletedAt(_ date: Date?, for mapID: MapID) throws {
+        let records = try mapRecords(for: mapID)
+        guard let first = records.first else { return }
+        for record in records { record.deletedAt = date }
+        try commit()
+        publish(.saved(first.domainValue))
+    }
+
     public func deleteMap(_ mapID: MapID) async throws {
+        try deleteRecords(of: mapID)
+        try commit()
+        publish(.deleted(mapID))
+    }
+
+    @discardableResult
+    public func purgeDeletedMaps(deletedBefore cutoff: Date) async throws -> [MapID] {
+        let due = try deletedMapRecords().filter { ($0.deletedAt ?? .distantFuture) < cutoff }
+        // Nothing due is the usual case on launch: no commit, so no change
+        // notice goes out to every window for nothing.
+        guard !due.isEmpty else { return [] }
+        let ids = Array(Set(due.map { MapID($0.mapID) }))
+        for id in ids { try deleteRecords(of: id) }
+        try commit()
+        for id in ids { publish(.deleted(id)) }
+        return ids
+    }
+
+    /// Records are deleted one by one rather than with a batch delete, which
+    /// goes around the change tracking that CloudKit mirroring relies on.
+    private func deleteRecords(of mapID: MapID) throws {
         let id = mapID.rawValue
-        // Records are deleted one by one rather than with a batch delete, which
-        // goes around the change tracking that CloudKit mirroring relies on.
         for record in try mapRecords(for: mapID) {
             modelContext.delete(record)
         }
@@ -165,8 +211,6 @@ public actor SwiftDataMapRepository: MapRepository {
         try deleteAll(TagRecord.inMap(id))
         try deleteAll(NodeTagRecord.inMap(id))
         try deleteAll(GroupRecord.inMap(id))
-        try commit()
-        publish(.deleted(mapID))
     }
 
     public func fetchTopicTexts() async throws -> [MapID: [String]] {
@@ -249,6 +293,10 @@ public actor SwiftDataMapRepository: MapRepository {
     }
 
     // MARK: Reading
+
+    private func deletedMapRecords() throws -> [MapRecord] {
+        try modelContext.fetch(FetchDescriptor<MapRecord>(predicate: #Predicate { $0.deletedAt != nil }))
+    }
 
     private func mapRecords(for mapID: MapID) throws -> [MapRecord] {
         let id = mapID.rawValue

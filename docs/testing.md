@@ -8,7 +8,9 @@ How the app is tested, from the package up to the UI. The table per layer is in 
 | --- | --- | --- |
 | `MindMapCore` package tests | `swift test` (in `scripts/ci.sh`) | Every change |
 | `MindMapAITests` (hosted app tests, macOS) | `scripts/ci.sh` | Every change |
+| Universal macOS Release build (`arm64` and `x86_64`, checked with `lipo`) | `scripts/ci.sh` | Every change |
 | iOS Simulator build | `scripts/ci.sh` | Every change |
+| Core and app tests as x86_64 under Rosetta | `scripts/rosetta-tests.sh` | Before merging a change to the AI gate, build settings or code under `#if arch` ([[architecture]], Platforms) |
 | `MindMapAIUITests` (XCUITest, macOS and iOS Simulator) | `scripts/ui-tests.sh` | Before merging a change to the interface |
 
 `scripts/ci.sh` stays fast and does not run UI tests (NFR-TEST-03). Warnings are errors in both scripts.

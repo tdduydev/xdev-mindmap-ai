@@ -41,6 +41,7 @@ final class OpenMaps {
     enum Opening {
         case ready(OpenMap)
         case missing
+        case recentlyDeleted
         case failed
     }
 
@@ -148,6 +149,7 @@ final class OpenMaps {
             case .ready(let session):
                 return .ready(OpenMap(session: session, assistant: AIAssistant(session: session, service: service)))
             case .missing: return .missing
+            case .recentlyDeleted: return .recentlyDeleted
             case .failed: return .failed
             }
         }

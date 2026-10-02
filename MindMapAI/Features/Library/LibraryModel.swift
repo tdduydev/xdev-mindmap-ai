@@ -15,7 +15,11 @@ final class LibraryModel {
         case save
     }
 
+    /// Live maps. Everything that offers maps (sections, search, Spotlight)
+    /// reads this list, so a deleted map cannot show up there.
     private(set) var maps: [MindMap] = []
+    /// Maps in Recently Deleted (FR-LIB-11), only for that section.
+    private(set) var deletedMaps: [MindMap] = []
     private(set) var hasLoaded = false
     var failure: Failure?
 
@@ -33,14 +37,21 @@ final class LibraryModel {
     @ObservationIgnored private var searchIndex: LibrarySearchIndex?
     /// Keeps Spotlight's list of map titles in step with the library (FR-SYS-04).
     @ObservationIgnored private let spotlightIndex: (any MapSearchIndex)?
+    @ObservationIgnored private let clock: () -> Date
 
-    init(repository: any MapRepository, spotlightIndex: (any MapSearchIndex)? = nil) {
+    init(repository: any MapRepository, spotlightIndex: (any MapSearchIndex)? = nil, clock: @escaping () -> Date = { .now }) {
         self.repository = repository
         self.spotlightIndex = spotlightIndex
+        self.clock = clock
     }
 
     func maps(in section: LibrarySection) -> [MindMap] {
-        section.maps(from: maps)
+        section.maps(from: section == .recentlyDeleted ? deletedMaps : maps)
+    }
+
+    /// Whole days before a map in Recently Deleted goes for good.
+    func daysLeft(for map: MindMap) -> Int? {
+        map.deletedAt.map { RecentlyDeleted.daysLeft(deletedAt: $0, now: clock()) }
     }
 
     struct SearchRow: Identifiable, Hashable {
@@ -52,8 +63,14 @@ final class LibraryModel {
     var isSearching: Bool { !SearchQuery(searchText).isEmpty }
 
     /// The section's maps that match the search, maps matching by title first.
+    /// Library search covers live maps only; inside Recently Deleted the field
+    /// filters that section by title, so its maps never show up anywhere else.
     func searchRows(in section: LibrarySection) -> [SearchRow] {
         let maps = maps(in: section)
+        if section == .recentlyDeleted {
+            let query = SearchQuery(searchText)
+            return maps.filter { query.matches($0.title) }.map { SearchRow(map: $0, match: .title) }
+        }
         let byID = Dictionary(maps.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         return searchResults.ranked(maps.map(\.id)).compactMap { hit in
             byID[hit.mapID].map { SearchRow(map: $0, match: hit.match) }
@@ -102,6 +119,7 @@ final class LibraryModel {
     /// Also called when the app comes back to the foreground: the Share
     /// Extension and the intents may have added or changed maps meanwhile.
     func load() async {
+        await purgeExpiredMaps()
         do {
             // Shared tags made on two devices offline merge here, as a map's
             // own tags do when it opens (docs/node-organization.md, *Sync and repair*).
@@ -113,6 +131,7 @@ final class LibraryModel {
         do {
             let previous = hasLoaded ? maps : nil
             maps = try await repository.fetchMaps()
+            deletedMaps = try await repository.fetchDeletedMaps()
             invalidateSearch()
             await reindex(from: previous)
         } catch {
@@ -137,13 +156,13 @@ final class LibraryModel {
 
     func apply(_ change: MapRepositoryChange) async {
         switch change {
+        case .saved(let map) where map.deletedAt != nil:
+            await showDeleted(map)
         case .saved(let map):
-            let renamed = maps.first { $0.id == map.id }?.title != map.title
-            show(map)
-            invalidateSearch()
-            if renamed { await spotlightIndex?.update(map) }
+            await showLive(map)
         case .deleted(let id):
             maps.removeAll { $0.id == id }
+            deletedMaps.removeAll { $0.id == id }
             invalidateSearch()
             await spotlightIndex?.remove(id)
         case .storeChanged:
@@ -175,16 +194,116 @@ final class LibraryModel {
         }
     }
 
-    func delete(_ map: MindMap) async {
+    // MARK: Recently Deleted
+
+    /// Moves a map to Recently Deleted (FR-LIB-04, FR-LIB-11). It can be
+    /// restored, so there is no confirmation; Edit ▸ Undo Delete Map brings it
+    /// back. Library data, not an edit, so it is not a `GraphCommand`.
+    func delete(_ map: MindMap, undoManager: UndoManager? = nil) async {
+        guard await perform(.delete, on: map.id) else { return }
+        registerUndo(after: .delete, of: map.id, on: undoManager, actionName: String(localized: "Delete Map"))
+    }
+
+    func restore(_ map: MindMap, undoManager: UndoManager? = nil) async {
+        guard await perform(.restore, on: map.id) else { return }
+        registerUndo(after: .restore, of: map.id, on: undoManager, actionName: String(localized: "Restore Map"))
+    }
+
+    /// Deletes a map and all its topics for good, after the view has asked (DR-07).
+    func deletePermanently(_ map: MindMap) async {
         do {
             try await repository.deleteMap(map.id)
             maps.removeAll { $0.id == map.id }
+            deletedMaps.removeAll { $0.id == map.id }
             invalidateSearch()
             await spotlightIndex?.remove(map.id)
         } catch {
             Log.persistence.error("Deleting a map failed: \(error.localizedDescription, privacy: .public)")
             failure = .save
         }
+    }
+
+    /// Runs on every load, so maps past 30 days go when the app opens or comes
+    /// back to the foreground (FR-LIB-11). Removing them from the lists and
+    /// from Spotlight is left to the fetch that follows.
+    private func purgeExpiredMaps() async {
+        do {
+            let purged = try await repository.purgeDeletedMaps(deletedBefore: RecentlyDeleted.cutoff(now: clock()))
+            if !purged.isEmpty {
+                Log.persistence.notice("Deleted \(purged.count, privacy: .public) maps past their time in Recently Deleted")
+            }
+        } catch {
+            // The next load tries again; nothing the person did failed.
+            Log.persistence.error("Emptying Recently Deleted failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    private enum BinMove {
+        case delete
+        case restore
+
+        var inverse: BinMove { self == .delete ? .restore : .delete }
+    }
+
+    /// False when the map is not where the move starts (already moved, or
+    /// deleted for good since the undo step was registered) or the store failed.
+    @discardableResult
+    private func perform(_ move: BinMove, on id: MapID) async -> Bool {
+        do {
+            switch move {
+            case .delete:
+                guard var map = maps.first(where: { $0.id == id }) else { return false }
+                let deletedAt = clock()
+                try await repository.moveToRecentlyDeleted(id, at: deletedAt)
+                map.deletedAt = deletedAt
+                await showDeleted(map)
+            case .restore:
+                guard var map = deletedMaps.first(where: { $0.id == id }) else { return false }
+                try await repository.restoreMap(id)
+                map.deletedAt = nil
+                await showLive(map)
+            }
+            return true
+        } catch {
+            Log.persistence.error("Moving a map to or from Recently Deleted failed: \(error.localizedDescription, privacy: .public)")
+            failure = .save
+            return false
+        }
+    }
+
+    /// The undo step runs the inverse move. It registers its own inverse
+    /// synchronously, inside the undo, so UndoManager files it as the redo;
+    /// registered from the async task it would land on the undo stack instead.
+    private func registerUndo(after move: BinMove, of id: MapID, on undoManager: UndoManager?, actionName: String) {
+        guard let undoManager else { return }
+        undoManager.registerUndo(withTarget: self) { [weak undoManager] model in
+            model.registerUndo(after: move.inverse, of: id, on: undoManager, actionName: actionName)
+            Task { await model.perform(move.inverse, on: id) }
+        }
+        undoManager.setActionName(actionName)
+    }
+
+    /// A map that went to Recently Deleted, here or in another window.
+    private func showDeleted(_ map: MindMap) async {
+        let wasLive = maps.contains { $0.id == map.id }
+        maps.removeAll { $0.id == map.id }
+        if let index = deletedMaps.firstIndex(where: { $0.id == map.id }) {
+            deletedMaps[index] = map
+        } else {
+            deletedMaps.append(map)
+        }
+        invalidateSearch()
+        if wasLive { await spotlightIndex?.remove(map.id) }
+    }
+
+    /// A live map stored, or restored, here or in another window.
+    private func showLive(_ map: MindMap) async {
+        deletedMaps.removeAll { $0.id == map.id }
+        // Also true for a map not in the list yet: new, or restored.
+        let renamed = maps.first { $0.id == map.id }?.title != map.title
+        show(map)
+        invalidateSearch()
+        if renamed { await spotlightIndex?.update(map) }
     }
 
     func toggleFavorite(_ map: MindMap) async {

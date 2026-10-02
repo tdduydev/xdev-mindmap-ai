@@ -63,9 +63,11 @@ struct GeneratedAnswerTests {
     }
 }
 
-/// Runs the real on-device model, so only where it is available. Answers vary,
-/// so these check shape, not wording.
-@Suite(.enabled(if: SystemLanguageModel.default.isAvailable), .serialized)
+/// Runs the real on-device model, so only where the provider will use it. That
+/// is the probe, not `SystemLanguageModel.default.isAvailable`: under Rosetta
+/// the framework says the model is available while an x86_64 build never uses
+/// it (MM-21). Answers vary, so these check shape, not wording.
+@Suite(.enabled(if: AppleCapabilityProbe.current().model.isReady), .serialized)
 struct AppleFoundationModelProviderTests {
     private let provider = AppleFoundationModelProvider()
 

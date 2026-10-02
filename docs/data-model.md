@@ -141,14 +141,31 @@ Kept out on purpose. A property shipped to CloudKit production can never be remo
 | Images and attachments | An `AttachmentRecord` with external storage |
 | Custom properties | Property definition and value records |
 
+## Recently Deleted (MM-19)
+
+Deleting a map sets `MapRecord.deletedAt` and keeps every record (FR-LIB-11, DR-07). `deletedAt` is library data like `isFavorite`: `save(_:map:)` never writes it, so an editor still open on the map in another window keeps saving without bringing the map back.
+
+| `MapRepository` | Does |
+| --- | --- |
+| `fetchMaps()` | Live maps only (`deletedAt == nil`). Intents, the Share Extension (`QuickCapture`) and Spotlight read this, so they never offer a deleted map |
+| `fetchDeletedMaps()` | Maps in Recently Deleted, newest deletion first |
+| `moveToRecentlyDeleted(_:at:)`, `restoreMap(_:)` | Set or clear `deletedAt` on every record of the map (sync duplicates included); `updatedAt` does not move |
+| `deleteMap(_:)` | Deletes the map and all its nodes, edges, tags, tag links and groups, one record at a time |
+| `purgeDeletedMaps(deletedBefore:)` | `deleteMap` for every map deleted before the cutoff, in one commit; with nothing due it writes nothing |
+| `loadGraph(for:)` | Still loads a deleted map; `EditorSession.open` returns `.recentlyDeleted` and `QuickCapture.add` throws `mapNotFound` for it |
+
+`RecentlyDeleted.retention` is 30 days of elapsed time, not calendar days. `LibraryModel.load()` purges first, so maps past the period go whenever the app opens or comes back to the foreground; there is no background task. `LibraryModel` keeps live maps in `maps` and deleted ones in `deletedMaps`; search, sections other than Recently Deleted and Spotlight read only `maps`.
+
+Delete in the library is not confirmed, because it can be undone: `LibraryModel.delete(_:undoManager:)` registers "Delete Map" on the window's `UndoManager` (Restore registers "Restore Map"). It is a library action, not a `GraphCommand`, like a favorite. Delete Permanently asks first and has no undo. With iCloud (MM-6), Delete Permanently and the purge delete the records on every device; which device purges first does not matter, since the cutoff only depends on `deletedAt`.
+
 ## Change stream
 
 `MapRepository.changes()` returns an `AsyncStream<MapRepositoryChange>` with every change committed after the call, in commit order:
 
 | Change | When | Library does |
 | --- | --- | --- |
-| `.saved(MindMap)` | this repository created a map, saved an edit or set a favorite; carries the summary as stored | adds or replaces the row |
-| `.deleted(MapID)` | this repository deleted a map | removes the row |
+| `.saved(MindMap)` | this repository created a map, saved an edit, set a favorite, moved a map to Recently Deleted or restored it; carries the summary as stored, `deletedAt` included | adds or replaces the row, in the live list or in Recently Deleted by `deletedAt` |
+| `.deleted(MapID)` | this repository deleted a map for good (Delete Permanently, or the 30-day purge) | removes the row from both lists |
 | `.storeChanged` | someone else wrote to the store: another `ModelContext`, another container or process on the file, later iCloud | fetches the list again |
 
 `.tagsChanged(LibraryTagChange)` carries what a shared tag action stored (`SharedTagActions`: rename, recolour, delete, merge, make shared, make map tag, repair); every open editor applies its part with `GraphEngine.apply(_:)`, and the library refreshes its search, which includes tag names.

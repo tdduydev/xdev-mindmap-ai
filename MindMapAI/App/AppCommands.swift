@@ -16,6 +16,8 @@ extension FocusedValues {
     @Entry var voiceInput: VoiceInput?
     /// The map selected in the library, to show in a window of its own.
     @Entry var openInNewWindowAction: OpenInNewWindowAction?
+    /// The map selected in the focused library list, for File ▸ Delete Map and the Recently Deleted commands.
+    @Entry var libraryMapActions: LibraryMapActions?
 }
 
 struct NewMapAction {
@@ -28,6 +30,13 @@ struct KeyboardShortcutsAction {
 
 struct OpenInNewWindowAction {
     let perform: () -> Void
+}
+
+/// Nil members are commands that do not apply to the selection, shown disabled.
+struct LibraryMapActions {
+    var delete: (() -> Void)?
+    var restore: (() -> Void)?
+    var deletePermanently: (() -> Void)?
 }
 
 /// Every editor action is in the menu bar, with its shortcut, as the Mac
@@ -43,6 +52,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
     @FocusedValue(\.voiceInput) private var voice
     @FocusedValue(\.openInNewWindowAction) private var openInNewWindow
+    @FocusedValue(\.libraryMapActions) private var libraryMap
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -57,6 +67,19 @@ struct MapCommands: Commands {
             Button("Open in New Window") { openInNewWindow?.perform() }
                 .keyboardShortcut("o", modifiers: [.command, .option])
                 .disabled(openInNewWindow == nil)
+            Divider()
+            // ⌘Delete and ⌥⌘Delete as Finder's Move to Trash and Delete
+            // Immediately. Set only while they apply, which is only while the
+            // library list has focus: a menu key equivalent is matched before
+            // a text field sees the key, and ⌘Delete edits text there.
+            Button("Delete Map") { libraryMap?.delete?() }
+                .keyboardShortcut(libraryMap?.delete == nil ? nil : KeyboardShortcut(.delete))
+                .disabled(libraryMap?.delete == nil)
+            Button("Restore Map") { libraryMap?.restore?() }
+                .disabled(libraryMap?.restore == nil)
+            Button("Delete Map Permanently…") { libraryMap?.deletePermanently?() }
+                .keyboardShortcut(libraryMap?.deletePermanently == nil ? nil : KeyboardShortcut(.delete, modifiers: [.command, .option]))
+                .disabled(libraryMap?.deletePermanently == nil)
         }
 
         // View menu: canvas or outline (⌘1, ⌘2, as Finder's View As), then zoom.

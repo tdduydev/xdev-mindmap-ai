@@ -13,8 +13,13 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 | Voice input | On-device (`SpeechAnalyzer`; `SFSpeechRecognizer` only asks the permission and never recognizes, since it sends Vietnamese to a server). Audio is neither stored nor sent; text stays in the sheet until the user adds it. Microphone and speech recognition access are asked the first time someone opens Add Topics by Voice |
 | Analytics | None in V1 |
 | Share Extension | Writes shared text and links into the store in the App Group container on the device; images and PDFs are copied there to wait for the app |
-| Spotlight | Map titles only, in the device's own index; deleted maps are removed |
+| Spotlight | Map titles only, in the device's own index; maps moved to Recently Deleted or deleted are removed |
 | Clipboard | Read only when the user runs Map from Clipboard |
+
+## Planned
+
+- **AI apps over MCP** ([mcp.md](mcp.md), ADR 0008, not built): off by default. Once the person connects an AI app such as Claude or ChatGPT, that app can read maps on the Mac and may send them to its own provider under its terms; xDev still receives nothing. The task that ships it adds a row to the table above and updates the privacy policy.
+- **Chat** ([chat.md](chat.md), ADR 0009, not built): on the device like the other AI features; conversations are not saved [Đề xuất].
 
 ## Rules for the code
 

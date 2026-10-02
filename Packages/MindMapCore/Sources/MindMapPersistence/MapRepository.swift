@@ -4,9 +4,11 @@ import MindMapGraph
 
 /// What changed in the store, as the library needs to know it.
 public enum MapRepositoryChange: Sendable, Equatable {
-    /// This repository stored a map: created, edited or marked as a favorite.
-    /// Carries the summary as stored, favorite flag included.
+    /// This repository stored a map: created, edited, marked as a favorite,
+    /// moved to Recently Deleted or restored. Carries the summary as stored,
+    /// favorite flag and `deletedAt` included.
     case saved(MindMap)
+    /// Deleted permanently, by Delete Permanently or after the retention period.
     case deleted(MapID)
     /// Something other than this repository wrote to the store (another
     /// context, another process, later iCloud). Which maps changed is not
@@ -26,10 +28,17 @@ public protocol MapRepository: SharedTagActions {
     /// so a write cannot fall between the fetch and the subscription.
     func changes() async -> AsyncStream<MapRepositoryChange>
 
-    /// Every map, most recently edited first. Nodes are not loaded.
+    /// Every live map, most recently edited first; maps in Recently Deleted
+    /// are left out, so intents, the Share Extension and Spotlight never offer
+    /// them. Nodes are not loaded.
     func fetchMaps() async throws -> [MindMap]
 
-    /// Nil when the map does not exist, for example after another device deleted it.
+    /// Maps in Recently Deleted, most recently deleted first.
+    func fetchDeletedMaps() async throws -> [MindMap]
+
+    /// Nil when the map does not exist, for example after another device
+    /// deleted it. A map in Recently Deleted still loads; callers that edit
+    /// check `map.deletedAt`.
     func loadGraph(for mapID: MapID) async throws -> GraphState?
 
     /// Stores a whole new graph: a new map, a template or an import.
@@ -43,7 +52,20 @@ public protocol MapRepository: SharedTagActions {
     /// Marking a map as a favorite is not an edit: it does not move `updatedAt`.
     func setFavorite(_ isFavorite: Bool, for mapID: MapID) async throws
 
+    /// Moves a map to Recently Deleted (FR-LIB-11). Its records stay, so
+    /// `restoreMap` brings it back as it was. Like a favorite, not an edit.
+    func moveToRecentlyDeleted(_ mapID: MapID, at date: Date) async throws
+
+    /// Takes a map out of Recently Deleted.
+    func restoreMap(_ mapID: MapID) async throws
+
+    /// Deletes a map and every record of it for good (DR-07).
     func deleteMap(_ mapID: MapID) async throws
+
+    /// Deletes for good every map that went to Recently Deleted before
+    /// `cutoff`, and returns their IDs.
+    @discardableResult
+    func purgeDeletedMaps(deletedBefore cutoff: Date) async throws -> [MapID]
 
     /// The title and note of every topic, by map, for library search, and the
     /// name of every tag the map's topics carry. Empty texts are left out.

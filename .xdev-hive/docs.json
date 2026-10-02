@@ -13,11 +13,14 @@
     {"file": "docs/system-integration.md", "key": "system-integration", "title": "System integration"},
     {"file": "docs/ai-architecture.md", "key": "ai-architecture", "title": "AI architecture"},
     {"file": "docs/on-device-ai.md", "key": "on-device-ai", "title": "On-device AI"},
+    {"file": "docs/mcp.md", "key": "mcp", "title": "MCP server"},
+    {"file": "docs/chat.md", "key": "chat", "title": "Chat"},
     {"file": "docs/cloudkit-sync.md", "key": "cloudkit-sync", "title": "iCloud sync"},
     {"file": "docs/privacy.md", "key": "privacy", "title": "Privacy"},
     {"file": "docs/design-guidelines.md", "key": "design-guidelines", "title": "Design guidelines"},
     {"file": "docs/app-store-readiness.md", "key": "app-store-readiness", "title": "App Store readiness"},
     {"file": "docs/design-system.md", "key": "design-system", "title": "Design system"},
+    {"file": "docs/settings.md", "key": "settings", "title": "Settings"},
     {"file": "docs/testing.md", "key": "testing", "title": "Testing"},
     {"file": "docs/pricing.md", "key": "pricing", "title": "Pricing"},
     {"file": "docs/web/privacy-policy.md", "key": "web-privacy-policy", "title": "Privacy policy page"},
@@ -29,6 +32,8 @@
     {"file": "docs/adr/0004-hierarchy-in-parent-id.md", "key": "adr-0004", "title": "0004 Hierarchy in parentID", "parent": "adr"},
     {"file": "docs/adr/0005-ios-26-minimum.md", "key": "adr-0005", "title": "0005 OS 26 minimum", "parent": "adr"},
     {"file": "docs/adr/0006-macos-first.md", "key": "adr-0006", "title": "0006 macOS first", "parent": "adr"},
-    {"file": "docs/adr/0007-visual-language.md", "key": "adr-0007", "title": "0007 Visual language and brand fonts", "parent": "adr"}
+    {"file": "docs/adr/0007-visual-language.md", "key": "adr-0007", "title": "0007 Visual language and brand fonts", "parent": "adr"},
+    {"file": "docs/adr/0008-mcp-server.md", "key": "adr-0008", "title": "0008 MCP server in the Mac app", "parent": "adr"},
+    {"file": "docs/adr/0009-local-chat.md", "key": "adr-0009", "title": "0009 Chat on the device", "parent": "adr"}
   ]
 }

@@ -9,7 +9,8 @@ enum AppleCapabilityProbe {
         // Apple Intelligence needs Apple silicon, so an Intel Mac, and the
         // Intel slice running under Rosetta, never get the model. Answering
         // here keeps every AI entry point hidden there (MM-21) without relying
-        // on how the framework reports an unsupported processor.
+        // on how the framework reports an unsupported processor: under Rosetta
+        // on Apple silicon it says the model is available (macOS 27.0.1).
         return .notEligible
         #else
         let model = SystemLanguageModel.default

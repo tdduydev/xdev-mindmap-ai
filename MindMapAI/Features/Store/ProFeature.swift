@@ -16,6 +16,21 @@ enum ProFeature: CaseIterable, Identifiable {
 
     var id: Self { self }
 
+    /// Runs on the on-device model, so it does not exist on a Mac that can
+    /// never run Apple Intelligence (an Intel Mac, MM-21).
+    var needsOnDeviceModel: Bool {
+        switch self {
+        case .generateMapFromDescription, .summarizeWholeMap, .findMissingIdeas: true
+        case .vectorPDFExport, .highResolutionPNGExport, .opmlExport, .extraThemes, .voiceInput: false
+        }
+    }
+
+    /// What the paywall may promise: without AI, Pro must not list AI tools
+    /// the buyer can never use (App Review 2.3.1).
+    static func offered(includingAI: Bool) -> [ProFeature] {
+        allCases.filter { includingAI || !$0.needsOnDeviceModel }
+    }
+
     var title: LocalizedStringResource {
         switch self {
         case .vectorPDFExport: "Multi-Page Vector PDF Export"

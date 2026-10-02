@@ -39,6 +39,12 @@ struct EditorView: View {
                     systemImage: "questionmark.folder",
                     description: Text("It may have been deleted on another device.")
                 )
+            case .recentlyDeleted:
+                ContentUnavailableView(
+                    "Map in Recently Deleted",
+                    systemImage: "trash",
+                    description: Text("Restore it from Recently Deleted to open it.")
+                )
             case .failed:
                 ContentUnavailableView(
                     "Couldn’t Open Map",
