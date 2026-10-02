@@ -1283,6 +1283,16 @@
         }
       }
     },
+    "Check the code and your connection, then try again. You can also redeem it on the App Store." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy kiểm tra mã và kết nối mạng rồi thử lại. Bạn cũng có thể đổi mã trên App Store."
+          }
+        }
+      }
+    },
     "Choices with a star come with MindMap AI Pro. Until it’s unlocked, exports use Standard (1×) and one page." : {
       "localizations" : {
         "vi" : {
@@ -1469,6 +1479,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không mở được sơ đồ"
+          }
+        }
+      }
+    },
+    "Couldn’t Redeem the Code" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đổi được mã"
           }
         }
       }
@@ -3859,6 +3879,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đã xoá gần đây"
+          }
+        }
+      }
+    },
+    "Redeem Code…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi mã…"
+          }
+        }
+      }
+    },
+    "Redeem in App Store" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi mã trên App Store"
           }
         }
       }

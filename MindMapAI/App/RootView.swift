@@ -87,6 +87,7 @@ struct RootView: View {
         .focusedSceneValue(\.openInNewWindowAction, openSelectedMapInNewWindow)
         .focusedSceneValue(\.newMapWithAIAction, ai.showsControls ? NewMapAction(perform: createMapWithAI) : nil)
         .modifier(FileTransferPresenter(transfer: transfer, entitlements: ai.entitlements))
+        .redeemCodeCommandTarget()
     }
 
     /// A map an intent or Spotlight asked for (FR-SYS-03, FR-SYS-04). The
