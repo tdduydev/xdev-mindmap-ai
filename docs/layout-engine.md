@@ -21,7 +21,7 @@ protocol MindMapLayoutEngine: Sendable {
 
 - The central topic sits at the origin. Main branches go right and left (`BranchSides.balanced`, the default), or all to one side (`.rightOnly`, `.leftOnly`).
 - **Balance** splits the main branches in display order: a prefix goes right, the rest left, choosing the split that makes the visible topic counts closest; on a tie the right side takes the extra branch. Keeping order means a branch changes side only when the balance demands it. This default is still a proposal in the SRS (FR-LAY-02, open question Q10).
-- **Reading goes clockwise:** down the right side, then up the left, so the first left branch is the lowest. Children inside a branch always read top to bottom.
+- **Reading goes clockwise** when both sides are used: down the right side, then up the left, so the first left branch is the lowest. With `.rightOnly` or `.leftOnly` there is no other side to continue from, so main branches read top to bottom in display order. Children inside a branch always read top to bottom.
 - **No overlap with any sizes.** Each branch gets a horizontal band as tall as the branch; sibling bands are stacked with `verticalSpacing` between them, and a topic is centered on its children's block. Children start `horizontalSpacing` past their own parent's edge, so a wide topic pushes only its own branch outward. This is simpler and less compact than contour-based tidy-tree algorithms; it can be swapped for one behind the same protocol if maps look too sparse.
 - **Collapsed branches take no space:** their topics are not in the layout, and the collapsed topic reports `hiddenDescendantCount` for the canvas badge.
 - **Deterministic:** the walk follows `GraphState`'s display order (sort order, creation time, ID), never dictionary order, so the same graph, sizes and options give the same `MapLayout` on every device.
@@ -32,11 +32,11 @@ protocol MindMapLayoutEngine: Sendable {
 `update` reuses the previous layout for everything the edit did not touch. `changed` must name every topic whose content or measured size changed, plus the old and new parent of every topic that moved or was deleted; `GraphChangeSet.layoutInvalidation` gives that for a command, undo or redo, and the canvas adds topics whose size changed for other reasons (Dynamic Type).
 
 1. The changed topics and their ancestors are measured again; every other branch keeps its measure (band height, topic count).
-2. Placement runs from the root, but stops at an untouched branch whose frame, side and depth come out exactly as before, since nothing inside it can have moved.
+2. Placement runs from the root, but stops at an untouched branch whose frame, side and depth come out exactly as before, since nothing inside it can have moved. Its connector is still written: the parent can move while the child stays put (a topic re-centered on a block that grew below as much as the block above shrank), and the connector starts on the parent's edge.
 3. Topics that stopped being visible (deleted, collapsed, moved away) are removed.
 
-A branch that does move is placed with the same arithmetic as a full layout, never shifted by a delta, so an update is bit-for-bit equal to a full layout. Tests check that equality after every kind of edit and after long chains of edits. Changing options or the root falls back to a full layout. Cross-links are recomputed on every pass: a map has few of them, and an edge edit changes no topic.
+A branch that does move is placed with the same arithmetic as a full layout, never shifted by a delta, so an update is bit-for-bit equal to a full layout. Tests check that equality after every kind of edit and after long seeded chains of edits, undo, redo and size changes, for each `BranchSides`. Changing options or the root falls back to a full layout. Cross-links are recomputed on every pass: a map has few of them, and an edge edit changes no topic.
 
 ## Performance
 
-NFR-PERF-06 asks for 1,000 topics under 50 ms and a one-branch update faster than a full layout. `LayoutPerformanceTests` checks both with medians of 15 runs and prints the numbers.
+NFR-PERF-06 asks for 1,000 topics under 50 ms on a Mac M1 and a one-branch update faster than a full layout. `LayoutPerformanceTests` measures both as medians of 15 runs, checks that the update still equals a full layout, and prints the timings with whether the target was met. It does not fail on time: `swift test` builds for debug and machines vary, so a timing assertion would make the suite flaky.

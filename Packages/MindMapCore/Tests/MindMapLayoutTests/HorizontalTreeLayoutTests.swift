@@ -136,8 +136,9 @@ struct HorizontalTreeLayoutTests {
             #expect(layout.nodes[fixture[title]]?.side == expected)
         }
         #expect(layout.overlappingPairs.isEmpty)
-        // Display order reads top to bottom on a single side.
+        // Display order reads top to bottom on a single side, left as well as right.
         #expect(layout.frame(fixture["A"]).maxY < layout.frame(fixture["B"]).minY)
+        #expect(layout.frame(fixture["B"]).maxY < layout.frame(fixture["C"]).minY)
     }
 
     @Test func collapsedBranchTakesNoSpace() {

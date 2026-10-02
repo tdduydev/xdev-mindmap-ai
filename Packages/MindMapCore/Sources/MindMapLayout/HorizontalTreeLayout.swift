@@ -63,7 +63,7 @@ private struct LayoutPass {
     let dirty: Set<NodeID>
 
     private var result: MapLayout
-    /// Topics written in this pass; an update must not remove them.
+    /// Topics the placement walk reached in this pass; an update must not remove them.
     private var placed: Set<NodeID> = []
     /// Topics that were visible children of a re-measured topic and no longer
     /// are; their old entries go unless they turned up elsewhere.
@@ -173,9 +173,12 @@ private struct LayoutPass {
 
         let (right, left) = split(measure(of: rootID).visibleChildren)
         var stack = placements(for: right, in: rootFrame, side: .right, depth: 1)
-        // Reading goes clockwise around the central topic: down the right side,
-        // then up the left, so the first left branch sits at the bottom.
-        stack += placements(for: left.reversed(), in: rootFrame, side: .left, depth: 1)
+        // With both sides in use, reading goes clockwise around the central topic:
+        // down the right side, then up the left, so the first left branch sits at
+        // the bottom. A left-only map has no right side to continue from, so it
+        // reads top to bottom like a right-only one.
+        let leftOrder = options.sides == .balanced ? Array(left.reversed()) : left
+        stack += placements(for: leftOrder, in: rootFrame, side: .left, depth: 1)
 
         while let next = stack.popLast() {
             let nodeSize = size(of: next.id)
@@ -186,8 +189,11 @@ private struct LayoutPass {
                 width: nodeSize.width,
                 height: nodeSize.height
             )
-            guard write(next.id, frame: frame, side: next.side, depth: next.depth) else { continue }
+            // Written before the early stop below: a topic can keep its frame while
+            // its parent moves (a parent re-centered on a block that grew below and
+            // shrank above), and the connector starts on the parent's edge.
             result.connectors[next.id] = connector(from: next.parentFrame, to: frame, side: next.side)
+            guard write(next.id, frame: frame, side: next.side, depth: next.depth) else { continue }
             stack += placements(
                 for: measure(of: next.id).visibleChildren,
                 in: frame,
@@ -200,6 +206,9 @@ private struct LayoutPass {
     /// Records a topic's place. Returns false when an untouched branch landed
     /// exactly where it was, so nothing inside it can have moved.
     private mutating func write(_ id: NodeID, frame: CGRect, side: LayoutSide, depth: Int) -> Bool {
+        // Reached by the walk means visible, so `removeOrphans` must keep it even
+        // when the early stop below leaves its entry untouched.
+        if previous != nil { placed.insert(id) }
         if previous != nil, !dirty.contains(id), let old = result.nodes[id],
            old.frame == frame, old.side == side, old.depth == depth {
             return false
@@ -210,7 +219,6 @@ private struct LayoutPass {
             depth: depth,
             hiddenDescendantCount: measure(of: id).hiddenDescendantCount
         )
-        if previous != nil { placed.insert(id) }
         return true
     }
 
