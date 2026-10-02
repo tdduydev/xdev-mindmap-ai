@@ -115,6 +115,7 @@ struct CanvasView: View {
             .gesture(pan)
             .simultaneousGesture(holdThenMarquee)
             #endif
+            // On a topic shape it edits; on empty canvas it adds a floating topic there.
             .onTapGesture(count: 2) { model.doubleTap(at: $0) }
             .simultaneousGesture(SpatialTapGesture().onEnded { value in
                 model.tap(at: value.location)
@@ -122,6 +123,12 @@ struct CanvasView: View {
             })
             #if os(macOS)
             .pointerStyle(model.isPanning ? .grabActive : .grabIdle)
+            // Touch keeps the hold on empty canvas for the selection rectangle;
+            // it adds floating topics by double-tap and the Topic menu.
+            .contextMenu {
+                Button("Add Floating Topic", action: model.addFloatingTopic)
+                    .disabled(!session.canAddFloatingTopic)
+            }
             #endif
             .accessibilityHidden(true)
     }

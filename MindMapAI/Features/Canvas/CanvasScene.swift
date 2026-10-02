@@ -7,7 +7,7 @@ import MindMapLayout
 /// One visible topic as the canvas draws it.
 nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     let id: NodeID
-    /// Nil for the central topic.
+    /// Nil for the central topic and floating topics.
     let parentID: NodeID?
     let title: String
     /// 0 for the central topic.
@@ -22,6 +22,8 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     let hiddenDescendantCount: Int
     /// An AI suggestion drawn from the preview graph, not a topic of the map.
     var isSuggestion = false
+    /// A topic beside the tree with no parent (FR-ORG-27), drawn as a main topic.
+    var isFloating = false
     /// Marked on the card and read by VoiceOver (FR-EDT-13).
     var hasNote = false
     /// Only a link this build can open; drawn on the corner, so not measured.
@@ -270,6 +272,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 isCollapsed: node.isCollapsed,
                 hiddenDescendantCount: placed.hiddenDescendantCount,
                 isSuggestion: suggestions.contains(node.id),
+                isFloating: node.isFloating(rootID: graph.map.rootNodeID),
                 hasNote: node.hasNote,
                 link: node.link?.url == nil ? nil : node.link,
                 chips: chips[node.id] ?? [],

@@ -3072,6 +3072,96 @@
         }
       }
     },
+    "Add Floating Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề tự do"
+          }
+        }
+      }
+    },
+    "Attach to Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gắn vào chủ đề"
+          }
+        }
+      }
+    },
+    "Attach to Topic…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gắn vào chủ đề…"
+          }
+        }
+      }
+    },
+    "Detach Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tách chủ đề"
+          }
+        }
+      }
+    },
+    "Floating Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề tự do"
+          }
+        }
+      }
+    },
+    "Floating topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề tự do"
+          }
+        }
+      }
+    },
+    "Double-click empty canvas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bấm đúp vào nền canvas trống"
+          }
+        }
+      }
+    },
+    "Double-tap empty canvas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chạm đúp vào nền canvas trống"
+          }
+        }
+      }
+    },
+    "⌥-drag a topic to empty canvas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giữ ⌥ và kéo chủ đề ra nền canvas trống"
+          }
+        }
+      }
+    },
     "Move Topic" : {
       "localizations" : {
         "vi" : {

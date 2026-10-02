@@ -1,6 +1,9 @@
 import MindMapDomain
 import MindMapLayout
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 /// One topic card at 100% zoom; the canvas scales and places it. Takes plain
 /// values and the model (compared by identity), so panning re-renders no topic
@@ -118,7 +121,17 @@ struct TopicView: View {
                 model.beginDrag(topic.id, at: value.startLocation)
                 model.updateDrag(to: value.location)
             }
-            .onEnded { _ in model.endDrag() }
+            .onEnded { _ in model.endDrag(detaching: isDetachKeyDown) }
+    }
+
+    /// ⌥ held at the drop makes a branch dropped on empty canvas floating
+    /// (FR-ORG-27). Touch has no modifier keys; it uses Detach Topic.
+    private var isDetachKeyDown: Bool {
+        #if os(macOS)
+        NSEvent.modifierFlags.contains(.option)
+        #else
+        false
+        #endif
     }
 
     /// Suggestions use the secondary text colour, so they read as not yet part of the map.
@@ -307,7 +320,7 @@ struct TopicContextMenu: View {
     var body: some View {
         Button("Add Child Topic") { perform { $0.addChild() } }
         Button("Add Sibling Topic") { perform { $0.addSibling() } }
-            .disabled(isRoot)
+            .disabled(isRoot || topic.isFloating)
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         TopicLinkMenuItems(topic: topic, model: model)
@@ -319,7 +332,11 @@ struct TopicContextMenu: View {
         }
         #endif
         Button("Duplicate Topic") { perform { $0.duplicateSelection() } }
-            .disabled(isRoot)
+            .disabled(isRoot || topic.isFloating)
+        Button("Detach Topic") { model.detach(topic.id) }
+            .disabled(isRoot || topic.isFloating)
+        Button("Attach to Topic…") { model.session.beginAttaching(topic.id) }
+            .disabled(!topic.isFloating)
         Divider()
         Button("Cut") { perform { $0.cutSelection() } }
             .disabled(isRoot)
@@ -508,8 +525,12 @@ struct TopicAccessibility: ViewModifier {
             Button(topic.isCollapsed ? "Expand Topic" : "Collapse Topic") { model.toggleCollapsed(topic.id) }
         }
         Button("Add Child Topic") { model.addChild(of: topic.id) }
-        if !isRoot {
+        if !isRoot, !topic.isFloating {
             Button("Add Sibling Topic") { model.addSibling(of: topic.id) }
+            Button("Detach Topic") { model.detach(topic.id) }
+        }
+        if topic.isFloating {
+            Button("Attach to Topic…") { model.session.beginAttaching(topic.id) }
         }
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
@@ -522,7 +543,9 @@ struct TopicAccessibility: ViewModifier {
 
     /// Levels count from 1 below the central topic, as the outline reads them.
     private var value: String {
-        let level = isRoot ? String(localized: "Central Topic") : String(localized: "Level \(topic.level + 1)")
+        let level = isRoot ? String(localized: "Central Topic")
+            : topic.isFloating ? String(localized: "Floating topic")
+            : String(localized: "Level \(topic.level + 1)")
         let subtopics = String(localized: "\(topic.childCount) subtopics")
         var parts = [level, subtopics]
         if topic.hasNote { parts.append(String(localized: "has note")) }

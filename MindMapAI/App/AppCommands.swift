@@ -125,6 +125,12 @@ struct MapCommands: Commands {
             Button("Add Child Topic") { editor?.addChild() }
                 .keyboardShortcut(.return, modifiers: [.command, .shift])
                 .disabled(editor == nil)
+            // ⌥⌘↩ next to the other Add keys (MM-58); free in the standard menus.
+            Button("Add Floating Topic") {
+                if let canvas { canvas.addFloatingTopic() } else { editor?.addFloatingTopic() }
+            }
+            .keyboardShortcut(.return, modifiers: [.command, .option])
+            .disabled(editor?.canAddFloatingTopic != true)
             // Space opens the title on the canvas (Return adds a sibling there,
             // FR-KBD-01). Neither is a menu key equivalent: a bare key in the menu
             // would never reach text fields. Help ▸ Keyboard Shortcuts lists them.
@@ -168,6 +174,12 @@ struct MapCommands: Commands {
                 .disabled(voice == nil || voice?.isPresented == true)
             Divider()
             // ⇧Tab promotes on the canvas, for the same reason as Space above.
+            Button("Detach Topic") { editor?.detachSelection() }
+                .disabled(editor?.canDetachSelection != true)
+            Button("Attach to Topic…") {
+                if let id = editor?.selection { editor?.beginAttaching(id) }
+            }
+            .disabled(editor?.canAttachSelection != true)
             Button("Promote Topic") { editor?.promoteSelection() }
                 .disabled(editor?.canPromoteSelection != true)
             Button("Demote Topic") { editor?.demoteSelection() }

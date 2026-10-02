@@ -11,16 +11,15 @@ struct OutlineEditorView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
+            let rows = session.rows
+            // Floating branches come after the main tree (FR-ORG-27).
+            let split = rows.firstIndex { $0.node.isFloating(rootID: session.rootID) } ?? rows.endIndex
             List(selection: $session.selection) {
-                ForEach(session.rows) { row in
-                    OutlineRow(
-                        row: row,
-                        isRoot: row.id == session.rootID,
-                        isFindMatch: session.findMatchSet.contains(row.id),
-                        focus: $focusedNode,
-                        onRename: { session.rename(row.id, to: $0) },
-                        onToggle: { session.toggleCollapsed(row.id) }
-                    )
+                ForEach(rows[..<split], content: row)
+                if split < rows.endIndex {
+                    Section("Floating Topics") {
+                        ForEach(rows[split...], content: row)
+                    }
                 }
             }
             .onChange(of: session.scrollRequest) { _, request in
@@ -57,6 +56,26 @@ struct OutlineEditorView: View {
         .onAppear(perform: reportKeyboardFocus)
     }
 
+    private func row(_ row: EditorSession.Row) -> some View {
+        OutlineRow(
+            row: row,
+            isRoot: row.id == session.rootID,
+            isFloating: row.node.isFloating(rootID: session.rootID),
+            isFindMatch: session.findMatchSet.contains(row.id),
+            focus: $focusedNode,
+            onRename: { session.rename(row.id, to: $0) },
+            onToggle: { session.toggleCollapsed(row.id) },
+            onAttachOrDetach: attachOrDetach(row)
+        )
+    }
+
+    /// The outline's way to the same commands as the Topic menu, for VoiceOver.
+    private func attachOrDetach(_ row: EditorSession.Row) -> (() -> Void)? {
+        if row.node.isFloating(rootID: session.rootID) { return { session.beginAttaching(row.id) } }
+        guard row.node.parentID != nil else { return nil }
+        return { session.selection = row.id; session.detachSelection() }
+    }
+
     /// Delete Topic's bare-Delete shortcut follows this (see `EditorSession.deleteKeyDeletesTopic`).
     private func reportKeyboardFocus() {
         let focus: EditorSession.KeyboardFocus = focusedNode != nil ? .editingText : isListFocused ? .content : .elsewhere
@@ -67,27 +86,33 @@ struct OutlineEditorView: View {
 struct OutlineRow: View {
     let row: EditorSession.Row
     let isRoot: Bool
+    var isFloating = false
     let isFindMatch: Bool
     var focus: FocusState<NodeID?>.Binding
     let onRename: (String) -> Void
     let onToggle: () -> Void
+    var onAttachOrDetach: (() -> Void)?
     @State private var draft: String
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         row: EditorSession.Row,
         isRoot: Bool,
+        isFloating: Bool = false,
         isFindMatch: Bool,
         focus: FocusState<NodeID?>.Binding,
         onRename: @escaping (String) -> Void,
-        onToggle: @escaping () -> Void
+        onToggle: @escaping () -> Void,
+        onAttachOrDetach: (() -> Void)? = nil
     ) {
         self.row = row
         self.isRoot = isRoot
+        self.isFloating = isFloating
         self.isFindMatch = isFindMatch
         self.focus = focus
         self.onRename = onRename
         self.onToggle = onToggle
+        self.onAttachOrDetach = onAttachOrDetach
         _draft = State(initialValue: row.node.title)
     }
 
@@ -99,7 +124,7 @@ struct OutlineRow: View {
                 .font(isRoot ? Typography.Content.outlineRoot.font : Typography.Content.outlineTopic.font)
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
-                .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
+                .accessibilityLabel(accessibilityLabel)
                 .accessibilityIdentifier(AccessibilityID.Outline.topic)
             if !row.tags.isEmpty {
                 OutlineTagChips(tags: row.tags)
@@ -123,6 +148,11 @@ struct OutlineRow: View {
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
         .modifier(TopicLinkAccessibility(link: row.node.link))
+        .accessibilityActions {
+            if let onAttachOrDetach {
+                Button(isFloating ? "Attach to Topic…" : "Detach Topic", action: onAttachOrDetach)
+            }
+        }
         .listRowBackground(isFindMatch ? Palette.searchMatchFill : nil)
         // Undo changes the title from outside; show it unless the user is typing here.
         .onChange(of: row.node.title) { _, title in
@@ -150,6 +180,11 @@ struct OutlineRow: View {
         .accessibilityHidden(!row.hasChildren)
         .accessibilityLabel(row.node.isCollapsed ? Text("Expand") : Text("Collapse"))
         .accessibilityIdentifier(AccessibilityID.Outline.disclosure)
+    }
+
+    private var accessibilityLabel: Text {
+        if isRoot { return Text("Central Topic") }
+        return isFloating ? Text("Floating topic") : Text("Topic, level \(row.depth + 1)")
     }
 
     private func commit() {

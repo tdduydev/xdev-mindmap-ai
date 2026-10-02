@@ -69,6 +69,7 @@ struct MapEditorView: View {
                 TopicLinkSheet(session: session, nodeID: target)
             }
         }
+        .modifier(AttachFloatingTopicSheetPresenter(session: session))
         .sheet(isPresented: $session.isManagingTags) {
             TagManagerView(session: session)
         }
