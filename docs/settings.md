@@ -131,6 +131,7 @@ As built in MM-46 ([[mcp]], *In the app*): the pane is `SettingsPane.aiApps`, of
 | Status / Trạng thái | Unlocked (Đã mở khoá) / Not unlocked (Chưa mở khoá) | StoreKit | — | ✅ MM-13 |
 | See What’s in Pro… / Xem Pro có gì… | Button, opens `PaywallView`; hidden when unlocked | — | — | ✅ MM-13 |
 | Restore Purchases / Khôi phục giao dịch mua | Button, `AppStore.sync()`, result alert (FR-SET-09) | StoreKit | — | ✅ MM-13 |
+| Redeem Code… / Đổi mã… | Button, Apple's offer code sheet (`offerCodeRedemption`), alert on failure; hidden when unlocked. Also in the paywall and in the app menu under Settings ([[pricing]] *Pro gift codes*) | StoreKit | — | ✅ MM-76 |
 
 The pane's header is "MindMap AI Pro"; the tab is "Pro". No change planned.
 
