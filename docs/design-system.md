@@ -151,7 +151,8 @@ Edges are drawn under topics and never cross a topic's box; the layout engine (M
 | State | Appearance |
 | --- | --- |
 | Default | Central: `centralFill`. Main: `mainFill` with `mainStroke`. Sub: `subFill`, no stroke |
-| Hover (pointer) | Fill 4% darker in light, 6% lighter in dark |
+| Hover (pointer) | Fill 4% darker in light, 6% lighter in dark; the + buttons show (below) |
+| Add buttons (hover or selected) | Round `accent` circle as tall as the collapse badge (18 pt Mac, 22 pt iOS), bold `plus` in `canvasBackground` with a 1.5 pt `canvasBackground` ring; solid, not glass, since it is content. Add child: just outside the card on the side away from the parent (left on a left branch, right on the central topic), beyond the collapse badge when there is one. Add sibling [Đề xuất]: centred on the bottom edge, half over the card, none on the central topic. Tap area `Metrics.minimumHitTarget` (24 pt Mac, 44 pt iOS). Shown on the hovered topic and on the primary selection (touch has no hover); not while a title is edited, during a drag or a selection rectangle, on suggestions, or below the detail zoom. Fade through `Motion.addButtons` (none with Reduce Motion); leaving waits `Motion.hoverExitDelay` (0.2 s) so crossing to a button or an edge does not blink them. Hidden from VoiceOver: the topic element has Add Child Topic and Add Sibling Topic |
 | Selected | `selectionRing` around the box |
 | Multi-selected | Same ring on each topic; the toolbar shows the count |
 | Editing | Ring stays; the title becomes a text field in the same font, size and position, so nothing jumps |

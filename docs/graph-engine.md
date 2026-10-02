@@ -68,7 +68,7 @@ Commands have no hand-written inverse. Undo applies the recorded change set reve
 
 Shared tags change outside every map's history (library actions, [[node-organization]] *Tags*). `GraphEngine.apply(_ change: LibraryTagChange)` takes such a change into an open map without an undo step and without validating or saving (the repository already stored it). A rename or recolour of a shared tag keeps history, since no step can hold a shared tag's record; a change that moves, deletes or rescopes a tag or link of the map clears history, because undoing across it would replay records the library replaced (for example delete a tag that is shared now).
 
-Once iCloud sync is on, a remote change can touch a node that local history also holds. Phase 6 decides between clearing history on remote changes and rebasing it; until then history assumes it is the only writer.
+A change from outside (another device through iCloud, the Share Extension) comes in through `GraphEngine.takeStored(_:now:)`: the stored map is repaired (not saved), diffed against the open graph, and the undo steps that touch what it changed are dropped while the rest are kept (decided 2026-10-02, FR-UND-05). Steps that depend on a dropped step go too, redo is emptied when anything goes, and once steps were dropped `undo()` and `redo()` validate before a step lands. Steps carry their names (`execute(_:named:)`, `undoStepNames`) so the window can register its undo actions again. Details in [[cloudkit-sync]], *Undo after a change from another device*.
 
 ## Traversal
 

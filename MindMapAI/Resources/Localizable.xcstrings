@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ can no longer read your maps. To connect it again, add it again and paste the new setup." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sẽ không đọc được sơ đồ của bạn nữa. Muốn kết nối lại, hãy thêm lại và dán thiết lập mới."
+          }
+        }
+      }
+    },
     "%@, MindMap AI Pro" : {
       "localizations" : {
         "vi" : {
@@ -275,12 +285,62 @@
         }
       }
     },
+    "AI App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng AI"
+          }
+        }
+      }
+    },
+    "AI Apps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng AI"
+          }
+        }
+      }
+    },
+    "AI apps are not available because your maps couldn’t be opened." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng được ứng dụng AI vì không mở được sơ đồ của bạn."
+          }
+        }
+      }
+    },
+    "AI apps you connect, like Claude or ChatGPT, can read the titles and notes of your maps and may send them to their own AI provider under that app’s terms. xDev receives nothing. Text in a map can try to steer the app that reads it." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng AI bạn kết nối, như Claude hay ChatGPT, đọc được tiêu đề và ghi chú trong sơ đồ của bạn và có thể gửi chúng tới nhà cung cấp AI của họ theo điều khoản của ứng dụng đó. xDev không nhận gì cả. Chữ trong sơ đồ có thể tìm cách điều khiển ứng dụng đọc nó."
+          }
+        }
+      }
+    },
     "AI can make mistakes. Suggestions change your map only when you accept them, and Undo takes them back." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "AI có thể sai. Đề xuất chỉ thay đổi sơ đồ khi bạn chấp nhận, và Hoàn tác sẽ gỡ chúng đi."
+          }
+        }
+      }
+    },
+    "AI is turned off in Settings." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI đang tắt trong Cài đặt."
           }
         }
       }
@@ -415,6 +475,16 @@
         }
       }
     },
+    "Add" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm"
+          }
+        }
+      }
+    },
     "Add AI Tags" : {
       "localizations" : {
         "vi" : {
@@ -431,6 +501,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm chủ đề AI"
+          }
+        }
+      }
+    },
+    "Add App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ứng dụng"
+          }
+        }
+      }
+    },
+    "Add App…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ứng dụng…"
           }
         }
       }
@@ -547,6 +637,16 @@
         }
       }
     },
+    "Add Topics by Voice listens in this language. Speech is turned into text on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề bằng giọng nói nghe theo ngôn ngữ này. Lời nói được chuyển thành chữ ngay trên thiết bị này."
+          }
+        }
+      }
+    },
     "Add Topics by Voice…" : {
       "localizations" : {
         "vi" : {
@@ -603,6 +703,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm chủ đề kế bên vào vùng chọn"
+          }
+        }
+      }
+    },
+    "Add this to ~/.codex/config.toml, which the ChatGPT app, Codex CLI and Codex IDE extension share." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm đoạn này vào ~/.codex/config.toml, tệp mà ứng dụng ChatGPT, Codex CLI và tiện ích Codex cho IDE dùng chung."
+          }
+        }
+      }
+    },
+    "Add this to ~/.cursor/mcp.json, inside “mcpServers” if the file already has servers." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm đoạn này vào ~/.cursor/mcp.json, đặt trong “mcpServers” nếu tệp đã có máy chủ."
           }
         }
       }
@@ -669,6 +789,16 @@
         }
       }
     },
+    "Address" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa chỉ"
+          }
+        }
+      }
+    },
     "Adds a topic under the central topic of a map. Without a map, the idea goes to the most recently edited one." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -691,6 +821,16 @@
         }
       }
     },
+    "Allow AI Apps to Read Maps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cho phép ứng dụng AI đọc sơ đồ"
+          }
+        }
+      }
+    },
     "Amber" : {
       "localizations" : {
         "vi" : {
@@ -707,6 +847,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thống kê sử dụng"
+          }
+        }
+      }
+    },
+    "Another app may be using port %@. Choose another port, then update the setup in each connected app." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có thể một ứng dụng khác đang dùng cổng %@. Hãy chọn cổng khác, rồi cập nhật thiết lập trong từng ứng dụng đã kết nối."
+          }
+        }
+      }
+    },
+    "App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng"
           }
         }
       }
@@ -737,6 +897,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple Intelligence đang tắt"
+          }
+        }
+      }
+    },
+    "Apple Intelligence doesn’t support the language of this question yet." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence chưa hỗ trợ ngôn ngữ của câu hỏi này."
           }
         }
       }
@@ -801,12 +971,72 @@
         }
       }
     },
+    "Ask" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi"
+          }
+        }
+      }
+    },
+    "Ask About This Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về sơ đồ này"
+          }
+        }
+      }
+    },
+    "Ask About This Map…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về sơ đồ này…"
+          }
+        }
+      }
+    },
+    "Ask a Question" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt câu hỏi"
+          }
+        }
+      }
+    },
+    "Ask a question about this map. Answers come from its topics and name the ones they use." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt câu hỏi về sơ đồ này. Câu trả lời lấy từ các chủ đề của sơ đồ và ghi rõ chủ đề đã dùng."
+          }
+        }
+      }
+    },
     "Ask a question to focus the ideas, or leave it empty to brainstorm around the topic." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đặt một câu hỏi để ý tưởng tập trung hơn, hoặc để trống để động não quanh chủ đề."
+          }
+        }
+      }
+    },
+    "Ask about this map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về sơ đồ này"
           }
         }
       }
@@ -992,6 +1222,16 @@
         }
       }
     },
+    "Changes stay on this device and sync when you’re back online." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các thay đổi vẫn nằm trên máy này và sẽ đồng bộ khi bạn có mạng lại."
+          }
+        }
+      }
+    },
     "Choices with a star come with MindMap AI Pro. Until it’s unlocked, exports use Standard (1×) and one page." : {
       "localizations" : {
         "vi" : {
@@ -1008,6 +1248,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chọn một sơ đồ, hoặc bắt đầu sơ đồ mới."
+          }
+        }
+      }
+    },
+    "Choose a port from 1024 to 65535." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn cổng từ 1024 đến 65535."
+          }
+        }
+      }
+    },
+    "Clear Chat" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá cuộc trò chuyện"
           }
         }
       }
@@ -1072,6 +1332,16 @@
         }
       }
     },
+    "Connected Apps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng đã kết nối"
+          }
+        }
+      }
+    },
     "Contact Support" : {
       "localizations" : {
         "vi" : {
@@ -1098,6 +1368,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sao chép"
+          }
+        }
+      }
+    },
+    "Couldn’t Add the App" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thêm được ứng dụng"
           }
         }
       }
@@ -1152,6 +1432,26 @@
         }
       }
     },
+    "Couldn’t Revoke Access" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thu hồi được quyền"
+          }
+        }
+      }
+    },
+    "Couldn’t Sync" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đồng bộ được"
+          }
+        }
+      }
+    },
     "Couldn’t change the tag." : {
       "localizations" : {
         "vi" : {
@@ -1178,6 +1478,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không kết nối được App Store. Hãy kiểm tra kết nối mạng rồi thử lại."
+          }
+        }
+      }
+    },
+    "Couldn’t read the connected apps from the Keychain." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đọc được các ứng dụng đã kết nối từ Chuỗi khoá."
           }
         }
       }
@@ -1280,6 +1590,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tối"
+          }
+        }
+      }
+    },
+    "Data" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu"
           }
         }
       }
@@ -1564,6 +1884,16 @@
         }
       }
     },
+    "Earlier messages were left out to make room." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các tin nhắn trước đã được bỏ bớt để có chỗ."
+          }
+        }
+      }
+    },
     "Edit" : {
       "localizations" : {
         "vi" : {
@@ -1844,6 +2174,16 @@
         }
       }
     },
+    "Free up iCloud storage or choose a larger plan. Your maps stay on this device until there’s room." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy giải phóng dung lượng iCloud hoặc chọn gói lớn hơn. Sơ đồ của bạn vẫn nằm trên máy này cho đến khi còn chỗ."
+          }
+        }
+      }
+    },
     "General" : {
       "localizations" : {
         "vi" : {
@@ -1960,6 +2300,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang nghe: %@"
+          }
+        }
+      }
+    },
+    "Hide Chat" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn cuộc trò chuyện"
           }
         }
       }
@@ -2540,6 +2890,16 @@
         }
       }
     },
+    "MindMap AI must be open for AI apps to read your maps. Each app gets its own token, so you can revoke one without the others." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI phải đang mở thì ứng dụng AI mới đọc được sơ đồ. Mỗi ứng dụng có mã truy cập riêng, nên bạn thu hồi được từng ứng dụng."
+          }
+        }
+      }
+    },
     "MindMap AI uses Apple Intelligence on this device. Your maps and requests are processed here and are never sent to xDev." : {
       "localizations" : {
         "vi" : {
@@ -2626,6 +2986,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Xuất PDF vector nhiều trang"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên"
           }
         }
       }
@@ -2730,6 +3100,26 @@
         }
       }
     },
+    "No answer this time. Try again or ask another way." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lần này chưa có câu trả lời. Hãy thử lại hoặc hỏi cách khác."
+          }
+        }
+      }
+    },
+    "No apps connected yet." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa kết nối ứng dụng nào."
+          }
+        }
+      }
+    },
     "No microphone is available." : {
       "localizations" : {
         "vi" : {
@@ -2800,12 +3190,32 @@
         }
       }
     },
+    "Not Using iCloud" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng iCloud"
+          }
+        }
+      }
+    },
     "Not unlocked" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa mở khoá"
+          }
+        }
+      }
+    },
+    "Not used since MindMap AI opened" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa dùng từ khi mở MindMap AI"
           }
         }
       }
@@ -2850,6 +3260,16 @@
         }
       }
     },
+    "Off" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt"
+          }
+        }
+      }
+    },
     "Offered in every map. Changes reach every map and can’t be undone." : {
       "localizations" : {
         "vi" : {
@@ -2880,6 +3300,26 @@
         }
       }
     },
+    "On this device and in your private iCloud" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trên máy này và trong iCloud riêng của bạn"
+          }
+        }
+      }
+    },
+    "On this device. Audio is not kept." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trên thiết bị này. Âm thanh không được lưu lại."
+          }
+        }
+      }
+    },
     "On this device. Nothing is sent to xDev." : {
       "localizations" : {
         "vi" : {
@@ -2890,12 +3330,32 @@
         }
       }
     },
+    "On: apps you connect can read your maps and handle them under their own terms" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật: ứng dụng bạn kết nối đọc được sơ đồ và xử lý chúng theo điều khoản của họ"
+          }
+        }
+      }
+    },
     "Only in this map. You can undo changes to them." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chỉ có trong sơ đồ này. Bạn có thể hoàn tác các thay đổi."
+          }
+        }
+      }
+    },
+    "Open Apple Intelligence Settings…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở cài đặt Apple Intelligence…"
           }
         }
       }
@@ -2934,6 +3394,26 @@
         }
       }
     },
+    "Open your Apple Account in Settings to continue syncing. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Tài khoản Apple trong Cài đặt để tiếp tục đồng bộ. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
+    "Open your Apple Account in System Settings to continue syncing. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Tài khoản Apple trong Cài đặt hệ thống để tiếp tục đồng bộ. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
     "Opens a map." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -2954,6 +3434,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mở sơ đồ sửa gần nhất."
+          }
+        }
+      }
+    },
+    "Other" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khác"
           }
         }
       }
@@ -3078,6 +3568,36 @@
         }
       }
     },
+    "Point the app at this address with Streamable HTTP and send the token in an Authorization: Bearer header." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trỏ ứng dụng tới địa chỉ này bằng Streamable HTTP và gửi mã truy cập trong header Authorization: Bearer."
+          }
+        }
+      }
+    },
+    "Port" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cổng"
+          }
+        }
+      }
+    },
+    "Port %@ Is Unavailable" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng được cổng %@"
+          }
+        }
+      }
+    },
     "Possible missing topics" : {
       "localizations" : {
         "vi" : {
@@ -3167,6 +3687,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Câu hỏi (không bắt buộc)"
+          }
+        }
+      }
+    },
+    "Quit and reopen MindMap AI to apply this change." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thoát rồi mở lại MindMap AI để áp dụng thay đổi này."
+          }
+        }
+      }
+    },
+    "Read %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã đọc %@"
+          }
+        }
+      }
+    },
+    "Reading the map…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang đọc sơ đồ…"
           }
         }
       }
@@ -3371,6 +3921,36 @@
         }
       }
     },
+    "Revoke" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu hồi"
+          }
+        }
+      }
+    },
+    "Revoke Access for “%@”?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu hồi quyền của “%@”?"
+          }
+        }
+      }
+    },
+    "Revoke…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu hồi…"
+          }
+        }
+      }
+    },
     "Rewrite Topic" : {
       "localizations" : {
         "vi" : {
@@ -3401,12 +3981,42 @@
         }
       }
     },
+    "Run MCP: Open User Configuration and add this to mcp.json, inside “servers” if the file already has servers." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chạy MCP: Open User Configuration rồi thêm đoạn này vào mcp.json, đặt trong “servers” nếu tệp đã có máy chủ."
+          }
+        }
+      }
+    },
+    "Run this command in Terminal." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chạy lệnh này trong Terminal."
+          }
+        }
+      }
+    },
     "Say one topic per sentence. Speech is turned into text on this device and is not sent to xDev." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mỗi câu bạn nói là một chủ đề. Giọng nói được chuyển thành chữ trên thiết bị này và không gửi tới xDev."
+          }
+        }
+      }
+    },
+    "Screen Time or device management keeps MindMap AI out of iCloud. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thời gian sử dụng hoặc chế độ quản lý thiết bị không cho MindMap AI dùng iCloud. Sơ đồ của bạn vẫn nằm trên máy này."
           }
         }
       }
@@ -3532,6 +4142,36 @@
         }
       }
     },
+    "Show Topic on Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện chủ đề trên sơ đồ"
+          }
+        }
+      }
+    },
+    "Sign in to iCloud in System Settings to sync your maps between your devices. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đăng nhập iCloud trong Cài đặt hệ thống để đồng bộ sơ đồ giữa các thiết bị của bạn. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
+    "Sign in to iCloud, or turn on iCloud for MindMap AI, in Settings to sync your maps between your devices. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đăng nhập iCloud, hoặc bật iCloud cho MindMap AI, trong Cài đặt để đồng bộ sơ đồ giữa các thiết bị của bạn. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
     "Simpler" : {
       "localizations" : {
         "vi" : {
@@ -3622,6 +4262,16 @@
         }
       }
     },
+    "Starting…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang khởi động…"
+          }
+        }
+      }
+    },
     "Status" : {
       "localizations" : {
         "vi" : {
@@ -3632,12 +4282,32 @@
         }
       }
     },
+    "Stop" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dừng"
+          }
+        }
+      }
+    },
     "Stop Listening" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dừng nghe"
+          }
+        }
+      }
+    },
+    "Stopped" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã dừng"
           }
         }
       }
@@ -3818,6 +4488,16 @@
         }
       }
     },
+    "Syncing…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang đồng bộ…"
+          }
+        }
+      }
+    },
     "System" : {
       "localizations" : {
         "vi" : {
@@ -3954,6 +4634,16 @@
         }
       }
     },
+    "The app can no longer read your maps, but its token is still in the Keychain. Try again after reopening MindMap AI." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng không còn đọc được sơ đồ, nhưng mã truy cập vẫn còn trong Chuỗi khoá. Hãy thử lại sau khi mở lại MindMap AI."
+          }
+        }
+      }
+    },
     "The clipboard has no text to make a map from." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -4016,6 +4706,16 @@
         }
       }
     },
+    "The name is only for you, to tell apps apart in this list." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên chỉ để bạn phân biệt các ứng dụng trong danh sách này."
+          }
+        }
+      }
+    },
     "The purchase didn’t go through. Try again." : {
       "localizations" : {
         "vi" : {
@@ -4042,6 +4742,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thẻ sẽ được gỡ khỏi các chủ đề. Các chủ đề vẫn giữ nguyên."
+          }
+        }
+      }
+    },
+    "The token couldn’t be saved in the Keychain. Try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không lưu được mã truy cập vào Chuỗi khoá. Hãy thử lại."
           }
         }
       }
@@ -4111,6 +4821,16 @@
     "Think. Draw. Connect." : {
       "shouldTranslate" : false
     },
+    "Thinking…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang suy nghĩ…"
+          }
+        }
+      }
+    },
     "This Apple Account hasn’t bought MindMap AI Pro." : {
       "localizations" : {
         "vi" : {
@@ -4127,6 +4847,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhánh này quá lớn. Hãy chọn một nhánh nhỏ hơn rồi thử lại."
+          }
+        }
+      }
+    },
+    "This build of MindMap AI can’t use iCloud. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản MindMap AI này không dùng được iCloud. Sơ đồ của bạn vẫn nằm trên máy này."
           }
         }
       }
@@ -4161,12 +4891,32 @@
         }
       }
     },
+    "This is the only time the token is shown. If you lose it, revoke this app and add it again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mã truy cập chỉ hiện lần này. Nếu làm mất, hãy thu hồi ứng dụng này rồi thêm lại."
+          }
+        }
+      }
+    },
     "This option comes with MindMap AI Pro." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tuỳ chọn này có trong MindMap AI Pro."
+          }
+        }
+      }
+    },
+    "This question needs more room than the chat has. Clear the chat or ask about a smaller part of the map." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Câu hỏi này cần nhiều chỗ hơn cuộc trò chuyện còn lại. Hãy xoá cuộc trò chuyện hoặc hỏi về một phần nhỏ hơn của sơ đồ."
           }
         }
       }
@@ -4268,6 +5018,16 @@
         }
       }
     },
+    "Topic no longer exists" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề không còn nữa"
+          }
+        }
+      }
+    },
     "Topic, level %lld" : {
       "localizations" : {
         "vi" : {
@@ -4314,6 +5074,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hãy thử lại. Nếu vẫn lỗi, hãy khởi động lại ứng dụng."
+          }
+        }
+      }
+    },
+    "Turn on Allow AI Apps to Read Maps so the app can connect." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật Cho phép ứng dụng AI đọc sơ đồ để ứng dụng kết nối được."
+          }
+        }
+      }
+    },
+    "Turned off" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã tắt"
+          }
+        }
+      }
+    },
+    "Turning this off stops every app from reading; connected apps stay in the list." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt để ngừng cho mọi ứng dụng đọc; các ứng dụng đã kết nối vẫn còn trong danh sách."
           }
         }
       }
@@ -4401,6 +5191,26 @@
         }
       }
     },
+    "Up to Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã cập nhật"
+          }
+        }
+      }
+    },
+    "Use AI Features" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng tính năng AI"
+          }
+        }
+      }
+    },
     "Use Title" : {
       "localizations" : {
         "vi" : {
@@ -4481,6 +5291,16 @@
         }
       }
     },
+    "Voice Input Language" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngôn ngữ nhập giọng nói"
+          }
+        }
+      }
+    },
     "Voice input is part of MindMap AI Pro." : {
       "localizations" : {
         "vi" : {
@@ -4511,12 +5331,32 @@
         }
       }
     },
+    "Waiting for Network" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang chờ mạng"
+          }
+        }
+      }
+    },
     "Website" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trang web"
+          }
+        }
+      }
+    },
+    "When off, AI actions are removed from maps and the AI menu is unavailable. Suggestions already on a map stay until you accept or discard them." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi tắt, các thao tác AI không còn trong sơ đồ và menu AI không dùng được. Các đề xuất đang có trên sơ đồ vẫn ở đó cho đến khi bạn chấp nhận hoặc bỏ."
           }
         }
       }
@@ -4541,6 +5381,16 @@
         }
       }
     },
+    "Written by AI. Check the cited topics." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do AI viết. Hãy kiểm tra các chủ đề được trích dẫn."
+          }
+        }
+      }
+    },
     "Written from part of the branch, which was too large to read in full." : {
       "localizations" : {
         "vi" : {
@@ -4557,6 +5407,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bạn"
+          }
+        }
+      }
+    },
+    "You asked: %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn hỏi: %@"
+          }
+        }
+      }
+    },
+    "Your maps are on this device and in your private iCloud, and follow you to your other devices." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ của bạn nằm trên máy này và trong iCloud riêng của bạn, và có mặt trên các thiết bị khác của bạn."
+          }
+        }
+      }
+    },
+    "Your maps stay on this device only." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ của bạn chỉ nằm trên máy này."
+          }
+        }
+      }
+    },
+    "Your maps stay on this device. MindMap AI tries again later." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ của bạn vẫn nằm trên máy này. MindMap AI sẽ thử lại sau."
           }
         }
       }
@@ -4617,6 +5507,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "có ghi chú"
+          }
+        }
+      }
+    },
+    "iCloud" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud"
+          }
+        }
+      }
+    },
+    "iCloud Is Restricted" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud bị giới hạn"
+          }
+        }
+      }
+    },
+    "iCloud Needs Attention" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud cần bạn xem lại"
+          }
+        }
+      }
+    },
+    "iCloud Storage Is Full" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dung lượng iCloud đã đầy"
+          }
+        }
+      }
+    },
+    "iCloud Sync" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đồng bộ iCloud"
           }
         }
       }

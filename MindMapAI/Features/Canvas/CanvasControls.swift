@@ -21,7 +21,7 @@ struct CanvasControls: View {
                 control("Zoom In", systemImage: "plus.magnifyingglass", enabled: model.canZoomIn, action: model.zoomIn)
                 control("Zoom to Fit", systemImage: "arrow.up.left.and.arrow.down.right", enabled: model.canZoomToFit, action: model.zoomToFit)
                 control("Add Child Topic", systemImage: "arrow.turn.down.right", enabled: true, action: model.session.addChild)
-                if let assistant = model.assistant, assistant.service.showsEntryPoints {
+                if let assistant = model.assistant, assistant.service.showsControls {
                     Menu {
                         AIActionsMenu(assistant: assistant, includesGenerateMap: true)
                     } label: {

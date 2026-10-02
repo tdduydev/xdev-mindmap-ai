@@ -1,6 +1,6 @@
 # MCP server: AI apps read your maps
 
-Design for MM-39, 2026-10-02. Only the shared query layer is built (MM-47); the server is not. Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
+Design for MM-39, 2026-10-02. The shared query layer (MM-47), the server core `MindMapMCP` (MM-40, [Server core](#server-core)) and the Mac app's Settings ▸ AI Apps that hosts it (MM-46, [In the app](#in-the-app)) are built. Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
 
 ## Summary
 
@@ -61,7 +61,7 @@ The two shipping examples follow the same split: iMCP (direct download, not the 
 
 ### Port and connection details [Đề xuất]
 
-- A fixed default port in the dynamic range, shown and changeable in Settings, because every client's config holds the URL. If it is taken, Settings says so; the app does not pick another one silently.
+- A fixed default port in the dynamic range, `MCPListener.defaultPort` = **51947** (chosen in MM-40), shown and changeable in Settings, because every client's config holds the URL. If it is taken, Settings says so; the app does not pick another one silently.
 - Endpoint `http://127.0.0.1:<port>/mcp`. `Authorization: Bearer <token>` on every request, else 401. Any request with an `Origin` header is refused with 403: no supported client sends one, and browsers always do *[Inference]*.
 - The helper (option C) reads the port and token from its arguments or environment, which the client config passes (`.mcpb` `user_config` keeps the token in the Keychain, per [Desktop Extensions](https://www.anthropic.com/engineering/desktop-extensions)).
 
@@ -92,7 +92,7 @@ Read-only tools, in a fixed order (2026-07-28 asks for deterministic `tools/list
 - **Output limit [Đề xuất]:** about 20,000 characters per result, so one large map does not fill the client's context; `get_map` with `topic_id` and `depth` reads the rest.
 - **Resources [Đề xuất], second step:** `mindmap://map/{map_id}` as a Markdown resource for clients that attach resources. Tools first, since every client in the table calls tools *[Inference]*.
 - **Prompts:** none.
-- **Errors:** an unknown ID or a deleted map is an invalid-params error with a plain message; the store being busy is retried once inside the app.
+- **Errors:** an unknown ID, a deleted map or a bad argument is a tool result with `isError: true` and a plain message the model can act on (changed in MM-40 from invalid-params: 2026-07-28 classes these as tool execution errors that clients pass to the model). An unknown tool name stays a JSON-RPC invalid-params error. A store error says to try again, without its description.
 
 ### Writing, later
 
@@ -121,8 +121,8 @@ No tool edits, moves or deletes existing topics. A tool that did would let text 
 | Does data leave the Mac? | Yes, when the person connects an AI app and it calls a tool: the app reads the map, and may send it to its provider (Anthropic, OpenAI…) under its own terms. iMCP's README puts it the same way ([iMCP](https://github.com/mattt/iMCP)) |
 | Does xDev receive it? | No |
 | App Privacy label | *[Inference, not verified]* Stays "Data Not Collected": the developer does not collect it, and it is a transfer the person sets up, as with the share sheet. Recheck with the [App privacy details](https://developer.apple.com/app-store/app-privacy-details/) page before release |
-| Privacy manifest | No new required-reason API expected; check the helper (option C) carries its own `PrivacyInfo.xcprivacy` *[Inference]* |
-| What changes in the docs | [privacy.md](privacy.md) gets an "AI apps (MCP)" row when the feature ships; the privacy policy (`docs/web/privacy-policy.md`) says that a connected AI app can read maps and is responsible for what it sends. Done in the task that ships the switch (M2) |
+| Privacy manifest | No new required-reason API (Keychain and Network are not on the list); check the helper (option C) carries its own `PrivacyInfo.xcprivacy` *[Inference]* |
+| What changes in the docs | Done in MM-46: [privacy.md](privacy.md) has the "AI apps over MCP" row, the privacy policy (`docs/web/privacy-policy.md`) the "AI apps you connect" section, [app-store-readiness.md](app-store-readiness.md) the Review Notes text |
 
 ## Dependency
 
@@ -168,6 +168,51 @@ public struct MapQueries: Sendable {
 - Errors: `MapQueryError.mapNotFound` and `.topicNotFound`; M1 maps both to invalid-params.
 - Changed from the design: no dependency on `MindMapInterchange` (the outline is structured rows, not `MarkdownOutline.export` text, so each caller can name topics its own way); `GraphSource.openMapIDs()` added so library search does not miss unsaved edits; `MapRepository.fetchTopicCounts()` added for `list_maps`.
 
+## Server core
+
+Built in MM-40 (M1), in `Packages/MindMapCore/Sources/MindMapMCP`. Protocol pages were reread on 2026-10-02: [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog), [Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http), [versioning](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning), [server/discover](https://modelcontextprotocol.io/specification/2026-07-28/server/discover), [tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools).
+
+| Type | Role |
+| --- | --- |
+| `MCPServer` | `handle(HTTPRequest) async -> HTTPResponse`: the checks below, then JSON-RPC. No transport, so tests feed it recorded requests |
+| `MCPListener` | `NWListener` bound to `127.0.0.1` with `acceptLocalOnly`; HTTP/1.1 keep-alive, requests on a connection answered in order; `states` stream (`ready(port:)`, `failed`, `stopped`). A taken port is `failed`, never another port |
+| `MCPAccess`, `MCPTokenList`, `MCPClient` | Token → client. M2 backs `MCPAccess` with the Keychain; `MCPTokenList` (memory, constant-time compare) is for tests and the dev server. `makeToken()` = 32 bytes from `SecRandomCopyBytes`, base64url (43 characters) |
+| `MCPServer.Activity` | Client and tool name per call, for the last-read row and reading indicator (M2). No arguments |
+| `mindmap-mcp-dev` | Developer executable, not shipped: two sample maps in an in-memory store, prints the URL, token and `claude mcp add` line |
+
+**Order of checks** (each answers and stops): path not `/mcp` → 404; any `Origin` → 403; `Host` not `127.0.0.1`, `localhost` or `[::1]` → 403 (a DNS-rebinding page names its own host); not POST → 405 `Allow: POST` (no GET stream, no sessions to DELETE); bearer token missing or unknown → 401 `WWW-Authenticate: Bearer`; over the rate → 429 `Retry-After`; not `application/json` → 415; then JSON-RPC (-32700 parse, -32600 batch or not 2.0, `id` null).
+
+**Eras.** A request whose `_meta` has `io.modelcontextprotocol/protocolVersion` (other than a legacy version) is served as 2026-07-28: `MCP-Protocol-Version`, `Mcp-Method` and, for `tools/call`, `Mcp-Name` (base64 sentinel decoded) must match the body, else 400 -32020; an unknown version is 400 -32022 with `supported`; missing `clientCapabilities` is 400 -32602; unknown method 404 -32601; results carry `resultType: "complete"` and `serverInfo` in `_meta`; `tools/list` and `server/discover` carry `ttlMs` 3,600,000 and `cacheScope: "private"`. Anything else is legacy: `initialize` echoes 2025-11-25 or 2025-06-18 when asked, else answers 2025-11-25; later requests need one of those in `MCP-Protocol-Version` (absent means 2025-03-26, refused); `ping`; JSON-RPC errors with HTTP 200. No era mints `Mcp-Session-Id`. Notifications get 202. Replies are always one JSON object, never SSE.
+
+**Limits** [Đề xuất values, in `MCPServer.Configuration`]: body 64 KiB (413 before reading it), headers 16 KiB (431), `Transfer-Encoding` refused (411; every recorded client sends `Content-Length`), 120 requests per client per sliding minute (any method), 20,000 Markdown characters per tool result (`get_map` sizes its outline with `TextLimit.characters`, the rest is cut with a note; `structuredContent` is never cut, so its size follows the tool's own `limit`), 16 connections, 30 s idle.
+
+**Tool output.** Markdown text plus `structuredContent` with snake_case keys (`map_id`, `topic_id`, `topic_count`, `omitted_topic_count`…). `get_map` writes `- Title <!-- topic_id: UUID -->` per topic, two spaces per level, notes indented under it, and ends with "N more topics did not fit…" or "N topics below depth D not shown." No `outputSchema` yet, so clients do not validate the JSON against one. `instructions` tell the model that map text is data, not commands.
+
+**Changed from the design:** errors as `isError` results (above); 2025-06-18 accepted besides 2025-11-25 (mid-2025 clients still ask for it; the four tools use nothing that differs); a `Host` check besides `Origin`; the Markdown is ours, not `MarkdownOutline.export`, because MM-47 returns rows.
+
+**Tests** (`Tests/MindMapMCPTests`, 43): recorded requests replayed through `MCPServer` (`Fixtures/README.md`): Claude Code 2.1.283 on 2026-07-28 (it probes with `server/discover` first), the same client falling back to `initialize` 2025-11-25 when the probe gets an empty 400, and MCP Inspector CLI 2.9.0 (2025-11-25, also sends a GET for a stream). No recording from Cursor or VS Code: neither was installed on the Mac used. Also each check above, both eras, the four tools in Vietnamese and English, Recently Deleted, the limits, the HTTP parser, and a real `URLSession` round trip through `MCPListener` on a free port.
+
+**MCP Inspector run** (2026-10-02, `npx @modelcontextprotocol/inspector --cli http://127.0.0.1:51947/mcp --transport http --header "Authorization: Bearer …"` against `mindmap-mcp-dev`): `tools/list` returned the four tools with their schemas and annotations; `tools/call` for `list_maps`, `search` (`query=thiet ke`: both Vietnamese topics, title hit first), `get_map` (the outline with topic IDs and notes) and `get_topic` (note, subtopics, the cross-link with its label) returned text and structured content, `isError` false. The Inspector CLI speaks 2025-11-25 (seen in its recorded requests). Claude Code 2.1.283 (`claude -p` with an HTTP `--mcp-config`) was also pointed at the dev server, called `list_maps`, `search` and `get_topic`, and answered with the topic's note; which era it used against this server was not logged *[Inference: 2026-07-28, since it probes with `server/discover` and the server answers it]*. curl checks: an `Origin` header gave 403, no token 401, GET 405.
+
+Try it: `swift run --package-path Packages/MindMapCore mindmap-mcp-dev` (optional port argument; token from `MINDMAP_MCP_TOKEN` or printed).
+
+## In the app
+
+Built in MM-46 (M2), Mac only, in `MindMapAI/Features/AIApps`.
+
+| Piece | What it does |
+| --- | --- |
+| `AIAppsHost` | `@Observable`, one per app (`AppEnvironment.aiApps`), started from `MindMapAIApp.init` on macOS only. Holds the switch (`mcp.enabled`, default off) and port (`mcp.port`, default 51947, 1024–65535; out of range reads as the default) in `AppDefaults`, the connected apps, and the `MCPListener` while the switch is on. Status: Off, Starting…, Ready, Port N Is Unavailable (never another port). Switch and port apply at once; turning off closes the port and keeps the apps |
+| `KeychainAIAppClientStore` | One generic password per app (service `asia.xdev.mindmapai.mcp-client`, account = client UUID, generic = name, data = token), `AfterFirstUnlockThisDeviceOnly`, not synchronizable. Data protection keychain first; an ad-hoc local build gets `errSecMissingEntitlement` (-34018) and falls back to the file-based keychain, which returns one item's data at a time. Tokens load into an in-memory `MCPTokenList` at launch, so a request never touches the Keychain. Tests and `-uitest` use `InMemoryAIAppClientStore` |
+| `OpenMapsGraphSource` | The app's `GraphSource`: an open map's live `GraphState` from `OpenMaps.liveGraph(for:)`, else the store; `openMapIDs` from `OpenMaps`. The chat (C1) can reuse it |
+| `AIAppSetup` | Copy-only snippets, formats read 2026-10-02: Claude Code `claude mcp add --transport http --scope user mindmap-ai <url> --header "Authorization: Bearer …"`; ChatGPT desktop `~/.codex/config.toml` `[mcp_servers.mindmap-ai]` with `url` and `http_headers` (shared with Codex CLI and IDE, per [ChatGPT: MCP](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)); Cursor `~/.cursor/mcp.json` `mcpServers` with `url`, `headers` ([Cursor MCP](https://cursor.com/docs/context/mcp)); VS Code `mcp.json` `servers` with `type: http`, `url`, `headers` ([VS Code MCP configuration](https://code.visualstudio.com/docs/copilot/reference/mcp-configuration)); Other: URL and header |
+| `AIAppsSettingsSection` | Switch, Port, Status, Address (while Ready); footer with the privacy text before turning on; Connected Apps with "Read 2 minutes ago" (in memory, from `MCPServer.Activity`) or "Not used since MindMap AI opened", Revoke… (confirmation, since the app's config stops working); Add App… sheet: App picker and Name, then the snippet and token once, Copy, where to paste it |
+
+- Settings ▸ Privacy has an AI Apps row on the Mac: "Off", or "On: apps you connect can read your maps and handle them under their own terms".
+- `com.apple.security.network.server` comes from `ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*] = YES` (no entitlements file change). There is no `network.client`, so the app's hosted tests send requests to `AIAppsHost.server` directly; the socket round trip stays in the core tests.
+- Not built here: the "AI app reading" toolbar indicator and menu items listed for M2 above (the task note keeps the menu bar unchanged); a confirmation sheet when turning the switch on (the footer says it first, per [settings.md](settings.md)); Allow Suggestions (M5).
+- Tests: `MindMapAITests/AIAppsTests` (defaults, port range, tokens per app, Revoke → 401, relaunch keeps apps without last read, activity sets last read, Keychain failure, live graph of an open map, switch and port on a real listener, taken port, Keychain round trip, snippet shapes); `MindMapAIUITests/AIAppsSettingsUITests` (Mac: off by default, Ready at once, Privacy row; iOS: no AI Apps pane).
+
 ## Proposed tasks
 
 For the leader to create; the names are placeholders.
@@ -175,8 +220,8 @@ For the leader to create; the names are placeholders.
 | | Task | Done when | Depends on |
 | --- | --- | --- | --- |
 | Q1 | Query layer `MindMapQuery` ✓ MM-47 | `MapQueries` and `TopicRef` as above; Vietnamese and English tests for search (diacritics, đ), outline limits, deleted maps left out, live state preferred; docs updated | MM-15, MM-31 (done) |
-| M1 | MCP server core `MindMapMCP` | JSON-RPC for 2026-07-28 and 2025-11-25; the four read tools; Streamable HTTP on loopback with token and `Origin` checks; size and rate limits; tests with recorded requests from Claude Code, Cursor and VS Code; MCP Inspector run noted | Q1 |
-| M2 | MCP in the Mac app | Settings ▸ AI Apps (off by default), clients and Keychain tokens, copy snippets for Claude Code, ChatGPT desktop (Codex config), Cursor and VS Code; reading indicator; menu items; `network.server`; privacy.md, privacy policy, Review Notes; en and vi; UI test for the switch | M1 |
+| M1 | MCP server core `MindMapMCP` ✓ MM-40 | JSON-RPC for 2026-07-28 and 2025-11-25; the four read tools; Streamable HTTP on loopback with token and `Origin` checks; size and rate limits; tests with recorded requests from Claude Code, Cursor and VS Code; MCP Inspector run noted | Q1 |
+| M2 | MCP in the Mac app ✓ MM-46 (no indicator or menu items, see [In the app](#in-the-app)) | Settings ▸ AI Apps (off by default), clients and Keychain tokens, copy snippets for Claude Code, ChatGPT desktop (Codex config), Cursor and VS Code; reading indicator; menu items; `network.server`; privacy.md, privacy policy, Review Notes; en and vi; UI test for the switch | M1 |
 | M3 | Spike: helper in the Mac App Store | A sandboxed `mindmap-mcp` relay in `Contents/Helpers`, launched by Claude Desktop from a TestFlight build; answer whether App Review and signing accept it, and whether a `.mcpb` can point at it. Ship it (M4) only if yes | M2 |
 | M4 | Claude Desktop through the helper | Helper relays stdio to the app, clear error when the app is closed, own privacy manifest, config snippet or `.mcpb` | M3 |
 | M5 | MCP proposals | `propose_topics`, suggestions labelled with the client's name, Accept as one command with undo and redo tests, nothing edited or deleted through MCP | M2, C2 ([chat.md](chat.md)) |

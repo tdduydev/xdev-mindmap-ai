@@ -82,7 +82,7 @@ struct RootView: View {
             openRequestedMap()
         }
         .focusedSceneValue(\.openInNewWindowAction, openSelectedMapInNewWindow)
-        .focusedSceneValue(\.newMapWithAIAction, ai.showsEntryPoints ? NewMapAction(perform: createMapWithAI) : nil)
+        .focusedSceneValue(\.newMapWithAIAction, ai.showsControls ? NewMapAction(perform: createMapWithAI) : nil)
         .modifier(FileTransferPresenter(transfer: transfer, entitlements: ai.entitlements))
     }
 

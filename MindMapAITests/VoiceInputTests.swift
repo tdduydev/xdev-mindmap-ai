@@ -5,6 +5,7 @@ import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
 import MindMapTestSupport
+import SwiftUI
 import Testing
 
 /// Voice input end to end with `FakeVoiceTranscriber` and a real session on an
@@ -62,6 +63,22 @@ struct VoiceInputTests {
 
     private func rootTitles(_ session: EditorSession) -> [String] {
         session.rootID.map { session.engine.state.children(of: $0).map(\.title) } ?? []
+    }
+
+    @Test func settingsAndTheSheetShareTheLanguage() async throws {
+        let voice = try await open(preferredLanguages: ["vi-VN", "en-US"])
+        #expect(voice.language == .vietnamese, "the first preferred language it can hear")
+        #expect(VoiceInput.language(in: defaults, preferredLanguages: ["vi-VN"]) == .vietnamese)
+
+        // Settings ▸ Voice Input Language, while the map is open.
+        AppStorage<VoiceLanguage?>(VoiceInput.languageKey, store: defaults).wrappedValue = .english
+        voice.present()
+        #expect(voice.language == .english)
+        voice.close()
+
+        // The sheet's picker, read back by Settings.
+        voice.language = .vietnamese
+        #expect(AppStorage<VoiceLanguage?>(VoiceInput.languageKey, store: defaults).wrappedValue == .vietnamese)
     }
 
     @Test func spokenSentencesBecomeTopicsOnlyWhenAdded() async throws {

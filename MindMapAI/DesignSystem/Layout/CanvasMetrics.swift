@@ -98,6 +98,16 @@ enum CanvasMetrics {
     /// Space between a topic and its collapse badge.
     static let collapseBadgeGap: CGFloat = 4
 
+    /// The round + buttons on a hovered or selected topic (MM-57), as tall as
+    /// the collapse badge; the tap area is `Metrics.minimumHitTarget`.
+    static let addButtonDiameter: CGFloat = collapseBadgeHeight
+    static let addButtonRingWidth: CGFloat = 1.5
+    #if os(iOS)
+    static let addButtonSymbolSize: CGFloat = 12
+    #else
+    static let addButtonSymbolSize: CGFloat = 10
+    #endif
+
     // MARK: Camera (MM-3)
 
     /// 10% to 400% (FR-CNV-02, a proposal in the SRS).

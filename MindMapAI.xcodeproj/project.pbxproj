@@ -24,6 +24,8 @@
 		4D4D410000000000000B1126 /* MindMapInterchange in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1127 /* MindMapInterchange */; };
 		4D4D410000000000000B1128 /* MindMapSharing in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1129 /* MindMapSharing */; };
 		4D4D410000000000000C2001 /* MindMapCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C2002 /* MindMapCapture */; };
+		4D4D41460000000000000001 /* MindMapMCP in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41460000000000000002 /* MindMapMCP */; };
+		4D4D41460000000000000003 /* MindMapQuery in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41460000000000000004 /* MindMapQuery */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -127,6 +129,8 @@
 				4D4D41150000000000000002 /* MindMapSearch in Frameworks */,
 				4D4D410000000000000B1101 /* MindMapIntents in Frameworks */,
 				4D4D410000000000000C2001 /* MindMapCapture in Frameworks */,
+				4D4D41460000000000000001 /* MindMapMCP in Frameworks */,
+				4D4D41460000000000000003 /* MindMapQuery in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +220,8 @@
 				4D4D41150000000000000001 /* MindMapSearch */,
 				4D4D410000000000000B1102 /* MindMapIntents */,
 				4D4D410000000000000C2002 /* MindMapCapture */,
+				4D4D41460000000000000002 /* MindMapMCP */,
+				4D4D41460000000000000004 /* MindMapQuery */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -484,6 +490,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MINDMAP_MAC_APP_GROUP = NO;
+				MINDMAP_ICLOUD = NO;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -544,6 +551,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MINDMAP_MAC_APP_GROUP = NO;
+				MINDMAP_ICLOUD = NO;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -556,14 +564,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Entitlements/MindMapAI.entitlements;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP))";
-				MINDMAP_MAC_ENTITLEMENTS_YES = Entitlements/MindMapAI.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "$(MINDMAP_IOS_ENTITLEMENTS_$(MINDMAP_ICLOUD))";
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP)_$(MINDMAP_ICLOUD))";
+				MINDMAP_ICLOUD_CONDITION_YES = MINDMAP_ICLOUD;
+				MINDMAP_IOS_ENTITLEMENTS_NO = Entitlements/MindMapAI.entitlements;
+				MINDMAP_IOS_ENTITLEMENTS_YES = "Entitlements/MindMapAI+iCloud-iOS.entitlements";
+				MINDMAP_MAC_ENTITLEMENTS_NO_YES = "Entitlements/MindMapAI+iCloud-macOS.entitlements";
+				MINDMAP_MAC_ENTITLEMENTS_YES_NO = Entitlements/MindMapAI.entitlements;
+				MINDMAP_MAC_ENTITLEMENTS_YES_YES = "Entitlements/MindMapAI+iCloud-macOS.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				"ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*]" = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -580,6 +594,8 @@
 				"INFOPLIST_KEY_UIApplicationSupportsMultipleScenes[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_FILE[sdk=iphoneos*]" = "Config/MindMapAI-iOS-Info.plist";
+				"INFOPLIST_FILE[sdk=iphonesimulator*]" = "Config/MindMapAI-iOS-Info.plist";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -596,6 +612,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(MINDMAP_ICLOUD_CONDITION_$(MINDMAP_ICLOUD))";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -611,14 +628,20 @@
 				"ARCHS[sdk=macosx*]" = "arm64 x86_64";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Entitlements/MindMapAI.entitlements;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP))";
-				MINDMAP_MAC_ENTITLEMENTS_YES = Entitlements/MindMapAI.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "$(MINDMAP_IOS_ENTITLEMENTS_$(MINDMAP_ICLOUD))";
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP)_$(MINDMAP_ICLOUD))";
+				MINDMAP_ICLOUD_CONDITION_YES = MINDMAP_ICLOUD;
+				MINDMAP_IOS_ENTITLEMENTS_NO = Entitlements/MindMapAI.entitlements;
+				MINDMAP_IOS_ENTITLEMENTS_YES = "Entitlements/MindMapAI+iCloud-iOS.entitlements";
+				MINDMAP_MAC_ENTITLEMENTS_NO_YES = "Entitlements/MindMapAI+iCloud-macOS.entitlements";
+				MINDMAP_MAC_ENTITLEMENTS_YES_NO = Entitlements/MindMapAI.entitlements;
+				MINDMAP_MAC_ENTITLEMENTS_YES_YES = "Entitlements/MindMapAI+iCloud-macOS.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				"ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*]" = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -635,6 +658,8 @@
 				"INFOPLIST_KEY_UIApplicationSupportsMultipleScenes[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_FILE[sdk=iphoneos*]" = "Config/MindMapAI-iOS-Info.plist";
+				"INFOPLIST_FILE[sdk=iphonesimulator*]" = "Config/MindMapAI-iOS-Info.plist";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -651,6 +676,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(MINDMAP_ICLOUD_CONDITION_$(MINDMAP_ICLOUD))";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -945,6 +971,14 @@
 		4D4D410000000000000C2002 /* MindMapCapture */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapCapture;
+		};
+		4D4D41460000000000000002 /* MindMapMCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapMCP;
+		};
+		4D4D41460000000000000004 /* MindMapQuery */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapQuery;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

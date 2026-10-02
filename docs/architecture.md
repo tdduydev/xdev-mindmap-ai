@@ -15,7 +15,8 @@ flowchart LR
     Persistence["MindMapPersistence<br/>SwiftData, repository"]
     Layout["MindMapLayout<br/>sizes in, frames out"]
     AICore["MindMapAICore<br/>provider protocol, context, proposals"]
-    AIApple["MindMapAIApple<br/>Foundation Models provider, prompts"]
+    AIApple["MindMapAIApple<br/>Foundation Models provider, prompts, chat"]
+    Query["MindMapQuery<br/>read-only queries"]
   end
   Features --> Graph
   Features --> Persistence
@@ -26,9 +27,11 @@ flowchart LR
   Persistence --> Domain
   Layout --> Graph
   Layout --> Domain
-  Persistence -.later.-> CloudKit[(iCloud / CloudKit)]
+  Persistence -.sync on.-> CloudKit[(iCloud / CloudKit)]
   AICore --> Graph
   AIApple --> AICore
+  AIApple --> Query
+  Query --> Persistence
   AIApple --> FM[(Foundation Models, on device)]
 ```
 
@@ -39,14 +42,15 @@ flowchart LR
 | `MindMapPersistence` | Domain, Graph, SwiftData; Core Data only for its remote-change notification | SwiftUI |
 | `MindMapLayout` | Domain, Graph, Foundation geometry types | SwiftUI, SwiftData ([[layout-engine]]) |
 | `MindMapAICore` | Domain, Graph, NaturalLanguage | FoundationModels, SwiftUI, SwiftData |
-| `MindMapAIApple` | AICore, FoundationModels (on-device model only) | Private Cloud Compute, SwiftUI, SwiftData |
+| `MindMapAIApple` | AICore, FoundationModels (on-device model only); Query for the chat's tools ([[chat]]) | Private Cloud Compute, SwiftUI, SwiftData records (it reads maps only through `MapQueries`) |
 | `MindMapInterchange` | Domain, Graph | SwiftUI, SwiftData, AI ([[interchange]]) |
 | `MindMapSearch` | Domain, Graph: folding (case, Vietnamese marks, đ), library index and ranking, Find in a map | SwiftUI, SwiftData, AI |
 | `MindMapSharing` | Domain, Graph, Persistence, Interchange | SwiftUI, AI ([[system-integration]]) |
 | `MindMapIntents` | Sharing, Persistence, AppIntents, CoreSpotlight | SwiftUI, AI |
 | `MindMapQuery` | Domain, Graph, Persistence (the `MapRepository` protocol), Search: read-only queries for MCP and the chat ([[mcp]]) | SwiftUI, AI, Network |
+| `MindMapMCP` | Domain, Query, Network (`NWListener` on 127.0.0.1), Security (`SecRandomCopyBytes`): our own JSON-RPC MCP server ([[mcp]]) | SwiftUI, SwiftData records, AI, outside MCP SDKs |
 | Share Extension | Domain, Graph, Persistence, Interchange, Sharing, SwiftUI | AI, AppIntents |
-| App target | All of the above, SwiftUI | SwiftData records directly |
+| App target | All of the above, SwiftUI; on the Mac it hosts `MindMapMCP` (`AIAppsHost`, Settings ▸ AI Apps, MM-46) | SwiftData records directly |
 
 The package boundary enforces these rules at compile time (ADR 0002). Later phases add packages the same way: layout, AI, import, export.
 

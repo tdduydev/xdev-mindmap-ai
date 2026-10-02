@@ -6,7 +6,7 @@ Research for MM-0e, 2026-10-02. It is a checklist for shipping MindMap AI on the
 
 - **Blocking before the first submission:** a privacy policy URL, reachable in App Store Connect and inside the app (5.1.1(i)), and a support URL. The app links both (MM-0h); the pages still have to be published on xdev.asia from the text in `docs/web/`.
 - **Toolchain:** since 2026-04-28, uploads need Xcode 26 and the 26 SDKs. From April 2027, iOS and iPadOS uploads need the 27 SDKs; the macOS SDK rule is not verified ([upcoming requirements](https://developer.apple.com/news/upcoming-requirements/), [news 2026-09-09](https://developer.apple.com/news/?id=k1mtkt1k)).
-- **Privacy label:** "Data Not Collected" holds while everything stays on the device, including Foundation Models ([App privacy details](https://developer.apple.com/app-store/app-privacy-details/)). Revisit it if sync, analytics or cloud AI changes that.
+- **Privacy label:** "Data Not Collected" holds while everything stays on the device, including Foundation Models ([App privacy details](https://developer.apple.com/app-store/app-privacy-details/)). Revisit it if analytics or cloud AI changes that. iCloud sync (MM-6) keeps it *[Inference, not verified with Apple]*: maps go only to the person's private CloudKit database, which xDev cannot access, and Apple counts data as collected when the developer or its partners can access it.
 - **Pricing:** a one-time unlock (non-consumable) is the lower-risk model for a backendless app. A subscription has to show ongoing value (3.1.2(a)) *[Inference]*.
 - **Universal purchase:** one app record, one bundle ID `asia.xdev.mindmapai`. Never create a second record for iOS; records cannot be merged later ([universal purchase](https://developer.apple.com/support/universal-purchase/)).
 
@@ -67,9 +67,9 @@ The in-app purchase needs its own review screenshot, of any size from this table
 
 | Item | Requirement | Status |
 | --- | --- | --- |
-| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). |
+| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). The Mac app also has `com.apple.security.network.server` (`ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*] = YES`, MM-46) for Settings ▸ AI Apps, which listens on 127.0.0.1 only while the switch is on ([mcp](mcp.md)). No `network.client`. |
 | 2.4.5(ii) | Packaged and submitted with Xcode, one self-contained bundle | Met: single app target |
-| 2.4.5(iii) | No launch at login and no processes left after quit without consent | Met: none planned |
+| 2.4.5(iii) | No launch at login and no processes left after quit without consent | Met: none. The AI Apps listener is part of the app process and stops when it quits |
 | 2.4.5(iv) | No downloading apps, code or resources that add features | Applies to any later downloadable local model; see 2.5.2 below |
 | 2.4.5(v) | No root escalation or setuid | Met |
 | 2.4.5(vi) | No license screen at launch, license keys or own copy protection | Met. Unlocks go through StoreKit only. |
@@ -99,7 +99,7 @@ Source: [2.4.5 hardware compatibility](https://developer.apple.com/app-store/rev
 | --- | --- | --- |
 | 5.1.1(i) | Privacy policy link in App Store Connect **and** inside the app, even if nothing is collected. It says what is collected, how it is used, third parties, retention and deletion. | Linked in the app (Settings ▸ Privacy, Help ▸ Privacy Policy) to `https://xdev.asia/mindmap/privacy`; page text in `docs/web/privacy-policy.md`, not yet published. |
 | 5.1.1(ii)–(v) | Consent before collecting; paid features never require data access; minimum data; in-app account deletion when accounts exist | No accounts, no collection |
-| 5.1.2(i) | Disclose sharing personal data with third parties, "including with third-party AI", and get explicit permission first (clarified 2025-11-13) | Does not apply to on-device Foundation Models *[Inference, not verified]*: no data leaves the device and Apple is not acting as a third party receiving it. Applies in full to any cloud AI provider: name the provider and ask before each request ([privacy](privacy.md)). Source: [news](https://developer.apple.com/news/?id=ey6d8onl). |
+| 5.1.2(i) | Disclose sharing personal data with third parties, "including with third-party AI", and get explicit permission first (clarified 2025-11-13) | Does not apply to on-device Foundation Models *[Inference, not verified]*: no data leaves the device and Apple is not acting as a third party receiving it. Applies in full to any cloud AI provider: name the provider and ask before each request ([privacy](privacy.md)). AI Apps (MM-46, Mac): off by default; the footer under the switch says, before it is turned on, that connected apps read map titles and notes and may send them to their own AI provider; the person also has to add each app and paste its token. *[Inference, not verified]* That counts as explicit permission. Source: [news](https://developer.apple.com/news/?id=ey6d8onl). |
 | 5.1.3(ii) | No personal health data in iCloud | Not applicable |
 
 ### App Privacy label
@@ -143,10 +143,20 @@ Declared per platform in App Store Connect: VoiceOver, Voice Control, Larger Tex
 
 `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` is set in both configurations. Apple treats encryption built into the operating system, such as HTTPS through `URLSession`, as exempt ([complying with export regulations](https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations), [encryption documentation](https://developer.apple.com/help/app-store-connect/manage-app-information/determine-and-upload-app-encryption-documentation)). *[Inference, not verified]* CloudKit relies on the same system encryption, so `NO` stays correct after sync. Revisit if the app ever adds its own cryptography, such as end-to-end encrypted exports. France-specific rules were not verified.
 
+## Review Notes: AI Apps (Mac)
+
+Paste into Review Notes for every Mac submission while the feature ships (2.3.1(a), about 900 bytes; the whole field is 4,000 bytes):
+
+> MindMap AI on the Mac can let AI apps the user already has (Claude Code, ChatGPT desktop, Cursor, VS Code) read their maps over the Model Context Protocol. It is off by default: Settings (⌘,) ▸ AI Apps ▸ "Allow AI Apps to Read Maps". The app then listens on http://127.0.0.1:51947/mcp only (loopback, never another interface; the port can be changed there), and only while the app runs; that is why it has the network.server entitlement. Every request needs a token: Add App… makes one per app, stores it in the Keychain and shows a setup snippet to copy; the app never writes another app's files. Access is read-only (list, read and search maps). To test without an AI app: turn the switch on, choose Add App… ▸ Other, copy the token, then run in Terminal:
+> `curl -s http://127.0.0.1:51947/mcp -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" -H "MCP-Protocol-Version: 2025-11-25" -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_maps","arguments":{}}}'`
+> Revoke in the same pane stops the token at once. Nothing is sent to xDev.
+
+The curl line was run on 2026-10-02 against `mindmap-mcp-dev` (the same `MCPServer`) and returned the map list; *[Unverified]* not yet against a signed TestFlight build of the app.
+
 ## iCloud and CloudKit
 
 - Deploy the development schema to production before release: App Store builds use only the production environment, and production changes can only add record types and fields ([deploying a schema](https://developer.apple.com/documentation/cloudkit/deploying-an-icloud-container-s-schema)). This matches the SwiftData rule of never changing a shipped schema ([data model](data-model.md)).
-- The app needs the iCloud capability with a CloudKit container (`iCloud.asia.xdev.mindmapai` *[Inference]*) and the remote notification background mode on iOS. Exact entitlement setup was not checked against an Apple page (not verified).
+- The app needs the iCloud capability with the CloudKit container `iCloud.asia.xdev.mindmapai`, Push Notifications, and the remote notification background mode on iOS (MM-6: `Entitlements/MindMapAI+iCloud-*.entitlements` behind `MINDMAP_ICLOUD`, `Config/MindMapAI-iOS-Info.plist`). The account steps are in [cloudkit-sync](cloudkit-sync.md), *Turning it on*. Exact entitlement setup was not checked against an Apple page (not verified).
 - No App Review guideline specifically about iCloud was found beyond 5.1.3(ii).
 
 ## Share Extension and App Intents

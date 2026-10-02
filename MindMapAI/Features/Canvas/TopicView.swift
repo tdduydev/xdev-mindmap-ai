@@ -18,6 +18,8 @@ struct TopicView: View {
     var isFindMatch = false
     /// Drawn faded in place while a copy follows the pointer.
     var isDragSource = false
+    /// The + buttons to show, on a hovered or selected topic (MM-57).
+    var addButtons: CanvasModel.AddButtons?
     let model: CanvasModel
     let rotorNamespace: Namespace.ID
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -66,18 +68,22 @@ struct TopicView: View {
             if topic.isSuggestion, isSelected || isHovering, !isEditing { suggestionActions }
         }
         .animation(Motion.selection(reduceMotion: reduceMotion), value: isSelected)
-        .overlay(alignment: topic.side == .left ? .leading : .trailing) {
-            if topic.hiddenDescendantCount > 0 { badge }
-        }
         .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : 1)
         .contentShape(.interaction, Rectangle().inset(by: -hitOutset))
+        // After the content shape, which would otherwise keep taps off the
+        // badge and buttons outside the card.
+        .overlay(alignment: outerEdge == .leading ? .leading : .trailing) { outerControls }
+        .overlay(alignment: .bottom) { addSiblingButton }
         // The double tap is listed first so it can see both taps; the single tap
         // runs alongside it, so selection does not wait for the double-tap timeout.
         .onTapGesture(count: 2) { model.beginEditing(topic.id) }
         .simultaneousGesture(selectionTap)
         // While the title is a text field, a drag selects text instead.
         .gesture(moveDrag, including: isEditing ? .subviews : .all)
-        .onHover { isHovering = $0 }
+        .onHover { hovering in
+            isHovering = hovering
+            model.setHovering(topic.id, part: .card, hovering)
+        }
         .contextMenu { contextMenu }
         .modifier(TopicAccessibility(topic: topic, isRoot: isRoot, isSelected: isSelected, isEditing: isEditing, isFindMatch: isFindMatch, model: model))
         .accessibilityRotorEntry(id: topic.id, in: rotorNamespace)
@@ -187,7 +193,7 @@ struct TopicView: View {
             Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
         } else {
             TopicContextMenu(topic: topic, isRoot: isRoot, model: model)
-            if let assistant = model.assistant, assistant.service.showsEntryPoints {
+            if let assistant = model.assistant, assistant.service.showsControls {
                 Divider()
                 AIActionsMenu(assistant: assistant, nodeID: topic.id)
             }
@@ -221,6 +227,23 @@ struct TopicView: View {
             .allowsHitTesting(false)
     }
 
+    /// The side away from the parent, where the badge and the add-child button go.
+    private var outerEdge: HorizontalEdge {
+        addButtons?.childEdge ?? (topic.side == .left ? .leading : .trailing)
+    }
+
+    /// The collapse badge, and the add-child button beyond it, so the button
+    /// never covers the count.
+    private var outerControls: some View {
+        HStack(spacing: CanvasMetrics.collapseBadgeGap) {
+            if outerEdge == .leading, addButtons != nil { addChildButton }
+            if topic.hiddenDescendantCount > 0 { badge }
+            if outerEdge == .trailing, addButtons != nil { addChildButton }
+        }
+        .animation(Motion.addButtons(reduceMotion: reduceMotion), value: addButtons)
+        .modifier(CollapseBadgePlacement())
+    }
+
     /// The count of hidden topics, on the side away from the parent; a click expands.
     private var badge: some View {
         Button {
@@ -230,9 +253,33 @@ struct TopicView: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .modifier(CollapseBadgePlacement())
+        .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : 1)
         // The topic element already offers Expand Topic.
         .accessibilityHidden(true)
+    }
+
+    private var addChildButton: some View {
+        TopicAddButton(label: "Add Child Topic") {
+            model.addFromButton(topic.id, sibling: false)
+        }
+        .onHover { model.setHovering(topic.id, part: .addChild, $0) }
+        .transition(.opacity)
+    }
+
+    /// On the middle of the bottom edge, half over the card: the gap to the
+    /// next sibling is too small for a whole button below it.
+    private var addSiblingButton: some View {
+        Group {
+            if addButtons?.showsSibling == true {
+                TopicAddButton(label: "Add Sibling Topic") {
+                    model.addFromButton(topic.id, sibling: true)
+                }
+                .onHover { model.setHovering(topic.id, part: .addSibling, $0) }
+                .offset(y: CanvasMetrics.addButtonDiameter / 2)
+                .transition(.opacity)
+            }
+        }
+        .animation(Motion.addButtons(reduceMotion: reduceMotion), value: addButtons)
     }
 
     /// Touch needs a 44 pt target around small topics; a pointer uses the box.
@@ -327,6 +374,33 @@ struct CollapseBadgeLabel: View {
     }
 }
 
+/// A round accent + on a hovered or selected topic (MM-57). Content, not a
+/// control layer, so solid colours rather than glass. Hidden from VoiceOver:
+/// the topic element already has Add Child Topic and Add Sibling Topic.
+struct TopicAddButton: View {
+    let label: LocalizedStringKey
+    let action: () -> Void
+
+    var body: some View {
+        let diameter = CanvasMetrics.addButtonDiameter
+        let outset = max(0, (Metrics.minimumHitTarget - diameter) / 2)
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.system(size: CanvasMetrics.addButtonSymbolSize, weight: .bold))
+                .foregroundStyle(Palette.canvasBackground)
+                .frame(width: diameter, height: diameter)
+                .background(Palette.accent, in: Circle())
+                // Keeps the circle apart from a card or edge of the same hue.
+                .overlay(Circle().strokeBorder(Palette.canvasBackground, lineWidth: CanvasMetrics.addButtonRingWidth))
+        }
+        .buttonStyle(.plain)
+        .contentShape(.interaction, Circle().inset(by: -outset))
+        .help(Text(label))
+        .accessibilityLabel(Text(label))
+        .accessibilityHidden(true)
+    }
+}
+
 /// Puts the badge just outside the card, on the side away from the parent,
 /// when used in an overlay aligned to that side.
 struct CollapseBadgePlacement: ViewModifier {
@@ -334,8 +408,10 @@ struct CollapseBadgePlacement: ViewModifier {
         // Alignment guides run outside the main actor; read the gap here.
         let gap = CanvasMetrics.collapseBadgeGap
         return content
-            .alignmentGuide(.trailing) { $0[.leading] - gap }
-            .alignmentGuide(.leading) { $0[.trailing] + gap }
+            // From the size, not `$0[.trailing]`: once the first guide is set,
+            // reading the other edge returns that explicit guide instead.
+            .alignmentGuide(.trailing) { _ in -gap }
+            .alignmentGuide(.leading) { $0.width + gap }
     }
 }
 
@@ -425,6 +501,9 @@ struct TopicAccessibility: ViewModifier {
             Button(topic.isCollapsed ? "Expand Topic" : "Collapse Topic") { model.toggleCollapsed(topic.id) }
         }
         Button("Add Child Topic") { model.addChild(of: topic.id) }
+        if !isRoot {
+            Button("Add Sibling Topic") { model.addSibling(of: topic.id) }
+        }
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         Button("Add Tag…") { model.addTag(to: topic.id) }

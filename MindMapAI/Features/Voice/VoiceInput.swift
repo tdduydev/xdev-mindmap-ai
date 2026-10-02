@@ -49,6 +49,7 @@ final class VoiceInput {
     @ObservationIgnored private let transcriber: any VoiceTranscribing
     @ObservationIgnored private let entitlements: any ProEntitlements
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let preferredLanguages: [String]
     @ObservationIgnored private var transcription: (any VoiceTranscriptionSession)?
     /// The running listen loop; tests await it.
     @ObservationIgnored private(set) var listening: Task<Void, Never>?
@@ -59,14 +60,21 @@ final class VoiceInput {
         session: EditorSession,
         transcriber: any VoiceTranscribing,
         entitlements: any ProEntitlements,
-        defaults: UserDefaults = .standard,
+        defaults: UserDefaults = AppDefaults.store,
         preferredLanguages: [String] = Locale.preferredLanguages
     ) {
         self.session = session
         self.transcriber = transcriber
         self.entitlements = entitlements
         self.defaults = defaults
-        language = defaults.string(forKey: Self.languageKey).flatMap(VoiceLanguage.init(rawValue:))
+        self.preferredLanguages = preferredLanguages
+        language = Self.language(in: defaults, preferredLanguages: preferredLanguages)
+    }
+
+    /// The language the sheet opens in. Settings ▸ Voice Input Language
+    /// writes the same key, so both always show the same choice.
+    static func language(in defaults: UserDefaults, preferredLanguages: [String] = Locale.preferredLanguages) -> VoiceLanguage {
+        defaults.string(forKey: languageKey).flatMap(VoiceLanguage.init(rawValue:))
             ?? VoiceLanguage.preferred(from: preferredLanguages)
     }
 
@@ -98,6 +106,8 @@ final class VoiceInput {
         guard !isPresented, let parent = session.selection ?? session.rootID else { return }
         parentID = parent
         transcript = VoiceTranscript()
+        // Settings may have changed the language since this map opened.
+        language = Self.language(in: defaults, preferredLanguages: preferredLanguages)
         isPresented = true
         guard entitlements.allows(.voiceInput) else {
             phase = .locked

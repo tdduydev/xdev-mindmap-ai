@@ -1,10 +1,14 @@
 import Foundation
 @testable import MindMapAI
+import MindMapCapture
 import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
 import SwiftUI
 import Testing
+#if os(macOS)
+import AppKit
+#endif
 
 /// Settings ▸ General and Export (MM-43): the defaults of docs/settings.md, Pro
 /// fallback, and that Settings and the places that use a value read one key.
@@ -22,8 +26,11 @@ struct SettingsTests {
     // MARK: Panes
 
     @Test func panesAreInTheDocumentedOrder() {
-        #expect(SettingsPane.available(showsAI: true) == [.general, .export, .ai, .pro, .privacy, .about])
-        #expect(SettingsPane.available(showsAI: false) == [.general, .export, .pro, .privacy, .about])
+        // The Mac.
+        #expect(SettingsPane.available(showsAI: true, showsAIApps: true) == [.general, .export, .ai, .data, .aiApps, .pro, .privacy, .about])
+        #expect(SettingsPane.available(showsAI: false, showsAIApps: true) == [.general, .export, .data, .aiApps, .pro, .privacy, .about])
+        // iPad and iPhone: no AI Apps.
+        #expect(SettingsPane.available(showsAI: true, showsAIApps: false) == [.general, .export, .ai, .data, .pro, .privacy, .about])
     }
 
     @Test func lastPaneReopensAndAMissingOneOpensGeneral() {
@@ -33,8 +40,9 @@ struct SettingsTests {
         #expect(AppStorage(wrappedValue: SettingsPane.general, SettingsPane.storageKey, store: defaults).wrappedValue == .export)
 
         // AI was last, then the Mac turned out to have no Apple Intelligence (an Intel Mac).
-        #expect(SettingsPane.ai.resolved(in: SettingsPane.available(showsAI: false)) == .general)
-        defaults.set("aiApps", forKey: SettingsPane.storageKey)
+        #expect(SettingsPane.ai.resolved(in: SettingsPane.available(showsAI: false, showsAIApps: true)) == .general)
+        #expect(SettingsPane.aiApps.resolved(in: SettingsPane.available(showsAI: true, showsAIApps: false)) == .general)
+        defaults.set("integrations", forKey: SettingsPane.storageKey)
         #expect(AppStorage(wrappedValue: SettingsPane.general, SettingsPane.storageKey, store: defaults).wrappedValue == .general)
     }
 
@@ -145,6 +153,28 @@ struct SettingsTests {
         #expect(unlocked.imageScale == .triple)
         #expect(unlocked.pageMode == .multiplePages)
     }
+
+    // MARK: AI and voice (MM-44)
+
+    @Test func privacyRowsFollowUseAIFeatures() {
+        #expect(PrivacyRows.ai(showsEntryPoints: true, isEnabled: true) == String(localized: "On this device. Nothing is sent to xDev."))
+        #expect(PrivacyRows.ai(showsEntryPoints: true, isEnabled: false) == String(localized: "Turned off"))
+        #expect(PrivacyRows.ai(showsEntryPoints: false, isEnabled: true) == nil, "no AI row where AI can never run")
+        #expect(!PrivacyRows.voiceInput.isEmpty)
+    }
+
+    @Test func voiceInputLanguageDefaultsToThePreferredLanguage() {
+        #expect(VoiceInput.language(in: defaults, preferredLanguages: ["vi-VN", "en"]) == .vietnamese)
+        #expect(VoiceInput.language(in: defaults, preferredLanguages: ["fr-FR", "en-GB"]) == .english)
+        #expect(defaults.object(forKey: VoiceInput.languageKey) == nil)
+    }
+
+    #if os(macOS)
+    @Test func appleIntelligenceSettingsOpensSystemSettings() {
+        #expect(AppLinks.appleIntelligenceSettings.scheme == "x-apple.systempreferences")
+        #expect(NSWorkspace.shared.urlForApplication(toOpen: AppLinks.appleIntelligenceSettings) != nil)
+    }
+    #endif
 }
 
 private struct Locked: ProEntitlements {
