@@ -21,7 +21,7 @@ public enum PersistenceController {
         let schema = Schema(versionedSchema: SchemaV1.self)
         let configuration = switch location {
         case .standard:
-            ModelConfiguration("MindMapAI", schema: schema, cloudKitDatabase: .none)
+            standardConfiguration(schema: schema)
         case .file(let url):
             ModelConfiguration("MindMapAI", schema: schema, url: url, cloudKitDatabase: .none)
         case .appGroup(let containerURL):
@@ -34,7 +34,15 @@ public enum PersistenceController {
 
     /// Where `.standard` keeps the store: the app's own container.
     public static var standardStoreURL: URL {
-        ModelConfiguration("MindMapAI", schema: Schema(versionedSchema: SchemaV1.self), cloudKitDatabase: .none).url
+        standardConfiguration(schema: Schema(versionedSchema: SchemaV1.self)).url
+    }
+
+    /// `.none`, not SwiftData's default `.automatic`: once the app has an App
+    /// Group entitlement, `.automatic` would already point into the group, and
+    /// the store an older build left in the app's own container would never be
+    /// found and moved.
+    private static func standardConfiguration(schema: Schema) -> ModelConfiguration {
+        ModelConfiguration("MindMapAI", schema: schema, groupContainer: .none, cloudKitDatabase: .none)
     }
 
     private static func sharedConfiguration(schema: Schema, containerURL: URL) throws -> ModelConfiguration {

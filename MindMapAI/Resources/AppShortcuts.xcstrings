@@ -1,0 +1,56 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Add an idea to ${applicationName}" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ý tưởng vào ${applicationName}"
+          }
+        }
+      }
+    },
+    "Make a ${applicationName} map from the clipboard" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo sơ đồ ${applicationName} từ bảng nhớ tạm"
+          }
+        }
+      }
+    },
+    "New map in ${applicationName}" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ mới trong ${applicationName}"
+          }
+        }
+      }
+    },
+    "Open my recent ${applicationName} map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở sơ đồ ${applicationName} gần đây"
+          }
+        }
+      }
+    },
+    "Start a ${applicationName} map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bắt đầu sơ đồ ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

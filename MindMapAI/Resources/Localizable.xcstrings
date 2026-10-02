@@ -243,6 +243,18 @@
         }
       }
     },
+    "Add Idea" : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ý tưởng"
+          }
+        }
+      }
+    },
     "Add Link" : {
       "localizations" : {
         "vi" : {
@@ -309,6 +321,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm vào ghi chú"
+          }
+        }
+      }
+    },
+    "Added to %@." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã thêm vào %@."
+          }
+        }
+      }
+    },
+    "Adds a topic under the central topic of a map. Without a map, the idea goes to the most recently edited one." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm một chủ đề dưới chủ đề trung tâm của sơ đồ. Nếu không chọn sơ đồ, ý tưởng vào sơ đồ sửa gần nhất."
           }
         }
       }
@@ -639,6 +675,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa lưu được các thay đổi mới nhất."
+          }
+        }
+      }
+    },
+    "Creates an empty map and opens it." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo một sơ đồ trống và mở nó."
           }
         }
       }
@@ -983,6 +1031,18 @@
         }
       }
     },
+    "Idea" : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ý tưởng"
+          }
+        }
+      }
+    },
     "Ideas" : {
       "localizations" : {
         "vi" : {
@@ -1073,6 +1133,18 @@
         }
       }
     },
+    "Makes a map from the text on the clipboard: each line or Markdown list item becomes a topic." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo sơ đồ từ văn bản trong bảng nhớ tạm: mỗi dòng hoặc mục danh sách Markdown thành một chủ đề."
+          }
+        }
+      }
+    },
     "Map" : {
       "localizations" : {
         "vi" : {
@@ -1089,6 +1161,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không tìm thấy sơ đồ"
+          }
+        }
+      }
+    },
+    "Map from Clipboard" : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ từ bảng nhớ tạm"
           }
         }
       }
@@ -1352,6 +1436,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trên thiết bị này. Không gửi gì tới xDev."
+          }
+        }
+      }
+    },
+    "Open Map" : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở sơ đồ"
+          }
+        }
+      }
+    },
+    "Open Recent Map" : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở sơ đồ gần đây"
+          }
+        }
+      }
+    },
+    "Opens a map." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở một sơ đồ."
+          }
+        }
+      }
+    },
+    "Opens the most recently edited map." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở sơ đồ sửa gần nhất."
           }
         }
       }
@@ -1722,6 +1854,30 @@
         }
       }
     },
+    "That map no longer exists." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ này không còn nữa."
+          }
+        }
+      }
+    },
+    "The clipboard has no text to make a map from." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bảng nhớ tạm không có văn bản để tạo sơ đồ."
+          }
+        }
+      }
+    },
     "The suggestions couldn’t be used. Try again." : {
       "localizations" : {
         "vi" : {
@@ -1748,6 +1904,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bộ màu"
+          }
+        }
+      }
+    },
+    "There are no maps yet." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có sơ đồ nào."
           }
         }
       }
@@ -1791,6 +1959,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không thực hiện được yêu cầu này. Hãy thử diễn đạt khác đi."
+          }
+        }
+      }
+    },
+    "Title" : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiêu đề"
           }
         }
       }
@@ -1861,6 +2041,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hãy thử lại. Nếu vẫn lỗi, hãy khởi động lại ứng dụng."
+          }
+        }
+      }
+    },
+    "Type an idea to add." : {
+      "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy nhập một ý tưởng để thêm."
           }
         }
       }

@@ -15,7 +15,7 @@ Research for MM-0e, 2026-10-02: how the repository grows through the phases. The
 ```
 MindMapAI.xcodeproj
 ├─ MindMapAI/                 app target (macOS, iPadOS, iOS): App/, Features/<Feature>/, Resources
-├─ MindMapShareExtension/     MM-11
+├─ MindMapShareExtension/     ✓ MM-11, macOS and iOS
 ├─ MindMapAITests/            hosted app tests on macOS
 └─ MindMapAIUITests/          MM-3 and later
 Packages/
@@ -25,6 +25,8 @@ Packages/
 │  ├─ MindMapPersistence      ✓, plus App Group store and CloudKit config (MM-6)
 │  ├─ MindMapLayout           ✓ (MM-4), see [[layout-engine]]
 │  ├─ MindMapInterchange      ✓ Markdown and text (MM-10a), see [[interchange]]; OPML later
+│  ├─ MindMapSharing          ✓ (MM-11): QuickCapture, SharedContent, ShareInbox for the extension and the intents
+│  ├─ MindMapIntents          ✓ (MM-11): entities, queries, intents, AppIntentsPackage, Spotlight index; see [[system-integration]]
 │  ├─ MindMapSearch           index, tokenizing, ranking, `Embedder` protocol
 │  ├─ MindMapAICore           ✓ (MM-7): AIProvider, requests, AIProposal, ContextBuilder, ProposalTranslator, AICapabilities
 │  ├─ MindMapAIApple          ✓ (MM-7): Foundation Models provider, @Generable types, prompts catalog; Translation glue later
@@ -33,8 +35,6 @@ Packages/
 ├─ MindMapUI/                 SwiftUI, no SwiftData
 │  ├─ MindMapDesignSystem     moved out of the app target when the Share Extension needs it
 │  └─ MindMapCanvas           rendering, viewport, hit testing, gestures, PNG/PDF rendering; in the app target (Features/Canvas) until a second target needs it, see [[canvas]]
-├─ MindMapSystem/
-│  └─ MindMapIntents          MM-11: entities, queries, intents, AppIntentsPackage
 └─ MindMapLocalModels/        optional, later: MLX or Core AI models
 ```
 
@@ -49,9 +49,9 @@ Packages/
 | AICore apart from AIApple | AICore never imports FoundationModels, so Graph, UI and tests depend on plain values. Providers swap behind one protocol. Prompts live next to the provider that uses them. |
 | Capture wraps OS frameworks | OCR, Translation and speech have device and Simulator limits; protocols let tests and the Simulator use fakes. |
 | UI package without SwiftData | Keeps Core free of SwiftUI and lets the extension reuse the design system. |
-| Intents in one package | Shared by the app and the extension through `AppIntentsPackage`. |
+| Intents in one package | `MindMapIntents`, a target of `MindMapCore` (one package reference, tested by `swift test`); the app includes it through its own `AppIntentsPackage`. |
 | Local models in their own package | MLX's Metal shaders do not build with the SwiftPM command line, which would break `swift test` for Core. |
-| Share Extension links the minimum | Domain, Graph, Persistence, Interchange, DesignSystem. Shared items go to an inbox in the App Group store; the app runs AI on them later. Extension memory limits are not verified. |
+| Share Extension links the minimum | Domain, Graph, Persistence, Interchange, Sharing; no AI, no AppIntents. It uses standard SwiftUI controls, so it does not need the design system yet. Images and PDFs go to an inbox in the App Group container; the app reads them later. Extension memory limits are not verified. |
 
 ## Platform code
 

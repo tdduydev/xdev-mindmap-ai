@@ -38,7 +38,8 @@ struct QuickCaptureTests {
 
         let graph = try #require(try await repository.loadGraph(for: map.id))
         #expect(graph.map.title == "Shared")
-        #expect(graph.children(of: try #require(graph.map.rootNodeID)).map(\.title) == ["Alpha", "Beta"])
+        let rootID = try #require(graph.map.rootNodeID)
+        #expect(graph.children(of: rootID).map(\.title) == ["Alpha", "Beta"])
         #expect(GraphValidator.validate(graph).isEmpty)
     }
 
@@ -81,7 +82,8 @@ struct QuickCaptureTests {
 
         #expect(map.id == newer.map.id)
         let graph = try #require(try await repository.loadGraph(for: newer.map.id))
-        let idea = try #require(graph.children(of: try #require(graph.map.rootNodeID)).first)
+        let rootID = try #require(graph.map.rootNodeID)
+        let idea = try #require(graph.children(of: rootID).first)
         #expect(idea.title == "Gọi khách hàng")
         #expect(idea.metadata.origin == .user)
     }

@@ -19,6 +19,7 @@ let package = Package(
         .library(name: "MindMapTestSupport", targets: ["MindMapTestSupport"]),
         .library(name: "MindMapInterchange", targets: ["MindMapInterchange"]),
         .library(name: "MindMapSharing", targets: ["MindMapSharing"]),
+        .library(name: "MindMapIntents", targets: ["MindMapIntents"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -53,6 +54,16 @@ let package = Package(
         .testTarget(
             name: "MindMapSharingTests",
             dependencies: ["MindMapSharing", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapInterchange"]
+        ),
+        // App Intents, Shortcuts and Spotlight (MM-11). Here rather than in the
+        // app so the intents are an `AppIntentsPackage` any target can include.
+        .target(
+            name: "MindMapIntents",
+            dependencies: ["MindMapDomain", "MindMapPersistence", "MindMapInterchange", "MindMapSharing"]
+        ),
+        .testTarget(
+            name: "MindMapIntentsTests",
+            dependencies: ["MindMapIntents", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapSharing"]
         ),
     ]
 )
