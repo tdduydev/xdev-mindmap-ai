@@ -6,10 +6,10 @@ Design for MM-39, 2026-10-02. Nothing here is built yet. Decisions are in [ADR 0
 
 - **Model:** Foundation Models on the device (`SystemLanguageModel.default`) only. No Private Cloud Compute, no third-party model, as for every AI feature (ADR 0001, [ai-architecture.md](ai-architecture.md)).
 - **Small context, so tools:** the model gets 4,096 tokens on the development Mac ([on-device-ai.md](on-device-ai.md)), so it never sees the whole map. It calls tools that search and read topics, and answers from what they return.
-- **Two scopes:** Ask in one map (from the editor) and Ask across the library (from the library) [Đề xuất: the library scope is Pro].
+- **Two scopes:** Ask in one map (from the editor, free) and Ask across the library (from the library, Pro; decided 2026-10-02).
 - **Citations:** each answer names the topics it used; clicking one opens the map at that topic.
 - **Edits are suggestions:** in a map, the chat can suggest topics; they appear as AI suggestions on the canvas and Accept is one command, one undo step.
-- **Not saved [Đề xuất]:** the conversation lives while the window is open and is never written to the store.
+- **Saved per map (decided 2026-10-02, MM-55):** each map keeps its conversation in the store, deleted with the map and when the person clears it; it is map content, so it is never logged and syncs only with the map. The first chat release (MM-41) may keep it in memory until MM-55 lands.
 - **Hidden where AI is hidden:** same `AICapabilities` as the other AI features, so an Intel Mac or an ineligible device never shows it (MM-21).
 
 ## Model and context
@@ -92,7 +92,7 @@ Saving, if wanted later, is a separate decision.
 | `appleIntelligenceOff`, `modelDownloading`, `unknown` | Menu item and panel shown; the panel says why in one line, as the other AI features do |
 | Language unsupported | The panel says the question's language is not supported |
 
-## Free or Pro [Đề xuất]
+## Free or Pro (decided 2026-10-02: Ask in a map free, Ask across the library Pro)
 
 Following [pricing.md](pricing.md), where single-topic AI is free and whole-map AI is Pro:
 

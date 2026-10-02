@@ -23,7 +23,7 @@ Design for MM-42, 2026-10-02: every pane and row of Settings on Mac, iPad and iP
 | Store | Use it for | Notes |
 | --- | --- | --- |
 | **AppDefaults** | Everything that belongs to this device or this install | `AppDefaults.store` (UserDefaults; a throwaway suite under `-uitest`). Every `@AppStorage` passes `store: AppDefaults.store`. UserDefaults is already declared in `PrivacyInfo.xcprivacy` (CA92.1). |
-| **iCloud KVS** [Đề xuất] | A few taste preferences that should follow the person to their other devices: default theme, export defaults | `NSUbiquitousKeyValueStore`: at most 1,024 keys and 1 MB in total; needs the key-value store entitlement; Apple says not to store personal or sensitive information there ([NSUbiquitousKeyValueStore](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore)). Only after MM-6, only while iCloud sync is on, with AppDefaults as the local copy (read AppDefaults, mirror to KVS, take KVS changes from `didChangeExternallyNotification`). Never map content. Until it is decided, these rows are AppDefaults. |
+| **iCloud KVS** (decided 2026-10-02: yes, after MM-6) | A few taste preferences that should follow the person to their other devices: default theme, export defaults | `NSUbiquitousKeyValueStore`: at most 1,024 keys and 1 MB in total; needs the key-value store entitlement; Apple says not to store personal or sensitive information there ([NSUbiquitousKeyValueStore](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore)). Only after MM-6, only while iCloud sync is on, with AppDefaults as the local copy (read AppDefaults, mirror to KVS, take KVS changes from `didChangeExternallyNotification`). Never map content. Until it is decided, these rows are AppDefaults. |
 | **SwiftData, per map** | What belongs to one map: its theme, collapse state, tags | Changed in the editor (File, Format, inspector) as a `GraphCommand` with undo, never from Settings (HIG: per-document options are not app settings). |
 | **Keychain** | Secrets: MCP client tokens | Never in defaults or logs ([[privacy]]). |
 | **`@SceneStorage`** | Window state: section, open map, editor state | Restored by the system; not a setting. |
@@ -47,7 +47,7 @@ Columns in the tables below: **Free/Pro**, and **Task** (✅ already on `main`).
 | Row (en / vi) | Control and default | Store | Free/Pro | Task |
 | --- | --- | --- | --- | --- |
 | Appearance / Giao diện | Picker: System (Theo hệ thống), Light (Sáng), Dark (Tối). Default System | AppDefaults `appearance` | Free | ✅ MM-0f |
-| Theme for New Maps / Bộ màu cho sơ đồ mới | Picker: Standard (Tiêu chuẩn), xDev Blue, Graphite. Default Standard. The map's own theme stays in the map (Change Theme, MM-18). A Pro theme shows a `star` and opens the paywall when chosen without Pro; if Pro is refunded, new maps fall back to Standard and the stored value is kept | AppDefaults `newMap.theme`, later iCloud KVS [Đề xuất] | Standard free; others Pro (`ProFeature.extraThemes`) | MM-43 |
+| Theme for New Maps / Bộ màu cho sơ đồ mới | Picker: Standard (Tiêu chuẩn), xDev Blue, Graphite. Default Standard. The map's own theme stays in the map (Change Theme, MM-18). A Pro theme shows a `star` and opens the paywall when chosen without Pro; if Pro is refunded, new maps fall back to Standard and the stored value is kept | AppDefaults `newMap.theme`, later iCloud KVS (after MM-6) | Standard free; others Pro (`ProFeature.extraThemes`) | MM-43 |
 
 Considered and left out [Đề xuất], each for a reason the next task should keep unless the product owner decides otherwise:
 
@@ -61,7 +61,7 @@ Considered and left out [Đề xuất], each for a reason the next task should k
 
 ## Export (Xuất)
 
-The export sheet starts from these values and writing a choice in the sheet updates the same key, as Include Notes already does, so Settings and the sheet never disagree. All are device-local first and candidates for iCloud KVS [Đề xuất].
+The export sheet starts from these values and writing a choice in the sheet updates the same key, as Include Notes already does, so Settings and the sheet never disagree. All are device-local first and move to iCloud KVS after MM-6 (decided 2026-10-02).
 
 | Row (en / vi) | Control and default | Store | Free/Pro | Task |
 | --- | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ Hidden on devices that can never run Apple Intelligence, like every AI entry poi
 | Apple Intelligence / Apple Intelligence | Status text: Ready, Getting Ready, Off, Language Not Supported (`AIAvailabilityText`), with the footer that says what to do | Read from `AIService` | Free | ✅ MM-8 (FR-SET-05) |
 | Open Apple Intelligence Settings… / Mở cài đặt Apple Intelligence… | Button, shown only when the state is Off. Mac: opens the Apple Intelligence pane of System Settings; the `x-apple.systempreferences:` URL for it is not verified, so MM-44 checks it and otherwise opens System Settings with a one-line path. iPad, iPhone: no public URL to that page found (not verified); `openSettingsURLString` opens the app's own page, which is the wrong place, so show the path as text instead | — | Free | MM-44 |
 | Use AI Features / Dùng tính năng AI | Switch, default on. Off hides the AI menu items (disabled with "AI is turned off in Settings", since the Mac menu bar never hides items), the toolbar menu, canvas button, topic menu items, New Map with AI…, chat and Suggest Tags, Groups and Boundary titles. Suggestions already on a canvas stay until accepted or discarded. Nothing else changes | AppDefaults `ai.enabled` (device-local: AI availability differs per device) | Free | MM-44 |
-| Response Language / Ngôn ngữ trả lời | Picker: Automatic, English, Tiếng Việt. Default Automatic: the language of the request or the selected topics, else the app's language (FR-AI-13, [[chat]]). An explicit choice only sets "You MUST respond in …"; Rewrite ▸ in Vietnamese / in English keep their own target | AppDefaults `ai.responseLanguage` | Free | MM-44 [Đề xuất: keep, or leave out until people ask; Automatic already covers mixed en–vi maps] |
+| Response Language / Ngôn ngữ trả lời | Picker: Automatic, English, Tiếng Việt. Default Automatic: the language of the request or the selected topics, else the app's language (FR-AI-13, [[chat]]). An explicit choice only sets "You MUST respond in …"; Rewrite ▸ in Vietnamese / in English keep their own target | AppDefaults `ai.responseLanguage` | Free | Left out (decided 2026-10-02): Automatic is the only behaviour until people ask for a choice |
 | Voice Input Language / Ngôn ngữ nhập giọng nói | Picker: English, Tiếng Việt. Default the first supported language in `Locale.preferredLanguages`. The voice sheet keeps its own picker on the same key, so the choice is made where it is used (HIG task-specific) and both show the same value | AppDefaults `voiceInput.language` (today read from `.standard`, see *Gotchas*) | Pro (`voiceInput`), row visible to everyone | MM-44 (MM-20 for the sheet) |
 | Show AI Privacy Notice Again / Hiện lại thông báo quyền riêng tư AI | Not a row [Đề xuất]: the notice's content is always in Privacy; the flag `ai.privacyNoticeShown` stays internal | AppDefaults | — | — |
 
@@ -100,7 +100,7 @@ Left out [Đề xuất]:
 | iCloud Sync / Đồng bộ iCloud | Switch, default on. Footer gives the state from `CloudSyncState` in plain words: Up to Date, Syncing, Waiting for Network (not an error), Not Signed In to iCloud (with the path to sign in), Off for This App in System Settings, Error (one line and what to do) (FR-SYN-03). Turning it off keeps the maps on this device and stops syncing; it deletes nothing. Changing it reopens the store, so the switch is disabled while that runs | AppDefaults `sync.iCloudEnabled` (device-local by nature) | Free ([[pricing]]) | MM-45 (needs MM-6) |
 | Recently Deleted / Đã xoá gần đây | Count ("3 maps") and Show in Library, which selects the library section. Maps stay 30 days; the period is fixed, not a setting | Repository (`fetchDeletedMaps`) | Free | MM-45 (MM-19 ✅ for the section) |
 | Empty Recently Deleted… / Xoá hết mục đã xoá gần đây… | Button, disabled when empty. Alert: "Delete N maps permanently?", "This can’t be undone.", buttons Cancel and Delete Permanently (no destructive style, no default, as Empty Trash; HIG Alerts). Spotlight entries go too | Repository purge | Free | MM-45 |
-| Export All Maps… / Xuất tất cả sơ đồ… | Button: a folder with one file per map, made off the main actor with progress, then `fileExporter`. Format: see *Open questions* | — | Free (Markdown); open for a lossless format | MM-45 |
+| Export All Maps… / Xuất tất cả sơ đồ… | Button: a folder with one file per map, made off the main actor with progress, then `fileExporter`. Format: see *Open questions* | — | Waits for the lossless format of MM-54 (decided 2026-10-02); no Markdown-only Export All | MM-45 after MM-54 |
 | Import Maps… / Nhập sơ đồ… | Button: same importer as File ▸ Import… (several files); each file becomes a new map, existing maps are never overwritten | — | Free | MM-45 |
 
 ## AI Apps (Ứng dụng AI), Mac only
@@ -169,8 +169,8 @@ For each task below: Swift Testing for the defaults (a fresh `AppDefaults` suite
 ## Open questions
 
 1. **Backup format.** Markdown keeps titles, notes and task boxes but drops tags, colours, symbols, links, boundaries and themes (FR-ORG-10), so Export All Maps in Markdown is not a backup. A lossless archive (for example one JSON file per map from the Codable domain types, with a version field) is a new interchange format and needs a short design in [[interchange]] first. Recommendation [Đề xuất]: MM-45 ships Markdown export of all maps labelled "Export All Maps" (not "Back Up") and the lossless format is a separate task.
-2. **iCloud KVS** for theme and export defaults: worth an entitlement and a privacy line? Recommendation [Đề xuất]: decide after MM-6 ships; nothing in V1 depends on it.
-3. **iCloud Sync switch** (FR-SYN-06, S) next to the system's per-app iCloud control: the system already lets people turn off iCloud for an app on iPhone and iPad *[Inference, not verified for CloudKit-only apps on macOS]*; HIG Settings warns against copies of system settings. Recommendation [Đề xuất]: keep the in-app switch only if MM-6 confirms the Mac has no per-app control, otherwise show status and a path to System Settings.
+2. **iCloud KVS** for theme and export defaults: decided 2026-10-02, yes, built after MM-6 and only while iCloud sync is on; never map content.
+3. **iCloud Sync switch** (FR-SYN-06, S) next to the system's per-app iCloud control: the system already lets people turn off iCloud for an app on iPhone and iPad *[Inference, not verified for CloudKit-only apps on macOS]*; HIG Settings warns against copies of system settings. Decided 2026-10-02: keep the in-app switch only where the system has no per-app control (MM-6 checks the Mac); otherwise show status and a path to System Settings.
 4. **Response Language**: keep or drop (see AI).
 
 ## Proposed task criteria (for the leader)
