@@ -1,3 +1,4 @@
+import MindMapAICore
 import StoreKit
 import SwiftUI
 
@@ -8,6 +9,9 @@ struct PaywallView: View {
     var feature: ProFeature?
 
     @Environment(ProEntitlement.self) private var store
+    /// Optional so the paywall can be drawn on its own (the App Review
+    /// screenshot); without it the paywall lists AI tools.
+    @Environment(AIService.self) private var ai: AIService?
     @Environment(\.purchase) private var purchase
     @Environment(\.dismiss) private var dismiss
 
@@ -18,8 +22,14 @@ struct PaywallView: View {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("MindMap AI Pro")
                             .font(Typography.paywallTitle)
-                        Text("Pro adds extra export formats, themes, AI tools and voice input. Maps, topics, sync and everything else stay free.")
-                            .foregroundStyle(.secondary)
+                        Group {
+                            if includesAI {
+                                Text("Pro adds extra export formats, themes, AI tools and voice input. Maps, topics, sync and everything else stay free.")
+                            } else {
+                                Text("Pro adds extra export formats, themes and voice input. Maps, topics, sync and everything else stay free.")
+                            }
+                        }
+                        .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, Spacing.xs)
                 }
@@ -66,9 +76,14 @@ struct PaywallView: View {
         }
     }
 
+    /// False only once the device is known to never run the model, as for
+    /// every other AI entry point (FR-AI-02).
+    private var includesAI: Bool { ai?.capabilities?.showsAIEntryPoints ?? true }
+
     private var features: [ProFeature] {
-        guard let feature else { return ProFeature.allCases }
-        return [feature] + ProFeature.allCases.filter { $0 != feature }
+        let offered = ProFeature.offered(includingAI: includesAI)
+        guard let feature, offered.contains(feature) else { return offered }
+        return [feature] + offered.filter { $0 != feature }
     }
 
     @ViewBuilder
