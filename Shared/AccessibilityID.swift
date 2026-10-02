@@ -124,6 +124,8 @@ nonisolated enum AccessibilityID {
         static let copy = "chat.copy"
         static let addToNote = "chat.addToNote"
         static let askAgain = "chat.askAgain"
+        static let microphone = "chat.microphone"
+        static let cancelVoice = "chat.cancelVoice"
     }
 
     enum ScreenshotAI {
