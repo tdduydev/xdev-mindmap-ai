@@ -13,6 +13,7 @@
     {"file": "docs/design-guidelines.md", "key": "design-guidelines", "title": "Design guidelines"},
     {"file": "docs/app-store-readiness.md", "key": "app-store-readiness", "title": "App Store readiness"},
     {"file": "docs/design-system.md", "key": "design-system", "title": "Design system"},
+    {"file": "docs/pricing.md", "key": "pricing", "title": "Pricing"},
     {"file": "docs/roadmap.md", "split": "##", "folder": "roadmap", "folderTitle": "Roadmap", "prefix": "roadmap-", "intro": "folder", "short": true},
     {"file": "docs/adr/0001-backendless-native-ios.md", "key": "adr-0001", "title": "0001 Native, local-first, backendless", "parent": "adr"},
     {"file": "docs/adr/0002-core-swift-package.md", "key": "adr-0002", "title": "0002 Core in a Swift package", "parent": "adr"},

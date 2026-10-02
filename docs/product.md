@@ -53,7 +53,7 @@ Real-time collaboration, team workspaces, any custom backend, Firebase authentic
 
 ## Monetization
 
-Free app with a one-time Pro unlock (non-consumable, StoreKit 2), decided on 2026-10-02. Core mind mapping is never crippled and there are no ads. The price and the Pro feature list are still open; candidates: PDF to map, advanced export and themes, version history, advanced AI workflows.
+Free app with a one-time Pro unlock at USD 14.99 (non-consumable, StoreKit 2, one purchase for every platform), decided on 2026-10-02. Pro covers advanced export, themes beyond Standard, advanced AI and voice input; core mind mapping is never crippled and there are no ads. Details and the market check are in [pricing.md](pricing.md).
 
 ## Positioning
 
