@@ -72,6 +72,8 @@ struct MapEditorView: View {
         .sheet(isPresented: $session.isManagingTags) {
             TagManagerView(session: session)
         }
+        // Here rather than in the inspector, so View ▸ Theme can open it with the inspector closed.
+        .proChoicePaywall($session.pendingThemeChoice)
         // A tag typed in the inspector that cannot be a name; Manage Tags shows its own.
         .alert(
             Text("Couldn’t Change the Tag"),
