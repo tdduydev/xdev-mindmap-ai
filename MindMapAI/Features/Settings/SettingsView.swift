@@ -61,6 +61,7 @@ struct PrivacySettingsSection: View {
             LabeledContent("Data Storage", value: String(localized: "On this device"))
             LabeledContent("xDev Servers", value: String(localized: "None. Your maps are never sent to xDev."))
             LabeledContent("Analytics", value: String(localized: "None"))
+            Link("Privacy Policy", destination: AppLinks.privacyPolicy)
         } header: {
             Text("Privacy")
         } footer: {
@@ -78,6 +79,7 @@ struct AboutSettingsSection: View {
             Text("by xDev")
                 .foregroundStyle(.secondary)
             Link("Website", destination: AppLinks.website)
+            Link("Support", destination: AppLinks.support)
         }
     }
 

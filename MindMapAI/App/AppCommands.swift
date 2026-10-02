@@ -87,7 +87,9 @@ struct MapCommands: Commands {
         }
 
         CommandGroup(replacing: .help) {
+            Link("MindMap AI Help", destination: AppLinks.support)
             Link("MindMap AI Website", destination: AppLinks.website)
+            Link("Privacy Policy", destination: AppLinks.privacyPolicy)
         }
     }
 
