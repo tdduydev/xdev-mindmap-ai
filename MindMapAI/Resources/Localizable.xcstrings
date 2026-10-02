@@ -962,6 +962,16 @@
         }
       }
     },
+    "Changes stay on this device and sync when you’re back online." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các thay đổi vẫn nằm trên máy này và sẽ đồng bộ khi bạn có mạng lại."
+          }
+        }
+      }
+    },
     "Choose a map, or start a new one." : {
       "localizations" : {
         "vi" : {
@@ -1112,6 +1122,16 @@
         }
       }
     },
+    "Couldn’t Sync" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đồng bộ được"
+          }
+        }
+      }
+    },
     "Couldn’t change the tag." : {
       "localizations" : {
         "vi" : {
@@ -1230,6 +1250,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tối"
+          }
+        }
+      }
+    },
+    "Data" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu"
           }
         }
       }
@@ -1780,6 +1810,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Định dạng"
+          }
+        }
+      }
+    },
+    "Free up iCloud storage or choose a larger plan. Your maps stay on this device until there’s room." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy giải phóng dung lượng iCloud hoặc chọn gói lớn hơn. Sơ đồ của bạn vẫn nằm trên máy này cho đến khi còn chỗ."
           }
         }
       }
@@ -2720,6 +2760,16 @@
         }
       }
     },
+    "Not Using iCloud" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng iCloud"
+          }
+        }
+      }
+    },
     "Not unlocked" : {
       "localizations" : {
         "vi" : {
@@ -2770,6 +2820,16 @@
         }
       }
     },
+    "Off" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt"
+          }
+        }
+      }
+    },
     "Offered in every map. Changes reach every map and can’t be undone." : {
       "localizations" : {
         "vi" : {
@@ -2796,6 +2856,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trên thiết bị này"
+          }
+        }
+      }
+    },
+    "On this device and in your private iCloud" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trên máy này và trong iCloud riêng của bạn"
           }
         }
       }
@@ -2850,6 +2920,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mở trong cửa sổ mới"
+          }
+        }
+      }
+    },
+    "Open your Apple Account in Settings to continue syncing. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Tài khoản Apple trong Cài đặt để tiếp tục đồng bộ. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
+    "Open your Apple Account in System Settings to continue syncing. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở Tài khoản Apple trong Cài đặt hệ thống để tiếp tục đồng bộ. Sơ đồ của bạn vẫn nằm trên máy này."
           }
         }
       }
@@ -3067,6 +3157,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Câu hỏi (không bắt buộc)"
+          }
+        }
+      }
+    },
+    "Quit and reopen MindMap AI to apply this change." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thoát rồi mở lại MindMap AI để áp dụng thay đổi này."
           }
         }
       }
@@ -3311,6 +3411,16 @@
         }
       }
     },
+    "Screen Time or device management keeps MindMap AI out of iCloud. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thời gian sử dụng hoặc chế độ quản lý thiết bị không cho MindMap AI dùng iCloud. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
     "See What’s in Pro…" : {
       "localizations" : {
         "vi" : {
@@ -3418,6 +3528,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hiện bảng thông tin"
+          }
+        }
+      }
+    },
+    "Sign in to iCloud in System Settings to sync your maps between your devices. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đăng nhập iCloud trong Cài đặt hệ thống để đồng bộ sơ đồ giữa các thiết bị của bạn. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
+    "Sign in to iCloud, or turn on iCloud for MindMap AI, in Settings to sync your maps between your devices. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đăng nhập iCloud, hoặc bật iCloud cho MindMap AI, trong Cài đặt để đồng bộ sơ đồ giữa các thiết bị của bạn. Sơ đồ của bạn vẫn nằm trên máy này."
           }
         }
       }
@@ -3704,6 +3834,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hỗ trợ"
+          }
+        }
+      }
+    },
+    "Syncing…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang đồng bộ…"
           }
         }
       }
@@ -4011,6 +4151,16 @@
         }
       }
     },
+    "This build of MindMap AI can’t use iCloud. Your maps stay on this device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản MindMap AI này không dùng được iCloud. Sơ đồ của bạn vẫn nằm trên máy này."
+          }
+        }
+      }
+    },
     "This device can’t run Apple Intelligence." : {
       "localizations" : {
         "vi" : {
@@ -4281,6 +4431,16 @@
         }
       }
     },
+    "Up to Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã cập nhật"
+          }
+        }
+      }
+    },
     "Use Title" : {
       "localizations" : {
         "vi" : {
@@ -4391,6 +4551,16 @@
         }
       }
     },
+    "Waiting for Network" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang chờ mạng"
+          }
+        }
+      }
+    },
     "Website" : {
       "localizations" : {
         "vi" : {
@@ -4437,6 +4607,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bạn"
+          }
+        }
+      }
+    },
+    "Your maps are on this device and in your private iCloud, and follow you to your other devices." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ của bạn nằm trên máy này và trong iCloud riêng của bạn, và có mặt trên các thiết bị khác của bạn."
+          }
+        }
+      }
+    },
+    "Your maps stay on this device only." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ của bạn chỉ nằm trên máy này."
+          }
+        }
+      }
+    },
+    "Your maps stay on this device. MindMap AI tries again later." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ của bạn vẫn nằm trên máy này. MindMap AI sẽ thử lại sau."
           }
         }
       }
@@ -4497,6 +4697,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "có ghi chú"
+          }
+        }
+      }
+    },
+    "iCloud" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud"
+          }
+        }
+      }
+    },
+    "iCloud Is Restricted" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud bị giới hạn"
+          }
+        }
+      }
+    },
+    "iCloud Needs Attention" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud cần bạn xem lại"
+          }
+        }
+      }
+    },
+    "iCloud Storage Is Full" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dung lượng iCloud đã đầy"
+          }
+        }
+      }
+    },
+    "iCloud Sync" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đồng bộ iCloud"
           }
         }
       }

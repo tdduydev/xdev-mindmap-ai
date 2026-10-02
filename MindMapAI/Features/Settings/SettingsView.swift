@@ -1,3 +1,4 @@
+import MindMapPersistence
 import SwiftUI
 
 /// Settings: a tabbed window on the Mac (⌘,), a sheet on iPad and iPhone.
@@ -15,6 +16,9 @@ struct SettingsView: View {
                     AISettingsSection()
                     ExportSettingsSection()
                 }
+            }
+            Tab("Data", systemImage: "icloud") {
+                Form { CloudSyncSettingsSection() }
             }
             Tab("Pro", systemImage: "star") {
                 Form { ProSettingsSection() }
@@ -35,6 +39,7 @@ struct SettingsView: View {
                 ProSettingsSection()
                 AISettingsSection()
                 ExportSettingsSection()
+                CloudSyncSettingsSection()
                 PrivacySettingsSection()
                 AboutSettingsSection()
             }
@@ -65,12 +70,19 @@ struct GeneralSettingsSection: View {
     }
 }
 
-/// Plain statements of where data goes. Each row must stay true: change Data
-/// Storage when iCloud sync ships, and the AI row if AI ever leaves the device.
+/// Plain statements of where data goes. Each row must stay true: Data
+/// Storage follows sync; change the AI row if AI ever leaves the device.
 struct PrivacySettingsSection: View {
+    @Environment(CloudSyncMonitor.self) private var sync
+
     var body: some View {
         Section {
-            LabeledContent("Data Storage", value: String(localized: "On this device"))
+            LabeledContent(
+                "Data Storage",
+                value: sync.state.isActive
+                    ? String(localized: "On this device and in your private iCloud")
+                    : String(localized: "On this device")
+            )
             LabeledContent("xDev Servers", value: String(localized: "None. Your maps are never sent to xDev."))
             LabeledContent("Analytics", value: String(localized: "None"))
             LabeledContent("AI", value: String(localized: "On this device. Nothing is sent to xDev."))

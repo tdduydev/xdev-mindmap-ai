@@ -29,17 +29,38 @@ final class AppEnvironment {
         self.seeding = seeding
     }
 
-    static func live() -> AppLaunch {
+    /// `sync` is how the store mirrors to iCloud (`CloudSyncMonitor.storeSync`).
+    static func live(sync: PersistenceController.Sync) -> AppLaunch {
         do {
             if let mode = UITestMode.current {
                 return .ready(try uiTest(mode))
             }
-            return .ready(AppEnvironment(repository: try PersistenceController.makeRepository(at: storeLocation)))
+            #if DEBUG
+            initializeCloudKitSchemaIfAsked(sync: sync)
+            #endif
+            return .ready(AppEnvironment(repository: try PersistenceController.makeRepository(at: storeLocation, sync: sync)))
         } catch {
             Log.persistence.fault("The store did not open: \(error.localizedDescription, privacy: .public)")
             return .failed
         }
     }
+
+    #if DEBUG
+    /// `-InitializeCloudKitSchema` on a development build signed for the
+    /// container creates every record type in CloudKit's development
+    /// environment, to deploy to production from the CloudKit Console
+    /// (cloudkit-sync.md, *Schema*; FR-SYN-07).
+    private static func initializeCloudKitSchemaIfAsked(sync: PersistenceController.Sync) {
+        guard ProcessInfo.processInfo.arguments.contains("-InitializeCloudKitSchema"),
+              case .privateDatabase(let identifier) = sync else { return }
+        do {
+            try PersistenceController.initializeCloudKitSchema(containerIdentifier: identifier)
+            Log.persistence.notice("CloudKit development schema initialized")
+        } catch {
+            Log.persistence.error("Initializing the CloudKit schema failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+    #endif
 
     /// The App Group store, shared with the Share Extension. Without the
     /// entitlement (an unsigned local build) the app keeps its own store, so it

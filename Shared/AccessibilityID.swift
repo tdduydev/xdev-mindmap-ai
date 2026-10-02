@@ -9,6 +9,7 @@ nonisolated enum AccessibilityID {
     enum Sidebar {
         static let list = "sidebar.list"
         static let settings = "sidebar.settings"
+        static let syncStatus = "sidebar.syncStatus"
     }
 
     enum Library {
@@ -42,5 +43,7 @@ nonisolated enum AccessibilityID {
     enum Settings {
         static let appearance = "settings.appearance"
         static let done = "settings.done"
+        static let iCloudSync = "settings.iCloudSync"
+        static let iCloudStatus = "settings.iCloudStatus"
     }
 }

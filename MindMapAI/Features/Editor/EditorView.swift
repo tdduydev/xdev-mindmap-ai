@@ -27,30 +27,21 @@ struct EditorView: View {
             case nil:
                 ProgressView()
             case .ready(let map):
-                if let voice {
+                if let gone = map.session.removedElsewhere {
+                    // Deleted on another device while open here (FR-SYN-04).
+                    Self.unavailable(gone == .deleted ? .missing : .recentlyDeleted)
+                } else if let voice {
                     MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, voice: voice)
                         .onChange(of: EditorRestoration(map.session)) { _, state in
                             restoration = state
                         }
                 }
             case .missing:
-                ContentUnavailableView(
-                    "Map Not Found",
-                    systemImage: "questionmark.folder",
-                    description: Text("It may have been deleted on another device.")
-                )
+                Self.unavailable(.missing)
             case .recentlyDeleted:
-                ContentUnavailableView(
-                    "Map in Recently Deleted",
-                    systemImage: "trash",
-                    description: Text("Restore it from Recently Deleted to open it.")
-                )
+                Self.unavailable(.recentlyDeleted)
             case .failed:
-                ContentUnavailableView(
-                    "Couldn’t Open Map",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text("Try again. If it keeps happening, restart the app.")
-                )
+                Self.unavailable(.failed)
             }
         }
         .task {
@@ -76,6 +67,34 @@ struct EditorView: View {
                 }
             }
             openMaps.close(mapID, in: window)
+        }
+    }
+
+    private enum Unavailable {
+        case missing, recentlyDeleted, failed
+    }
+
+    @ViewBuilder
+    private static func unavailable(_ reason: Unavailable) -> some View {
+        switch reason {
+        case .missing:
+            ContentUnavailableView(
+                "Map Not Found",
+                systemImage: "questionmark.folder",
+                description: Text("It may have been deleted on another device.")
+            )
+        case .recentlyDeleted:
+            ContentUnavailableView(
+                "Map in Recently Deleted",
+                systemImage: "trash",
+                description: Text("Restore it from Recently Deleted to open it.")
+            )
+        case .failed:
+            ContentUnavailableView(
+                "Couldn’t Open Map",
+                systemImage: "exclamationmark.triangle",
+                description: Text("Try again. If it keeps happening, restart the app.")
+            )
         }
     }
 }
