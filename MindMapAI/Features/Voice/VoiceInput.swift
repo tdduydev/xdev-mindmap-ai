@@ -80,6 +80,15 @@ final class VoiceInput {
         }
     }
 
+    /// Not while a step is under way: a download in flight would go on and start
+    /// listening on its own, alongside one the user starts.
+    var canChangeLanguage: Bool {
+        switch phase {
+        case .preparing, .downloading, .finishing: false
+        default: true
+        }
+    }
+
     var canAddTopics: Bool { !transcript.titles.isEmpty && phase != .finishing && phase != .locked }
 
     // MARK: Intents

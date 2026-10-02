@@ -42,7 +42,7 @@ struct VoiceInputSheet: View {
                     Text(language.title).tag(language)
                 }
             }
-            .disabled(voice.phase == .preparing || voice.phase == .finishing)
+            .disabled(!voice.canChangeLanguage)
             status
             if !voice.transcript.pending.isEmpty {
                 Text(verbatim: voice.transcript.pending)

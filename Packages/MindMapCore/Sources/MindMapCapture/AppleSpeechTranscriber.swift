@@ -179,7 +179,7 @@ private final class Microphone: @unchecked Sendable {
         let micFormat = node.outputFormat(forBus: 0)
         guard micFormat.channelCount > 0, micFormat.sampleRate > 0 else { throw VoiceInputError.noMicrophone }
         guard let converter = AVAudioConverter(from: micFormat, to: analyzerFormat) else { throw VoiceInputError.transcriptionFailed }
-        // Without priming the converter swallows the first frames of each buffer.
+        // The default priming swallows the first frames of each buffer.
         converter.primeMethod = .none
         node.installTap(onBus: 0, bufferSize: 4096, format: micFormat) { buffer, _ in
             guard let converted = Self.convert(buffer, with: converter, to: analyzerFormat) else { return }
@@ -196,10 +196,11 @@ private final class Microphone: @unchecked Sendable {
         }
     }
 
+    /// Also undoes a failed start: the tap and the iOS audio session are set
+    /// up in `init`, before the engine runs.
     func stop() {
-        guard engine.isRunning else { return }
         engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
+        if engine.isRunning { engine.stop() }
         #if os(iOS)
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         #endif

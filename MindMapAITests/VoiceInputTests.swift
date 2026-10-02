@@ -194,6 +194,20 @@ struct VoiceInputTests {
         #expect(reopened.language == .english)
     }
 
+    @Test func changingLanguageWhileListeningKeepsTheTopicsAndListensAgain() async throws {
+        let voice = try await open()
+        transcriber.script(heard: [.final("Flights.")], onFinish: [.final("Hotel.")])
+        voice.present()
+        await waitUntil { voice.phase == .listening }
+
+        voice.language = .vietnamese
+        await waitUntil { transcriber.startedLanguages.count == 2 && voice.phase == .listening }
+
+        #expect(transcriber.startedLanguages == [.english, .vietnamese])
+        #expect(Array(voice.transcript.titles.prefix(2)) == ["Flights", "Hotel"])
+        voice.close()
+    }
+
     @Test func usageDescriptionsShipInEnglishAndVietnamese() throws {
         #expect((Bundle.main.object(forInfoDictionaryKey: "NSMicrophoneUsageDescription") as? String)?.isEmpty == false)
         #expect((Bundle.main.object(forInfoDictionaryKey: "NSSpeechRecognitionUsageDescription") as? String)?.isEmpty == false)
