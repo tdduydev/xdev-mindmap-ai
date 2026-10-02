@@ -164,7 +164,8 @@ extension MapArchive {
                 isCollapsed: node.isCollapsed, nodeType: node.nodeType, metadata: node.metadata,
                 createdAt: node.createdAt, updatedAt: node.updatedAt,
                 color: node.color, symbol: node.symbol, taskState: node.taskState,
-                priority: node.priority, startDate: node.startDate, dueDate: node.dueDate
+                priority: node.priority, startDate: node.startDate, dueDate: node.dueDate,
+                link: node.link, position: node.position, callout: node.callout
             )
         }
         let newEdges = edges.map { edge in
@@ -192,7 +193,8 @@ extension MapArchive {
                 firstNodeID: newNode(group.firstNodeID),
                 lastNodeID: newNode(group.lastNodeID),
                 title: group.title, color: group.color, origin: group.origin,
-                createdAt: group.createdAt, updatedAt: group.updatedAt
+                createdAt: group.createdAt, updatedAt: group.updatedAt,
+                summaryNodeID: group.summaryNodeID.map { nodeIDs[$0] ?? NodeID() }
             )
         }
         return GraphState(

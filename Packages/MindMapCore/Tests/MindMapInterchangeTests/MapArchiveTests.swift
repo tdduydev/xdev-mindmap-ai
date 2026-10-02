@@ -109,6 +109,27 @@ struct MapArchiveTests {
         #expect(imported.tags.values.allSatisfy { $0.mapID == imported.map.id })
     }
 
+    /// The summary topic gets a new ID like every topic, and the summary follows it.
+    @Test func importingKeepsTheSummaryTopic() throws {
+        let original = ArchiveFixture.everyField()
+        let rootID = try #require(original.map.rootNodeID)
+        let members = original.childIDs(of: rootID)
+        let topic = MindNode(mapID: original.map.id, parentID: rootID, title: "Sum", sortOrder: 9)
+        let summary = MindGroup(
+            mapID: original.map.id, kind: .summary, parentNodeID: rootID,
+            firstNodeID: members.first, lastNodeID: members.last, summaryNodeID: topic.id
+        )
+        let graph = GraphState(
+            map: original.map, nodes: Array(original.nodes.values) + [topic], edges: [], groups: [summary]
+        )
+
+        let imported = MapArchive(graph).importedGraph()
+
+        let copy = try #require(imported.groups.values.first)
+        #expect(copy.summaryNodeID.flatMap { imported.node($0)?.title } == "Sum")
+        #expect(GraphValidator.validate(imported).isEmpty)
+    }
+
     @Test func aSharedTagJoinsTheLibraryTagWithTheSameKey() throws {
         let archive = MapArchive(ArchiveFixture.everyField())
         let library = MindTag(mapID: nil, name: "SHARED", color: .rose)
@@ -209,7 +230,11 @@ enum ArchiveFixture {
             mapID: mapID, parentID: rootID, title: "Goals", note: "Why\n> it matters", sortOrder: 1.5,
             isCollapsed: true, metadata: NodeMetadata(origin: .ai), createdAt: created, updatedAt: edited,
             color: .violet, symbol: "star.fill", taskState: .done, priority: .high,
-            startDate: CalendarDay(year: 2026, month: 1, day: 31), dueDate: CalendarDay(year: 2026, month: 2, day: 28)
+            startDate: CalendarDay(year: 2026, month: 1, day: 31), dueDate: CalendarDay(year: 2026, month: 2, day: 28),
+            link: TopicLink(string: "https://example.com/goals"), callout: "Check with finance"
+        )
+        let aside = MindNode(
+            mapID: mapID, parentID: nil, title: "Aside", createdAt: created, position: TopicPosition(x: -240.25, y: 88)
         )
         let risks = MindNode(
             mapID: mapID, parentID: rootID, title: "Risks", sortOrder: 2,
@@ -234,7 +259,7 @@ enum ArchiveFixture {
             title: "Scope", color: .rose, origin: .ai, createdAt: created, updatedAt: edited
         )
         return GraphState(
-            map: map, nodes: [root, goals, risks, detail], edges: [edge],
+            map: map, nodes: [root, goals, risks, detail, aside], edges: [edge],
             tags: [mapTag, sharedTag], nodeTags: links, groups: [group]
         )
     }
