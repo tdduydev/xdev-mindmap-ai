@@ -53,5 +53,10 @@ nonisolated enum AccessibilityID {
         static let done = "settings.done"
         static let iCloudSync = "settings.iCloudSync"
         static let iCloudStatus = "settings.iCloudStatus"
+        static let aiAppsSwitch = "settings.aiApps.switch"
+        static let aiAppsStatus = "settings.aiApps.status"
+        static let aiAppsPort = "settings.aiApps.port"
+        static let aiAppsAdd = "settings.aiApps.add"
+        static let aiAppsPrivacy = "settings.aiApps.privacy"
     }
 }
