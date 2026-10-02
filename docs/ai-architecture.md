@@ -28,6 +28,7 @@ protocol AIProvider: Sendable {
     func rewrite(_ request: RewriteRequest) async throws -> AIRewrite
     func summarize(_ request: SummarizeRequest) async throws -> AISummary
     func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal
+    func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions
     func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error>
 }
 ```
@@ -80,6 +81,12 @@ Suggested nodes live in a separate `SuggestionState` (`MindMapAICore`), not in `
 - accepts: `accept(_:in:)` goes through `ProposalTranslator.accept` per anchor and joins the commands into one `BatchCommand`, dry-run on a copy. Accepting part of a generated tree re-anchors the remaining children under the real topic their parent became (`didAccept`).
 
 Accepting is one command named "Add AI Topics", so it is one undo step; the resulting nodes keep `metadata.origin = .ai`.
+
+### Suggested tags (MM-34)
+
+Suggest Tags is not streamed: the answer is a few short names. `SuggestTagsRequest.make` takes the topic and its branch, or several selected topics, up to `AIProposalLimits.maximumTagSuggestionTopics` (12), each as a reference (`t1`…), a title shortened to 80 characters, its two nearest ancestors and its current tags, plus up to 30 of the map's and the library's tag names, most used first. The Apple provider asks for `GeneratedTagSuggestions` (`@Generable`: per reference, up to 3 tags) with the default guardrails. `AITagSuggestions.checked` drops unknown references, names that do not clean to a tag name, repeats by tag key and tags the topic already has, and gives an existing tag's own spelling; nothing left is `invalidResponse(.empty)`.
+
+`TagSuggestionState` holds the chips apart from the graph, like `SuggestionState`: rename, remove, `prune(in:)` (topic gone or already tagged), and `accept(_:in:)`, a `BatchCommand` of one `TagNodesCommand(origin: .ai)` per name, dry-run on a copy. `AIAssistant` keeps it in `tagSuggestions`, never at the same time as topic suggestions, and applies accepted tags as "Add AI Tags". `MockAIProvider` answers `.tags(AITagSuggestions)`.
 
 ## In the app
 
