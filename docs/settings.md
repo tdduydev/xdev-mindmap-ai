@@ -113,12 +113,13 @@ From [[mcp]] (M2) and ADR 0008, all [Đề xuất] there. Name: mcp.md proposes 
 
 | Row (en / vi) | Control and default | Store | Free/Pro | Task |
 | --- | --- | --- | --- | --- |
-| Allow AI Apps to Read Maps / Cho phép ứng dụng AI đọc sơ đồ | Switch, **default off**. Footer before turning it on: connected apps read map text and send it under their own terms; xDev receives nothing; text in a map can try to steer the app that reads it. Off closes the port and revokes nothing | AppDefaults `mcp.enabled` | Free [Đề xuất] | MM-46 (needs MM-40) |
-| Port / Cổng | Number field, fixed default in the dynamic range (value chosen in MM-40). If taken, the row says so; the app never picks another port silently | AppDefaults `mcp.port` | Free | MM-46 |
-| Connected Apps / Ứng dụng đã kết nối | List: name, last request ("Read 2 minutes ago"), Revoke. Activity in memory only | Names and token IDs in Keychain items; activity in memory | Free | MM-46 |
-| Add App… / Thêm ứng dụng… | Sheet: name ("Claude Code"), makes the token, shows it once with copy-ready snippets for Claude Code (`claude mcp add …`), ChatGPT desktop (Codex config), Cursor, VS Code; Claude Desktop once the relay helper ships (M4). The app never writes another app's config (App Review 2.4.5(ii), [[mcp]]) | Token in Keychain | Free | MM-46 |
+| Allow AI Apps to Read Maps / Cho phép ứng dụng AI đọc sơ đồ | Switch, **default off**. Footer before turning it on: connected apps read map text and send it under their own terms; xDev receives nothing; text in a map can try to steer the app that reads it. Off closes the port and revokes nothing | AppDefaults `mcp.enabled` | Free [Đề xuất] | ✅ MM-46 |
+| Port / Cổng | Number field, fixed default in the dynamic range (value chosen in MM-40). If taken, the row says so; the app never picks another port silently | AppDefaults `mcp.port` | Free | ✅ MM-46 |
+| Connected Apps / Ứng dụng đã kết nối | List: name, last request ("Read 2 minutes ago"), Revoke. Activity in memory only | Names and token IDs in Keychain items; activity in memory | Free | ✅ MM-46 |
+| Add App… / Thêm ứng dụng… | Sheet: name ("Claude Code"), makes the token, shows it once with copy-ready snippets for Claude Code (`claude mcp add …`), ChatGPT desktop (Codex config), Cursor, VS Code; Claude Desktop once the relay helper ships (M4). The app never writes another app's config (App Review 2.4.5(ii), [[mcp]]) | Token in Keychain | Free | ✅ MM-46 |
 | Allow Suggestions / Cho phép đề xuất | Switch, default off, shown once `propose_topics` ships (M5): connected apps may add suggestions labelled with their name; nothing is edited or deleted through MCP | AppDefaults `mcp.allowSuggestions` | Free | after M5 |
 
+As built in MM-46 ([[mcp]], *In the app*): the pane is `SettingsPane.aiApps`, offered on the Mac only (`available(showsAI:showsAIApps:)`). Rows: the switch, Port (text field, 1024–65535, a value outside is refused with a footer line), Status (Off, Starting…, Ready, Port N Is Unavailable) and Address while Ready; the privacy footer is always shown under the switch, so it is read before turning it on (no extra confirmation sheet). Connected Apps rows say "Read 2 minutes ago" or "Not used since MindMap AI opened" (activity is in memory, so after a relaunch nothing is known), and Revoke… asks first: the app's setup stops working and cannot be restored, only replaced (HIG Alerts). Add App… picks the app (Claude Code, ChatGPT, Cursor, VS Code, Other) and a name, then shows the snippet and token once. Names: the pane is "AI Apps" / "Ứng dụng AI" [Đề xuất, still waiting for the product owner]; the token is "token" / "mã truy cập".
 ## Pro (MindMap AI Pro)
 
 | Row (en / vi) | Control and default | Store | Free/Pro | Task |
@@ -140,7 +141,7 @@ Each row states what is true on this device right now, so rows read the live sta
 | Analytics / Thống kê sử dụng | "None" | ✅ |
 | AI / AI | "On this device. Nothing is sent to xDev." Covers the chat too (Foundation Models on the device only, ADR 0009). "Turned off" when Use AI Features is off. Hidden on devices without AI | ✅ MM-8; MM-44 for the off state |
 | Voice Input / Nhập bằng giọng nói | "On this device. Audio is not kept." (privacy.md: neither stored nor sent) — missing today [Đề xuất] | MM-44 |
-| AI Apps / Ứng dụng AI (Mac) | "Off", or "On: apps you connect can read your maps and handle them under their own terms" | MM-46 |
+| AI Apps / Ứng dụng AI (Mac) | "Off", or "On: apps you connect can read your maps and handle them under their own terms" | ✅ MM-46 |
 | Privacy Policy / Chính sách quyền riêng tư | Link to `AppLinks.privacyPolicy` | ✅ MM-0h |
 
 If any row would say data reaches someone other than the person or their own apps (for example a cloud AI provider), the label and the policy change first (privacy.md: each request names the provider before it is sent).

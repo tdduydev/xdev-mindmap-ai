@@ -21,6 +21,11 @@ struct MindMapAIApp: App {
     @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
     @Environment(\.scenePhase) private var scenePhase
 
+    /// Nil when the store did not open; Settings then shows AI Apps without a server.
+    private var aiApps: AIAppsHost? {
+        if case .ready(let environment) = launch { environment.aiApps } else { nil }
+    }
+
     init() {
         let pro = ProEntitlement()
         _pro = State(initialValue: pro)
@@ -40,6 +45,10 @@ struct MindMapAIApp: App {
         if case .ready(let environment) = launch {
             let services = environment.intentServices()
             AppDependencyManager.shared.add(dependency: services)
+            #if os(macOS)
+            // AI apps reach the maps only while the app runs, and only on the Mac (ADR 0008).
+            environment.aiApps.start()
+            #endif
         }
     }
 
@@ -117,6 +126,7 @@ struct MindMapAIApp: App {
                 .environment(pro)
                 .environment(ai)
                 .environment(sync)
+                .environment(aiApps)
         }
         #endif
 

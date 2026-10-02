@@ -1,5 +1,6 @@
 import Foundation
 import MindMapDomain
+import MindMapGraph
 import MindMapPersistence
 import Observation
 
@@ -131,6 +132,12 @@ final class OpenMaps {
 
     /// Whether `mapID` is loaded, for tests.
     func isOpen(_ mapID: MapID) -> Bool { maps[mapID] != nil }
+
+    /// The editor's graph of an open map, which may be ahead of the store
+    /// (AI apps and the chat read this, `OpenMapsGraphSource`).
+    func liveGraph(for mapID: MapID) -> GraphState? { maps[mapID]?.session.engine.state }
+
+    var openMapIDs: Set<MapID> { Set(maps.keys) }
 
     private func removeViewer(_ window: WindowToken, of mapID: MapID) {
         guard var windows = viewers[mapID], let index = windows.firstIndex(of: window) else { return }

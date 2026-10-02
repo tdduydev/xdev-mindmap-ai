@@ -8,6 +8,7 @@ Every sentence must describe the app as shipped. Change this page, [privacy](../
 
 - iCloud sync ships (MM-6 built it; it is live once a build sets `MINDMAP_ICLOUD`): the iCloud section says sync is on while you are signed in to iCloud and how to turn it off; check it again after the account-change test in [cloudkit-sync](../cloudkit-sync.md), *Testing on real devices*.
 - Voice input ships (MM-20): same for the voice section; it must stay on the device.
+- AI Apps (MCP, MM-46): the "AI apps you connect" section must match Settings ▸ AI Apps; change it when AI apps can write (M5) or when anything but loopback is served.
 - Analytics, crash reporting, cloud AI or any network call to xDev is added: rewrite the page before the build ships.
 
 Do not add claims the app does not make good on. Dates are the publish date of the wording.
@@ -29,6 +30,8 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 **AI features.** AI features use Apple's on-device model (Apple Intelligence). Your text is processed on your device and is not sent to xDev. On devices without Apple Intelligence, the AI features are not shown.
 
 **Voice input.** When voice input is available, speech is turned into text on your device and is not sent to xDev. The app asks for microphone and speech recognition access the first time you use it.
+
+**AI apps you connect (Mac).** You can let AI apps on your Mac, such as Claude Code or ChatGPT, read your maps in MindMap AI ▸ Settings ▸ AI Apps. It is off until you turn it on, and each app needs a token you add there. A connected app can read the titles, notes and structure of your maps while MindMap AI is open, and may send what it reads to its own AI provider under that app's terms and privacy policy; check those before you connect it. MindMap AI does not send this data to xDev. Turn the switch off to stop every app, or revoke one app in the same place.
 
 **Purchases.** Payments are handled by Apple through the App Store. xDev does not receive your payment details.
 
@@ -59,6 +62,8 @@ MindMap AI được làm để sơ đồ của bạn luôn là của bạn. Chí
 **Tính năng AI.** Tính năng AI dùng model chạy trên thiết bị của Apple (Apple Intelligence). Nội dung của bạn được xử lý trên thiết bị và không gửi tới xDev. Trên thiết bị không có Apple Intelligence, tính năng AI không hiện.
 
 **Nhập bằng giọng nói.** Khi ứng dụng có nhập bằng giọng nói, lời nói được chuyển thành chữ trên thiết bị và không gửi tới xDev. Ứng dụng xin quyền micro và nhận dạng giọng nói ở lần đầu bạn dùng.
+
+**Ứng dụng AI bạn kết nối (Mac).** Bạn có thể cho các ứng dụng AI trên Mac, như Claude Code hay ChatGPT, đọc sơ đồ trong MindMap AI ▸ Cài đặt ▸ Ứng dụng AI. Tính năng tắt cho tới khi bạn bật, và mỗi ứng dụng cần một mã truy cập bạn thêm ở đó. Ứng dụng đã kết nối đọc được tiêu đề, ghi chú và cấu trúc sơ đồ khi MindMap AI đang mở, và có thể gửi nội dung đó tới nhà cung cấp AI của họ theo điều khoản và chính sách quyền riêng tư của ứng dụng đó; hãy xem các điều đó trước khi kết nối. MindMap AI không gửi dữ liệu này tới xDev. Tắt công tắc để dừng mọi ứng dụng, hoặc thu hồi từng ứng dụng ở cùng chỗ.
 
 **Mua hàng.** Việc thanh toán do Apple xử lý qua App Store. xDev không nhận thông tin thanh toán của bạn.
 

@@ -67,9 +67,9 @@ The in-app purchase needs its own review screenshot, of any size from this table
 
 | Item | Requirement | Status |
 | --- | --- | --- |
-| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). |
+| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). The Mac app also has `com.apple.security.network.server` (`ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*] = YES`, MM-46) for Settings ▸ AI Apps, which listens on 127.0.0.1 only while the switch is on ([mcp](mcp.md)). No `network.client`. |
 | 2.4.5(ii) | Packaged and submitted with Xcode, one self-contained bundle | Met: single app target |
-| 2.4.5(iii) | No launch at login and no processes left after quit without consent | Met: none planned |
+| 2.4.5(iii) | No launch at login and no processes left after quit without consent | Met: none. The AI Apps listener is part of the app process and stops when it quits |
 | 2.4.5(iv) | No downloading apps, code or resources that add features | Applies to any later downloadable local model; see 2.5.2 below |
 | 2.4.5(v) | No root escalation or setuid | Met |
 | 2.4.5(vi) | No license screen at launch, license keys or own copy protection | Met. Unlocks go through StoreKit only. |
@@ -99,7 +99,7 @@ Source: [2.4.5 hardware compatibility](https://developer.apple.com/app-store/rev
 | --- | --- | --- |
 | 5.1.1(i) | Privacy policy link in App Store Connect **and** inside the app, even if nothing is collected. It says what is collected, how it is used, third parties, retention and deletion. | Linked in the app (Settings ▸ Privacy, Help ▸ Privacy Policy) to `https://xdev.asia/mindmap/privacy`; page text in `docs/web/privacy-policy.md`, not yet published. |
 | 5.1.1(ii)–(v) | Consent before collecting; paid features never require data access; minimum data; in-app account deletion when accounts exist | No accounts, no collection |
-| 5.1.2(i) | Disclose sharing personal data with third parties, "including with third-party AI", and get explicit permission first (clarified 2025-11-13) | Does not apply to on-device Foundation Models *[Inference, not verified]*: no data leaves the device and Apple is not acting as a third party receiving it. Applies in full to any cloud AI provider: name the provider and ask before each request ([privacy](privacy.md)). Source: [news](https://developer.apple.com/news/?id=ey6d8onl). |
+| 5.1.2(i) | Disclose sharing personal data with third parties, "including with third-party AI", and get explicit permission first (clarified 2025-11-13) | Does not apply to on-device Foundation Models *[Inference, not verified]*: no data leaves the device and Apple is not acting as a third party receiving it. Applies in full to any cloud AI provider: name the provider and ask before each request ([privacy](privacy.md)). AI Apps (MM-46, Mac): off by default; the footer under the switch says, before it is turned on, that connected apps read map titles and notes and may send them to their own AI provider; the person also has to add each app and paste its token. *[Inference, not verified]* That counts as explicit permission. Source: [news](https://developer.apple.com/news/?id=ey6d8onl). |
 | 5.1.3(ii) | No personal health data in iCloud | Not applicable |
 
 ### App Privacy label
@@ -142,6 +142,16 @@ Declared per platform in App Store Connect: VoiceOver, Voice Control, Larger Tex
 ## Export compliance
 
 `INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` is set in both configurations. Apple treats encryption built into the operating system, such as HTTPS through `URLSession`, as exempt ([complying with export regulations](https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations), [encryption documentation](https://developer.apple.com/help/app-store-connect/manage-app-information/determine-and-upload-app-encryption-documentation)). *[Inference, not verified]* CloudKit relies on the same system encryption, so `NO` stays correct after sync. Revisit if the app ever adds its own cryptography, such as end-to-end encrypted exports. France-specific rules were not verified.
+
+## Review Notes: AI Apps (Mac)
+
+Paste into Review Notes for every Mac submission while the feature ships (2.3.1(a), about 900 bytes; the whole field is 4,000 bytes):
+
+> MindMap AI on the Mac can let AI apps the user already has (Claude Code, ChatGPT desktop, Cursor, VS Code) read their maps over the Model Context Protocol. It is off by default: Settings (⌘,) ▸ AI Apps ▸ "Allow AI Apps to Read Maps". The app then listens on http://127.0.0.1:51947/mcp only (loopback, never another interface; the port can be changed there), and only while the app runs; that is why it has the network.server entitlement. Every request needs a token: Add App… makes one per app, stores it in the Keychain and shows a setup snippet to copy; the app never writes another app's files. Access is read-only (list, read and search maps). To test without an AI app: turn the switch on, choose Add App… ▸ Other, copy the token, then run in Terminal:
+> `curl -s http://127.0.0.1:51947/mcp -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" -H "MCP-Protocol-Version: 2025-11-25" -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_maps","arguments":{}}}'`
+> Revoke in the same pane stops the token at once. Nothing is sent to xDev.
+
+The curl line was run on 2026-10-02 against `mindmap-mcp-dev` (the same `MCPServer`) and returned the map list; *[Unverified]* not yet against a signed TestFlight build of the app.
 
 ## iCloud and CloudKit
 
