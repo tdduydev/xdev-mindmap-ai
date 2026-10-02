@@ -75,13 +75,15 @@ Topic text on any of these fills stays `topicText`; it measures 9.2:1 or more on
 
 ### Themes
 
-A map's `theme` (already a field of `MindMap`, stored as a string with a fallback) picks the branch palette. *[Proposal]* three themes for V1, built in MM-18:
+A map's `theme` (`MindMapTheme`, stored as a raw string) picks the branch palette. Three themes for V1 (MM-18, FR-THM-02); Standard is free, the other two are MindMap AI Pro (docs/pricing.md):
 
-| Theme | Branch colours |
-| --- | --- |
-| Standard (default) | The six-colour palette above |
-| xDev Blue | Every branch blue: light `#0B6CF5`, dark `#4AAEFF`; levels told apart by shape and weight only |
-| Graphite | Every branch neutral: light `#5B6885`, dark `#9DAAC7`, for printing and calm maps |
+| Theme | Stored value | Branch colours (light / dark / light IC / dark IC) |
+| --- | --- | --- |
+| Standard (default) | `standard` | The six-colour palette above |
+| xDev Blue | `xdevBlue` | Every branch the Standard blue: `#0B6CF5` / `#4AAEFF` / `#0954BF` / `#77C2FF`; levels told apart by shape and weight only |
+| Graphite | `graphite` | Every branch neutral: `#5B6885` / `#9DAAC7` / `#465270` / `#BAC4DA`, for printing and calm maps |
+
+Fills and badges derive from the line colour as for Standard (`BranchColors`), so a theme is one `BranchPalette`. A stored value this build does not know (written by a newer version) opens as Standard; the map is not rewritten until the user edits it, but the next save does store `standard`. The theme is picked per map in View ▸ Theme and in the inspector (Show Inspector, ⌃⌘I); each pick is one "Change Theme" undo step (`ChangeThemeCommand`).
 
 Themes change colour only, never layout, fonts or shapes.
 

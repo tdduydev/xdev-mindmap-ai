@@ -215,6 +215,16 @@
         }
       }
     },
+    "Change Theme": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đổi bộ màu"
+          }
+        }
+      }
+    },
     "Choose a map, or start a new one.": {
       "localizations": {
         "vi": {
@@ -465,6 +475,36 @@
         }
       }
     },
+    "Graphite": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graphite"
+          }
+        }
+      }
+    },
+    "Hide Inspector": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ẩn bảng thông tin"
+          }
+        }
+      }
+    },
+    "Inspector": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bảng thông tin"
+          }
+        }
+      }
+    },
     "It may have been deleted on another device.": {
       "localizations": {
         "vi": {
@@ -491,6 +531,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sáng"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sơ đồ"
           }
         }
       }
@@ -768,6 +818,16 @@
         }
       }
     },
+    "Show Inspector": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện bảng thông tin"
+          }
+        }
+      }
+    },
     "Something Went Wrong": {
       "localizations": {
         "vi": {
@@ -784,6 +844,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tách chủ đề"
+          }
+        }
+      }
+    },
+    "Standard": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiêu chuẩn"
           }
         }
       }
@@ -814,6 +884,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Theo hệ thống"
+          }
+        }
+      }
+    },
+    "Theme": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bộ màu"
           }
         }
       }
@@ -927,6 +1007,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trang web"
+          }
+        }
+      }
+    },
+    "xDev Blue": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "xDev Blue"
           }
         }
       }

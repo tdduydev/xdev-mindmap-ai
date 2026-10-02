@@ -23,6 +23,9 @@ struct MapEditorView: View {
                 SaveFailedBanner()
             }
         }
+        .inspector(isPresented: $session.isInspectorPresented) {
+            MapInspectorView(session: session)
+        }
         .navigationTitle(session.map.title)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -69,6 +72,15 @@ struct MapEditorView: View {
                 Label("Delete", systemImage: "trash")
             }
             .disabled(!session.canDeleteSelection)
+        }
+        // After the primary actions, so it sits at the trailing edge above the inspector.
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                session.isInspectorPresented.toggle()
+            } label: {
+                Label("Inspector", systemImage: "sidebar.trailing")
+            }
+            .help(session.isInspectorPresented ? Text("Hide Inspector") : Text("Show Inspector"))
         }
     }
 }
