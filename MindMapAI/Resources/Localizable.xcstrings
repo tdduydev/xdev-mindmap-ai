@@ -1518,7 +1518,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Không tải được danh sách sơ đồ."
+            "value" : "Không thể tải sơ đồ."
           }
         }
       }
@@ -5857,6 +5857,204 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "⌘-kéo"
+          }
+        }
+      }
+    },
+    "Show in Library" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện trong thư viện"
+          }
+        }
+      }
+    },
+    "Empty Recently Deleted…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá hết mục đã xoá gần đây…"
+          }
+        }
+      }
+    },
+    "Deleted maps stay for 30 days before they’re removed permanently." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ đã xoá được giữ 30 ngày trước khi bị xoá vĩnh viễn."
+          }
+        }
+      }
+    },
+    "Export All Maps…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xuất tất cả sơ đồ…"
+          }
+        }
+      }
+    },
+    "Import Maps…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập sơ đồ…"
+          }
+        }
+      }
+    },
+    "Preparing backup" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang chuẩn bị bản sao lưu"
+          }
+        }
+      }
+    },
+    "Export writes one MindMap AI Backup file for each map. Import creates new maps and keeps existing maps." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xuất tạo một tệp Sao lưu MindMap AI cho mỗi sơ đồ. Nhập tạo sơ đồ mới và giữ nguyên sơ đồ hiện có."
+          }
+        }
+      }
+    },
+    "Delete %lld maps permanently?" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld map permanently?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld maps permanently?"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Xoá vĩnh viễn %lld sơ đồ?"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "This can’t be undone." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể hoàn tác thao tác này."
+          }
+        }
+      }
+    },
+    "MindMap AI Backups" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản sao lưu MindMap AI"
+          }
+        }
+      }
+    },
+    "Couldn’t delete the maps." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể xoá sơ đồ."
+          }
+        }
+      }
+    },
+    "Couldn’t export your maps." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể xuất sơ đồ."
+          }
+        }
+      }
+    },
+    "The files couldn’t be opened." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể mở các tệp."
+          }
+        }
+      }
+    },
+    "Couldn’t save the backup folder." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể lưu thư mục sao lưu."
+          }
+        }
+      }
+    },
+    "%lld maps" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld map"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld maps"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sơ đồ"
+                }
+              }
+            }
           }
         }
       }
