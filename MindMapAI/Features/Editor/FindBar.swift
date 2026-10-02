@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Find in the open map: a field, the match count, Previous, Next and Done.
-/// It sits above the outline; ⌘F, ⌘G and ⇧⌘G reach it from the Edit menu.
+/// It sits above the canvas or the outline; ⌘F, ⌘G and ⇧⌘G reach it from the Edit menu.
 struct FindBar: View {
     @Bindable var session: EditorSession
     @FocusState private var isFieldFocused: Bool
