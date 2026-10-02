@@ -15,9 +15,17 @@ struct EditorPage {
     var undoButton: XCUIElement { app.buttons[AccessibilityID.Editor.undo].firstMatch }
     var redoButton: XCUIElement { app.buttons[AccessibilityID.Editor.redo].firstMatch }
     var addChildButton: XCUIElement { app.buttons[AccessibilityID.Editor.addChild].firstMatch }
-    /// On iPhone this and Delete sit in the toolbar's More menu; open it first there.
+    /// On a narrow iPhone the editing buttons sit in the toolbar's overflow menu: use `tap(_:)`.
     var addSiblingButton: XCUIElement { app.buttons[AccessibilityID.Editor.addSibling].firstMatch }
     var deleteButton: XCUIElement { app.buttons[AccessibilityID.Editor.delete].firstMatch }
+    var findButton: XCUIElement { app.buttons[AccessibilityID.Editor.find].firstMatch }
+
+    var findField: XCUIElement { app.textFields[AccessibilityID.Find.field].firstMatch }
+    /// "No Results", "1 of 2" or "2 matches"; only there while the field holds text.
+    var findStatus: XCUIElement { app.staticTexts[AccessibilityID.Find.status].firstMatch }
+    var findNextButton: XCUIElement { app.buttons[AccessibilityID.Find.next].firstMatch }
+    var findPreviousButton: XCUIElement { app.buttons[AccessibilityID.Find.previous].firstMatch }
+    var findDoneButton: XCUIElement { app.buttons[AccessibilityID.Find.done].firstMatch }
 
     var canvas: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Canvas.canvas].firstMatch }
     /// Topics drawn on the canvas, in view. A topic's label is its title.
@@ -29,6 +37,91 @@ struct EditorPage {
 
     func outlineTopic(titled title: String) -> XCUIElement {
         outlineTopics.matching(NSPredicate(format: "value == %@", title)).firstMatch
+    }
+
+    /// The disclosure buttons of rows that have children, top to bottom. Leaf
+    /// rows keep an invisible, disabled one, which this leaves out.
+    var outlineDisclosures: XCUIElementQuery {
+        app.buttons.matching(identifier: AccessibilityID.Outline.disclosure).matching(NSPredicate(format: "isEnabled == true"))
+    }
+
+    /// Selects a topic in the outline by focusing its title field.
+    @discardableResult
+    func selectOutlineTopic(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+        let field = outlineTopic(titled: title).waitToExist(file: file, line: line)
+        field.tap()
+        return field
+    }
+
+    /// Replaces a topic's title in the outline and commits it with Return.
+    func renameOutlineTopic(_ title: String, to newTitle: String, file: StaticString = #filePath, line: UInt = #line) {
+        let field = selectOutlineTopic(title, file: file, line: line)
+        #if os(macOS)
+        field.typeKey("a", modifierFlags: .command)
+        field.typeText(newTitle + "\r")
+        #else
+        let delete = String(repeating: XCUIKeyboardKey.delete.rawValue, count: title.count + 2)
+        field.typeText(delete + newTitle + "\n")
+        #endif
+    }
+
+    /// Editor toolbar buttons a test taps, with the symbol each shows.
+    enum ToolbarAction {
+        case find, addChild, addSibling, delete
+
+        var identifier: String {
+            switch self {
+            case .find: AccessibilityID.Editor.find
+            case .addChild: AccessibilityID.Editor.addChild
+            case .addSibling: AccessibilityID.Editor.addSibling
+            case .delete: AccessibilityID.Editor.delete
+            }
+        }
+
+        /// The SF Symbol in MapEditorView; it is the same in every language.
+        var symbol: String {
+            switch self {
+            case .find: "magnifyingglass"
+            case .addChild: "arrow.turn.down.right"
+            case .addSibling: "plus"
+            case .delete: "trash"
+            }
+        }
+    }
+
+    /// Taps a toolbar button. On a narrow iPhone the toolbar moves what does
+    /// not fit into its More menu, whose items lose their identifiers, so
+    /// there the item is found by its symbol.
+    func tap(_ action: ToolbarAction, file: StaticString = #filePath, line: UInt = #line) {
+        let button = app.buttons[action.identifier].firstMatch
+        #if os(iOS)
+        if !button.waitForExistence(timeout: MindMapApp.timeout / 6) {
+            // UIKit's identifier for the navigation bar's More button.
+            app.buttons["OverflowBarButtonItem"].firstMatch.waitToExist(file: file, line: line).tap()
+            app.collectionViews.buttons.containing(.image, identifier: action.symbol).firstMatch
+                .waitToExist(file: file, line: line).tap()
+            return
+        }
+        #endif
+        button.waitToExist(file: file, line: line).tap()
+    }
+
+    /// Opens the find bar from the toolbar and types `text` into its field.
+    @discardableResult
+    func find(_ text: String, file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
+        tap(.find, file: file, line: line)
+        let field = findField.waitToExist(file: file, line: line)
+        field.tap()
+        field.typeText(text)
+        return self
+    }
+
+    /// Waits until the find status reads `text`.
+    func waitForFindStatus(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
+        let status = findStatus.waitToExist(file: file, line: line)
+        let matches = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", text), object: status)
+        let result = XCTWaiter().wait(for: [matches], timeout: MindMapApp.timeout)
+        XCTAssertEqual(result, .completed, "find status is \"\(status.label)\", expected \"\(text)\"", file: file, line: line)
     }
 
     @discardableResult

@@ -133,6 +133,7 @@ struct MapEditorView: View {
             Button(action: session.showFind) {
                 Label("Find", systemImage: "magnifyingglass")
             }
+            .accessibilityIdentifier(AccessibilityID.Editor.find)
             Button(action: session.addChild) {
                 Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }

@@ -9,6 +9,8 @@ nonisolated enum AccessibilityID {
     enum Sidebar {
         static let list = "sidebar.list"
         static let settings = "sidebar.settings"
+        /// A row of the sidebar, by `LibrarySection` raw value.
+        static func section(_ name: String) -> String { "sidebar.section.\(name)" }
     }
 
     enum Library {
@@ -24,6 +26,17 @@ nonisolated enum AccessibilityID {
         static let addChild = "editor.addChild"
         static let addSibling = "editor.addSibling"
         static let delete = "editor.delete"
+        static let find = "editor.find"
+    }
+
+    /// Find in the open map (the bar above the canvas or the outline).
+    enum Find {
+        static let field = "find.field"
+        /// "No Results", "2 of 3" or "3 matches".
+        static let status = "find.status"
+        static let previous = "find.previous"
+        static let next = "find.next"
+        static let done = "find.done"
     }
 
     enum Outline {
