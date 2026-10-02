@@ -46,12 +46,17 @@ public enum MarkdownOutline {
     ) throws -> String {
         var writer = Writer()
         for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
-            let title = TextLines.singleLine(node.title)
+            var title = TextLines.singleLine(node.title)
+            // Only a link this build opens: anything else would not read back as one.
+            let link = node.link.flatMap { $0.url == nil ? nil : $0 }
+            // A title that is link markup but no link must read back as text.
+            let looksLinked = link == nil && InlineLink.read(title).1 != nil
+            if let link { title = InlineLink.write(text: title, link: link) }
             let note = options.includeNotes ? TextLines.noteLines(node.note) : nil
             if depth < options.headingLevels {
-                writer.heading(level: depth + 1, title: title, note: note)
+                writer.heading(level: depth + 1, title: title, note: note, escapingLink: looksLinked)
             } else {
-                writer.listItem(indent: (depth - options.headingLevels) * 2, title: title, note: note)
+                writer.listItem(indent: (depth - options.headingLevels) * 2, title: title, note: note, escapingLink: looksLinked)
             }
         }
         return writer.text
@@ -115,11 +120,12 @@ private struct Parser {
         defer { previousBlank = false }
 
         if column <= 3, let (level, title) = Self.heading(content) {
+            let (text, link) = Self.linkedTitle(title, raw: content)
             items.removeAll()
             inListText = false
             while let last = headings.last, last.level >= level { headings.removeLast() }
             let depth = headings.last.map { $0.depth + 1 } ?? 0
-            let index = builder.add(depth: depth, title: title)
+            let index = builder.add(depth: depth, title: text, link: link)
             headings.append(OpenHeading(level: level, depth: depth, index: index))
             return
         }
@@ -133,7 +139,8 @@ private struct Parser {
             // A sibling or a shallower item closes every item it does not reach into.
             while let last = items.last, column < last.contentColumn { items.removeLast() }
             let depth = items.last.map { $0.depth + 1 } ?? headings.last.map { $0.depth + 1 } ?? 0
-            let index = builder.add(depth: depth, title: title)
+            let (text, link) = Self.linkedTitle(title, raw: content)
+            let index = builder.add(depth: depth, title: text, link: link)
             items.append(OpenItem(contentColumn: column + markerWidth, depth: depth, index: index))
             inListText = true
             return
@@ -166,6 +173,12 @@ private struct Parser {
         // Unindented text after a top-level list, with no heading above it.
         if let last = builder.lastIndex { return (.item(last), 0) }
         return (.preamble, 0)
+    }
+
+    /// A title the writer escaped (`\\[a](b)`) is text, though it reads as a link once unescaped.
+    static func linkedTitle(_ title: String, raw: Substring) -> (String, TopicLink?) {
+        guard title.hasPrefix("["), !raw.contains("\\[" + title.dropFirst()) else { return (title, nil) }
+        return InlineLink.read(title)
     }
 
     // MARK: Line kinds
@@ -268,9 +281,9 @@ private struct Writer {
 
     var text: String { lines.isEmpty ? "" : lines.joined(separator: "\n") + "\n" }
 
-    mutating func heading(level: Int, title: String, note: [Substring]?) {
+    mutating func heading(level: Int, title: String, note: [Substring]?, escapingLink: Bool = false) {
         if last != .none { lines.append("") }
-        var title = Self.escapedLine(title)
+        var title = (escapingLink ? "\\" : "") + Self.escapedLine(title)
         // A closing `#` run would be read as decoration and dropped. The reader
         // takes one backslash off before a final `#`, so a title that already
         // has one there gets another.
@@ -287,10 +300,11 @@ private struct Writer {
         last = .headingNote
     }
 
-    mutating func listItem(indent: Int, title: String, note: [Substring]?) {
+    mutating func listItem(indent: Int, title: String, note: [Substring]?, escapingLink: Bool = false) {
         if last == .heading || last == .headingNote { lines.append("") }
         let padding = String(repeating: " ", count: indent)
-        lines.append(padding + "-" + (title.isEmpty ? "" : " " + Self.escapedTitle(title)))
+        let title = (escapingLink ? "\\" : "") + Self.escapedTitle(title)
+        lines.append(padding + "-" + (title.isEmpty ? "" : " " + title))
         last = .item
         guard let note else { return }
         lines.append("")
@@ -358,5 +372,60 @@ private struct Writer {
             || Parser.fenceOpening(body) != nil
             || first == ">" || first == "\\"
         return startsStructure && escapable.contains(first) ? leading + "\\" + body : line
+    }
+}
+
+// MARK: - Links
+
+/// A title that is one inline link, `[Title](url)` (FR-ORG-26). Brackets and
+/// backslashes in the title, and parentheses in the URL, are escaped with a
+/// backslash, as CommonMark reads them.
+enum InlineLink {
+    static func write(text: String, link: TopicLink) -> String {
+        "[" + escaped(text, ["\\", "[", "]"]) + "](" + escaped(link.string, ["\\", "(", ")"]) + ")"
+    }
+
+    /// The text and link when the whole title is one link with an allowed
+    /// scheme; any other title, inline links inside it included, stays text.
+    static func read(_ title: String) -> (String, TopicLink?) {
+        guard title.hasPrefix("["), title.hasSuffix(")"),
+              let (text, rest) = scan(Substring(title.dropFirst()), until: "]"),
+              rest.hasPrefix("("),
+              let (destination, tail) = scan(rest.dropFirst(), until: ")"), tail.isEmpty,
+              let link = TopicLink.normalized(destination), link.url != nil
+        else { return (title, nil) }
+        return (text, link)
+    }
+
+    /// Unescaped text up to the first unescaped `end`, and what follows it.
+    /// An unescaped opening bracket or parenthesis means nested markup, which
+    /// is not a plain link, so nil.
+    private static func scan(_ text: Substring, until end: Character) -> (String, Substring)? {
+        let opening: Character = end == "]" ? "[" : "("
+        var result = ""
+        var index = text.startIndex
+        while index < text.endIndex {
+            let character = text[index]
+            if character == "\\", let next = text.index(index, offsetBy: 1, limitedBy: text.endIndex), next < text.endIndex,
+               "\\[]()".contains(text[next]) {
+                result.append(text[next])
+                index = text.index(after: next)
+                continue
+            }
+            if character == end { return (result, text[text.index(after: index)...]) }
+            if character == opening { return nil }
+            result.append(character)
+            index = text.index(after: index)
+        }
+        return nil
+    }
+
+    private static func escaped(_ text: String, _ characters: Set<Character>) -> String {
+        var result = ""
+        for character in text {
+            if characters.contains(character) { result.append("\\") }
+            result.append(character)
+        }
+        return result
     }
 }
