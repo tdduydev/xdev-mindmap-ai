@@ -31,9 +31,13 @@ let package = Package(
         .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .target(name: "MindMapLayout", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
-        .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph"]),
-        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"], resources: [.copy("Fixtures")]),
-        .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout"]),
+        .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph", "MindMapDomain"]),
+        .testTarget(
+            name: "MindMapPersistenceTests",
+            dependencies: ["MindMapPersistence", "MindMapDomain", "MindMapGraph"],
+            resources: [.copy("Fixtures")]
+        ),
+        .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout", "MindMapDomain", "MindMapGraph"]),
         // AICore never imports FoundationModels, so the graph, the UI and tests
         // depend on plain values; only AIApple talks to the model.
         .target(name: "MindMapAICore", dependencies: ["MindMapDomain", "MindMapGraph"]),
@@ -52,9 +56,9 @@ let package = Package(
             ]
         ),
         .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
-        .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),
+        .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange", "MindMapDomain", "MindMapGraph"]),
         .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
-        .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch"]),
+        .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch", "MindMapDomain", "MindMapGraph"]),
         // What the Share Extension and the App Intents do to maps, without UI
         // or AI, so the extension links only the core it needs (NFR-PERF-08).
         .target(
@@ -78,7 +82,10 @@ let package = Package(
         // Speech and the microphone sit behind `VoiceTranscribing`, so tests and
         // the Simulator use `FakeVoiceTranscriber` instead of the device models.
         .target(name: "MindMapCapture", dependencies: ["MindMapDomain", "MindMapGraph"]),
-        .testTarget(name: "MindMapCaptureTests", dependencies: ["MindMapCapture", "MindMapGraph", "MindMapTestSupport"]),
+        .testTarget(
+            name: "MindMapCaptureTests",
+            dependencies: ["MindMapCapture", "MindMapDomain", "MindMapGraph", "MindMapTestSupport"]
+        ),
         // Reads shared by the MCP server and the chat (docs/mcp.md). No AI and
         // no network, so both consumers and `swift test` link it as is.
         .target(
