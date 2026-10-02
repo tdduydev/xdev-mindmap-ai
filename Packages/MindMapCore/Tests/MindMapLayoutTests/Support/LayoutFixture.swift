@@ -71,6 +71,11 @@ struct LayoutFixture {
         return id
     }
 
+    mutating func setCallout(_ title: String, _ text: String?) {
+        guard let index = nodes.firstIndex(where: { $0.id == self[title] }) else { return }
+        nodes[index].callout = text
+    }
+
     mutating func collapse(_ title: String) {
         guard let index = nodes.firstIndex(where: { $0.id == self[title] }) else { return }
         nodes[index].isCollapsed = true
@@ -131,9 +136,21 @@ extension MapLayout {
         return node.frame
     }
 
-    /// Pairs of topics whose frames overlap by more than rounding noise.
+    /// Pairs of topics whose frames overlap by more than rounding noise. A
+    /// callout bubble counts as part of its topic.
     var overlappingPairs: [(NodeID, NodeID)] {
-        let entries = nodes.map { ($0.key, $0.value.frame) }
+        overlapping(nodes.map { ($0.key, $0.value.frame) })
+    }
+
+    /// Pairs among every card and callout bubble, the bubble against its own
+    /// card included.
+    var overlappingCardsAndCallouts: [(NodeID, NodeID)] {
+        let cards = nodes.map { ($0.key, $0.value.frame) }
+        let bubbles = nodes.compactMap { entry in entry.value.calloutFrame.map { (entry.key, $0) } }
+        return overlapping(cards + bubbles)
+    }
+
+    private func overlapping(_ entries: [(NodeID, CGRect)]) -> [(NodeID, NodeID)] {
         var result: [(NodeID, NodeID)] = []
         for i in entries.indices {
             for j in entries.indices where j > i {
