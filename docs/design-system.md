@@ -140,8 +140,8 @@ The 4-point grid of `Spacing` (2, 4, 8, 12, 16, 24, 32) stays. Canvas metrics ar
 | Kind | Shape | Stroke | Colour |
 | --- | --- | --- | --- |
 | Hierarchy | Cubic Bézier from the parent's side centre to the child's side centre, both control points at half the horizontal distance | Width by level (table above), round caps | Branch colour |
-| Cross-link | Gentle arc between the closest sides, arrowhead at the target for `reference`, none for `relationship` | 1.5 pt, dashed 4–3 | `crossLink` |
-| Cross-link label | Capsule on the arc's midpoint, `badge` text | — | `canvasBackground` fill, `crossLink` stroke |
+| Connection (cross-link) | Gentle arc between the closest sides, arrowhead at the target for `reference`, none for `relationship` | 1.5 pt, dashed 4–3 | `crossLink` |
+| Connection label | Capsule on the arc's midpoint, `badge` text | — | `canvasBackground` fill, `crossLink` stroke |
 | AI suggestion | As hierarchy | 1.5 pt, dashed 3–3 | AI gradient |
 
 Edges are drawn under topics and never cross a topic's box; the layout engine (MM-4) owns the routing, the canvas only draws.
@@ -163,6 +163,51 @@ Edges are drawn under topics and never cross a topic's box; the layout engine (M
 | Search match | `searchMatchFill` behind the title, `searchMatchBorder` outline; the current match also gets the selection ring |
 | AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient on the top-leading corner, title in `topicTextSecondary`; Accept and Discard buttons under the topic on hover or selection. MM-8 put the symbol on the corner rather than before the title so the title keeps the measured width of a plain topic |
 | Accepted AI topic | Looks like any topic (its origin is kept in `metadata.origin`) |
+
+## Node types
+
+Drawing rules for the V1 node types designed in [node-organization.md](node-organization.md) *Node types* (MM-58). Content, not controls: none of them uses glass. Values marked [Đề xuất] are proposals for the implementing task; the contrast test covers every new colour pair.
+
+### New colour tokens
+
+| Token | Light | Dark | Light, Increase Contrast | Dark, Increase Contrast | Use |
+| --- | --- | --- | --- | --- | --- |
+| `calloutFill` | `#EEF2FA` | `#1E3358` | `#FFFFFF` | `#0B1830` | Callout bubble; `topicText` on it is 11.6:1 light and dark, 17.3:1 and 17.7:1 with Increase Contrast |
+| `calloutStroke` | = `crossLink` | = `crossLink` | = `crossLink` | = `crossLink` | Bubble outline and tail; 5.3:1 and 6.4:1 on `canvasBackground` (above the 3:1 for graphics), so the bubble reads even where its fill is close to the canvas (1.1:1 in light) |
+| `summaryBracket` | = `crossLink` | = `crossLink` | = `crossLink` | = `crossLink` | The bracket, unless the summary has a `colorToken` (then the branch colour of that token) |
+
+Ratios computed with the WCAG formula from the hex values above. Reusing `crossLink` for strokes adds no new asset; `calloutFill` is a new colour set with all four appearances.
+
+### New `CanvasMetrics`
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `linkSymbolSize` | 11 pt (as the note mark) | Link icon after the title |
+| `imageWidthSmall`, `imageWidthMedium`, `imageWidthLarge` | 96, 160, 240 pt [Đề xuất] | Image display width; never wider than the level's maximum width |
+| `imageMaxAspect` | 1.5 (height ÷ width) | Taller images are cropped to fill |
+| `imageCornerRadius` | Topic corner radius − 4 pt | Image inside the card |
+| `imageGap` | `Spacing` 8 | Between image and title |
+| `calloutGap` | `Spacing` 8 | Between the bubble's tail and the card |
+| `calloutPadding` | 8 × 6 pt | Inside the bubble |
+| `calloutCornerRadius` | 8 pt | Bubble |
+| `calloutTail` | 8 pt wide, 6 pt high | Triangle centred on the bubble's bottom edge, pointing at the card |
+| `summaryBracketGap` | 12 pt | From the run's outer edge to the bracket |
+| `summaryBracketDepth` | 10 pt | How far the bracket's tip stands out |
+| `summaryBracketWidth` | 1.5 pt (2 pt with Increase Contrast) | Bracket stroke, round caps |
+| `floatingTopicNudge` | 24 pt [Đề xuất] | Step when Add Floating Topic looks for a free spot |
+
+### How each draws
+
+| Element | Drawing |
+| --- | --- |
+| Link | `link` (`envelope` for `mailto`) after the title and the note mark, `linkSymbolSize`, `topicTextSecondary` (`centralText` on the central topic); pointing-hand pointer and a help tag with the URL on the Mac; hit target `Metrics.minimumHitTarget` |
+| Image | Above the title inside the card, `imageGap` to the title, `imageCornerRadius`; card padding as for the level. Below the detail zoom: a rectangle in the card's stroke colour at 30% |
+| Callout | Rounded bubble (`calloutCornerRadius`, `calloutPadding`) above the card, `calloutGap` away, `calloutFill`, 1 pt `calloutStroke` (2 pt with Increase Contrast), tail toward the card; text in the sub-topic content font, `topicText`, wraps at the topic's maximum width. Selected: the selection ring around the bubble |
+| Summary bracket | A curly bracket path along the run's outer edge, `summaryBracketGap` away, tip `summaryBracketDepth` toward the summary topic; `summaryBracket` colour, `summaryBracketWidth`. Solid, like boundaries: dashed stays for AI and drop targets. Selected: drawn in `selectionRing` |
+| Summary topic | Drawn as a topic one level below the run's parent (so a summary over main topics looks like a main topic) |
+| Floating topic | Main-topic style (level 1), next branch colour after the main topics; no connector to the tree |
+
+Motion: a callout, image or summary appearing fades in with the topic-added motion (`base` enter, fade only with Reduce Motion); the tree moving to make room uses the relayout motion (`slow`, jump with Reduce Motion); moving a floating topic follows the pointer with no animation.
 
 ## Elevation
 
@@ -205,12 +250,15 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 | --- | --- | --- | --- |
 | New Mind Map | `square.and.pencil` | AI actions | `sparkles` (AI gradient) |
 | Add Child Topic | `arrow.turn.down.right` | Note | `note.text` |
-| Add Sibling Topic | `return` | Cross-link | `link` |
+| Add Sibling Topic | `return` | Connection (cross-link) | `point.topleft.down.to.point.bottomright.curvepath` [verify name; was `link`, which now means a URL] |
 | Delete Topic | `trash` | Search | `magnifyingglass` |
 | Collapse / Expand | `chevron.down` / `chevron.right` | Inspector | `sidebar.right` |
 | Zoom In / Out | `plus.magnifyingglass` / `minus.magnifyingglass` | iCloud on / off / error | `icloud` / `icloud.slash` / `exclamationmark.icloud` |
 | Zoom to Fit | `arrow.up.left.and.arrow.down.right` | Voice input | `mic` |
 | Favorite | `star` / `star.fill` | Restore from Recently Deleted | `arrow.uturn.backward` |
+| Link (URL) | `link`; `envelope` for `mailto` | Image | `photo` |
+| Floating topic | `square.dashed` [verify] | Summary | `curlybraces` [verify] |
+| Callout | `text.bubble` | | |
 
 ## Components
 

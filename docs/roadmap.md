@@ -90,7 +90,19 @@ Ways to sort, mark and group topics beyond the tree, designed in [node-organizat
 - **MM-36** Filter bar (dim or hide) and Focus on Branch, device-local view state.
 - **MM-37** Boundaries around a branch or a run of siblings, in layout and export, with AI Summarize Boundary and Suggest Groups.
 
-Not in V2, in order of likely value: summary topics, floating topics, saved views, links between maps, structure per branch, numbering, presentation mode, attachments ([node-organization.md](node-organization.md), *Not in V2*).
+V1 node types, put into V1 by the product owner on 2026-10-02 (FR-ORG-26..31, research on the Hive page `research-node-types`), designed in [node-organization.md](node-organization.md) *Node types*. MM-59 comes first; then MM-60, MM-61, MM-63 and MM-66 can run in parallel; MM-62 follows MM-61, MM-64 follows MM-63, MM-65 waits for MM-37 as well.
+
+- **MM-58** Design: *Node types* in node-organization.md, *Node types (MM-59)* in [data-model.md](data-model.md), ADR 0010, the Link/Connection names and keys (⌘K, ⌘L).
+- **MM-59** Stored fields and domain values for all five (into SchemaV2 if no build with V2 has been uploaded, else SchemaV3), mapping, `GraphTransaction`, validator and repair. No commands, no UI.
+- **MM-60** Links: Add Link… (⌘K), the URL check, icon and Open Link, inspector, Markdown `[Title](url)`.
+- **MM-61** Floating topics, core: commands (add, move, detach, attach), layout around the stored position, Find, outline model, Markdown order.
+- **MM-62** Floating topics, UI: double-click on empty canvas, drag to move, attach and detach, outline section, VoiceOver.
+- **MM-63** Images, core: processing (size, no metadata), `ImageRecord` with external storage, commands, layout size.
+- **MM-64** Images, UI: drag and drop, paste, Add Image… (⌥⌘I), PhotosPicker, size, description, export.
+- **MM-65** Summaries: bracket over a run of siblings and a summary topic, kept valid like boundaries, layout and export.
+- **MM-66** Callouts: a bubble above a topic, edited in place, layout reserves its height, export to PNG and PDF.
+
+Not in V2, in order of likely value: saved views, links between maps, structure per branch, numbering, presentation mode, file attachments ([node-organization.md](node-organization.md), *Not in V2*).
 
 ## UI tests
 

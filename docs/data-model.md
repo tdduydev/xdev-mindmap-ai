@@ -5,12 +5,13 @@
 | Type | Fields | Notes |
 | --- | --- | --- |
 | `MindMap` | id, title, rootNodeID, createdAt, updatedAt, isFavorite, theme, layoutConfiguration, deletedAt | `updatedAt` moves on every edit, undo included. `isFavorite` and `deletedAt` are library data, never set by a command. |
-| `MindNode` | id, mapID, parentID, title, note, sortOrder, isCollapsed, nodeType, metadata, createdAt, updatedAt, color, symbol, taskState, priority, startDate, dueDate | No canvas position: layout is derived. |
+| `MindNode` | id, mapID, parentID, title, note, sortOrder, isCollapsed, nodeType, metadata, createdAt, updatedAt, color, symbol, taskState, priority, startDate, dueDate; planned (MM-59): link, position, callout | No canvas position, except a floating topic's (ADR 0010): layout is derived. |
 | `MindEdge` | id, mapID, sourceNodeID, targetNodeID, edgeType, label, createdAt, updatedAt, lineStyle, arrowHeads, color | Cross-links only. |
 | `NodeMetadata` | origin (`user`, `ai`, `imported`) | Kept after an AI suggestion is accepted. |
 | `MindTag` | id, mapID (nil: shared), name, color, symbol, sortOrder, createdAt, updatedAt | `key` is the tag identity (NFC, case folded, marks kept). |
 | `MindNodeTag` | id, mapID, nodeID, tagID, origin, createdAt, updatedAt | One per topic and tag. |
-| `MindGroup` | id, mapID, kind, parentNodeID, firstNodeID, lastNodeID, title, color, origin, createdAt, updatedAt | A boundary over a run of siblings; members are positional. |
+| `MindGroup` | id, mapID, kind, parentNodeID, firstNodeID, lastNodeID, title, color, origin, createdAt, updatedAt; planned (MM-59): summaryNodeID | A boundary, or a summary (MM-65), over a run of siblings; members are positional. |
+| `MindImage` (planned, MM-59) | id, mapID, nodeID, uniformType, pixelWidth, pixelHeight, byteCount, displayWidth, altText, createdAt, updatedAt; bytes loaded on demand | One image on a topic, in its own record. |
 
 IDs are typed UUIDs (`MapID`, `NodeID`, `EdgeID`, `TagID`, `NodeTagID`, `GroupID`), so a node ID cannot be passed where an edge ID is expected. They encode as bare UUIDs.
 
@@ -18,7 +19,7 @@ Open-ended stored values (`TopicColor`, `TaskState`, `TaskPriority`, `EdgeLineSt
 
 ## Hierarchy
 
-The tree is `MindNode.parentID` plus `sortOrder`, and nothing else. `MindEdge` holds only `relationship` and `reference` links. Hierarchy is not also stored as edges, because two copies of one fact can disagree after a sync merge (ADR 0004).
+The tree is `MindNode.parentID` plus `sortOrder`, and nothing else. A floating topic (MM-61) is the top of a second, unattached tree: `parentID` nil and a stored position (ADR 0010); a summary topic (MM-65) is an ordinary child of its run's parent that its summary group names. `MindEdge` holds only `relationship` and `reference` links. Hierarchy is not also stored as edges, because two copies of one fact can disagree after a sync merge (ADR 0004).
 
 ### Sibling order
 
@@ -128,18 +129,85 @@ Commands keep the same rules inside `GraphTransaction`, so the engine's validati
 
 ### Not in V2
 
-Kept out on purpose. A property shipped to CloudKit production can never be removed, so fields wait for the feature that uses them:
+Kept out on purpose. A property shipped to CloudKit production can never be removed, so fields wait for the feature that uses them. Summary topics, floating topics and images moved to *Node types (MM-59)* on 2026-10-02:
 
 | Feature | Needs (in a later schema) |
 | --- | --- |
 | Apple Pencil sketches (MM-9, iPad) | A drawing record with external storage, with attachments |
-| Summary topics | `GroupRecord.summaryNodeID` and a `summary` node type |
-| Floating topics, several main topics | Node position (`positionX`, `positionY`) and `floating` node type |
 | Saved filters and views | A `SavedViewRecord` |
 | Links to other maps | `EdgeRecord.targetMapID` |
 | Structure per branch | A per-node layout override |
-| Images and attachments | An `AttachmentRecord` with external storage |
+| File attachments, several images per topic | An `AttachmentRecord` with external storage, or a `sortOrder` on `ImageRecord` |
 | Custom properties | Property definition and value records |
+
+## Node types (MM-59, planned)
+
+Designed in MM-58 ([[node-organization]], *Node types*); built by MM-59 with no commands or UI. Additive like V2: new optional properties and one new record type.
+
+### V2 or V3
+
+As of 2026-10-02 SchemaV2 is in no uploaded build. [[release]] says the first upload was stopped while sending; the Hive note of MM-55 names a later upload, build `202610021848` from `a9f7028`, and `git ls-tree a9f7028` has only `SchemaV1.swift`. The CloudKit production schema has not been deployed ([[release]], *iCloud before it can ship*). [[release]] should list each upload with its commit, so this check needs no task notes. The rule for MM-59, checked when it starts, not now:
+
+- **No build that contains `SchemaV2.swift` has been uploaded** (to TestFlight or the App Store; check every upload's commit with `git merge-base --is-ancestor <commit-with-SchemaV2> <upload commit>`, the upload commits being listed in [[release]] or App Store Connect): add the fields below to `SchemaV2` in place. No new stage, no new fixture; the V1 → V2 stage and its tests cover them.
+- **Otherwise** (a tester may have a V2 store): add `SchemaV3` with the fields, a lightweight V2 → V3 stage, the `V2.store` fixture first (*Migration test* above), and a test that opens it. Editing a shipped V2 in place would change its version hash and the tester's store would no longer open.
+
+Either way, deploying the CloudKit schema to production happens after these fields exist, so production gets them in its first deployment.
+
+### New properties on `NodeRecord`
+
+| Property | Type, default | Domain | Meaning |
+| --- | --- | --- | --- |
+| `linkURL` | `String?` | `MindNode.link: TopicLink?` | A normalised absolute URL, scheme `http`, `https` or `mailto`, at most 2,048 characters [Đề xuất]. `TopicLink` is a struct over the string: `url` is nil when the string does not parse or the scheme is not allowed, and the string is kept |
+| `positionX`, `positionY` | `Double?` | `MindNode.position: TopicPosition?` | The centre of a floating topic in canvas points relative to the central topic's centre, y down. Both set means "has a position"; one alone reads as none. Non-finite reads as 0, values clamp to ±100,000 |
+| `calloutText` | `String?` | `MindNode.callout: String?` | Trimmed, blank is nil, at most 280 characters [Đề xuất] |
+
+No new node type. A floating topic is `parentID == nil` with a position, and a summary topic is the node a summary group names, so neither needs a second fact on the node that could disagree with the first after a merge (ADR 0004, ADR 0010). `NodeType` stays `topic`; MM-59 turns it into a `RawRepresentable` struct like `GroupKind` anyway, because today an unknown `nodeTypeRaw` reads as `topic` and is written back as `topic` on the next edit, which would erase a kind a newer build added.
+
+### New property on `GroupRecord`
+
+| Property | Type, default | Domain | Meaning |
+| --- | --- | --- | --- |
+| `summaryNodeID` | `UUID?` | `MindGroup.summaryNodeID: NodeID?` | For `kind = summary` (new `GroupKind.summary`): the summary topic, a child of `parentNodeID`. Ignored for other kinds |
+
+### New record: `ImageRecord` (`MindImage`)
+
+| Property | Type, default | Meaning |
+| --- | --- | --- |
+| `imageID` | `UUID` | `ImageID`, a new typed ID |
+| `mapID`, `nodeID` | `UUID` | The topic it is on, by UUID, no SwiftData relationship (CloudKit rule above) |
+| `data` | `Data?`, `@Attribute(.externalStorage)` | The encoded image after processing (longest side ≤ 2,048 px, no metadata, ≤ 5 MB [Đề xuất]); stored as a file beside the store, not in the SQLite row |
+| `uniformType` | `String = "public.heic"` | `public.heic`, `public.png` or `public.jpeg` |
+| `pixelWidth`, `pixelHeight` | `Int = 0` | Of the stored data, so layout can size the topic before the bytes load |
+| `byteCount` | `Int = 0` | For the inspector and a library-size check, without reading `data` |
+| `displayWidth` | `Double?` | Points on the canvas; nil is Medium (160 [Đề xuất]) |
+| `altText` | `String?` | The person's description for VoiceOver, at most 250 characters [Đề xuất] |
+| `createdAt`, `updatedAt` | `Date = .distantPast` | As every record |
+
+- **Loading.** `GraphState` holds `images: [ImageID: MindImage]` **without** `data`; the repository's `imageData(for:)` reads the bytes when the canvas needs a thumbnail, and save writes `data` only when an image is added or replaced, never on a size or description edit. External-storage attributes are fetched lazily *[Inference: Core Data faults external binary data until accessed; MM-63 measures it]*. The undo change set of an add, remove or replace carries the bytes (*Images* in [[node-organization]]).
+- **CloudKit.** With mirroring, external-storage data is synced as a `CKAsset` beside the record *[Unverified: from Apple's description of `NSPersistentCloudKitContainer`; MM-6 confirms with two devices]*, so the 1 MB record limit is not hit; the record itself holds only small fields. Assets count against the person's iCloud storage.
+- **Deletes.** Deleting a topic deletes its image record in the same transaction; `deleteMap` deletes the map's images one record at a time, which removes the external files.
+
+### What keeps them valid
+
+New `GraphIssue`s, fixed by `GraphRepair` after the tree and before organization records, all by stored values, timestamps and IDs:
+
+| Issue | Found when | Repair |
+| --- | --- | --- |
+| (none) | `parentID` nil, not the root, with a position | Not an issue: a floating topic. `GraphValidator.reachableNodes` starts from the root and from every floating topic |
+| `detachedBranch` (unchanged) | `parentID` missing, or nil without a position | Moved under the root as today; a position on it is cleared |
+| `strayPosition(NodeID)` | A position on a node that has a parent, or on the root | Position cleared (the tree wins) |
+| `missingRoot` (rule extended) | No valid root | `rootCandidate` prefers parentless nodes without a position, then branch tops, then floating topics; the chosen node's position is cleared |
+| `danglingImage(ImageID)` | Its node is gone | Deleted |
+| `duplicateImage(ImageID)` | A second image on one node | Newest by `createdAt`, then ID, kept; others deleted [Đề xuất] |
+| `invalidGroup` (extended to summaries) | A summary run that is not a run under its parent | Shrunk or deleted as for boundaries; the summary topic stays as an ordinary child |
+| `invalidSummary(GroupID)` | `summaryNodeID` names a node under another parent, or a member of the run, or a topic another summary already names (the oldest group keeps it) | Group deleted, topic kept |
+| (none) | `summaryNodeID` names a node that is not there | Drawn as a bracket only; deleted once older than `GraphRepair.orphanLifetime` (today's `orphanedTagLinkLifetime`, renamed, 30 days [Đề xuất]) |
+
+Links and callouts need no repair: they are fields of the node. Inside commands, `GraphTransaction.removeNode` also removes the node's image and any summary group naming it, `updateNode` clears the position when a parent is set, and the summary-topic exclusions of [[node-organization]] apply to the sibling-run rules of boundaries and summaries.
+
+### Migration test
+
+V1 → (V2 with these fields, or V3): every V1 node has nil link, position and callout, every group nil `summaryNodeID`, no image records. A save-and-reopen test keeps a link, a floating topic, an image with its bytes, a summary and a callout. If V3 is made, the `V2.store` fixture gains no new fields (it is V2 as shipped) and the V3 test opens it.
 
 ## Recently Deleted (MM-19)
 

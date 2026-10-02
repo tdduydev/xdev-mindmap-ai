@@ -67,8 +67,8 @@ The app's menus:
 | File | New Mind Map ⌘N, New Window ⌥⌘N, Import… ⇧⌘I, Import into Map… ⌥⇧⌘I, Export… ⇧⌘E (MM-10), Delete Map ⌘⌫, Restore Map, Delete Map Permanently… ⌥⌘⌫ (MM-19; shortcuts only while the library list has focus), later Duplicate |
 | Edit | Undo/Redo with the command's action name, Cut, Copy, Paste branch (MM-5), Select All, Find ⌘F |
 | View | Show/Hide Sidebar, Show/Hide Inspector, Zoom In ⌘+, Zoom Out ⌘−, Actual Size ⌘0, Zoom to Fit, Enter Full Screen |
-| Topic | Add Sibling, Add Child, Promote, Demote, Collapse/Expand, Delete (the Delete key) |
-| Format (MM-32, MM-33, MM-37) | Topic Color, Topic Symbol, Link line, arrows and colour, Boundary Color; tags, tasks, filter and Focus items in Topic and View are listed in [node-organization.md](node-organization.md) |
+| Topic | Add Sibling, Add Child, Promote, Demote, Collapse/Expand, Delete (the Delete key); Add Link… ⌘K, Open Link ⇧⌘O, Add Connection… ⌘L, Add Floating Topic ⌥⌘↩, Add Image… ⌥⌘I, Add Summary ⌥⌘], Add Callout ⌥⇧⌘↩ (MM-60..MM-66, [node-organization.md](node-organization.md) *Menus and shortcuts*) |
+| Format (MM-32, MM-33, MM-37, MM-64) | Topic Color, Topic Symbol, Connection line, arrows and colour, Boundary Color, Image Size; tags, tasks, filter and Focus items in Topic and View are listed in [node-organization.md](node-organization.md) |
 | AI (MM-8) | Generate Map…, Expand Topic, Brainstorm…, Rewrite ▸, Summarize, Find Missing Ideas; disabled with a reason when AI is unavailable |
 | Help | MindMap AI Help, Website, Privacy Policy |
 
@@ -181,6 +181,22 @@ House style for the app:
 - **Title case** for buttons, menu items, window and section titles, tab names. **Sentence case** for descriptions, footers, alerts' messages and tips.
 - **One name per thing.** "Topic" for a node everywhere in the UI ("Add Child Topic" in the menu and the toolbar, not "Add Child" in one place), "map" for a mind map, "central topic" for the root.
 - **Vietnamese** follows the same structure with sentence case throughout, as Vietnamese UI usually does *[Inference]*; "chủ đề" for topic, "sơ đồ" for map. Decide the glossary once in `Localizable.xcstrings` comments.
+
+Glossary (one name per thing, en / vi). Names approved by the product owner are marked; the others are [Đề xuất] from MM-58 until a translator or the product owner confirms them:
+
+| Thing | English | Vietnamese | Note |
+| --- | --- | --- | --- |
+| A node | Topic | chủ đề | |
+| A mind map | Map | sơ đồ | |
+| The root | Central Topic | chủ đề trung tâm | |
+| A URL on a topic | Link | liên kết | Approved 2026-10-02. "Add Link…" / "Thêm liên kết…" ⌘K |
+| A cross-link between two topics | Connection | kết nối | Approved 2026-10-02. "Add Connection…" / "Thêm kết nối…" ⌘L. Code keeps `MindEdge` and "cross-link" |
+| A topic with no parent | Floating Topic | chủ đề tự do | |
+| A picture on a topic | Image | ảnh | |
+| A bracket over siblings and its topic | Summary | tổng hợp | Not "tóm tắt", which the AI Summarize commands use. The string catalog already has the key "Summary" = "Tóm tắt" (title of the AI summary sheet, `AISheets.swift`); MM-65 renames that title to "Branch Summary" / "Tóm tắt nhánh" so the key "Summary" can mean this one thing |
+| A note bubble above a topic | Callout | chú thích | Not "ghi chú", which is the topic's Note |
+| A frame around siblings | Boundary | khung | |
+| Category text on topics | Tag | thẻ | As built in MM-34; check the string catalog |
 - Errors use the categories in [architecture](architecture.md#error-handling): what happened, then what to do.
 
 ## AI-generated content
