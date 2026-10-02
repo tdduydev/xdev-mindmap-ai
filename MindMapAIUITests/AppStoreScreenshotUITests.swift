@@ -23,7 +23,7 @@ final class AppStoreScreenshotUITests: XCTestCase {
 
         // Review the mock model's proposed topics without changing the map.
         editor.show(.outline)
-        editor.selectOutlineTopic(title).typeText("\n")
+        commit(editor.selectOutlineTopic(title))
         openAIMenu(in: launched.app)
         let suggest = launched.app.buttons.matching(NSPredicate(format: "label == %@", language == .vietnamese ? "Đề xuất chủ đề con" : "Suggest Subtopics")).firstMatch
         suggest.waitToExist().tap()
@@ -35,7 +35,7 @@ final class AppStoreScreenshotUITests: XCTestCase {
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
         let outline = second.library.show().open(title).show(.outline)
         let design = language == .vietnamese ? "Thiết kế" : "Design"
-        outline.selectOutlineTopic(design).typeText("\n")
+        commit(outline.selectOutlineTopic(design))
         capture("03-outline", in: second.app)
 
         let third = MindMapApp.launch(fixture: fixture, language: language,
@@ -45,6 +45,14 @@ final class AppStoreScreenshotUITests: XCTestCase {
         chat.open(label: language == .vietnamese ? "Hỏi về sơ đồ này" : "Ask About This Map")
         chat.ask(language == .vietnamese ? "Thiết kế gồm những gì?" : "What is in Design?")
         chat.answers.firstMatch.waitToExist()
+        // The Ask button returns once the answer is complete, replacing Stop.
+        chat.sendButton.waitToExist()
+        #if os(iOS)
+        if third.app.keyboards.firstMatch.exists {
+            third.app.descendants(matching: .any)[AccessibilityID.Chat.panel].scrollViews.firstMatch.swipeUp()
+            _ = third.app.keyboards.firstMatch.waitForNonExistence(timeout: MindMapApp.timeout / 6)
+        }
+        #endif
         capture("04-ask-map", in: third.app)
 
         let fourth = MindMapApp.launch(fixture: fixture, language: language,
@@ -60,6 +68,16 @@ final class AppStoreScreenshotUITests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+
+    /// iPhone puts the selected row into editing and raises the keyboard, which
+    /// would cover the capture; iPad sometimes selects the row without focus,
+    /// where typing fails, so Return is sent only to a focused field.
+    @MainActor
+    private func commit(_ field: XCUIElement) {
+        if (field.value(forKey: "hasKeyboardFocus") as? Bool) == true {
+            field.typeText("\n")
+        }
     }
 
     @MainActor
