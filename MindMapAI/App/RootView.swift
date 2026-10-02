@@ -35,10 +35,14 @@ struct RootView: View {
 
 struct StartupFailureView: View {
     var body: some View {
-        ContentUnavailableView(
-            "Can’t Open Your Maps",
-            systemImage: "externaldrive.badge.exclamationmark",
-            description: Text("MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support.")
-        )
+        ContentUnavailableView {
+            // The small mark says which app this is when no other window is open.
+            VStack(spacing: Spacing.md) {
+                BrandMark(style: .icon, size: .small)
+                Label("Can’t Open Your Maps", systemImage: "externaldrive.badge.exclamationmark")
+            }
+        } description: {
+            Text("MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support.")
+        }
     }
 }

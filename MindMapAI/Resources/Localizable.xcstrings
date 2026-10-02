@@ -435,6 +435,9 @@
         }
       }
     },
+    "MindMap AI by xDev": {
+      "shouldTranslate": false
+    },
     "MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support.": {
       "localizations": {
         "vi": {
@@ -730,12 +733,12 @@
         }
       }
     },
-    "Version %@ (%@)": {
+    "Version": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phiên bản %1$@ (%2$@)"
+            "value": "Phiên bản"
           }
         }
       }
@@ -749,9 +752,6 @@
           }
         }
       }
-    },
-    "by xDev": {
-      "shouldTranslate": false
     },
     "xDev Servers": {
       "localizations": {
