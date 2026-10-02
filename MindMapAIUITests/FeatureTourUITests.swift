@@ -324,8 +324,20 @@ final class FeatureTourUITests: XCTestCase {
             tour.scrollTo(theme)
             theme.waitToExist()
             // The inline picker's rows, in `MindMapTheme` order: pick the second.
+            // On iOS the identifier lands on the picker's "Theme" label and its
+            // rows are the form's cells below it, not its children.
             let options = theme.buttons
-            if options.count > 1 { options.element(boundBy: 1).tap() } else { theme.cells.element(boundBy: 1).tap() }
+            if options.count > 1 {
+                options.element(boundBy: 1).tap()
+            } else {
+                // The picker is the form's last section; the sheet's own swipe
+                // only grows it, so scroll the form itself to the end.
+                let form = app.app.collectionViews.firstMatch
+                for _ in 0..<3 { form.swipeUp() }
+                let rows = app.app.collectionViews.cells.allElementsBoundByIndex
+                    .filter { $0.frame.minY >= theme.frame.maxY - 1 }
+                if rows.count > 1 { rows[1].tap() } else { XCTFail("no theme rows below \(theme)") }
+            }
             editor.undoButton.waitToExist()
             XCTAssertTrue(editor.undoButton.isEnabled, "picking a theme left nothing to undo")
         }

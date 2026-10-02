@@ -102,8 +102,10 @@ struct EditorPage {
         let button = app.buttons[action.identifier].firstMatch
         #if os(iOS)
         if !button.waitForExistence(timeout: MindMapApp.timeout / 6) {
-            // UIKit's identifier for the navigation bar's More button.
-            app.buttons["OverflowBarButtonItem"].firstMatch.waitToExist(file: file, line: line).tap()
+            // UIKit's identifier for the navigation bar's More button; with the
+            // keyboard up its shortcuts bar has one too, before the toolbar's.
+            let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
+            overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist(file: file, line: line).tap()
             app.collectionViews.buttons.containing(.image, identifier: action.symbol).firstMatch
                 .waitToExist(file: file, line: line).tap()
             return

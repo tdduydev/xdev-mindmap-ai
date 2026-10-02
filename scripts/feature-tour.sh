@@ -6,6 +6,7 @@
 #   scripts/feature-tour.sh                # iOS Simulator, English
 #   scripts/feature-tour.sh ios vi         # platform: ios or macos; language: en or vi
 #   IOS_SIMULATOR="iPad Air 11-inch (M3)" scripts/feature-tour.sh ios en
+#   TOUR_NAME=ipad DERIVED_DATA=scripts/out/DerivedData-ipad IOS_SIMULATOR=… scripts/feature-tour.sh
 #
 # Screenshots land in scripts/out/feature-tour/<platform>-<language>/NN-step.png,
 # with a table of the steps that passed and failed. macOS takes the mouse and
@@ -40,8 +41,9 @@ case "$platform" in
     ;;
 esac
 
-derived=scripts/out/DerivedData
-out="scripts/out/feature-tour/$platform-$language"
+# TOUR_NAME and DERIVED_DATA let two tours (iPhone and iPad) run side by side.
+derived=${DERIVED_DATA:-scripts/out/DerivedData}
+out="scripts/out/feature-tour/${TOUR_NAME:-$platform}-$language"
 results="$out.xcresult"
 rm -rf "$out" "$results"
 mkdir -p "$out"
@@ -57,6 +59,7 @@ xcodebuild test -quiet \
   -derivedDataPath "$derived" \
   -resultBundlePath "$results" \
   -only-testing:MindMapAIUITests/FeatureTourUITests \
+  -collect-test-diagnostics never \
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES || status=$?
 
 if [[ ! -d "$results" ]]; then
@@ -76,12 +79,13 @@ steps = {}
 for test in manifest:
     for attachment in test.get("attachments", []):
         exported = os.path.join(folder, attachment["exportedFileName"])
-        # Xcode appends "_<n>_<UUID>" before the extension.
-        name = re.sub(r"_\d+_[0-9A-Fa-f-]{36}(?=\.\w+$)", "", attachment.get("suggestedHumanReadableName", ""))
+        # Xcode appends "_<n>_<UUID>" before what it takes for the extension,
+        # which for "result.NN-step" is everything after "result".
+        name = re.sub(r"_\d+_[0-9A-Fa-f-]{36}", "", attachment.get("suggestedHumanReadableName", ""))
         base, extension = os.path.splitext(name)
-        if base.startswith("result."):
+        if name.startswith("result."):
             with open(exported) as f:
-                steps.setdefault(base[len("result."):], {})["result"] = f.read().strip()
+                steps.setdefault(name[len("result."):], {})["result"] = f.read().strip()
             os.remove(exported)
         elif extension in (".png", ".jpeg", ".jpg", ".heic"):
             os.replace(exported, os.path.join(folder, base + extension))
