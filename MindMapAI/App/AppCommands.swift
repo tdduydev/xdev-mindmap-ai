@@ -175,6 +175,10 @@ struct MapCommands: Commands {
             // ⇧Tab promotes on the canvas, for the same reason as Space above.
             Button("Detach Topic") { editor?.detachSelection() }
                 .disabled(editor?.canDetachSelection != true)
+            Button("Attach to Topic…") {
+                if let id = editor?.selection { editor?.beginAttaching(id) }
+            }
+            .disabled(editor?.canAttachSelection != true)
             Button("Promote Topic") { editor?.promoteSelection() }
                 .disabled(editor?.canPromoteSelection != true)
             Button("Demote Topic") { editor?.demoteSelection() }

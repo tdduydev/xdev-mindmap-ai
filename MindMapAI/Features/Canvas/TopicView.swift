@@ -335,6 +335,8 @@ struct TopicContextMenu: View {
             .disabled(isRoot || topic.isFloating)
         Button("Detach Topic") { model.detach(topic.id) }
             .disabled(isRoot || topic.isFloating)
+        Button("Attach to Topic…") { model.session.beginAttaching(topic.id) }
+            .disabled(!topic.isFloating)
         Divider()
         Button("Cut") { perform { $0.cutSelection() } }
             .disabled(isRoot)
@@ -526,6 +528,9 @@ struct TopicAccessibility: ViewModifier {
         if !isRoot, !topic.isFloating {
             Button("Add Sibling Topic") { model.addSibling(of: topic.id) }
             Button("Detach Topic") { model.detach(topic.id) }
+        }
+        if topic.isFloating {
+            Button("Attach to Topic…") { model.session.beginAttaching(topic.id) }
         }
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }

@@ -63,6 +63,8 @@ final class EditorSession {
     /// Where the canvas would put a floating topic made without a pointer
     /// (Add Floating Topic, Detach Topic from the menu). Set by the canvas.
     @ObservationIgnored var floatingTopicPlacement: (() -> TopicPosition?)?
+    /// Floating topic whose new parent is being chosen in the editor sheet.
+    var attachTarget: NodeID?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false

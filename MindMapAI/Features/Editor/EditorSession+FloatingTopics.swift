@@ -19,6 +19,20 @@ extension EditorSession {
         return engine.state.node(selection)?.parentID != nil
     }
 
+    var canAttachSelection: Bool { selection.map(isFloating) == true }
+
+    func beginAttaching(_ id: NodeID) {
+        guard isFloating(id) else { return }
+        attachTarget = id
+    }
+
+    func attach(_ id: NodeID, to parentID: NodeID) {
+        guard isFloating(id), canMove([id], to: .child(of: parentID)) else { return }
+        move([id], to: .child(of: parentID))
+        attachTarget = nil
+        selection = id
+    }
+
     /// Makes an empty floating topic at `position`, selects it and asks the
     /// view to open its title, as Add Topic does.
     @discardableResult
