@@ -11,7 +11,10 @@ public struct GraphEngine: Sendable {
     var history: CommandHistory
     /// Image bytes the editor has loaded (the graph holds none). A command that
     /// removes one of these images records its bytes, so undo brings it back;
-    /// the editor fills this before a step that can remove an image.
+    /// the editor fills this before a step that can remove an image
+    /// (`GraphState.images(inBranchesOf:)`). Bytes a step carries (an added
+    /// image) are kept here too, so removing that image later, in the same
+    /// session, can be undone without asking the store.
     public var imageData: [ImageID: Data] = [:]
     private let clock: @Sendable () -> Date
 
@@ -58,6 +61,7 @@ public struct GraphEngine: Sendable {
         next.touch(at: now)
         state = next
         history.record(changes, named: name)
+        keepImageData(of: changes)
         return changes
     }
 
@@ -97,7 +101,14 @@ public struct GraphEngine: Sendable {
             state.apply(changes)
         }
         state.touch(at: clock())
+        keepImageData(of: changes)
         return changes
+    }
+
+    private mutating func keepImageData(of changes: GraphChangeSet) {
+        for (id, change) in changes.images {
+            if let data = change.after?.data ?? change.before?.data { imageData[id] = data }
+        }
     }
 }
 

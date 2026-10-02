@@ -31,13 +31,14 @@ final class FileTransfer {
 
     /// Kept apart from `isImporting`, which the panel clears before it reports the file.
     @ObservationIgnored private var pendingDestination: ImportDestination?
-    @ObservationIgnored private let createMap: (GraphState) async -> MapID?
+    @ObservationIgnored private let createMap: (GraphState, [ImageID: Data]) async -> MapID?
     @ObservationIgnored private let openMap: (MapID) -> Void
 
     /// - Parameters:
-    ///   - createMap: Stores a new map and returns its ID, or nil when saving failed.
+    ///   - createMap: Stores a new map with the bytes of its images and
+    ///     returns its ID, or nil when saving failed.
     ///   - openMap: Shows a map in the window.
-    init(createMap: @escaping (GraphState) async -> MapID?, openMap: @escaping (MapID) -> Void) {
+    init(createMap: @escaping (GraphState, [ImageID: Data]) async -> MapID?, openMap: @escaping (MapID) -> Void) {
         self.createMap = createMap
         self.openMap = openMap
     }
@@ -83,7 +84,7 @@ final class FileTransfer {
                 failure = .emptyDocument(fileName: url.lastPathComponent)
                 return
             }
-            guard let id = await createMap(graph) else {
+            guard let id = await createMap(graph, [:]) else {
                 failure = .couldNotSave
                 return
             }
@@ -112,8 +113,8 @@ final class FileTransfer {
         }
         // Shared tags of the file become tags of the new map: the library's
         // shared tags are not loaded here (docs/interchange.md).
-        let graph = archive.importedGraph()
-        guard let id = await createMap(graph) else {
+        let (graph, imageData) = archive.imported()
+        guard let id = await createMap(graph, imageData) else {
             failure = .couldNotSave
             return
         }
