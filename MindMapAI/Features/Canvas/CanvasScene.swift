@@ -24,6 +24,47 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     var isSuggestion = false
     /// Marked on the card and read by VoiceOver (FR-EDT-13).
     var hasNote = false
+    /// Tag chips under the title: up to `maximumTopicTagChips` tags, "+n",
+    /// then suggested tags. Part of the measured size.
+    var chips: [TopicChip] = []
+    /// Every tag name, for VoiceOver, including those past "+n".
+    var tagNames: [String] = []
+}
+
+/// One chip under a topic's title (MM-34).
+nonisolated struct TopicChip: Identifiable, Hashable, Sendable {
+    enum Kind: Hashable, Sendable {
+        case tag(TagID)
+        /// "+n" for tags past the first few.
+        case more(Int)
+        /// An AI suggestion, by `TagSuggestionState.Suggestion.id`.
+        case suggestion(String)
+    }
+
+    let kind: Kind
+    let label: String
+    let color: TopicColor?
+    /// Set by `TopicMeasurer`; the view draws the chip at this width.
+    var width: CGFloat = 0
+
+    var id: Kind { kind }
+
+    var isSuggestion: Bool {
+        if case .suggestion = kind { return true }
+        return false
+    }
+
+    /// The chips for a topic's tags and suggested tag names.
+    static func chips(tags: [MindTag], suggestions: [(id: String, name: String)]) -> [TopicChip] {
+        let limit = CanvasMetrics.maximumTopicTagChips
+        var chips = tags.prefix(limit).map { TopicChip(kind: .tag($0.id), label: $0.name, color: $0.color) }
+        if tags.count > limit {
+            let more = tags.count - limit
+            chips.append(TopicChip(kind: .more(more), label: "+\(more)", color: nil))
+        }
+        chips += suggestions.map { TopicChip(kind: .suggestion($0.id), label: $0.name, color: nil) }
+        return chips
+    }
 }
 
 /// Everything the canvas draws for one state of the map: the layout and the
@@ -113,7 +154,11 @@ extension EdgePath {
 nonisolated struct TopicMeasure: Equatable, Sendable {
     let title: String
     let level: Int
+    /// What the chips say; a renamed tag measures the topic again.
+    var chipLabels: [String] = []
     let size: CGSize
+    /// The chips with their measured widths.
+    var chips: [TopicChip] = []
 }
 
 /// One measure-and-layout run, as plain values so it runs off the main actor
@@ -130,6 +175,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
     let options: LayoutOptions
     /// Topics of `graph` that are AI suggestions (`SuggestionState.preview`).
     var suggestions: Set<NodeID> = []
+    /// Suggested tag names per topic, drawn as AI chips.
+    var tagSuggestions: [NodeID: [(id: String, name: String)]] = [:]
 
     struct Output: Sendable {
         let scene: CanvasScene
@@ -149,18 +196,29 @@ nonisolated struct CanvasLayoutPass: Sendable {
         sizes.reserveCapacity(outline.count)
         var changed = changed
 
+        let tags = graph.tagsByNode()
+        var chips: [NodeID: [TopicChip]] = [:]
         for item in outline {
             guard let node = graph.node(item.nodeID) else { continue }
-            if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth {
+            var topicChips = TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
+            let labels = topicChips.map(\.label)
+            if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth, known.chipLabels == labels {
                 sizes[item.nodeID] = known.size
+                // The kinds can change under the same labels (a tag renamed to another's name).
+                chips[item.nodeID] = zip(topicChips, known.chips).map { chip, measured in
+                    var chip = chip
+                    chip.width = measured.width
+                    return chip
+                }
                 continue
             }
             // A move changes the level of a whole branch, and the level picks the
             // font, so a topic the change set never named can still change size.
-            let size = measurer.size(of: node.title, level: item.depth)
+            let size = measurer.size(of: node.title, level: item.depth, chips: &topicChips)
             if measures[item.nodeID]?.size != size { changed.insert(item.nodeID) }
-            measures[item.nodeID] = TopicMeasure(title: node.title, level: item.depth, size: size)
+            measures[item.nodeID] = TopicMeasure(title: node.title, level: item.depth, chipLabels: labels, size: size, chips: topicChips)
             sizes[item.nodeID] = size
+            chips[item.nodeID] = topicChips
         }
         // Forget deleted topics; hidden ones keep their measure for when they reappear.
         if measures.count > graph.nodes.count {
@@ -173,10 +231,18 @@ nonisolated struct CanvasLayoutPass: Sendable {
         } else {
             engine.layout(graph, sizes: sizes, options: options)
         }
-        return Output(scene: Self.scene(outline: outline, graph: graph, layout: layout, suggestions: suggestions), measures: measures)
+        let scene = Self.scene(outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags)
+        return Output(scene: scene, measures: measures)
     }
 
-    private static func scene(outline: [OutlineItem], graph: GraphState, layout: MapLayout, suggestions: Set<NodeID>) -> CanvasScene {
+    private static func scene(
+        outline: [OutlineItem],
+        graph: GraphState,
+        layout: MapLayout,
+        suggestions: Set<NodeID>,
+        chips: [NodeID: [TopicChip]],
+        tags: [NodeID: [MindTag]]
+    ) -> CanvasScene {
         var topics: [CanvasTopic] = []
         topics.reserveCapacity(outline.count)
         var branch = -1
@@ -195,7 +261,9 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 isCollapsed: node.isCollapsed,
                 hiddenDescendantCount: placed.hiddenDescendantCount,
                 isSuggestion: suggestions.contains(node.id),
-                hasNote: node.hasNote
+                hasNote: node.hasNote,
+                chips: chips[node.id] ?? [],
+                tagNames: tags[node.id]?.map(\.name) ?? []
             ))
         }
         let types = layout.crossLinks.keys.reduce(into: [EdgeID: EdgeType]()) { types, id in

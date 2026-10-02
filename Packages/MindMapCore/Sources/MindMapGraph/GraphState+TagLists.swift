@@ -29,6 +29,19 @@ extension GraphState {
         return counts
     }
 
+    /// Each topic's tags in the order `tags(of:)` gives, built in one pass
+    /// over the links, for views that show every topic's tags at once.
+    public func tagsByNode() -> [NodeID: [MindTag]] {
+        let links = nodeTags.values
+            .filter { tags[$0.tagID] != nil }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+        var result: [NodeID: [MindTag]] = [:]
+        for link in links {
+            if let tag = tags[link.tagID] { result[link.nodeID, default: []].append(tag) }
+        }
+        return result
+    }
+
     /// Topics that carry the tag, in no particular order.
     public func nodeIDs(taggedWith tagID: TagID) -> Set<NodeID> {
         Set(nodeTags.values.filter { $0.tagID == tagID && nodes[$0.nodeID] != nil }.map(\.nodeID))

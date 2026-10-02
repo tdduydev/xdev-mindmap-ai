@@ -113,6 +113,40 @@
         }
       }
     },
+    "%lld topics" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld topic"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld topics"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld chủ đề"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld topics selected" : {
       "localizations" : {
         "en" : {
@@ -153,6 +187,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mua một lần, không phải gói đăng ký. Khoản thanh toán được tính vào Tài khoản Apple của bạn."
+          }
+        }
+      }
+    },
+    "A tag name needs 1 to 40 characters." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên thẻ cần từ 1 đến 40 ký tự."
           }
         }
       }
@@ -217,6 +261,26 @@
         }
       }
     },
+    "AI suggested tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ do AI gợi ý"
+          }
+        }
+      }
+    },
+    "AI suggested tag, %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ do AI gợi ý, %@"
+          }
+        }
+      }
+    },
     "AI suggestion, %@" : {
       "localizations" : {
         "vi" : {
@@ -267,6 +331,26 @@
         }
       }
     },
+    "Accept Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chấp nhận thẻ"
+          }
+        }
+      }
+    },
+    "Accept Tag %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chấp nhận thẻ %@"
+          }
+        }
+      }
+    },
     "Actual Size" : {
       "localizations" : {
         "vi" : {
@@ -283,6 +367,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kích thước thật, chia nhiều trang"
+          }
+        }
+      }
+    },
+    "Add AI Tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm thẻ do AI gợi ý"
           }
         }
       }
@@ -359,6 +453,26 @@
         }
       }
     },
+    "Add Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm thẻ"
+          }
+        }
+      }
+    },
+    "Add Tag…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm thẻ…"
+          }
+        }
+      }
+    },
     "Add Topic" : {
       "localizations" : {
         "vi" : {
@@ -405,6 +519,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm ghi chú"
+          }
+        }
+      }
+    },
+    "Add a tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm một thẻ"
           }
         }
       }
@@ -519,6 +643,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tất cả sơ đồ"
+          }
+        }
+      }
+    },
+    "Amber" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hổ phách"
           }
         }
       }
@@ -639,6 +773,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nền"
+          }
+        }
+      }
+    },
+    "Blue" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xanh dương"
           }
         }
       }
@@ -764,6 +908,16 @@
         }
       }
     },
+    "Change Tag Color" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi màu thẻ"
+          }
+        }
+      }
+    },
     "Change Theme" : {
       "localizations" : {
         "vi" : {
@@ -834,6 +988,16 @@
         }
       }
     },
+    "Color" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Màu"
+          }
+        }
+      }
+    },
     "Contact Support" : {
       "localizations" : {
         "vi" : {
@@ -860,6 +1024,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sao chép"
+          }
+        }
+      }
+    },
+    "Couldn’t Change the Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đổi được thẻ"
           }
         }
       }
@@ -904,6 +1078,16 @@
         }
       }
     },
+    "Couldn’t change the tag." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đổi được thẻ."
+          }
+        }
+      }
+    },
     "Couldn’t load your maps." : {
       "localizations" : {
         "vi" : {
@@ -930,6 +1114,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa lưu được các thay đổi mới nhất."
+          }
+        }
+      }
+    },
+    "Create Tag “%@”" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo thẻ “%@”"
           }
         }
       }
@@ -1026,6 +1220,26 @@
         }
       }
     },
+    "Delete Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá thẻ"
+          }
+        }
+      }
+    },
+    "Delete Tag…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá thẻ…"
+          }
+        }
+      }
+    },
     "Delete Topic" : {
       "localizations" : {
         "vi" : {
@@ -1052,6 +1266,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Xoá sơ đồ này?"
+          }
+        }
+      }
+    },
+    "Delete “%@”?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá “%@”?"
           }
         }
       }
@@ -1122,6 +1346,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bỏ các đề xuất"
+          }
+        }
+      }
+    },
+    "Discard Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ thẻ"
+          }
+        }
+      }
+    },
+    "Discard Tag %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ thẻ %@"
           }
         }
       }
@@ -1222,6 +1466,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sửa đề xuất"
+          }
+        }
+      }
+    },
+    "Edit Tag…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa thẻ…"
           }
         }
       }
@@ -1556,6 +1810,16 @@
         }
       }
     },
+    "Green" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xanh lá"
+          }
+        }
+      }
+    },
     "Hearing: %@" : {
       "localizations" : {
         "vi" : {
@@ -1829,6 +2093,36 @@
         }
       }
     },
+    "Make Map Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chuyển thành thẻ của sơ đồ"
+          }
+        }
+      }
+    },
+    "Make Shared" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng chung"
+          }
+        }
+      }
+    },
+    "Make a tag shared to offer it in every map." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn Dùng chung để mọi sơ đồ đều có thẻ đó."
+          }
+        }
+      }
+    },
     "Makes a map from the text on the clipboard: each line or Markdown list item becomes a topic." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -1837,6 +2131,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tạo sơ đồ từ văn bản trong bảng nhớ tạm: mỗi dòng hoặc mục danh sách Markdown thành một chủ đề."
+          }
+        }
+      }
+    },
+    "Manage Tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quản lý thẻ"
+          }
+        }
+      }
+    },
+    "Manage Tags…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quản lý thẻ…"
           }
         }
       }
@@ -1857,6 +2171,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không tìm thấy sơ đồ"
+          }
+        }
+      }
+    },
+    "Map Tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ của sơ đồ"
           }
         }
       }
@@ -1929,6 +2253,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Theo giao diện"
+          }
+        }
+      }
+    },
+    "Merge Into" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gộp vào"
+          }
+        }
+      }
+    },
+    "Merge Tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gộp thẻ"
           }
         }
       }
@@ -2332,6 +2676,16 @@
         }
       }
     },
+    "Offered in every map. Changes reach every map and can’t be undone." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có trong mọi sơ đồ. Thay đổi áp dụng cho mọi sơ đồ và không hoàn tác được."
+          }
+        }
+      }
+    },
     "On the Canvas" : {
       "localizations" : {
         "vi" : {
@@ -2358,6 +2712,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trên thiết bị này. Không gửi gì tới xDev."
+          }
+        }
+      }
+    },
+    "Only in this map. You can undo changes to them." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ có trong sơ đồ này. Bạn có thể hoàn tác các thay đổi."
           }
         }
       }
@@ -2416,6 +2780,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mở sơ đồ sửa gần nhất."
+          }
+        }
+      }
+    },
+    "Other Color" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Màu khác"
           }
         }
       }
@@ -2643,6 +3017,26 @@
         }
       }
     },
+    "Remove Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gỡ thẻ"
+          }
+        }
+      }
+    },
+    "Remove Tag %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gỡ thẻ %@"
+          }
+        }
+      }
+    },
     "Remove from Favorites" : {
       "localizations" : {
         "vi" : {
@@ -2669,6 +3063,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đổi tên sơ đồ"
+          }
+        }
+      }
+    },
+    "Rename Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi tên thẻ"
           }
         }
       }
@@ -2739,6 +3143,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang viết lại tiêu đề…"
+          }
+        }
+      }
+    },
+    "Rose" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hồng"
           }
         }
       }
@@ -2824,6 +3238,26 @@
         }
       }
     },
+    "Shared" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng chung"
+          }
+        }
+      }
+    },
+    "Shared Tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ dùng chung"
+          }
+        }
+      }
+    },
     "Shorter" : {
       "localizations" : {
         "vi" : {
@@ -2850,6 +3284,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đơn giản hơn"
+          }
+        }
+      }
+    },
+    "Some topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Một số chủ đề"
           }
         }
       }
@@ -2964,6 +3408,16 @@
         }
       }
     },
+    "Suggest Tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gợi ý thẻ"
+          }
+        }
+      }
+    },
     "Suggested by AI" : {
       "localizations" : {
         "vi" : {
@@ -3004,12 +3458,32 @@
         }
       }
     },
+    "Suggested tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ được gợi ý"
+          }
+        }
+      }
+    },
     "Suggesting subtopics…" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang đề xuất chủ đề con…"
+          }
+        }
+      }
+    },
+    "Suggesting tags…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang gợi ý thẻ…"
           }
         }
       }
@@ -3096,6 +3570,110 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Theo hệ thống"
+          }
+        }
+      }
+    },
+    "Tag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ"
+          }
+        }
+      }
+    },
+    "Tag Actions" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thao tác với thẻ"
+          }
+        }
+      }
+    },
+    "Tag Name" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên thẻ"
+          }
+        }
+      }
+    },
+    "Tags" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ"
+          }
+        }
+      }
+    },
+    "Tags of %lld Topics" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Tags of %lld Topic"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Tags of %lld Topics"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Thẻ của %lld chủ đề"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Tags you add to topics appear here." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ bạn gắn cho chủ đề sẽ hiện ở đây."
+          }
+        }
+      }
+    },
+    "Tags: %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ: %@"
+          }
+        }
+      }
+    },
+    "Teal" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xanh mòng két"
           }
         }
       }
@@ -3204,6 +3782,16 @@
         }
       }
     },
+    "The tag is removed from its topics. The topics stay." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thẻ sẽ được gỡ khỏi các chủ đề. Các chủ đề vẫn giữ nguyên."
+          }
+        }
+      }
+    },
     "The topic was deleted, so its suggestions were removed." : {
       "localizations" : {
         "vi" : {
@@ -3242,6 +3830,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa có sơ đồ nào."
+          }
+        }
+      }
+    },
+    "There is already a tag named “%@”." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã có thẻ tên “%@”."
           }
         }
       }
@@ -3315,6 +3913,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không thực hiện được yêu cầu này. Hãy thử diễn đạt khác đi."
+          }
+        }
+      }
+    },
+    "This tag is used in %lld other maps, so it stays shared." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "This tag is used in %lld other map, so it stays shared."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "This tag is used in %lld other maps, so it stays shared."
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Thẻ này đang dùng trong %lld sơ đồ khác nên vẫn là thẻ dùng chung."
+                }
+              }
+            }
           }
         }
       }
@@ -3418,6 +4050,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hãy thử lại. Nếu vẫn lỗi, hãy khởi động lại ứng dụng."
+          }
+        }
+      }
+    },
+    "Type a tag name, then press Return" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gõ tên thẻ rồi nhấn Return"
           }
         }
       }
@@ -3551,6 +4193,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Xem dạng"
+          }
+        }
+      }
+    },
+    "Violet" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tím"
           }
         }
       }
@@ -3721,6 +4373,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Máy chủ xDev"
+          }
+        }
+      }
+    },
+    "“%1$@” is used in %2$lld maps. Deleting it removes it from every map and can’t be undone. The topics stay." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "“%1$@” is used in %2$lld map. Deleting it removes it from every map and can’t be undone. The topics stay."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "“%1$@” is used in %2$lld maps. Deleting it removes it from every map and can’t be undone. The topics stay."
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” đang dùng trong %2$lld sơ đồ. Xoá thẻ sẽ gỡ nó khỏi mọi sơ đồ và không hoàn tác được. Các chủ đề vẫn giữ nguyên."
           }
         }
       }

@@ -106,6 +106,19 @@ struct MapCommands: Commands {
             Button("Edit Note") { editor?.editSelectionNote() }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
                 .disabled(editor?.canEditSelectionNote != true)
+            // ⇧⌘T and ⌥⇧⌘T: free in the menus; this app has no Fonts panel (⌘T).
+            Button("Add Tag…") { editor?.beginAddingTag() }
+                .keyboardShortcut("t", modifiers: [.command, .shift])
+                .disabled(editor?.canTagSelection != true)
+            if let editor {
+                TagsMenu(session: editor, onAddTag: editor.beginAddingTag)
+            } else {
+                Menu("Tags") {}
+                    .disabled(true)
+            }
+            Button("Manage Tags…") { editor?.isManagingTags = true }
+                .keyboardShortcut("t", modifiers: [.command, .option, .shift])
+                .disabled(editor == nil)
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
@@ -189,6 +202,9 @@ struct MapCommands: Commands {
         Button("Find Missing Topics") { assistant?.findMissingTopics() }
             .keyboardShortcut("m", modifiers: [.command, .control])
             .disabled(assistant?.canRun(.findMissingTopics) != true)
+        Button("Suggest Tags") { assistant?.suggestTags() }
+            .keyboardShortcut("t", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.suggestTags) != true)
         Divider()
         Button("Accept All Suggestions") { assistant?.acceptAll() }
             .keyboardShortcut(.return, modifiers: [.command, .control])

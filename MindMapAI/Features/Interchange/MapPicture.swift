@@ -134,7 +134,13 @@ struct MapPictureView: View {
                 aiStyle: AnyShapeStyle(Palette.crossLink)
             )
             ForEach(picture.scene.topics) { topic in
-                StaticTopicCard(topic: topic, style: styles.style(for: topic), spec: picture.specs.spec(level: topic.level))
+                StaticTopicCard(
+                    topic: topic,
+                    style: styles.style(for: topic),
+                    spec: picture.specs.spec(level: topic.level),
+                    chipSpec: picture.specs.chip,
+                    variant: ColorVariant(colorScheme: colorScheme, contrast: .standard)
+                )
                     .position(x: topic.frame.midX - frame.minX, y: topic.frame.midY - frame.minY)
             }
         }
@@ -142,12 +148,14 @@ struct MapPictureView: View {
     }
 }
 
-/// A topic card at rest: fill, outline, title and collapse badge, as
-/// `TopicView` draws them, without selection, hover or editing.
+/// A topic card at rest: fill, outline, title, tag chips and collapse badge,
+/// as `TopicView` draws them, without selection, hover or editing.
 private struct StaticTopicCard: View {
     let topic: CanvasTopic
     let style: TopicStyle
     let spec: TopicTextSpec
+    let chipSpec: TopicChipSpec
+    let variant: ColorVariant
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: style.box.cornerRadius, style: .continuous)
@@ -156,13 +164,17 @@ private struct StaticTopicCard: View {
             if let stroke = style.stroke {
                 shape.strokeBorder(stroke.color, lineWidth: style.strokeWidth)
             }
-            TopicTitleText(
-                title: topic.title,
-                spec: spec,
-                color: style.textColor.color,
-                placeholderColor: style.secondaryTextColor.color,
-                width: max(topic.frame.width - 2 * spec.horizontalPadding, 0)
-            )
+            TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
+                TopicTitleText(
+                    title: topic.title,
+                    spec: spec,
+                    color: style.textColor.color,
+                    placeholderColor: style.secondaryTextColor.color,
+                    width: max(topic.frame.width - 2 * spec.horizontalPadding, 0)
+                )
+            } chip: { chip in
+                TopicChipLabel(chip: chip, spec: chipSpec, variant: variant)
+            }
         }
         .frame(width: topic.frame.width, height: topic.frame.height)
         .overlay(alignment: topic.side == .left ? .leading : .trailing) {

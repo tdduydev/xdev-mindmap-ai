@@ -137,6 +137,7 @@ struct CanvasView: View {
                     topic: topic,
                     style: model.style(for: topic, colorScheme: colorScheme, contrast: contrast),
                     spec: spec,
+                    chipSpec: model.chipSpec,
                     isRoot: topic.id == rootID,
                     isSelected: topic.isSuggestion ? topic.id == selectedSuggestion : selection.contains(topic.id),
                     isEditing: topic.id == model.editingID,

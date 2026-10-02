@@ -50,6 +50,8 @@ struct AIActionsMenu: View {
             .disabled(!assistant.canRun(.summarize, on: nodeID))
         Button("Find Missing Topics", systemImage: "questionmark.bubble") { assistant.findMissingTopics(nodeID) }
             .disabled(!assistant.canRun(.findMissingTopics, on: nodeID))
+        Button("Suggest Tags", systemImage: "tag") { assistant.suggestTags(nodeID) }
+            .disabled(!assistant.canRun(.suggestTags, on: nodeID))
     }
 }
 

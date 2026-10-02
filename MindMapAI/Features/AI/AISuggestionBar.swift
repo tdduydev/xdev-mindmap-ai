@@ -1,4 +1,6 @@
 import MindMapAICore
+import MindMapDomain
+import MindMapGraph
 import SwiftUI
 
 /// The glass bar over the editor while AI works or waits for a decision:
@@ -51,11 +53,11 @@ struct AISuggestionBar: View {
             } else {
                 Text(activity.feature.progressTitle)
             }
-        } else if let suggestions = assistant.suggestions {
+        } else if let feature = assistant.hasTagSuggestions ? AIFeature.suggestTags : assistant.suggestions?.feature {
             VStack(alignment: .leading, spacing: Spacing.xxs) {
-                Text(suggestions.feature.suggestionsTitle)
+                Text(feature.suggestionsTitle)
                     .font(.headline)
-                Text("\(suggestions.topics.count) suggestions")
+                Text("\(assistant.suggestionCount) suggestions")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -78,7 +80,11 @@ struct AISuggestionBar: View {
             Button("Review…") { isReviewing = true }
                 .buttonStyle(.glass)
                 .popover(isPresented: $isReviewing) {
-                    AISuggestionList(assistant: assistant)
+                    if assistant.hasTagSuggestions {
+                        AITagSuggestionList(assistant: assistant)
+                    } else {
+                        AISuggestionList(assistant: assistant)
+                    }
                 }
             Button("Discard", action: assistant.discardAll)
                 .buttonStyle(.glass)
@@ -181,5 +187,89 @@ private struct AISuggestionRow: View {
         .buttonStyle(.borderless)
         .padding(.leading, CGFloat(depth) * Spacing.outlineIndent)
         .onChange(of: topic.title) { _, title in draft = title }
+    }
+}
+
+/// Every suggested tag by topic, each with its own Accept and Discard and an
+/// editable name: the review path for the outline, the keyboard and VoiceOver.
+struct AITagSuggestionList: View {
+    @Bindable var assistant: AIAssistant
+
+    var body: some View {
+        if let suggestions = assistant.tagSuggestions {
+            List {
+                ForEach(suggestions.nodeIDs, id: \.self) { nodeID in
+                    Section {
+                        ForEach(suggestions.suggestions(for: nodeID)) { suggestion in
+                            AITagSuggestionRow(
+                                suggestion: suggestion,
+                                onRename: { assistant.renameTagSuggestion(suggestion.id, to: $0) },
+                                onAccept: { assistant.acceptTag(suggestion.id) },
+                                onDiscard: { assistant.discardTag(suggestion.id) }
+                            )
+                        }
+                    } header: {
+                        Text(verbatim: topicTitle(nodeID))
+                    }
+                }
+                Section {
+                } footer: {
+                    Text("Suggested by AI on this device. Nothing changes until you accept.")
+                }
+            }
+            .frame(minWidth: Metrics.suggestionListWidth, minHeight: Metrics.suggestionListHeight)
+        }
+    }
+
+    private func topicTitle(_ nodeID: NodeID) -> String {
+        let title = assistant.session.engine.state.node(nodeID)?.title ?? ""
+        return title.isEmpty ? String(localized: "Untitled Topic") : title
+    }
+}
+
+private struct AITagSuggestionRow: View {
+    let suggestion: TagSuggestionState.Suggestion
+    let onRename: (String) -> Void
+    let onAccept: () -> Void
+    let onDiscard: () -> Void
+    @State private var draft: String
+
+    init(
+        suggestion: TagSuggestionState.Suggestion,
+        onRename: @escaping (String) -> Void,
+        onAccept: @escaping () -> Void,
+        onDiscard: @escaping () -> Void
+    ) {
+        self.suggestion = suggestion
+        self.onRename = onRename
+        self.onAccept = onAccept
+        self.onDiscard = onDiscard
+        _draft = State(initialValue: suggestion.name)
+    }
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            TextField("Tag", text: $draft)
+                .onSubmit { onRename(draft) }
+                .accessibilityLabel(Text("AI suggested tag, \(suggestion.name)"))
+            Button {
+                // An edit not yet submitted is what the person means to accept.
+                onRename(draft)
+                onAccept()
+            } label: {
+                Label("Accept Tag", systemImage: "checkmark.circle")
+                    .labelStyle(.iconOnly)
+                    .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
+            }
+            .help(Text("Accept Tag"))
+            Button(action: onDiscard) {
+                Label("Discard Tag", systemImage: "xmark.circle")
+                    .labelStyle(.iconOnly)
+                    .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
+            }
+            .help(Text("Discard Tag"))
+        }
+        .buttonStyle(.borderless)
+        .onChange(of: suggestion.name) { _, name in draft = name }
     }
 }

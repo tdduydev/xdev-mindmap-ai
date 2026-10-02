@@ -162,7 +162,8 @@ final class CanvasModel {
                 changed: pendingChanges,
                 specs: specs,
                 options: layoutOptions,
-                suggestions: suggested
+                suggestions: suggested,
+                tagSuggestions: assistant?.tagSuggestionChips ?? [:]
             )
             pendingChanges = []
             needsFullLayout = false
@@ -266,6 +267,33 @@ final class CanvasModel {
     var selectedSuggestionPreviewID: NodeID? {
         guard let assistant, let id = assistant.selectedSuggestion else { return nil }
         return assistant.suggestions?.topic(id)?.previewID
+    }
+
+    // MARK: Tags
+
+    /// The canvas's chip settings, once it has its text settings.
+    var chipSpec: TopicChipSpec? { specs?.chip }
+
+    /// What a topic's context menu tags: the selection when the topic is in
+    /// it, else the topic alone, as `performFromContextMenu` decides.
+    func contextTargets(for id: NodeID) -> [NodeID] {
+        session.isSelected(id) ? session.orderedSelection : [id]
+    }
+
+    func addTag(to id: NodeID) {
+        performFromContextMenu(on: id) { $0.beginAddingTag() }
+    }
+
+    func acceptTagSuggestion(_ id: String) {
+        assistant?.acceptTag(id)
+    }
+
+    func discardTagSuggestion(_ id: String) {
+        assistant?.discardTag(id)
+    }
+
+    func renameTagSuggestion(_ id: String, to name: String) {
+        assistant?.renameTagSuggestion(id, to: name)
     }
 
     func acceptSuggestion(_ previewID: NodeID) {

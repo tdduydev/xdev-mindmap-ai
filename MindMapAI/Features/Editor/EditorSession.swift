@@ -17,6 +17,8 @@ final class EditorSession {
         let node: MindNode
         let depth: Int
         let hasChildren: Bool
+        /// The topic's tags, as the outline row shows them.
+        var tags: [MindTag] = []
         var id: NodeID { node.id }
     }
 
@@ -46,6 +48,12 @@ final class EditorSession {
     var isInspectorPresented = false
     /// A topic whose note field in the inspector should take focus (Topic ▸ Edit Note).
     var noteFocusRequest: NodeID?
+    /// Asks the inspector's tag field to take focus (Topic ▸ Add Tag…).
+    var tagFieldFocusRequest = false
+    /// Whether Manage Tags shows.
+    var isManagingTags = false
+    /// Why the last tag action changed nothing, for an alert.
+    var tagFailure: TagFailure?
 
     /// Called with every change the map goes through (command, undo, redo),
     /// so the canvas lays out only what changed.
@@ -70,7 +78,8 @@ final class EditorSession {
     /// The window's undo manager, so the Edit menu, ⌘Z and the iOS undo gestures
     /// drive the engine's history. Set by the view.
     @ObservationIgnored weak var undoManager: UndoManager?
-    @ObservationIgnored private let repository: any MapRepository
+    /// Shared tag actions (`EditorSession+Tags`) go to the repository directly.
+    @ObservationIgnored let repository: any MapRepository
     @ObservationIgnored let clipboard: any TextClipboard
     @ObservationIgnored private let onMapChange: (MindMap) -> Void
     @ObservationIgnored private var lastSave: Task<Void, Never>?
@@ -208,9 +217,17 @@ final class EditorSession {
 
     var rows: [Row] {
         let state = engine.state
+        let tags = state.tagsByNode()
         return state.visibleOutline().compactMap { item in
-            state.node(item.nodeID).map { Row(node: $0, depth: item.depth, hasChildren: item.hasChildren) }
+            state.node(item.nodeID).map {
+                Row(node: $0, depth: item.depth, hasChildren: item.hasChildren, tags: tags[item.nodeID] ?? [])
+            }
         }
+    }
+
+    /// The selected topics in outline order: what tag actions apply to.
+    var orderedSelection: [NodeID] {
+        inOutlineOrder(selectedIDs).filter { engine.state.node($0) != nil }
     }
 
     // MARK: Intents
@@ -608,6 +625,17 @@ final class EditorSession {
         persist(changes)
         registerUndo(named: name)
         keepSelectionValid()
+    }
+
+    /// Takes in tag records the library changed (`SharedTagActions`), from this
+    /// window or another. Already stored, so nothing is saved; when the change
+    /// cleared the map's history, the window's undo steps go with it.
+    func applyLibraryChange(_ change: LibraryTagChange) {
+        let result = engine.apply(change)
+        if result.clearedHistory { undoManager?.removeAllActions(withTarget: self) }
+        guard !result.changes.isEmpty else { return }
+        onGraphChange?(result.changes)
+        if !findText.isEmpty { updateFind(selectingFirst: false) }
     }
 
     /// Waits until every change made so far is saved, for example before the app quits.

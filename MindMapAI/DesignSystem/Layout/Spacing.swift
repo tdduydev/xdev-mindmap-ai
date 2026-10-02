@@ -55,4 +55,7 @@ enum Metrics {
 
     /// Room for a few lines of note in the inspector before it grows.
     static let noteEditorMinHeight: CGFloat = 120
+
+    /// Topic ▸ Tags ▸ Manage Tags… on the Mac.
+    static let tagManagerSize = CGSize(width: 440, height: 480)
 }

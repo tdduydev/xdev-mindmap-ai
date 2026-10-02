@@ -22,11 +22,26 @@ nonisolated struct TopicTextSpec: Hashable, Sendable {
     var wrapWidth: CGFloat { maximumWidth - 2 * horizontalPadding - TopicMeasurer.widthSlack }
 }
 
+/// How tag chips under a title are set (MM-34), with Dynamic Type applied.
+nonisolated struct TopicChipSpec: Hashable, Sendable {
+    let postScriptName: String
+    let pointSize: CGFloat
+    let horizontalPadding: CGFloat
+    let height: CGFloat
+    /// Between chips in a row, and between rows.
+    let spacing: CGFloat
+    /// Between the title and the chips.
+    let topGap: CGFloat
+    /// The AI mark before a suggested tag's name.
+    let symbolWidth: CGFloat
+}
+
 /// The text settings for every level, plus the placeholder an untitled topic shows.
 nonisolated struct TopicTextSpecs: Hashable, Sendable {
     /// Central, main, sub, deep: indexed by level, the last one repeating.
     let levels: [TopicTextSpec]
     let placeholder: String
+    let chip: TopicChipSpec
 
     func spec(level: Int) -> TopicTextSpec {
         levels[min(max(level, 0), levels.count - 1)]
@@ -52,21 +67,61 @@ nonisolated final class TopicMeasurer {
     }
 
     func size(of title: String, level: Int) -> CGSize {
+        var chips: [TopicChip] = []
+        return size(of: title, level: level, chips: &chips)
+    }
+
+    /// The box for a title with tag chips under it. Sets each chip's width,
+    /// which the view draws it at, so chips wrap into the same rows here and
+    /// on screen: rows that fit the widest wrap also fit any narrower box
+    /// that is at least as wide as the widest row.
+    func size(of title: String, level: Int, chips: inout [TopicChip]) -> CGSize {
         let spec = specs.spec(level: level)
         let text = title.isEmpty ? specs.placeholder : title
-        let measured = Self.measure(text, font: font(for: spec), lineSpacing: spec.lineSpacing, wrapWidth: spec.wrapWidth)
-        let width = (measured.width + Self.widthSlack + 2 * spec.horizontalPadding).rounded(.up)
-        let height = (measured.height + 2 * spec.verticalPadding).rounded(.up)
+        let measured = Self.measure(text, font: font(postScriptName: spec.postScriptName, size: spec.pointSize), lineSpacing: spec.lineSpacing, wrapWidth: spec.wrapWidth)
+        var contentWidth = measured.width + Self.widthSlack
+        var contentHeight = measured.height
+        if !chips.isEmpty {
+            let rows = layOutChips(&chips, wrapWidth: spec.wrapWidth + Self.widthSlack)
+            contentWidth = max(contentWidth, rows.width)
+            contentHeight += specs.chip.topGap + rows.height
+        }
+        let width = (contentWidth + 2 * spec.horizontalPadding).rounded(.up)
+        let height = (contentHeight + 2 * spec.verticalPadding).rounded(.up)
         return CGSize(
             width: min(spec.maximumWidth, max(spec.minimumWidth, width)),
             height: max(spec.minimumHeight, height)
         )
     }
 
-    private func font(for spec: TopicTextSpec) -> CTFont {
-        let key = "\(spec.postScriptName)@\(spec.pointSize)"
+    /// Greedy rows, as `ChipFlowLayout` places them.
+    private func layOutChips(_ chips: inout [TopicChip], wrapWidth: CGFloat) -> (width: CGFloat, height: CGFloat) {
+        let chip = specs.chip
+        let font = font(postScriptName: chip.postScriptName, size: chip.pointSize)
+        var rowWidth: CGFloat = 0
+        var widest: CGFloat = 0
+        var rows = 1
+        for index in chips.indices {
+            let label = Self.measure(chips[index].label, font: font, lineSpacing: 0, wrapWidth: .greatestFiniteMagnitude / 4).width
+            let symbol = chips[index].isSuggestion ? chip.symbolWidth : 0
+            let width = min(wrapWidth, (label + Self.widthSlack + symbol + 2 * chip.horizontalPadding).rounded(.up))
+            chips[index].width = width
+            if rowWidth > 0, rowWidth + chip.spacing + width > wrapWidth {
+                rows += 1
+                rowWidth = width
+            } else {
+                rowWidth += rowWidth > 0 ? chip.spacing + width : width
+            }
+            widest = max(widest, rowWidth)
+        }
+        let height = CGFloat(rows) * chip.height + CGFloat(rows - 1) * chip.spacing
+        return (widest, height)
+    }
+
+    private func font(postScriptName: String, size: CGFloat) -> CTFont {
+        let key = "\(postScriptName)@\(size)"
         if let font = fonts[key] { return font }
-        let font = CTFontCreateWithName(spec.postScriptName as CFString, spec.pointSize, nil)
+        let font = CTFontCreateWithName(postScriptName as CFString, size, nil)
         fonts[key] = font
         return font
     }
