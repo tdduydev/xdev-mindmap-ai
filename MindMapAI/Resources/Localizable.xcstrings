@@ -293,6 +293,16 @@
         }
       }
     },
+    "Add a note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ghi chú"
+          }
+        }
+      }
+    },
     "Add to Favorites" : {
       "localizations" : {
         "vi" : {
@@ -309,6 +319,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm vào ghi chú"
+          }
+        }
+      }
+    },
+    "Added By" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm bởi"
           }
         }
       }
@@ -643,6 +663,16 @@
         }
       }
     },
+    "Created" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày tạo"
+          }
+        }
+      }
+    },
     "Current Title" : {
       "localizations" : {
         "vi" : {
@@ -779,6 +809,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhân bản chủ đề"
+          }
+        }
+      }
+    },
+    "Edit Note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa ghi chú"
           }
         }
       }
@@ -993,6 +1033,16 @@
         }
       }
     },
+    "Import" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập từ file"
+          }
+        }
+      }
+    },
     "In English" : {
       "localizations" : {
         "vi" : {
@@ -1039,6 +1089,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa hỗ trợ ngôn ngữ"
+          }
+        }
+      }
+    },
+    "Level" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cấp"
           }
         }
       }
@@ -1172,6 +1232,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "MindMap AI dùng Apple Intelligence trên thiết bị này. Sơ đồ và yêu cầu của bạn được xử lý tại đây và không bao giờ được gửi tới xDev."
+          }
+        }
+      }
+    },
+    "Modified" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngày sửa"
           }
         }
       }
@@ -1322,6 +1392,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Để sau"
+          }
+        }
+      }
+    },
+    "Note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ghi chú"
           }
         }
       }
@@ -1516,6 +1596,16 @@
         }
       }
     },
+    "Select a topic to see its note." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn một chủ đề để xem ghi chú."
+          }
+        }
+      }
+    },
     "Shorter" : {
       "localizations" : {
         "vi" : {
@@ -1582,6 +1672,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bắt đầu từ một ý tưởng."
+          }
+        }
+      }
+    },
+    "Subtopics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề con"
           }
         }
       }
@@ -1945,6 +2045,16 @@
         }
       }
     },
+    "You" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn"
+          }
+        }
+      }
+    },
     "Zoom In" : {
       "localizations" : {
         "vi" : {
@@ -1977,6 +2087,16 @@
     },
     "by xDev" : {
       "shouldTranslate" : false
+    },
+    "has note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "có ghi chú"
+          }
+        }
+      }
     },
     "xDev Blue" : {
       "localizations" : {

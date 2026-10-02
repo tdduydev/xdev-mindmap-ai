@@ -45,4 +45,7 @@ enum Metrics {
     static let suggestionListHeight: CGFloat = 280
     /// AI sheets on the Mac, where a sheet takes its content's size.
     static let aiSheetWidth: CGFloat = 440
+
+    /// Room for a few lines of note in the inspector before it grows.
+    static let noteEditorMinHeight: CGFloat = 120
 }

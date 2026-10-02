@@ -73,6 +73,12 @@ struct OutlineRow: View {
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
+            if row.node.hasNote {
+                Image(systemName: "note.text")
+                    .font(Typography.rowDetail)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Text("Note"))
+            }
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
         // Undo changes the title from outside; show it unless the user is typing here.

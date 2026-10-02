@@ -382,6 +382,11 @@ final class CanvasModel {
         session.deleteSelection()
     }
 
+    func editNote(_ id: NodeID) {
+        select(id)
+        session.editSelectionNote()
+    }
+
     // MARK: Styles
 
     private struct StyleKey: Hashable {

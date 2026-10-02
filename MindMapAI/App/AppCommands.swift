@@ -81,6 +81,10 @@ struct MapCommands: Commands {
             // here, because a bare Return would then never reach text fields.
             Button("Rename Topic") { canvas?.beginEditingSelection() }
                 .disabled(canvas == nil || editor?.canRenameSelection != true)
+            // ⇧⌘E: no standard Mac meaning, and ⌥⌘N is already New Window.
+            Button("Edit Note") { editor?.editSelectionNote() }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
+                .disabled(editor?.canEditSelectionNote != true)
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
