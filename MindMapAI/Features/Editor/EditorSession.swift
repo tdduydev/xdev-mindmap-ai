@@ -1,6 +1,7 @@
 import Foundation
 import MindMapDomain
 import MindMapGraph
+import MindMapInterchange
 import MindMapPersistence
 import Observation
 import OSLog
@@ -302,7 +303,15 @@ final class EditorSession {
     /// The selected branches as a Markdown list (FR-EDT-14).
     var selectionMarkdown: String? {
         let branches = selectedBranchRoots
-        return branches.isEmpty ? nil : BranchText.markdown(for: branches, in: engine.state)
+        return branches.isEmpty ? nil : Self.markdown(for: branches, in: engine.state)
+    }
+
+    /// A list rather than headings, so the text pastes as nested bullets into
+    /// notes apps and back into a topic here. Collapsed branches are copied
+    /// whole: a copy is the branch, not the screen.
+    static func markdown(for roots: [NodeID], in state: GraphState) -> String {
+        let options = MarkdownOutline.ExportOptions(headingLevels: 0)
+        return roots.compactMap { try? MarkdownOutline.export(state, branch: $0, options: options) }.joined()
     }
 
     func copySelection() {
@@ -319,7 +328,7 @@ final class EditorSession {
     func cutSelectionReturningText() -> String? {
         let branches = movableBranchRoots
         guard !branches.isEmpty else { return nil }
-        let text = BranchText.markdown(for: branches, in: engine.state)
+        let text = Self.markdown(for: branches, in: engine.state)
         deleteSelection(named: branches.count == 1 ? String(localized: "Cut Topic") : String(localized: "Cut Topics"))
         return text
     }
@@ -329,28 +338,18 @@ final class EditorSession {
         paste(text)
     }
 
-    /// Text on the clipboard becomes children of the selected topic, nested by
-    /// indentation, as one undo step; the new top-level topics are selected.
+    /// Text on the clipboard becomes children of the selected topic: Markdown
+    /// lists and headings, or any indented lines, as one undo step; the new
+    /// top-level topics are selected.
     func paste(_ text: String) {
         guard let parent = selection ?? rootID, engine.state.node(parent) != nil else { return }
-        let items = BranchText.outline(from: text)
-        guard !items.isEmpty else { return }
-
-        var commands: [AddNodeCommand] = []
-        var openParents: [NodeID] = []
-        var topLevel: [NodeID] = []
-        for item in items {
-            let id = NodeID()
-            // Depths are clamped, so the parent of an item is always open.
-            openParents.removeSubrange(min(item.depth, openParents.count)...)
-            let parentID = openParents.last ?? parent
-            commands.append(AddNodeCommand(nodeID: id, .child(of: parentID), title: item.title, note: item.note))
-            openParents.append(id)
-            if item.depth == 0 { topLevel.append(id) }
-        }
-        let name = items.count == 1 ? String(localized: "Paste Topic") : String(localized: "Paste Topics")
-        if perform(BatchCommand(commands), named: name) {
-            setSelection(Set(topLevel), primary: topLevel.first)
+        let draft = InterchangeFormat.markdown.parse(text)
+        guard !draft.isEmpty else { return }
+        // Typed by the user somewhere, not a file brought in, so it stays `.user`.
+        let command = InsertOutlineCommand(draft, under: parent, origin: .user)
+        let name = draft.items.count == 1 ? String(localized: "Paste Topic") : String(localized: "Paste Topics")
+        if perform(command, named: name) {
+            setSelection(Set(command.topNodeIDs), primary: command.topNodeIDs.first)
         }
     }
 

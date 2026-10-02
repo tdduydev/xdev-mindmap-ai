@@ -282,6 +282,36 @@ struct MultiSelectionTests {
         #expect(titles(map.session) == ["Plan", "  A", "    A1", "    A2", "  B", "  C", "    A", "      A1", "      A2"])
     }
 
+    @Test func notesAndCollapsedBranchesSurviveCopyAndPaste() async throws {
+        let map = try await openMap()
+        step(map.undoManager) { _ = map.session.perform(UpdateNodeCommand(nodeID: map.a1, .note("First line\n\n> quoted")), named: "Edit Note") }
+        step(map.undoManager) { map.session.toggleCollapsed(map.a) }
+        map.session.selection = map.a
+        map.session.copySelection()
+        map.session.selection = map.c
+
+        step(map.undoManager) { map.session.paste() }
+
+        let pasted = try #require(map.session.selection)
+        let state = map.session.engine.state
+        let children = state.childIDs(of: pasted)
+        #expect(children.map { state.node($0)?.title } == ["A1", "A2"])
+        #expect(state.node(children[0])?.note == "First line\n\n> quoted")
+        #expect(state.node(pasted)?.metadata.origin == .user)
+    }
+
+    @Test func pastedMarkdownHeadingsNest() async throws {
+        let map = try await openMap()
+        clipboard.setText("# Launch\n\nSome intro.\n\n## Press\n\n- [ ] Release\n  1. Draft\n")
+        map.session.selection = map.c
+
+        expectOneStep(map, named: "Paste Topics") { map.session.paste() }
+
+        #expect(titles(map.session).suffix(4) == ["    Launch", "      Press", "        Release", "          Draft"])
+        let launch = map.session.engine.state.nodes.values.first { $0.title == "Launch" }
+        #expect(launch?.note == "Some intro.")
+    }
+
     @Test func pasteWithoutTextOrMapDoesNothing() async throws {
         let session = try await open()
         let before = session.engine.state
