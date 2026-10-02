@@ -132,6 +132,12 @@ struct OutlineRow: View {
             if let link = row.node.link, let url = link.url {
                 OutlineLinkButton(link: link, url: url)
             }
+            if row.topicImage != nil {
+                Image(systemName: "photo")
+                    .font(Typography.rowDetail)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
             if row.node.hasNote {
                 Image(systemName: "note.text")
                     .font(Typography.rowDetail)
@@ -148,6 +154,7 @@ struct OutlineRow: View {
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
         .modifier(TopicLinkAccessibility(link: row.node.link))
+        .modifier(TopicImageAccessibility(image: row.topicImage))
         .accessibilityActions {
             if let onAttachOrDetach {
                 Button(isFloating ? "Attach to Topic…" : "Detach Topic", action: onAttachOrDetach)

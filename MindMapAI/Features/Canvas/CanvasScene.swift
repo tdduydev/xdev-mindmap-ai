@@ -28,6 +28,7 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     var hasNote = false
     /// Only a link this build can open; drawn on the corner, so not measured.
     var link: TopicLink?
+    var topicImage: MindImage?
     /// Tag chips under the title: up to `maximumTopicTagChips` tags, "+n",
     /// then suggested tags. Part of the measured size.
     var chips: [TopicChip] = []
@@ -255,6 +256,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
         tags: [NodeID: [MindTag]]
     ) -> CanvasScene {
         var topics: [CanvasTopic] = []
+        let images = graph.imagesByNode()
         topics.reserveCapacity(outline.count)
         var branch = -1
         for item in outline {
@@ -275,6 +277,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 isFloating: node.isFloating(rootID: graph.map.rootNodeID),
                 hasNote: node.hasNote,
                 link: node.link?.url == nil ? nil : node.link,
+                topicImage: images[node.id],
                 chips: chips[node.id] ?? [],
                 tagNames: tags[node.id]?.map(\.name) ?? []
             ))

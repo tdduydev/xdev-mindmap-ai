@@ -171,8 +171,8 @@ struct ExportSheet: View {
         Task {
             defer { isPreparing = false }
             do {
-                // Only a backup carries the pictures; the other formats leave them out.
-                let imageData = options.format == .backup ? try await repository.imageData(of: graph) : [:]
+                let imageData = [ExportFormat.backup, .png, .pdf].contains(options.format)
+                    ? try await repository.imageData(of: graph) : [:]
                 file = ExportedFile(data: try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme, imageData: imageData))
             } catch {
                 Log.interchange.error("Making an export failed: \(String(describing: error), privacy: .private)")

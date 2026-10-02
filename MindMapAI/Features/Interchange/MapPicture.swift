@@ -18,6 +18,7 @@ struct MapPicture {
     let scene: CanvasScene
     let theme: MapTheme
     let specs: TopicTextSpecs
+    let imageData: [ImageID: Data]
 
     /// The map's bounds with room around it, in canvas points.
     var frame: CGRect {
@@ -28,7 +29,7 @@ struct MapPicture {
     var size: CGSize { frame.size }
 
     /// Measures and lays out off the main actor, like a canvas pass.
-    static func make(_ graph: GraphState) async -> MapPicture {
+    static func make(_ graph: GraphState, imageData: [ImageID: Data] = [:]) async -> MapPicture {
         let specs = TopicTextSpecs.designSizes()
         let pass = CanvasLayoutPass(
             graph: graph,
@@ -39,7 +40,7 @@ struct MapPicture {
             options: CanvasModel.layoutOptions
         )
         let output = await pass.runInBackground()
-        return MapPicture(scene: output.scene, theme: MapTheme(graph.map.theme), specs: specs)
+        return MapPicture(scene: output.scene, theme: MapTheme(graph.map.theme), specs: specs, imageData: imageData)
     }
 }
 
@@ -139,6 +140,7 @@ struct MapPictureView: View {
                     style: styles.style(for: topic),
                     spec: picture.specs.spec(level: topic.level),
                     chipSpec: picture.specs.chip,
+                    imageData: topic.topicImage.flatMap { picture.imageData[$0.id] },
                     variant: ColorVariant(colorScheme: colorScheme, contrast: .standard)
                 )
                     .position(x: topic.frame.midX - frame.minX, y: topic.frame.midY - frame.minY)
@@ -155,6 +157,7 @@ private struct StaticTopicCard: View {
     let style: TopicStyle
     let spec: TopicTextSpec
     let chipSpec: TopicChipSpec
+    let imageData: Data?
     let variant: ColorVariant
 
     var body: some View {
@@ -164,16 +167,21 @@ private struct StaticTopicCard: View {
             if let stroke = style.stroke {
                 shape.strokeBorder(stroke.color, lineWidth: style.strokeWidth)
             }
-            TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
-                TopicTitleText(
-                    title: topic.title,
-                    spec: spec,
-                    color: style.textColor.color,
-                    placeholderColor: style.secondaryTextColor.color,
-                    width: max(topic.frame.width - 2 * spec.horizontalPadding, 0)
-                )
-            } chip: { chip in
-                TopicChipLabel(chip: chip, spec: chipSpec, variant: variant)
+            VStack(spacing: topic.topicImage == nil ? 0 : CanvasMetrics.imageGap) {
+                if let image = topic.topicImage {
+                    TopicImageView(image: image, level: topic.level, spec: spec, data: imageData)
+                }
+                TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
+                    TopicTitleText(
+                        title: topic.title,
+                        spec: spec,
+                        color: style.textColor.color,
+                        placeholderColor: style.secondaryTextColor.color,
+                        width: max(topic.frame.width - 2 * spec.horizontalPadding, 0)
+                    )
+                } chip: { chip in
+                    TopicChipLabel(chip: chip, spec: chipSpec, variant: variant)
+                }
             }
         }
         .frame(width: topic.frame.width, height: topic.frame.height)
