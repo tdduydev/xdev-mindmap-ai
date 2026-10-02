@@ -13,7 +13,7 @@ struct RootView: View {
     init(environment: AppEnvironment) {
         self.environment = environment
         let router = AppRouter()
-        let library = LibraryModel(repository: environment.repository)
+        let library = LibraryModel(repository: environment.repository, spotlightIndex: environment.spotlightIndex)
         _router = State(initialValue: router)
         _library = State(initialValue: library)
         _transfer = State(initialValue: FileTransfer(
@@ -49,10 +49,26 @@ struct RootView: View {
         // FR-AI-01: Apple Intelligence can be turned on or off while the app is away.
         .task { await ai.refresh() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await ai.refresh() } }
+            guard phase == .active else { return }
+            Task { await ai.refresh() }
+            // The Share Extension and the intents write to the same store.
+            Task { await library.load() }
+        }
+        .onChange(of: environment.openRequests.pending, initial: true) { _, _ in
+            openRequestedMap()
         }
         .focusedSceneValue(\.newMapWithAIAction, ai.showsEntryPoints ? NewMapAction(perform: createMapWithAI) : nil)
         .modifier(FileTransferPresenter(transfer: transfer, entitlements: ai.entitlements))
+    }
+
+    /// A map an intent or Spotlight asked for (FR-SYS-03, FR-SYS-04). The
+    /// library reloads first: the intent may have just created the map.
+    private func openRequestedMap() {
+        guard let id = environment.openRequests.take() else { return }
+        Task {
+            await library.load()
+            router.selectedMapID = id
+        }
     }
 
     /// A new map that opens on Generate Map (FR-AI-03).

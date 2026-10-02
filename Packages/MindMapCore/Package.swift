@@ -19,6 +19,8 @@ let package = Package(
         .library(name: "MindMapTestSupport", targets: ["MindMapTestSupport"]),
         .library(name: "MindMapInterchange", targets: ["MindMapInterchange"]),
         .library(name: "MindMapSearch", targets: ["MindMapSearch"]),
+        .library(name: "MindMapSharing", targets: ["MindMapSharing"]),
+        .library(name: "MindMapIntents", targets: ["MindMapIntents"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -46,5 +48,25 @@ let package = Package(
         .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),
         .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch"]),
+        // What the Share Extension and the App Intents do to maps, without UI
+        // or AI, so the extension links only the core it needs (NFR-PERF-08).
+        .target(
+            name: "MindMapSharing",
+            dependencies: ["MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapInterchange"]
+        ),
+        .testTarget(
+            name: "MindMapSharingTests",
+            dependencies: ["MindMapSharing", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapInterchange"]
+        ),
+        // App Intents, Shortcuts and Spotlight (MM-11). Here rather than in the
+        // app so the intents are an `AppIntentsPackage` any target can include.
+        .target(
+            name: "MindMapIntents",
+            dependencies: ["MindMapDomain", "MindMapPersistence", "MindMapInterchange", "MindMapSharing"]
+        ),
+        .testTarget(
+            name: "MindMapIntentsTests",
+            dependencies: ["MindMapIntents", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapSharing"]
+        ),
     ]
 )

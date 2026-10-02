@@ -150,7 +150,7 @@ Declared per platform in App Store Connect: VoiceOver, Voice Control, Larger Tex
 ## Share Extension and App Intents
 
 - 2.5.16: the extension relates to the app's content. It adds text, links, images or PDFs to a map and does nothing else.
-- The extension and the app share the SwiftData store through an App Group ([module structure](module-structure.md)). That needs the App Group entitlement on both targets, reason 1C8F.1 for shared defaults, and its own privacy manifest *[Inference]*.
+- The extension and the app share the SwiftData store through an App Group ([system integration](system-integration.md)). Both targets carry the App Group entitlement; the extension has its own privacy manifest. No defaults are shared, so 1C8F.1 is not declared. Signing the App Group needs a development team (see the signing steps there).
 - App Intents: no guideline beyond 2.5.11 found (not verified). The intents run on the device and send nothing anywhere.
 
 ## StoreKit (3.1)

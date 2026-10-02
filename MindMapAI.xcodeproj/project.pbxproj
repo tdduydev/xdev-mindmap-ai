@@ -16,6 +16,13 @@
 		4D4D410000000000000C5001 /* MindMapInterchange in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C5002 /* MindMapInterchange */; };
 		4D4D410000000000000C8005 /* MindMapTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8006 /* MindMapTestSupport */; };
 		4D4D41150000000000000002 /* MindMapSearch in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41150000000000000001 /* MindMapSearch */; };
+		4D4D410000000000000B1101 /* MindMapIntents in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1102 /* MindMapIntents */; };
+		4D4D410000000000000B1110 /* MindMapShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4D4D410000000000000B1111 /* MindMapShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4D4D410000000000000B1120 /* MindMapDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1121 /* MindMapDomain */; };
+		4D4D410000000000000B1122 /* MindMapGraph in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1123 /* MindMapGraph */; };
+		4D4D410000000000000B1124 /* MindMapPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1125 /* MindMapPersistence */; };
+		4D4D410000000000000B1126 /* MindMapInterchange in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1127 /* MindMapInterchange */; };
+		4D4D410000000000000B1128 /* MindMapSharing in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1129 /* MindMapSharing */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,12 +33,44 @@
 			remoteGlobalIDString = 4D4D41000000000000000006;
 			remoteInfo = MindMapAI;
 		};
+		4D4D410000000000000B1130 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D4D41000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D4D410000000000000B1140;
+			remoteInfo = MindMapShareExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4D4D410000000000000B1131 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4D4D410000000000000B1110 /* MindMapShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4D4D41000000000000000004 /* MindMap AI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MindMap AI.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D4D41000000000000000018 /* MindMapAITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindMapAITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D4D410000000000000B1111 /* MindMapShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MindMapShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4D4D410000000000000B1133 /* Exceptions for "MindMapShareExtension" folder in "MindMapShareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4D4D410000000000000B1140 /* MindMapShareExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4D4D41000000000000000005 /* MindMapAI */ = {
@@ -42,6 +81,14 @@
 		4D4D41000000000000000019 /* MindMapAITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = MindMapAITests;
+			sourceTree = "<group>";
+		};
+		4D4D410000000000000B1132 /* MindMapShareExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4D4D410000000000000B1133 /* Exceptions for "MindMapShareExtension" folder in "MindMapShareExtension" target */,
+			);
+			path = MindMapShareExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -59,6 +106,7 @@
 				4D4D410000000000000C8003 /* MindMapAIApple in Frameworks */,
 				4D4D410000000000000C5001 /* MindMapInterchange in Frameworks */,
 				4D4D41150000000000000002 /* MindMapSearch in Frameworks */,
+				4D4D410000000000000B1101 /* MindMapIntents in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,6 +118,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D4D410000000000000B1134 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D4D410000000000000B1120 /* MindMapDomain in Frameworks */,
+				4D4D410000000000000B1122 /* MindMapGraph in Frameworks */,
+				4D4D410000000000000B1124 /* MindMapPersistence in Frameworks */,
+				4D4D410000000000000B1126 /* MindMapInterchange in Frameworks */,
+				4D4D410000000000000B1128 /* MindMapSharing in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +138,7 @@
 			children = (
 				4D4D41000000000000000005 /* MindMapAI */,
 				4D4D41000000000000000019 /* MindMapAITests */,
+				4D4D410000000000000B1132 /* MindMapShareExtension */,
 				4D4D41000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,6 +148,7 @@
 			children = (
 				4D4D41000000000000000004 /* MindMap AI.app */,
 				4D4D41000000000000000018 /* MindMapAITests.xctest */,
+				4D4D410000000000000B1111 /* MindMapShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -101,10 +163,12 @@
 				4D4D41000000000000000007 /* Sources */,
 				4D4D41000000000000000008 /* Frameworks */,
 				4D4D41000000000000000009 /* Resources */,
+				4D4D410000000000000B1131 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4D4D410000000000000B1137 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4D4D41000000000000000005 /* MindMapAI */,
@@ -119,6 +183,7 @@
 				4D4D410000000000000C8004 /* MindMapAIApple */,
 				4D4D410000000000000C5002 /* MindMapInterchange */,
 				4D4D41150000000000000001 /* MindMapSearch */,
+				4D4D410000000000000B1102 /* MindMapIntents */,
 			);
 			productName = MindMapAI;
 			productReference = 4D4D41000000000000000004 /* MindMap AI.app */;
@@ -148,6 +213,33 @@
 			productReference = 4D4D41000000000000000018 /* MindMapAITests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		4D4D410000000000000B1140 /* MindMapShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4D4D410000000000000B1143 /* Build configuration list for PBXNativeTarget "MindMapShareExtension" */;
+			buildPhases = (
+				4D4D410000000000000B1135 /* Sources */,
+				4D4D410000000000000B1134 /* Frameworks */,
+				4D4D410000000000000B1136 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4D4D410000000000000B1132 /* MindMapShareExtension */,
+			);
+			name = MindMapShareExtension;
+			packageProductDependencies = (
+				4D4D410000000000000B1121 /* MindMapDomain */,
+				4D4D410000000000000B1123 /* MindMapGraph */,
+				4D4D410000000000000B1125 /* MindMapPersistence */,
+				4D4D410000000000000B1127 /* MindMapInterchange */,
+				4D4D410000000000000B1129 /* MindMapSharing */,
+			);
+			productName = MindMapShareExtension;
+			productReference = 4D4D410000000000000B1111 /* MindMapShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -164,6 +256,9 @@
 					4D4D4100000000000000001B = {
 						CreatedOnToolsVersion = 27.0;
 						TestTargetID = 4D4D41000000000000000006;
+					};
+					4D4D410000000000000B1140 = {
+						CreatedOnToolsVersion = 27.0;
 					};
 				};
 			};
@@ -187,6 +282,7 @@
 			targets = (
 				4D4D41000000000000000006 /* MindMapAI */,
 				4D4D4100000000000000001B /* MindMapAITests */,
+				4D4D410000000000000B1140 /* MindMapShareExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -200,6 +296,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4D4D4100000000000000001E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D4D410000000000000B1136 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -223,6 +326,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D4D410000000000000B1135 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -230,6 +340,11 @@
 			isa = PBXTargetDependency;
 			target = 4D4D41000000000000000006 /* MindMapAI */;
 			targetProxy = 4D4D41000000000000000017 /* PBXContainerItemProxy */;
+		};
+		4D4D410000000000000B1137 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4D4D410000000000000B1140 /* MindMapShareExtension */;
+			targetProxy = 4D4D410000000000000B1130 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -290,6 +405,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MINDMAP_MAC_APP_GROUP = NO;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -349,6 +465,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MINDMAP_MAC_APP_GROUP = NO;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -361,6 +478,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/MindMapAI.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP))";
+				MINDMAP_MAC_ENTITLEMENTS_YES = Entitlements/MindMapAI.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -407,6 +527,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/MindMapAI.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP))";
+				MINDMAP_MAC_ENTITLEMENTS_YES = Entitlements/MindMapAI.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -497,6 +620,75 @@
 			};
 			name = Release;
 		};
+		4D4D410000000000000B1141 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/MindMapShareExtension.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP))";
+				MINDMAP_MAC_ENTITLEMENTS_YES = Entitlements/MindMapShareExtension.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MindMapShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4D4D410000000000000B1142 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Entitlements/MindMapShareExtension.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "$(MINDMAP_MAC_ENTITLEMENTS_$(MINDMAP_MAC_APP_GROUP))";
+				MINDMAP_MAC_ENTITLEMENTS_YES = Entitlements/MindMapShareExtension.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MindMapShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -523,6 +715,15 @@
 			buildConfigurations = (
 				4D4D41000000000000000020 /* Debug */,
 				4D4D41000000000000000021 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4D4D410000000000000B1143 /* Build configuration list for PBXNativeTarget "MindMapShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D4D410000000000000B1141 /* Debug */,
+				4D4D410000000000000B1142 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -572,6 +773,30 @@
 		4D4D41150000000000000001 /* MindMapSearch */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapSearch;
+		};
+		4D4D410000000000000B1102 /* MindMapIntents */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapIntents;
+		};
+		4D4D410000000000000B1121 /* MindMapDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapDomain;
+		};
+		4D4D410000000000000B1123 /* MindMapGraph */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapGraph;
+		};
+		4D4D410000000000000B1125 /* MindMapPersistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapPersistence;
+		};
+		4D4D410000000000000B1127 /* MindMapInterchange */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapInterchange;
+		};
+		4D4D410000000000000B1129 /* MindMapSharing */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapSharing;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,6 +1,7 @@
 import Foundation
 import MindMapDomain
 import MindMapGraph
+import MindMapIntents
 import MindMapPersistence
 import MindMapSearch
 import Observation
@@ -30,9 +31,12 @@ final class LibraryModel {
 
     @ObservationIgnored private let repository: any MapRepository
     @ObservationIgnored private var searchIndex: LibrarySearchIndex?
+    /// Keeps Spotlight's list of map titles in step with the library (FR-SYS-04).
+    @ObservationIgnored private let spotlightIndex: (any MapSearchIndex)?
 
-    init(repository: any MapRepository) {
+    init(repository: any MapRepository, spotlightIndex: (any MapSearchIndex)? = nil) {
         self.repository = repository
+        self.spotlightIndex = spotlightIndex
     }
 
     func maps(in section: LibrarySection) -> [MindMap] {
@@ -95,10 +99,14 @@ final class LibraryModel {
         searchGeneration += 1
     }
 
+    /// Also called when the app comes back to the foreground: the Share
+    /// Extension and the intents may have added or changed maps meanwhile.
     func load() async {
         do {
+            let previous = hasLoaded ? maps : nil
             maps = try await repository.fetchMaps()
             invalidateSearch()
+            await reindex(from: previous)
         } catch {
             Log.persistence.error("Loading the library failed: \(error.localizedDescription, privacy: .public)")
             failure = .load
@@ -122,11 +130,14 @@ final class LibraryModel {
     func apply(_ change: MapRepositoryChange) async {
         switch change {
         case .saved(let map):
+            let renamed = maps.first { $0.id == map.id }?.title != map.title
             show(map)
             invalidateSearch()
+            if renamed { await spotlightIndex?.update(map) }
         case .deleted(let id):
             maps.removeAll { $0.id == id }
             invalidateSearch()
+            await spotlightIndex?.remove(id)
         case .storeChanged:
             await load()
         }
@@ -144,6 +155,7 @@ final class LibraryModel {
             // The change stream may have delivered it already.
             show(graph.map)
             invalidateSearch()
+            await spotlightIndex?.update(graph.map)
             return graph.map.id
         } catch {
             Log.persistence.error("Creating a map failed: \(error.localizedDescription, privacy: .public)")
@@ -157,6 +169,7 @@ final class LibraryModel {
             try await repository.deleteMap(map.id)
             maps.removeAll { $0.id == map.id }
             invalidateSearch()
+            await spotlightIndex?.remove(map.id)
         } catch {
             Log.persistence.error("Deleting a map failed: \(error.localizedDescription, privacy: .public)")
             failure = .save
@@ -196,9 +209,31 @@ final class LibraryModel {
     /// library knows it: the editor's copy may predate a change made here.
     func didChange(_ map: MindMap) {
         guard let index = maps.firstIndex(where: { $0.id == map.id }) else { return }
+        let renamed = maps[index].title != map.title
         var updated = map
         updated.isFavorite = maps[index].isFavorite
         maps[index] = updated
         invalidateSearch()
+        if renamed, let spotlightIndex {
+            Task { await spotlightIndex.update(updated) }
+        }
+    }
+
+    /// The first load rebuilds the whole index, which also drops maps deleted
+    /// while the app was closed; later loads touch only what changed.
+    private func reindex(from previous: [MindMap]?) async {
+        guard let spotlightIndex else { return }
+        guard let previous else {
+            await spotlightIndex.replaceAll(with: maps)
+            return
+        }
+        let before = Dictionary(uniqueKeysWithValues: previous.map { ($0.id, $0.title) })
+        let current = Set(maps.map(\.id))
+        for map in maps where before[map.id] != map.title {
+            await spotlightIndex.update(map)
+        }
+        for id in before.keys where !current.contains(id) {
+            await spotlightIndex.remove(id)
+        }
     }
 }
