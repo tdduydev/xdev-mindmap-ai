@@ -12,6 +12,8 @@ extension FocusedValues {
     @Entry var aiAssistant: AIAssistant?
     @Entry var newMapWithAIAction: NewMapAction?
     @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
+    /// Voice input for the frontmost map (FR-AI-21).
+    @Entry var voiceInput: VoiceInput?
 }
 
 struct NewMapAction {
@@ -33,6 +35,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
     @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
+    @FocusedValue(\.voiceInput) private var voice
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -95,6 +98,9 @@ struct MapCommands: Commands {
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
+            Button("Add Topics by Voice…") { voice?.present() }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
+                .disabled(voice == nil || voice?.isPresented == true)
             Divider()
             // ⇧Tab promotes on the canvas, for the same reason as Space above.
             Button("Promote Topic") { editor?.promoteSelection() }

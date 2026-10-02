@@ -21,6 +21,7 @@ let package = Package(
         .library(name: "MindMapSearch", targets: ["MindMapSearch"]),
         .library(name: "MindMapSharing", targets: ["MindMapSharing"]),
         .library(name: "MindMapIntents", targets: ["MindMapIntents"]),
+        .library(name: "MindMapCapture", targets: ["MindMapCapture"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -35,7 +36,7 @@ let package = Package(
         // depend on plain values; only AIApple talks to the model.
         .target(name: "MindMapAICore", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .target(name: "MindMapAIApple", dependencies: ["MindMapAICore"]),
-        .target(name: "MindMapTestSupport", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore"]),
+        .target(name: "MindMapTestSupport", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore", "MindMapCapture"]),
         .testTarget(
             name: "MindMapAICoreTests",
             dependencies: ["MindMapAICore", "MindMapDomain", "MindMapGraph", "MindMapTestSupport"]
@@ -68,5 +69,9 @@ let package = Package(
             name: "MindMapIntentsTests",
             dependencies: ["MindMapIntents", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapSharing"]
         ),
+        // Speech and the microphone sit behind `VoiceTranscribing`, so tests and
+        // the Simulator use `FakeVoiceTranscriber` instead of the device models.
+        .target(name: "MindMapCapture", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .testTarget(name: "MindMapCaptureTests", dependencies: ["MindMapCapture", "MindMapGraph", "MindMapTestSupport"]),
     ]
 )

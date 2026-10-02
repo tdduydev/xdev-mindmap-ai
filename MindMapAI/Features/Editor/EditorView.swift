@@ -1,3 +1,4 @@
+import MindMapCapture
 import MindMapDomain
 import MindMapPersistence
 import SwiftUI
@@ -15,6 +16,7 @@ struct EditorView: View {
     /// Made once per opened map, so the camera survives switching to the outline and back.
     @State private var canvas: CanvasModel?
     @State private var assistant: AIAssistant?
+    @State private var voice: VoiceInput?
 
     var body: some View {
         Group {
@@ -22,8 +24,8 @@ struct EditorView: View {
             case nil:
                 ProgressView()
             case .ready(let session):
-                if let canvas, let assistant {
-                    MapEditorView(session: session, canvas: canvas, assistant: assistant)
+                if let canvas, let assistant, let voice {
+                    MapEditorView(session: session, canvas: canvas, assistant: assistant, voice: voice)
                 }
             case .missing:
                 ContentUnavailableView(
@@ -44,6 +46,7 @@ struct EditorView: View {
             if case .ready(let session) = opened {
                 let assistant = AIAssistant(session: session, service: ai)
                 self.assistant = assistant
+                voice = VoiceInput(session: session, transcriber: AppleSpeechTranscriber(), entitlements: ai.entitlements)
                 canvas = CanvasModel(session: session, assistant: assistant)
                 if generatesOnOpen {
                     onGenerationStarted()

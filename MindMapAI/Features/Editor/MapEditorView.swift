@@ -8,6 +8,7 @@ struct MapEditorView: View {
     @Bindable var session: EditorSession
     let canvas: CanvasModel
     @Bindable var assistant: AIAssistant
+    @Bindable var voice: VoiceInput
     @Environment(\.undoManager) private var undoManager
     @State private var showsKeyboardShortcuts = false
     @Environment(FileTransfer.self) private var transfer: FileTransfer?
@@ -44,6 +45,9 @@ struct MapEditorView: View {
         .sheet(item: $assistant.sheet, onDismiss: assistant.sheetDismissed) { sheet in
             AISheet(assistant: assistant, sheet: sheet)
         }
+        .sheet(isPresented: $voice.isPresented, onDismiss: voice.sheetDismissed) {
+            VoiceInputSheet(voice: voice)
+        }
         .inspector(isPresented: $session.isInspectorPresented) {
             MapInspectorView(session: session)
         }
@@ -69,6 +73,7 @@ struct MapEditorView: View {
         .focusedSceneValue(\.aiAssistant, assistant)
         .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
         .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
+        .focusedSceneValue(\.voiceInput, voice)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
@@ -117,6 +122,10 @@ struct MapEditorView: View {
                 Label("Delete Topic", systemImage: "trash")
             }
             .disabled(!session.canDeleteSelection)
+            Button(action: voice.present) {
+                Label("Add Topics by Voice", systemImage: "mic")
+            }
+            .help(Text("Add Topics by Voice"))
         }
         if assistant.service.showsEntryPoints {
             ToolbarItem(placement: .primaryAction) {

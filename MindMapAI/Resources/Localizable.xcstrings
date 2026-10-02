@@ -369,6 +369,36 @@
         }
       }
     },
+    "Add Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề"
+          }
+        }
+      }
+    },
+    "Add Topics by Voice" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề bằng giọng nói"
+          }
+        }
+      }
+    },
+    "Add Topics by Voice…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề bằng giọng nói…"
+          }
+        }
+      }
+    },
     "Add a note" : {
       "localizations" : {
         "vi" : {
@@ -1106,6 +1136,26 @@
         }
       }
     },
+    "Download Speech Model" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tải mô hình giọng nói"
+          }
+        }
+      }
+    },
+    "Downloading speech model…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tải mô hình giọng nói…"
+          }
+        }
+      }
+    },
     "Drag a topic" : {
       "localizations" : {
         "vi" : {
@@ -1202,6 +1252,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sơ đồ trống"
+          }
+        }
+      }
+    },
+    "English" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếng Anh"
           }
         }
       }
@@ -1366,6 +1426,16 @@
         }
       }
     },
+    "Finishing…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang hoàn tất…"
+          }
+        }
+      }
+    },
     "Fit to One Page" : {
       "localizations" : {
         "vi" : {
@@ -1466,12 +1536,32 @@
         }
       }
     },
+    "Getting ready…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang chuẩn bị…"
+          }
+        }
+      }
+    },
     "Graphite" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Graphite"
+          }
+        }
+      }
+    },
+    "Hearing: %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang nghe: %@"
           }
         }
       }
@@ -1659,6 +1749,16 @@
         }
       }
     },
+    "Language" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngôn ngữ"
+          }
+        }
+      }
+    },
     "Language Not Supported" : {
       "localizations" : {
         "vi" : {
@@ -1695,6 +1795,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sáng"
+          }
+        }
+      }
+    },
+    "Listening" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang nghe"
           }
         }
       }
@@ -1871,6 +1981,26 @@
     },
     "MindMap AI by xDev" : {
       "shouldTranslate" : false
+    },
+    "MindMap AI can’t use speech recognition. Turn it on in Privacy & Security settings." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI không dùng được nhận dạng giọng nói. Hãy bật trong cài đặt Quyền riêng tư & Bảo mật."
+          }
+        }
+      }
+    },
+    "MindMap AI can’t use the microphone. Turn it on in Privacy & Security settings." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI không dùng được micro. Hãy bật trong cài đặt Quyền riêng tư & Bảo mật."
+          }
+        }
+      }
     },
     "MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support." : {
       "localizations" : {
@@ -2078,6 +2208,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Không có kết quả"
+          }
+        }
+      }
+    },
+    "No microphone is available." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có micro nào dùng được."
           }
         }
       }
@@ -2473,6 +2613,16 @@
         }
       }
     },
+    "Remove" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gỡ"
+          }
+        }
+      }
+    },
     "Remove Link" : {
       "localizations" : {
         "vi" : {
@@ -2579,6 +2729,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đang viết lại tiêu đề…"
+          }
+        }
+      }
+    },
+    "Say one topic per sentence. Speech is turned into text on this device and is not sent to xDev." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mỗi câu bạn nói là một chủ đề. Giọng nói được chuyển thành chữ trên thiết bị này và không gửi tới xDev."
           }
         }
       }
@@ -2734,6 +2894,16 @@
         }
       }
     },
+    "Start Listening" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bắt đầu nghe"
+          }
+        }
+      }
+    },
     "Start with one thought." : {
       "localizations" : {
         "vi" : {
@@ -2750,6 +2920,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trạng thái"
+          }
+        }
+      }
+    },
+    "Stop Listening" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dừng nghe"
           }
         }
       }
@@ -3089,6 +3269,16 @@
         }
       }
     },
+    "This device can’t transcribe this language on the device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiết bị này không chuyển được ngôn ngữ này thành chữ ngay trên máy."
+          }
+        }
+      }
+    },
     "This is part of MindMap AI Pro." : {
       "localizations" : {
         "vi" : {
@@ -3188,6 +3378,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chủ đề"
+          }
+        }
+      }
+    },
+    "Topics you say appear here. You can edit them before adding." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề bạn nói sẽ hiện ở đây. Bạn có thể sửa trước khi thêm."
           }
         }
       }
@@ -3315,6 +3515,16 @@
         }
       }
     },
+    "Vietnamese" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếng Việt"
+          }
+        }
+      }
+    },
     "View" : {
       "localizations" : {
         "vi" : {
@@ -3341,6 +3551,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhập bằng giọng nói"
+          }
+        }
+      }
+    },
+    "Voice input is part of MindMap AI Pro." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập bằng giọng nói thuộc MindMap AI Pro."
+          }
+        }
+      }
+    },
+    "Voice input needs the %@ speech model, which the system downloads once." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập bằng giọng nói cần mô hình giọng nói %@, hệ thống chỉ tải một lần."
+          }
+        }
+      }
+    },
+    "Voice input stopped unexpectedly. Try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập bằng giọng nói bị dừng bất ngờ. Hãy thử lại."
           }
         }
       }
