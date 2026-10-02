@@ -43,6 +43,7 @@ struct OutlineEditorView: View {
         .onDeleteCommand(perform: session.deleteSelection)
         #endif
         .toolbar { toolbar }
+        .focusedSceneValue(\.editorSession, session)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
         .onChange(of: session.focusRequest) { _, request in
@@ -114,9 +115,9 @@ struct OutlineRow: View {
                 .font(isRoot ? Typography.rootTopic : Typography.topic)
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
+                .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
-        .accessibilityValue(Text("Level \(row.depth + 1)"))
         // Undo changes the title from outside; show it unless the user is typing here.
         .onChange(of: row.node.title) { _, title in
             if focus.wrappedValue != row.id { draft = title }
@@ -134,6 +135,7 @@ struct OutlineRow: View {
                 .rotationEffect(.degrees(row.node.isCollapsed ? 0 : 90))
                 .foregroundStyle(.secondary)
                 .frame(width: Metrics.disclosureSize, height: Metrics.disclosureSize)
+                .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

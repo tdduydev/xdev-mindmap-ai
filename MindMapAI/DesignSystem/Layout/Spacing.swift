@@ -26,4 +26,14 @@ enum Radius {
 enum Metrics {
     /// Square frame of the outline's expand/collapse control.
     static let disclosureSize: CGFloat = 20
+
+    /// Smallest tappable area: 44 pt for touch (HIG), less for a pointer.
+    #if os(iOS)
+    static let minimumHitTarget: CGFloat = 44
+    #else
+    static let minimumHitTarget: CGFloat = 24
+    #endif
+
+    /// Width of the Mac Settings window.
+    static let settingsWidth: CGFloat = 480
 }
