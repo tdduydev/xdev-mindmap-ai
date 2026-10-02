@@ -110,7 +110,8 @@ struct MapCommands: Commands {
             Divider()
             Picker("Theme", selection: themeBinding) {
                 ForEach(MindMapTheme.allCases) { theme in
-                    Text(theme.title).tag(theme)
+                    ProChoiceLabel(title: theme.title, isLocked: theme.requiresPro && !ai.entitlements.allows(.extraThemes))
+                        .tag(theme)
                 }
             }
             .disabled(editor == nil)
@@ -281,7 +282,7 @@ struct MapCommands: Commands {
     private var themeBinding: Binding<MindMapTheme> {
         Binding(
             get: { editor?.map.theme ?? .standard },
-            set: { editor?.changeTheme(to: $0) }
+            set: { editor?.chooseTheme($0, entitlements: ai.entitlements) }
         )
     }
 

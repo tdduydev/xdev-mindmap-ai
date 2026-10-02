@@ -13,8 +13,7 @@ extension MindMapTheme: @retroactive Identifiable {
         }
     }
 
-    /// Themes beyond Standard belong to MindMap AI Pro (docs/pricing.md). Nothing
-    /// asks yet: once MM-13's entitlement is on main, the pickers check
-    /// `allows(.extraThemes)` for these and offer the paywall instead.
+    /// Themes beyond Standard belong to MindMap AI Pro (docs/pricing.md): every
+    /// picker asks `allows(.extraThemes)` for these and offers the paywall instead.
     var requiresPro: Bool { self != .standard }
 }

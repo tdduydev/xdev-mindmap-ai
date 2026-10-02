@@ -2185,16 +2185,6 @@
         }
       }
     },
-    "Find Missing Ideas" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tìm ý còn thiếu"
-          }
-        }
-      }
-    },
     "Find Missing Topics" : {
       "localizations" : {
         "vi" : {
@@ -3077,7 +3067,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thêm theme"
+            "value" : "Thêm bộ màu"
           }
         }
       }
@@ -3378,16 +3368,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
-          }
-        }
-      }
-    },
-    "OPML Import and Export" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nhập và xuất OPML"
           }
         }
       }
@@ -3793,22 +3773,22 @@
     "Pro" : {
       "shouldTranslate" : false
     },
-    "Pro adds extra export formats, themes and voice input. Maps, topics, sync and everything else stay free." : {
+    "Pro adds extra export formats, themes and voice input. Maps, topics and everything else stay free." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro thêm định dạng xuất, theme và nhập bằng giọng nói. Sơ đồ, chủ đề, đồng bộ và mọi thứ khác vẫn miễn phí."
+            "value" : "Pro thêm định dạng xuất, bộ màu và nhập bằng giọng nói. Sơ đồ, chủ đề và mọi thứ khác vẫn miễn phí."
           }
         }
       }
     },
-    "Pro adds extra export formats, themes, AI tools and voice input. Maps, topics, sync and everything else stay free." : {
+    "Pro adds extra export formats, themes, AI tools and voice input. Maps, topics and everything else stay free." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro thêm định dạng xuất, theme, công cụ AI và nhập bằng giọng nói. Sơ đồ, chủ đề, đồng bộ và mọi thứ khác vẫn miễn phí."
+            "value" : "Pro thêm định dạng xuất, bộ màu, công cụ AI và nhập bằng giọng nói. Sơ đồ, chủ đề và mọi thứ khác vẫn miễn phí."
           }
         }
       }

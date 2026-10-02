@@ -56,6 +56,9 @@ final class EditorSession {
     var isManagingTags = false
     /// Why the last tag action changed nothing, for an alert.
     var tagFailure: TagFailure?
+    /// A Pro theme picked without Pro: the window shows the paywall and the
+    /// theme changes only if Pro is unlocked there (FR-THM-02).
+    var pendingThemeChoice: PendingProChoice?
 
     /// Called with every change the map goes through (command, undo, redo),
     /// so the canvas lays out only what changed.
@@ -505,6 +508,19 @@ final class EditorSession {
     /// Only branch colours change, so the layout and selection stay as they are (FR-THM-03).
     func changeTheme(to theme: MindMapTheme) {
         perform(ChangeThemeCommand(theme: theme), named: String(localized: "Change Theme"))
+    }
+
+    /// What the theme pickers call. Only the choice is locked: a map that
+    /// already has a Pro theme keeps showing it after a refund or on a device
+    /// without Pro, as the paywall must never take away what a map looks like.
+    func chooseTheme(_ theme: MindMapTheme, entitlements: any ProEntitlements) {
+        guard theme.requiresPro, !entitlements.allows(.extraThemes) else {
+            changeTheme(to: theme)
+            return
+        }
+        pendingThemeChoice = PendingProChoice(feature: .extraThemes) { [weak self] in
+            self?.changeTheme(to: theme)
+        }
     }
 
     /// Adds an imported file under the selected topic (the central topic when

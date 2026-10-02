@@ -25,9 +25,9 @@ struct PaywallView: View {
                             .font(Typography.paywallTitle)
                         Group {
                             if includesAI {
-                                Text("Pro adds extra export formats, themes, AI tools and voice input. Maps, topics, sync and everything else stay free.")
+                                Text("Pro adds extra export formats, themes, AI tools and voice input. Maps, topics and everything else stay free.")
                             } else {
-                                Text("Pro adds extra export formats, themes and voice input. Maps, topics, sync and everything else stay free.")
+                                Text("Pro adds extra export formats, themes and voice input. Maps, topics and everything else stay free.")
                             }
                         }
                         .foregroundStyle(.secondary)

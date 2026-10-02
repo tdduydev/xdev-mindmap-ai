@@ -213,11 +213,16 @@ struct ProFeatureTests {
     /// docs/pricing.md: advanced export, extra themes, advanced AI, voice input.
     @Test func listMatchesThePricingDecision() {
         #expect(ProFeature.allCases == [
-            .vectorPDFExport, .highResolutionPNGExport, .opmlExport,
+            .vectorPDFExport, .highResolutionPNGExport,
             .extraThemes,
             .generateMapFromDescription, .summarizeWholeMap, .findMissingIdeas,
             .voiceInput,
         ])
+    }
+
+    /// One name per thing: the paywall names the AI tool as the AI menu does.
+    @Test func paywallNamesMatchTheMenus() {
+        #expect(String(localized: ProFeature.findMissingIdeas.title) == String(localized: "Find Missing Topics"))
     }
 
     @Test func everyFeatureHasATitleAndIcon() {
