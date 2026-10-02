@@ -75,7 +75,9 @@ struct MacSnapshotTests {
 
             let scenes: [(String, AnyView, CGSize)] = [
                 ("sidebar", AnyView(SidebarView(selection: .constant(.all))), CGSize(width: 220, height: 400)),
-                ("inspector", AnyView(MapInspectorView(session: map.session)), CGSize(width: 320, height: 900)),
+                // Room under the content, so the Form never scrolls: MM-64's
+                // Image section brought it within a few points of 900.
+                ("inspector", AnyView(MapInspectorView(session: map.session)), CGSize(width: 320, height: 1000)),
             ]
             // ImageRenderer draws SwiftUI itself, glass included, where AppKit
             // draws nothing; it cannot draw Forms or AppKit controls.
@@ -107,7 +109,15 @@ struct MacSnapshotTests {
         for appearance in SnapshotAppearance.allCases {
             let app = try await SnapshotApp()
             defer { app.tearDown() }
-            let content = SettingsPaneView(pane: pane)
+            if pane == .data {
+                // One map in Recently Deleted, so the pane shows a count and
+                // Empty Recently Deleted enabled, as it does for most people.
+                let deleted = try #require(app.mapID(UITestFixture.Title.favorite))
+                try await app.environment.repository.moveToRecentlyDeleted(deleted, at: .now)
+            }
+            // As MindMapAIApp passes them: without an environment the Data pane
+            // leaves out Recently Deleted, Export All Maps and Import Maps (MM-86).
+            let content = SettingsPaneView(pane: pane, environment: app.environment, showRecentlyDeleted: {})
                 .frame(width: Metrics.settingsWidth, height: 520)
             let window = SnapshotWindow.open(
                 app.withEnvironment(content),
