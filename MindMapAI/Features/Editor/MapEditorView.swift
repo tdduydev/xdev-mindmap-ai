@@ -33,11 +33,14 @@ struct MapEditorView: View {
         .inspector(isPresented: $session.isInspectorPresented) {
             MapInspectorView(session: session)
         }
-        .navigationTitle(session.map.title)
+        // The window title on the Mac: the map, never the app name.
+        .navigationTitle(session.displayTitle)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         #if os(macOS)
+        // Delete when the menu's Delete Topic shortcut is off: on a selected
+        // suggestion, or where SwiftUI did not report the content's focus.
         .onDeleteCommand {
             // Delete on a selected suggestion discards it rather than a topic.
             if let suggestion = assistant.selectedSuggestion {
@@ -78,13 +81,13 @@ struct MapEditorView: View {
         }
         ToolbarItemGroup(placement: .primaryAction) {
             Button(action: session.addChild) {
-                Label("Add Child", systemImage: "arrow.turn.down.right")
+                Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }
             Button(action: session.addSibling) {
-                Label("Add Sibling", systemImage: "plus")
+                Label("Add Sibling Topic", systemImage: "plus")
             }
             Button(role: .destructive, action: session.deleteSelection) {
-                Label("Delete", systemImage: "trash")
+                Label("Delete Topic", systemImage: "trash")
             }
             .disabled(!session.canDeleteSelection)
         }

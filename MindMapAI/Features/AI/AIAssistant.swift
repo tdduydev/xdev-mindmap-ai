@@ -85,6 +85,9 @@ final class AIAssistant {
     var isWorking: Bool { activity != nil }
     var hasSuggestions: Bool { suggestions?.isEmpty == false }
     var canAcceptSuggestions: Bool { suggestions?.isComplete == true && hasSuggestions }
+    /// Delete belongs to the selected suggestion, which the editor discards on
+    /// Delete, or to the text field of a sheet; it is not Delete Topic's key then.
+    var holdsDeleteKey: Bool { selectedSuggestion != nil || sheet != nil }
 
     /// Whether `feature` can run on `nodeID` (the selection when nil), and if
     /// not, why, for the one line the menus show.
