@@ -9,8 +9,12 @@ public enum GraphIssue: Hashable, Sendable {
     case missingRoot
     case rootHasParent(NodeID)
     /// The top of a branch that does not reach the root: its parent is missing,
-    /// or it has no parent and is not the root.
+    /// or it has no parent, is not the root and has no position. A parentless
+    /// topic with a position is a floating topic, not an issue.
     case detachedBranch(NodeID)
+    /// A position on a topic that has a parent, or on the root: only a
+    /// floating topic has one, so the tree wins and it is cleared.
+    case strayPosition(NodeID)
     /// A node whose parent chain loops back on itself, for example after two
     /// devices each moved one node under the other.
     case cycle(NodeID)
@@ -24,8 +28,15 @@ public enum GraphIssue: Hashable, Sendable {
     /// A map tag whose key equals an older map tag's, from two devices
     /// creating it offline. Shared tags are checked by the library.
     case duplicateTag(TagID)
-    /// A boundary whose ends are not a run of siblings under its parent.
+    /// A boundary or summary whose ends are not a run of siblings under its parent.
     case invalidGroup(GroupID)
+    /// A summary whose topic is under another parent, is one of the run's
+    /// ends, is named by an older summary, or is not set. The topic stays.
+    case invalidSummary(GroupID)
+    /// An image whose topic is gone.
+    case danglingImage(ImageID)
+    /// A second image on one topic, from two devices; the newest is kept.
+    case duplicateImage(ImageID)
 }
 
 public enum GraphValidator {
@@ -38,6 +49,9 @@ public enum GraphValidator {
         }
         if let root, root.parentID != nil {
             issues.insert(.rootHasParent(root.id))
+        }
+        for node in state.nodes.values where node.position != nil && (node.parentID != nil || node.id == root?.id) {
+            issues.insert(.strayPosition(node.id))
         }
 
         let reachable = reachableNodes(in: state)
@@ -80,10 +94,49 @@ public enum GraphValidator {
             }
         }
         // A kind this build does not know is hidden and left as it is.
-        for group in state.groups.values where group.kind == .boundary && state.members(of: group) == nil {
+        for group in state.groups.values where group.kind.isRun && state.members(of: group) == nil {
             issues.insert(.invalidGroup(group.id))
         }
+        for id in invalidSummaries(in: state) {
+            issues.insert(.invalidSummary(id))
+        }
+        for image in state.images.values where state.nodes[image.nodeID] == nil {
+            issues.insert(.danglingImage(image.id))
+        }
+        for id in duplicateImages(in: state) {
+            issues.insert(.duplicateImage(id))
+        }
         return issues
+    }
+
+    /// A summary naming a topic that is not loaded is not an issue: the topic
+    /// may still be syncing, and repair deletes the group once it is too old.
+    static func invalidSummaries(in state: GraphState) -> [GroupID] {
+        var claimed: Set<NodeID> = []
+        var invalid: [GroupID] = []
+        let summaries = state.groups.values
+            .filter { $0.kind == .summary }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+        for group in summaries {
+            guard let topicID = group.summaryNodeID else {
+                invalid.append(group.id)
+                continue
+            }
+            guard let topic = state.nodes[topicID] else { continue }
+            let isEnd = topicID == group.firstNodeID || topicID == group.lastNodeID
+            if topic.parentID != group.parentNodeID || isEnd || !claimed.insert(topicID).inserted {
+                invalid.append(group.id)
+            }
+        }
+        return invalid
+    }
+
+    /// Every image on a topic but the newest (by `createdAt`, then ID).
+    static func duplicateImages(in state: GraphState) -> [ImageID] {
+        let byNode = Dictionary(grouping: state.images.values.filter { state.nodes[$0.nodeID] != nil }, by: \.nodeID)
+        return byNode.values.flatMap { images in
+            images.sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }.dropLast().map(\.id)
+        }.sorted()
     }
 
     struct TagLinkKey: Hashable {
@@ -99,10 +152,12 @@ public enum GraphValidator {
         (lhs.createdAt, lhs.id) < (rhs.createdAt, rhs.id)
     }
 
+    /// From the root and from every floating topic.
     private static func reachableNodes(in state: GraphState) -> Set<NodeID> {
         guard let rootID = state.root?.id else { return [] }
-        var reachable: Set<NodeID> = [rootID]
-        var queue = [rootID]
+        let starts = [rootID] + state.floatingTopicIDs
+        var reachable = Set(starts)
+        var queue = starts
         while let id = queue.popLast() {
             for child in state.childIDs(of: id) where reachable.insert(child).inserted {
                 queue.append(child)

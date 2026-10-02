@@ -9,6 +9,10 @@ public struct GraphEngine: Sendable {
     // Internal setters for `apply(_: LibraryTagChange)`, in its own file.
     public internal(set) var state: GraphState
     var history: CommandHistory
+    /// Image bytes the editor has loaded (the graph holds none). A command that
+    /// removes one of these images records its bytes, so undo brings it back;
+    /// the editor fills this before a step that can remove an image.
+    public var imageData: [ImageID: Data] = [:]
     private let clock: @Sendable () -> Date
 
     /// Fails if the graph is invalid; run `GraphRepair` on loaded data first.
@@ -38,7 +42,7 @@ public struct GraphEngine: Sendable {
     @discardableResult
     public mutating func execute(_ command: any GraphCommand, named name: String? = nil) throws -> GraphChangeSet {
         let now = clock()
-        var transaction = GraphTransaction(state: state, now: now)
+        var transaction = GraphTransaction(state: state, now: now, imageData: imageData)
         try command.execute(in: &transaction)
 
         let changes = transaction.changes

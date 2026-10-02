@@ -5,13 +5,13 @@
 | Type | Fields | Notes |
 | --- | --- | --- |
 | `MindMap` | id, title, rootNodeID, createdAt, updatedAt, isFavorite, theme, layoutConfiguration, deletedAt | `updatedAt` moves on every edit, undo included. `isFavorite` and `deletedAt` are library data, never set by a command. |
-| `MindNode` | id, mapID, parentID, title, note, sortOrder, isCollapsed, nodeType, metadata, createdAt, updatedAt, color, symbol, taskState, priority, startDate, dueDate; planned (MM-59): link, position, callout | No canvas position, except a floating topic's (ADR 0010): layout is derived. |
+| `MindNode` | id, mapID, parentID, title, note, sortOrder, isCollapsed, nodeType, metadata, createdAt, updatedAt, color, symbol, taskState, priority, startDate, dueDate, link, position, callout | No canvas position, except a floating topic's (ADR 0010): layout is derived. |
 | `MindEdge` | id, mapID, sourceNodeID, targetNodeID, edgeType, label, createdAt, updatedAt, lineStyle, arrowHeads, color | Cross-links only. |
 | `NodeMetadata` | origin (`user`, `ai`, `imported`) | Kept after an AI suggestion is accepted. |
 | `MindTag` | id, mapID (nil: shared), name, color, symbol, sortOrder, createdAt, updatedAt | `key` is the tag identity (NFC, case folded, marks kept). |
 | `MindNodeTag` | id, mapID, nodeID, tagID, origin, createdAt, updatedAt | One per topic and tag. |
-| `MindGroup` | id, mapID, kind, parentNodeID, firstNodeID, lastNodeID, title, color, origin, createdAt, updatedAt; planned (MM-59): summaryNodeID | A boundary, or a summary (MM-65), over a run of siblings; members are positional. |
-| `MindImage` (planned, MM-59) | id, mapID, nodeID, uniformType, pixelWidth, pixelHeight, byteCount, displayWidth, altText, createdAt, updatedAt; bytes loaded on demand | One image on a topic, in its own record. |
+| `MindGroup` | id, mapID, kind, parentNodeID, firstNodeID, lastNodeID, title, color, origin, createdAt, updatedAt, summaryNodeID | A boundary, or a summary (MM-65), over a run of siblings; members are positional. |
+| `MindImage` | id, mapID, nodeID, data, uniformType, pixelWidth, pixelHeight, byteCount, displayWidth, altText, createdAt, updatedAt; `data` nil unless loaded | One image on a topic, in its own record. |
 
 IDs are typed UUIDs (`MapID`, `NodeID`, `EdgeID`, `TagID`, `NodeTagID`, `GroupID`), so a node ID cannot be passed where an edge ID is expected. They encode as bare UUIDs.
 
@@ -119,7 +119,7 @@ New typed IDs: `TagID`, `NodeTagID`, `GroupID`. Dates default to `Date.distantPa
 
 ### What keeps them valid
 
-`GraphValidator` reports four new issues, and `GraphRepair` fixes them after the tree: `danglingTagLink` (topic gone: deleted), `duplicateTagLink` (same topic and tag: the oldest kept), `duplicateTag` (map tags with one key: merged into the oldest, by `createdAt` then ID, links moved), `invalidGroup` (ends not a run under the parent: shrunk to the end still there, swapped if out of order, deleted with no member left). A link whose tag is missing is not an issue; repair deletes it once it is older than `GraphRepair.orphanedTagLinkLifetime` (30 days [Đề xuất]). A group kind this build does not know is never reported or changed. Crossing boundaries are not repaired.
+`GraphValidator` reports four new issues, and `GraphRepair` fixes them after the tree: `danglingTagLink` (topic gone: deleted), `duplicateTagLink` (same topic and tag: the oldest kept), `duplicateTag` (map tags with one key: merged into the oldest, by `createdAt` then ID, links moved), `invalidGroup` (ends not a run under the parent: shrunk to the end still there, swapped if out of order, deleted with no member left). A link whose tag is missing is not an issue; repair deletes it once it is older than `GraphRepair.orphanLifetime` (30 days [Đề xuất]; named `orphanedTagLinkLifetime` until MM-59). A group kind this build does not know is never reported or changed. Crossing boundaries are not repaired.
 
 Commands keep the same rules inside `GraphTransaction`, so the engine's validation after each command covers them too: `removeNode` deletes the topic's tag links and the boundaries under it and moves the ends of boundaries it ends inward; `updateNode` does the same when a topic changes parent, and when an endpoint is reordered among its siblings the boundary keeps its members if the topic stays inside the run, otherwise the run becomes the siblings between the two ends. `removeTag` deletes every link to the tag.
 
@@ -140,9 +140,9 @@ Kept out on purpose. A property shipped to CloudKit production can never be remo
 | File attachments, several images per topic | An `AttachmentRecord` with external storage, or a `sortOrder` on `ImageRecord` |
 | Custom properties | Property definition and value records |
 
-## Node types (MM-59, planned)
+## Node types (MM-59)
 
-Designed in MM-58 ([[node-organization]], *Node types*); built by MM-59 with no commands or UI. Additive like V2: new optional properties and one new record type.
+Designed in MM-58 ([[node-organization]], *Node types*); built by MM-59 in `SchemaV2` (in place, see below), the domain and `MindMapGraph`, with no commands or UI (MM-60 to MM-66). *As built* at the end of this section lists where the code differs from or adds to the design. Additive like V2: new optional properties and one new record type.
 
 ### V2 or V3
 
@@ -201,9 +201,19 @@ New `GraphIssue`s, fixed by `GraphRepair` after the tree and before organization
 | `duplicateImage(ImageID)` | A second image on one node | Newest by `createdAt`, then ID, kept; others deleted [Đề xuất] |
 | `invalidGroup` (extended to summaries) | A summary run that is not a run under its parent | Shrunk or deleted as for boundaries; the summary topic stays as an ordinary child |
 | `invalidSummary(GroupID)` | `summaryNodeID` names a node under another parent, or a member of the run, or a topic another summary already names (the oldest group keeps it) | Group deleted, topic kept |
-| (none) | `summaryNodeID` names a node that is not there | Drawn as a bracket only; deleted once older than `GraphRepair.orphanLifetime` (today's `orphanedTagLinkLifetime`, renamed, 30 days [Đề xuất]) |
+| (none) | `summaryNodeID` names a node that is not there | Drawn as a bracket only; deleted once older than `GraphRepair.orphanLifetime` (30 days [Đề xuất]) |
 
 Links and callouts need no repair: they are fields of the node. Inside commands, `GraphTransaction.removeNode` also removes the node's image and any summary group naming it, `updateNode` clears the position when a parent is set, and the summary-topic exclusions of [[node-organization]] apply to the sibling-run rules of boundaries and summaries.
+
+### As built (MM-59)
+
+- **V2, in place.** Checked on 2026-10-02 against *Uploads* in [[release]]: all four uploads are V1, so the fields went into `SchemaV2` with no new stage or fixture. `SchemaV2.ImageRecord` is the seventh model.
+- **Domain.** `TopicLink` (`string`; `url` nil when it cannot be opened; `normalized(_:)` trims, adds `https://` to a bare host, lowercases scheme and host, refuses other schemes, spaces and more than 2,048 characters), `TopicPosition` (clamps, non-finite reads as 0), `MindNode.normalizedCallout(_:)` (trim, 280), `MindNode.isFloating(rootID:)`, `MindImage` with `ImageID`, `normalizedAltText(_:)` (trim, 250), `defaultDisplayWidth` 160, `GroupKind.summary` and `isRun`. `NodeType` is a `RawRepresentable` struct: an unknown `nodeTypeRaw` is kept and written back as it was.
+- **Image bytes.** `GraphState.images` never holds `data` (stripped on the way in). Change sets do: `insertImage` records the bytes it was given, an `updateImage` in the same transaction keeps them, a later `updateImage` records none (the repository then leaves the stored file alone: `ImageRecord.update(from:)` writes `data` only when the value has it). A removal records bytes only when they are in `GraphEngine.imageData`, a cache the editor fills from `MapRepository.imageData(for:)`; so MM-64 must load the bytes of an image before any step that can remove it (Remove Image, Delete Topic, Merge, Remove Summary), or undo brings the record back without its file. `create(_:)` stores images without bytes, since the graph has none; a whole-graph copy with images (template, duplicate map) must save them through a change set.
+- **`GraphTransaction`.** `insertImage` refuses a second image on a topic (`GraphError.nodeHasImage`), an unknown topic and another map; `updateImage`, `removeImage`. `removeNode` also removes the topic's images and every summary naming it; `updateNode` clears `position` whenever the node has a parent, and a summary topic given another parent loses its summary group. `GraphState.runSiblingIDs(of:)` (children minus summary topics) is the sibling list for `members(of:)`, boundary upkeep and repair; `summaryTopicIDs(under:)`, `summaries(naming:)`, `image(of:)`, `floatingTopicIDs` read the new records. `GraphRecordKey.image` joins the undo pruning of a change from outside; a group's `summaryNodeID` and an image's `nodeID` count as references.
+- **Validator and repair**, in this order after the root: stray positions cleared (sorted by ID), detached branches re-attached (their position cleared by `updateNode`), tag rules, expired summaries deleted, `invalidSummary` deleted (topic kept), runs shrunk, then dangling and duplicate images deleted. `invalidSummary` also covers a summary with no `summaryNodeID` at all, which no command writes. A summary topic named by a later summary is a duplicate even if that summary's run is elsewhere under the same parent.
+- **Existing commands touched.** `DuplicateBranchCommand` copies `link` and `callout` and points a copied summary at the copied summary topic (images are MM-64's: not copied yet). `AddGroupCommand` measures runs on `runSiblingIDs`, so a boundary ending on a summary topic is refused (`notSiblings`).
+- **Not done here:** the summary topic's place when its group goes ("becomes the last child") is left to `sortOrder`, so MM-65 gives a new summary topic a `sortOrder` after the parent's last child; layout, outline, export, search and AI context still treat a floating topic as unknown (MM-61, MM-62). The map archive (MM-54) carries link, position, callout and `summaryNodeID`, but not images ([[interchange]], *Map archive*).
 
 ### Migration test
 

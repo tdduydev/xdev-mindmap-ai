@@ -15,6 +15,9 @@ public struct GraphState: Sendable {
     public private(set) var tags: [TagID: MindTag]
     public private(set) var nodeTags: [NodeTagID: MindNodeTag]
     public private(set) var groups: [GroupID: MindGroup]
+    /// Without bytes (`MindImage.data` is always nil here); the repository's
+    /// `imageData(for:)` reads them when they are drawn.
+    public private(set) var images: [ImageID: MindImage]
 
     /// Children of each parent in display order. Derived from `nodes` and kept
     /// in step by the mutation primitives, so reading children never sorts.
@@ -35,7 +38,8 @@ public struct GraphState: Sendable {
         edges: some Sequence<MindEdge>,
         tags: [MindTag] = [],
         nodeTags: [MindNodeTag] = [],
-        groups: [MindGroup] = []
+        groups: [MindGroup] = [],
+        images: [MindImage] = []
     ) {
         self.map = map
         var nodeTable: [NodeID: MindNode] = [:]
@@ -54,6 +58,7 @@ public struct GraphState: Sendable {
         self.tags = Self.newestByID(tags.filter { $0.mapID == nil || $0.mapID == map.id })
         self.nodeTags = Self.newestByID(nodeTags.filter { $0.mapID == map.id })
         self.groups = Self.newestByID(groups.filter { $0.mapID == map.id })
+        self.images = Self.newestByID(images.filter { $0.mapID == map.id }.map(\.withoutData))
         self.childIndex = Self.makeChildIndex(for: nodeTable)
     }
 
@@ -130,19 +135,64 @@ public struct GraphState: Sendable {
     }
 
     /// The siblings a group covers, in display order. Nil when the group is not
-    /// a boundary this build knows or its endpoints are not a run of siblings.
+    /// a boundary or summary or its endpoints are not a run of siblings.
     public func members(of group: MindGroup) -> [NodeID]? {
-        guard group.kind == .boundary,
+        guard group.kind.isRun,
               let parentID = group.parentNodeID, nodes[parentID] != nil,
               let firstID = group.firstNodeID, let lastID = group.lastNodeID
         else { return nil }
-        let siblings = childIDs(of: parentID)
+        let siblings = runSiblingIDs(of: parentID)
         guard let first = siblings.firstIndex(of: firstID), let last = siblings.firstIndex(of: lastID), first <= last
         else { return nil }
         return Array(siblings[first...last])
     }
 
-    /// Boundaries over children of `parentID`.
+    /// Children of `parentID` that a boundary or summary may span, in display
+    /// order: every child except the summary topics under it.
+    public func runSiblingIDs(of parentID: NodeID) -> [NodeID] {
+        let children = childIDs(of: parentID)
+        let excluded = summaryTopicIDs(under: parentID)
+        return excluded.isEmpty ? children : children.filter { !excluded.contains($0) }
+    }
+
+    /// Children of `parentID` that a summary group under it names. Being named
+    /// is what makes a topic a summary topic; nothing on the node says so.
+    public func summaryTopicIDs(under parentID: NodeID) -> Set<NodeID> {
+        var ids: Set<NodeID> = []
+        for group in groups.values where group.kind == .summary && group.parentNodeID == parentID {
+            if let id = group.summaryNodeID, nodes[id]?.parentID == parentID { ids.insert(id) }
+        }
+        return ids
+    }
+
+    /// The summary groups naming a topic, oldest first.
+    public func summaries(naming nodeID: NodeID) -> [MindGroup] {
+        groups.values
+            .filter { $0.kind == .summary && $0.summaryNodeID == nodeID }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+    }
+
+    /// The topic's image, the newest if sync left two.
+    public func image(of nodeID: NodeID) -> MindImage? {
+        images(of: nodeID).last
+    }
+
+    /// Oldest first.
+    func images(of nodeID: NodeID) -> [MindImage] {
+        images.values
+            .filter { $0.nodeID == nodeID }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+    }
+
+    /// Topics with no parent that are not the central topic and have a position.
+    public var floatingTopicIDs: [NodeID] {
+        nodes.values
+            .filter { $0.isFloating(rootID: map.rootNodeID) }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+            .map(\.id)
+    }
+
+    /// Boundaries and summaries over children of `parentID`.
     public func groups(under parentID: NodeID) -> [MindGroup] {
         groups.values
             .filter { $0.parentNodeID == parentID }
@@ -221,6 +271,15 @@ public struct GraphState: Sendable {
         groups.removeValue(forKey: id)
     }
 
+    mutating func upsertImage(_ image: MindImage) {
+        images[image.id] = image.withoutData
+    }
+
+    @discardableResult
+    mutating func removeImage(_ id: ImageID) -> MindImage? {
+        images.removeValue(forKey: id)
+    }
+
     mutating func setMap(_ newMap: MindMap) {
         precondition(newMap.id == map.id, "A graph cannot switch to another map")
         map = newMap
@@ -250,6 +309,7 @@ public struct GraphState: Sendable {
         apply(changes.tags, upsert: { $0.upsertTag($1) }, remove: { $0.removeTag($1) })
         apply(changes.nodeTags, upsert: { $0.upsertNodeTag($1) }, remove: { $0.removeNodeTag($1) })
         apply(changes.groups, upsert: { $0.upsertGroup($1) }, remove: { $0.removeGroup($1) })
+        apply(changes.images, upsert: { $0.upsertImage($1) }, remove: { $0.removeImage($1) })
         if let map = changes.map?.after {
             setMap(map)
         }
@@ -317,6 +377,7 @@ extension GraphState: Equatable {
     public static func == (lhs: GraphState, rhs: GraphState) -> Bool {
         lhs.map == rhs.map && lhs.nodes == rhs.nodes && lhs.edges == rhs.edges
             && lhs.tags == rhs.tags && lhs.nodeTags == rhs.nodeTags && lhs.groups == rhs.groups
+            && lhs.images == rhs.images
     }
 }
 
@@ -340,6 +401,7 @@ protocol StoredValue {
 extension MindTag: StoredValue {}
 extension MindNodeTag: StoredValue {}
 extension MindGroup: StoredValue {}
+extension MindImage: StoredValue {}
 
 extension MindNode {
     var siblingOrderKey: SiblingOrderKey {

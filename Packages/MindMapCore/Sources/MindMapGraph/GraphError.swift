@@ -40,6 +40,10 @@ public enum GraphError: Error, Hashable, Sendable {
     case groupAlreadyCoversRun(GroupID)
     /// The run would overlap an existing boundary without one containing the other.
     case groupsWouldCross(GroupID)
+    case imageNotFound(ImageID)
+    case imageAlreadyExists(ImageID)
+    /// A topic has at most one image; this one is already on it.
+    case nodeHasImage(ImageID)
     /// The graph is structurally broken: given to the engine that way, or left
     /// that way by a command, whose result was then discarded.
     case invalidGraph(Set<GraphIssue>)

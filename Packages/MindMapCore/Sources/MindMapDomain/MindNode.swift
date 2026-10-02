@@ -1,7 +1,7 @@
 import Foundation
 
 /// A thought in a map. Hierarchy is `parentID` plus `sortOrder`; canvas position
-/// is never stored here, because layout is derived from the graph.
+/// is derived from the graph, except a floating topic's (ADR 0010).
 public struct MindNode: Identifiable, Hashable, Sendable, Codable {
     public let id: NodeID
     public let mapID: MapID
@@ -23,6 +23,13 @@ public struct MindNode: Identifiable, Hashable, Sendable, Codable {
     public var priority: TaskPriority?
     public var startDate: CalendarDay?
     public var dueDate: CalendarDay?
+    /// A web or mail link opened from the topic (FR-ORG-26).
+    public var link: TopicLink?
+    /// Only on a floating topic: `parentID` nil and not the central topic.
+    /// Anywhere else it is a stray that `GraphRepair` clears.
+    public var position: TopicPosition?
+    /// A short remark drawn beside the topic (`MindNode.normalizedCallout`).
+    public var callout: String?
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -43,7 +50,10 @@ public struct MindNode: Identifiable, Hashable, Sendable, Codable {
         taskState: TaskState? = nil,
         priority: TaskPriority? = nil,
         startDate: CalendarDay? = nil,
-        dueDate: CalendarDay? = nil
+        dueDate: CalendarDay? = nil,
+        link: TopicLink? = nil,
+        position: TopicPosition? = nil,
+        callout: String? = nil
     ) {
         self.id = id
         self.mapID = mapID
@@ -60,11 +70,39 @@ public struct MindNode: Identifiable, Hashable, Sendable, Codable {
         self.priority = priority
         self.startDate = startDate
         self.dueDate = dueDate
+        self.link = link
+        self.position = position
+        self.callout = callout
         self.createdAt = createdAt
         self.updatedAt = updatedAt ?? createdAt
     }
 }
 
-public enum NodeType: String, Hashable, Sendable, Codable, CaseIterable {
-    case topic
+/// Only `topic` exists: floating and summary topics are told apart by the
+/// graph, not by a type (docs/data-model.md, *Node types*). A struct, so a
+/// type written by a newer build is kept instead of rewritten as `topic`.
+public struct NodeType: RawRepresentable, Hashable, Sendable, Codable {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    public static let topic = NodeType(rawValue: "topic")
+}
+
+extension MindNode {
+    public static let maximumCalloutLength = 280
+
+    /// Trimmed and cut to `maximumCalloutLength` characters; nil for blank text.
+    public static func normalizedCallout(_ text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return String(trimmed.prefix(maximumCalloutLength))
+    }
+
+    /// Parentless and not the central topic, with a stored position.
+    public func isFloating(rootID: NodeID?) -> Bool {
+        parentID == nil && id != rootID && position != nil
+    }
 }
