@@ -444,9 +444,10 @@ struct MapChatTests {
     @Test func addToNoteAppendsToTheSelectedTopicAsOneUndoStep() async throws {
         let chat = try await open()
         let session = chat.session
-        let undoManager = undoManager(for: session)
         let planID = try node("Plan", in: chat)
         session.perform(UpdateNodeCommand(nodeID: planID, .note("Earlier note\n")), named: "Edit Note")
+        // After the setup step: with no group open the undo manager would throw.
+        let undoManager = undoManager(for: session)
         session.selection = planID
         chatProvider.enqueue(.text("Start with the beta [T2].", citations: [try citation("T2", "Beta", in: chat)]))
         await ask("What first?", in: chat)
