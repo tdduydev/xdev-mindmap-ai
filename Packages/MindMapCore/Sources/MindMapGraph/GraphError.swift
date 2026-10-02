@@ -14,6 +14,13 @@ public enum GraphError: Error, Hashable, Sendable {
     case wouldCreateCycle(node: NodeID, newParent: NodeID)
     /// A `before`/`after` anchor that is not a child of the target parent.
     case invalidPlacementAnchor(NodeID)
+    /// Promoting a child of the root would make it the root's sibling.
+    case alreadyTopLevel(NodeID)
+    /// Demoting needs a sibling right before the node to become its parent.
+    case noPreviousSibling(NodeID)
+    /// Merging only joins topics under the same parent.
+    case notSiblings(NodeID)
+    case cannotLinkToItself(NodeID)
     /// The graph is structurally broken: given to the engine that way, or left
     /// that way by a command, whose result was then discarded.
     case invalidGraph(Set<GraphIssue>)
