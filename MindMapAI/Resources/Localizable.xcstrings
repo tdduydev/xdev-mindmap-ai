@@ -235,6 +235,16 @@
         }
       }
     },
+    "A backup is a whole map. Choose File ▸ Import… to open it as a new map." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản sao lưu là cả một sơ đồ. Chọn Tệp ▸ Nhập… để mở nó thành sơ đồ mới."
+          }
+        }
+      }
+    },
     "A one-time purchase, not a subscription. Payment is charged to your Apple Account." : {
       "localizations" : {
         "vi" : {
@@ -2784,6 +2794,16 @@
     "MindMap AI" : {
       "shouldTranslate" : false
     },
+    "MindMap AI Backup" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản sao lưu MindMap AI"
+          }
+        }
+      }
+    },
     "MindMap AI Help" : {
       "localizations" : {
         "vi" : {
@@ -2870,12 +2890,12 @@
         }
       }
     },
-    "MindMap AI imports Markdown (.md) and plain text (.txt) files." : {
+    "MindMap AI imports Markdown (.md) and plain text (.txt) files, and its own backups (.json)." : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MindMap AI nhập được tệp Markdown (.md) và văn bản thuần (.txt)."
+            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt) và bản sao lưu của chính ứng dụng (.json)."
           }
         }
       }
@@ -4644,6 +4664,26 @@
         }
       }
     },
+    "The backup is damaged and can’t be read. Try another copy of it." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản sao lưu bị hỏng và không đọc được. Hãy thử một bản sao khác."
+          }
+        }
+      }
+    },
+    "The backup was made by a newer version of MindMap AI. Update the app, then try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản sao lưu được tạo bằng phiên bản MindMap AI mới hơn. Hãy cập nhật ứng dụng rồi thử lại."
+          }
+        }
+      }
+    },
     "The clipboard has no text to make a map from." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",
@@ -4682,6 +4722,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tệp không có chủ đề nào. MindMap AI đọc tiêu đề và mục danh sách trong Markdown, và mỗi dòng một chủ đề trong văn bản thuần."
+          }
+        }
+      }
+    },
+    "The file is JSON but not a MindMap AI backup. MindMap AI imports backups made with File ▸ Export… ▸ MindMap AI Backup." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp là JSON nhưng không phải bản sao lưu MindMap AI. MindMap AI nhập bản sao lưu tạo bằng Tệp ▸ Xuất… ▸ Bản sao lưu MindMap AI."
           }
         }
       }
@@ -4762,6 +4812,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chủ đề đã bị xoá nên các đề xuất của nó cũng được gỡ đi."
+          }
+        }
+      }
+    },
+    "The whole map with its theme, colors, symbols, tasks, tags, connections and boundaries. Import it again with File ▸ Import…." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cả sơ đồ cùng bộ màu, màu, biểu tượng, việc cần làm, thẻ, kết nối và khung. Nhập lại bằng Tệp ▸ Nhập…."
           }
         }
       }

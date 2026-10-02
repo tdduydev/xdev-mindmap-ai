@@ -15,6 +15,10 @@ enum MapExporter {
         if let format = options.format.interchange {
             return try await format.exportData(graph, branch: options.branch, includeNotes: options.includeNotes)
         }
+        // The whole map whatever the sheet's branch says: a backup is the map.
+        if options.format == .backup {
+            return try await MapArchive.exportData(graph)
+        }
         let picture = await MapPicture.make(graph)
         switch options.format {
         case .png:
@@ -38,8 +42,8 @@ enum MapExporter {
                 colorScheme: colorScheme,
                 title: graph.map.title
             )
-        case .markdown, .plainText:
-            preconditionFailure("Text formats return above")
+        case .markdown, .plainText, .backup:
+            preconditionFailure("Text formats and backups return above")
         }
     }
 

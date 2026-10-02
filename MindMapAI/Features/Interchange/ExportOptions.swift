@@ -10,6 +10,8 @@ enum ExportFormat: String, CaseIterable, Identifiable {
     case plainText
     case png
     case pdf
+    /// Everything in the map, to import again without loss (`MapArchive`).
+    case backup
 
     var id: Self { self }
 
@@ -19,6 +21,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         case .plainText: "Plain Text"
         case .png: "PNG Image"
         case .pdf: "PDF"
+        case .backup: "MindMap AI Backup"
         }
     }
 
@@ -27,7 +30,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         switch self {
         case .markdown: .markdown
         case .plainText: .plainText
-        case .png, .pdf: nil
+        case .png, .pdf, .backup: nil
         }
     }
 
@@ -37,6 +40,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         case .plainText: .plainText
         case .png: .png
         case .pdf: .pdf
+        case .backup: .json
         }
     }
 
@@ -46,6 +50,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         case .plainText: "txt"
         case .png: "png"
         case .pdf: "pdf"
+        case .backup: MapArchive.fileExtension
         }
     }
 }
@@ -160,7 +165,7 @@ struct ExportOptions: Equatable {
     /// The Pro feature the chosen options need, if any.
     var requiredFeature: ProFeature? {
         switch format {
-        case .markdown, .plainText: nil
+        case .markdown, .plainText, .backup: nil
         case .png: imageScale.requiredFeature
         case .pdf: pageMode.requiredFeature
         }
