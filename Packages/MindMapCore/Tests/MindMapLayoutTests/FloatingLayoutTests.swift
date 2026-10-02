@@ -200,3 +200,32 @@ struct FloatingLayoutTests {
         #expect(!graph.state.floatingTopicIDs.isEmpty)
     }
 }
+
+@Suite("Images in the layout")
+struct ImageLayoutTests {
+    /// Adding, resizing or removing a picture changes the topic's measured size.
+    @Test func imageChangesInvalidateTheirTopic() throws {
+        var engine = try GraphEngine(state: GraphState.newMap(title: "Plan"))
+        let rootID = try #require(engine.state.map.rootNodeID)
+        let image = MindImage(mapID: engine.state.map.id, nodeID: rootID, data: Data([1]))
+
+        let added = try engine.execute(SetNodeImageCommand(nodeID: rootID, image: image))
+        let resized = try engine.execute(UpdateImageCommand(imageID: image.id, displayWidth: .set(96)))
+        let removed = try engine.execute(SetNodeImageCommand(nodeID: rootID, image: nil))
+
+        #expect(added.layoutInvalidation == [rootID])
+        #expect(resized.layoutInvalidation == [rootID])
+        #expect(removed.layoutInvalidation == [rootID])
+    }
+
+    @Test func displaySizeKeepsTheAspectUpToTheMaximum() {
+        var image = MindImage(mapID: MapID(), nodeID: NodeID(), pixelWidth: 2_048, pixelHeight: 1_536)
+        #expect(image.displaySize(maximumWidth: 500, maximumAspect: 1.5) == (160, 120))
+        image.displayWidth = 240
+        #expect(image.displaySize(maximumWidth: 200, maximumAspect: 1.5) == (200, 150))
+        image.pixelHeight = 10_000
+        #expect(image.displaySize(maximumWidth: 200, maximumAspect: 1.5) == (200, 300))
+        image.pixelWidth = 0
+        #expect(image.displaySize(maximumWidth: 200, maximumAspect: 1.5) == (200, 200))
+    }
+}

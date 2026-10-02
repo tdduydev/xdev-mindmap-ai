@@ -1,6 +1,7 @@
 import CoreGraphics
 import CoreText
 import Foundation
+import MindMapDomain
 
 /// How a topic at one level sets its title: a plain copy of the design-system
 /// values with Dynamic Type already applied, so measuring can run off the main
@@ -36,12 +37,21 @@ nonisolated struct TopicChipSpec: Hashable, Sendable {
     let symbolWidth: CGFloat
 }
 
+/// How a picture above the title is sized (MM-63).
+nonisolated struct TopicImageSpec: Hashable, Sendable {
+    /// Height ÷ width at most.
+    let maximumAspect: Double
+    /// Between the picture and the title.
+    let gap: CGFloat
+}
+
 /// The text settings for every level, plus the placeholder an untitled topic shows.
 nonisolated struct TopicTextSpecs: Hashable, Sendable {
     /// Central, main, sub, deep: indexed by level, the last one repeating.
     let levels: [TopicTextSpec]
     let placeholder: String
     let chip: TopicChipSpec
+    let image: TopicImageSpec
 
     func spec(level: Int) -> TopicTextSpec {
         levels[min(max(level, 0), levels.count - 1)]
@@ -75,7 +85,7 @@ nonisolated final class TopicMeasurer {
     /// which the view draws it at, so chips wrap into the same rows here and
     /// on screen: rows that fit the widest wrap also fit any narrower box
     /// that is at least as wide as the widest row.
-    func size(of title: String, level: Int, chips: inout [TopicChip]) -> CGSize {
+    func size(of title: String, level: Int, chips: inout [TopicChip], image: CGSize? = nil) -> CGSize {
         let spec = specs.spec(level: level)
         let text = title.isEmpty ? specs.placeholder : title
         let measured = Self.measure(text, font: font(postScriptName: spec.postScriptName, size: spec.pointSize), lineSpacing: spec.lineSpacing, wrapWidth: spec.wrapWidth)
@@ -86,12 +96,27 @@ nonisolated final class TopicMeasurer {
             contentWidth = max(contentWidth, rows.width)
             contentHeight += specs.chip.topGap + rows.height
         }
+        if let image {
+            contentWidth = max(contentWidth, image.width)
+            contentHeight += image.height + specs.image.gap
+        }
         let width = (contentWidth + 2 * spec.horizontalPadding).rounded(.up)
         let height = (contentHeight + 2 * spec.verticalPadding).rounded(.up)
         return CGSize(
             width: min(spec.maximumWidth, max(spec.minimumWidth, width)),
             height: max(spec.minimumHeight, height)
         )
+    }
+
+    /// The frame of a topic's picture at this level: never wider than the
+    /// box's content, so a Large picture on a sub-topic shrinks to fit.
+    func imageSize(of image: MindImage, level: Int) -> CGSize {
+        let spec = specs.spec(level: level)
+        let size = image.displaySize(
+            maximumWidth: Double(spec.maximumWidth - 2 * spec.horizontalPadding),
+            maximumAspect: specs.image.maximumAspect
+        )
+        return CGSize(width: size.width, height: size.height)
     }
 
     /// Greedy rows, as `ChipFlowLayout` places them.

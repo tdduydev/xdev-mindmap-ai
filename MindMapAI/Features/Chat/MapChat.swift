@@ -2,6 +2,7 @@ import Foundation
 import MindMapAICore
 import MindMapDomain
 import MindMapGraph
+import MindMapPersistence
 import Observation
 import OSLog
 import SwiftUI
@@ -11,8 +12,9 @@ import SwiftUI
 /// It sends questions to the chat provider, which reads the map through
 /// tools, and shows the answers with their citations. It never edits the map:
 /// opening a citation selects the topic, and only revealing a collapsed one is
-/// an undo step, as in Find. The conversation is kept in memory while the map
-/// is open; `turns` is what MM-55 will save with the map.
+/// an undo step, as in Find. Each finished turn is saved with the map (MM-55),
+/// so opening the map again shows the conversation and the model sees as much
+/// of it as fits. The chat is map content: it is never logged.
 @Observable
 final class MapChat {
     /// One question and its answer, as the panel shows them.
@@ -52,16 +54,24 @@ final class MapChat {
     var focusRequest = false
     /// "Earlier messages were left out", said once per conversation.
     private(set) var showsLeftOutNotice = false
+    /// Clear Chat asks first: the saved conversation cannot be undone.
+    var isConfirmingClear = false
 
     @ObservationIgnored private var conversation: (any ChatConversation)?
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var hasNoticedLeftOut = false
     @ObservationIgnored private let locale: Locale
+    /// Saves and clears in order, so a clear cannot overtake the save before it.
+    @ObservationIgnored private var lastWrite: Task<Void, Never>?
 
-    init(session: EditorSession, assistant: AIAssistant, locale: Locale = .current) {
+    /// `history` is the map's saved chat, oldest first.
+    init(session: EditorSession, assistant: AIAssistant, history: [ChatTurn] = [], locale: Locale = .current) {
         self.session = session
         self.assistant = assistant
         self.locale = locale
+        entries = history.map { turn in
+            Entry(id: turn.id, question: turn.question, answer: turn.answer, citations: turn.citations, state: .complete)
+        }
     }
 
     var service: AIService { assistant.service }
@@ -129,13 +139,22 @@ final class MapChat {
         }
     }
 
-    /// AI ▸ Clear Chat: empties the panel and starts a new conversation.
+    /// AI ▸ Clear Chat: shows the panel and asks before clearing.
+    func requestClear() {
+        guard canClear else { return }
+        isPresented = true
+        isConfirmingClear = true
+    }
+
+    /// Empties the panel, deletes the saved chat and starts a new conversation.
     func clear() {
         stop()
         entries = []
         conversation = nil
         showsLeftOutNotice = false
         hasNoticedLeftOut = false
+        let mapID = session.map.id
+        write { repository in try await repository.clearChat(for: mapID) }
     }
 
     /// Opens a cited topic: selects it, reveals it if collapsed, and scrolls
@@ -146,9 +165,10 @@ final class MapChat {
         return session.showTopic(citation.nodeID)
     }
 
-    /// Waits for the answer in flight, for tests.
+    /// Waits for the answer in flight and the writes it queued, for tests.
     func answerSettled() async {
         await task?.value
+        await lastWrite?.value
     }
 
     // MARK: Sending
@@ -196,8 +216,27 @@ final class MapChat {
         task = nil
         guard let index = entries.firstIndex(where: { $0.id == id }) else { return }
         if entries[index].isAnswering { entries[index].state = .complete }
+        let entry = entries[index]
+        let turn = ChatTurn(id: entry.id, question: entry.question, answer: entry.answer, citations: entry.citations)
+        let mapID = session.map.id
+        write { repository in try await repository.appendChatTurn(turn, to: mapID, at: .now) }
         // VoiceOver hears the whole answer once, not each streamed word.
         AccessibilityNotification.Announcement(entries[index].displayAnswer).post()
+    }
+
+    /// A failed write leaves the panel as it is; the turn is only missing
+    /// next time the map opens. The error, never the chat, is logged.
+    private func write(_ body: @escaping @Sendable (any MapRepository) async throws -> Void) {
+        let previous = lastWrite
+        let repository = session.repository
+        lastWrite = Task {
+            await previous?.value
+            do {
+                try await body(repository)
+            } catch {
+                Log.persistence.error("Saving the chat failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }
     }
 
     private func fail(_ id: UUID, _ error: any Error) {

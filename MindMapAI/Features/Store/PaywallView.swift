@@ -14,6 +14,7 @@ struct PaywallView: View {
     @Environment(AIService.self) private var ai: AIService?
     @Environment(\.purchase) private var purchase
     @Environment(\.dismiss) private var dismiss
+    @State private var isRedeeming = false
 
     var body: some View {
         NavigationStack {
@@ -51,6 +52,9 @@ struct PaywallView: View {
                         Task { await store.restorePurchases() }
                     }
                     .disabled(store.restoreState == .restoring)
+                    if !store.isUnlocked {
+                        Button("Redeem Code…") { isRedeeming = true }
+                    }
                 } footer: {
                     Text("A one-time purchase, not a subscription. Payment is charged to your Apple Account.")
                 }
@@ -67,6 +71,7 @@ struct PaywallView: View {
                 }
             }
             .restoreResultAlert(store)
+            .redeemCodeSheet(isPresented: $isRedeeming)
         }
         #if os(macOS)
         .frame(width: Metrics.paywallWidth)
@@ -129,10 +134,12 @@ struct PaywallView: View {
     }
 }
 
-/// Settings ▸ MindMap AI Pro: status, the paywall and Restore Purchases (App Review 3.1.1).
+/// Settings ▸ MindMap AI Pro: status, the paywall, Restore Purchases (App Review 3.1.1)
+/// and Redeem Code for a Pro gift code.
 struct ProSettingsSection: View {
     @Environment(ProEntitlement.self) private var store
     @State private var isShowingPaywall = false
+    @State private var isRedeeming = false
 
     var body: some View {
         Section {
@@ -145,11 +152,15 @@ struct ProSettingsSection: View {
                 Task { await store.restorePurchases() }
             }
             .disabled(store.restoreState == .restoring)
+            if !store.isUnlocked {
+                Button("Redeem Code…") { isRedeeming = true }
+            }
         } header: {
             Text("MindMap AI Pro")
         } footer: {
             Text("Bought Pro before, or on another device? Restore Purchases unlocks it here.")
         }
+        .redeemCodeSheet(isPresented: $isRedeeming)
         .sheet(isPresented: $isShowingPaywall) {
             PaywallView()
         }

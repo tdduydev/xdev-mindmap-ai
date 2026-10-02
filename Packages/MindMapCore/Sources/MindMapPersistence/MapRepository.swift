@@ -22,7 +22,7 @@ public enum MapRepositoryChange: Sendable, Equatable {
 
 /// Where maps live. Features talk to this protocol, never to SwiftData, so the
 /// store can change and tests can use an in-memory one.
-public protocol MapRepository: SharedTagActions {
+public protocol MapRepository: SharedTagActions, ChatHistoryStore {
     /// Every change committed after this call returns, in commit order, until
     /// the stream's task ends. Each window subscribes before its first fetch,
     /// so a write cannot fall between the fetch and the subscription.
@@ -45,8 +45,11 @@ public protocol MapRepository: SharedTagActions {
     /// not stored or its bytes have not synced yet.
     func imageData(for imageID: ImageID) async throws -> Data?
 
-    /// Stores a whole new graph: a new map, a template or an import.
-    func create(_ graph: GraphState) async throws
+    /// Stores a whole new graph: a new map, a template or an import. The
+    /// graph holds no image bytes, so they come beside it, by image ID (a
+    /// backup's images, a duplicated map's); an image without bytes here is
+    /// stored without a file.
+    func create(_ graph: GraphState, imageData: [ImageID: Data]) async throws
 
     /// Writes only the records in `changes`, plus the map's graph fields (title,
     /// root, edit time, theme, layout). Library flags such as favorite are left
@@ -63,7 +66,7 @@ public protocol MapRepository: SharedTagActions {
     /// Takes a map out of Recently Deleted.
     func restoreMap(_ mapID: MapID) async throws
 
-    /// Deletes a map and every record of it for good (DR-07).
+    /// Deletes a map and every record of it for good (DR-07), its chat included.
     func deleteMap(_ mapID: MapID) async throws
 
     /// Deletes for good every map that went to Recently Deleted before
@@ -130,4 +133,21 @@ public protocol SharedTagActions: Sendable {
     /// after a change from outside.
     @discardableResult
     func repairSharedTags() async throws -> LibraryTagChange
+}
+
+extension MapRepository {
+    /// A new graph without images, or whose images have no bytes yet.
+    public func create(_ graph: GraphState) async throws {
+        try await create(graph, imageData: [:])
+    }
+
+    /// The stored bytes of every image of `graph`, for a backup or a copy of
+    /// the map. Images whose bytes have not synced yet are left out.
+    public func imageData(of graph: GraphState) async throws -> [ImageID: Data] {
+        var result: [ImageID: Data] = [:]
+        for id in graph.images.keys {
+            if let data = try await imageData(for: id) { result[id] = data }
+        }
+        return result
+    }
 }

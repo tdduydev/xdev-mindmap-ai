@@ -234,6 +234,73 @@ struct MapChatTests {
         #expect(!chat.showsEntryPoints)
     }
 
+    // MARK: Saved with the map (MM-55)
+
+    /// The chat as the map's next opening builds it, from the store.
+    private func reopen(_ chat: MapChat) async throws -> MapChat {
+        let history = try await repository.chatTurns(for: chat.session.map.id)
+        return MapChat(session: chat.session, assistant: chat.assistant, history: history, locale: Locale(identifier: "en_US"))
+    }
+
+    @Test func aFinishedTurnIsSavedAndComesBackWhenTheMapOpensAgain() async throws {
+        let chat = try await open()
+        let beta = try citation("T2", "Beta", in: chat)
+        chatProvider.enqueue(.text("The beta comes first [T2].", citations: [beta]))
+        await ask("What comes first?", in: chat)
+
+        let reopened = try await reopen(chat)
+
+        #expect(reopened.entries.map(\.question) == ["What comes first?"])
+        #expect(reopened.entries.first?.citations == [beta])
+        #expect(reopened.entries.first?.state == .complete)
+        #expect(reopened.canClear)
+        #expect(!chat.session.canUndo, "saving the chat is not an edit")
+    }
+
+    /// The model sees the saved turns, so a follow-up question has its context.
+    @Test func theNextQuestionAfterReopeningCarriesTheSavedTurns() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("One.", citations: []))
+        await ask("First?", in: chat)
+        let reopened = try await reopen(chat)
+        chatProvider.enqueue(.text("Two.", citations: []))
+
+        await ask("Second?", in: reopened)
+
+        #expect(chatProvider.questions.last?.history.map(\.question) == ["First?"])
+        #expect(try await repository.chatTurns(for: chat.session.map.id).map(\.question) == ["First?", "Second?"])
+    }
+
+    @Test func clearChatAsksFirstThenDeletesTheSavedChat() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("One.", citations: []))
+        await ask("First?", in: chat)
+
+        chat.requestClear()
+        #expect(chat.isConfirmingClear)
+        #expect(chat.isPresented)
+        #expect(chat.entries.count == 1, "nothing goes before the person confirms")
+
+        chat.clear()
+        await chat.answerSettled()
+        #expect(chat.entries.isEmpty)
+        #expect(try await repository.chatTurns(for: chat.session.map.id).isEmpty)
+        #expect(try await reopen(chat).entries.isEmpty)
+    }
+
+    @Test func stoppedAndFailedAnswersAreNotSaved() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.failure(.guardrailViolation))
+        await ask("Something odd", in: chat)
+        chatProvider.enqueue(.hang)
+        chat.draft = "Long?"
+        chat.ask()
+        chat.stop()
+        await chat.answerSettled()
+
+        #expect(try await repository.chatTurns(for: chat.session.map.id).isEmpty)
+    }
+
     private struct OpenFailed: Error {}
 }
 

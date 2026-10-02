@@ -17,6 +17,8 @@ nonisolated enum AccessibilityID {
     enum Library {
         static let list = "library.list"
         static let map = "library.map"
+        /// The Mac toolbar's Settings button; the sidebar footer's is `Sidebar.settings`.
+        static let settings = "library.settings"
         static let newMap = "library.newMap"
         static let importMap = "library.importMap"
         /// The swipe action that moves a map to Recently Deleted.

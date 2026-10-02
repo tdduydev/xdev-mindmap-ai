@@ -25,7 +25,7 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 
 ## Rules for the code
 
-- Never log map titles, node text, notes, drawings, imported documents or AI prompts. Use `os.Logger` with private interpolation for anything that might hold user content.
+- Never log map titles, node text, notes, drawings, imported documents, AI prompts or chat questions and answers (saved with each map since MM-55, so they are map content). Use `os.Logger` with private interpolation for anything that might hold user content.
 - Never send content anywhere without an explicit user action that says where it goes.
 - No API secrets or private keys in the repository. V1 needs no credentials; if one is ever needed it goes in the Keychain.
 - Optional services (analytics, crash reports, remote config) sit behind protocols with a no-op default, and the app compiles and runs without them.

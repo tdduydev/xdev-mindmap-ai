@@ -27,14 +27,14 @@ struct RootView: View {
         _router = State(initialValue: router)
         _library = State(initialValue: library)
         _transfer = State(initialValue: FileTransfer(
-            createMap: { await library.createMap($0) },
+            createMap: { await library.createMap($0, imageData: $1) },
             openMap: { router.selectedMapID = $0 }
         ))
     }
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(selection: $router.section)
+            SidebarView(selection: $router.section, environment: environment)
         } content: {
             LibraryView(
                 model: library,
@@ -65,6 +65,9 @@ struct RootView: View {
         .onAppear(perform: restoreWindow)
         .onDisappear { environment.openMaps.unregister(window) }
         .onChange(of: router.section) { _, section in savedSection = section ?? .all }
+        .onReceive(NotificationCenter.default.publisher(for: .showRecentlyDeleted)) { _ in
+            router.section = .recentlyDeleted
+        }
         .onChange(of: router.selectedMapID) { _, id in savedMapID = id?.description }
         .task {
             await environment.prepare()
@@ -84,6 +87,7 @@ struct RootView: View {
         .focusedSceneValue(\.openInNewWindowAction, openSelectedMapInNewWindow)
         .focusedSceneValue(\.newMapWithAIAction, ai.showsControls ? NewMapAction(perform: createMapWithAI) : nil)
         .modifier(FileTransferPresenter(transfer: transfer, entitlements: ai.entitlements))
+        .redeemCodeCommandTarget()
     }
 
     /// A map an intent or Spotlight asked for (FR-SYS-03, FR-SYS-04). The

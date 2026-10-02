@@ -89,6 +89,11 @@ struct LibraryView: View {
                     .accessibilityIdentifier(AccessibilityID.Library.importMap)
                 }
             }
+            #if os(macOS)
+            ToolbarItem {
+                SettingsButton(accessibilityID: AccessibilityID.Library.settings)
+            }
+            #endif
         }
         .focusedSceneValue(\.newMapAction, NewMapAction(perform: create))
         #if os(macOS)

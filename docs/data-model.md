@@ -29,7 +29,7 @@ Ties (two devices giving siblings the same key) sort by `createdAt`, then ID, th
 
 ## Stored records (SwiftData)
 
-One record per map, node and edge: `MapRecord`, `NodeRecord`, `EdgeRecord`; since V2 also `TagRecord`, `NodeTagRecord` and `GroupRecord` (see *Schema V2*). A map is never one JSON blob, so sync, conflicts, search and history work per record.
+One record per map, node and edge: `MapRecord`, `NodeRecord`, `EdgeRecord`; since V2 also `TagRecord`, `NodeTagRecord` and `GroupRecord` (see *Schema V2*); since V3 `ChatTurnRecord` (see *Schema V3*). A map is never one JSON blob, so sync, conflicts, search and history work per record.
 
 Rules that keep the schema CloudKit-ready:
 
@@ -54,7 +54,7 @@ records ─▶ GraphState(map:nodes:edges:tags:nodeTags:groups:)
 
 ## Migrations
 
-`SchemaV1` and `SchemaV2` are `VersionedSchema`s; `MindMapMigrationPlan` (`MigrationPlan.swift`) lists every shipped schema, and `CurrentSchema` with the `…Record` typealiases there name the schema the app opens. A schema change adds `SchemaV2`, a migration stage and a test that opens a V1 store with the new plan. A shipped schema is never edited in place.
+`SchemaV1`, `SchemaV2` and `SchemaV3` are `VersionedSchema`s; `MindMapMigrationPlan` (`MigrationPlan.swift`) lists every schema, and `CurrentSchema` (V3) with the `…Record` typealiases there name the schema the app opens. A schema change adds a new `SchemaVn` (every model copied, since a versioned schema lists its own types), a migration stage and a test that opens the older fixtures with the new plan. A shipped schema is never edited in place: V1 shipped first, V2 from builds 202610030024 (macOS) and 202610030030 (iOS) ([[release]], *Uploads*).
 
 ### Migration harness
 
@@ -212,12 +212,45 @@ Links and callouts need no repair: they are fields of the node. Inside commands,
 - **Image bytes.** `GraphState.images` never holds `data` (stripped on the way in). Change sets do: `insertImage` records the bytes it was given, an `updateImage` in the same transaction keeps them, a later `updateImage` records none (the repository then leaves the stored file alone: `ImageRecord.update(from:)` writes `data` only when the value has it). A removal records bytes only when they are in `GraphEngine.imageData`, a cache the editor fills from `MapRepository.imageData(for:)`; so MM-64 must load the bytes of an image before any step that can remove it (Remove Image, Delete Topic, Merge, Remove Summary), or undo brings the record back without its file. `create(_:)` stores images without bytes, since the graph has none; a whole-graph copy with images (template, duplicate map) must save them through a change set.
 - **`GraphTransaction`.** `insertImage` refuses a second image on a topic (`GraphError.nodeHasImage`), an unknown topic and another map; `updateImage`, `removeImage`. `removeNode` also removes the topic's images and every summary naming it; `updateNode` clears `position` whenever the node has a parent, and a summary topic given another parent loses its summary group. `GraphState.runSiblingIDs(of:)` (children minus summary topics) is the sibling list for `members(of:)`, boundary upkeep and repair; `summaryTopicIDs(under:)`, `summaries(naming:)`, `image(of:)`, `floatingTopicIDs` read the new records. `GraphRecordKey.image` joins the undo pruning of a change from outside; a group's `summaryNodeID` and an image's `nodeID` count as references.
 - **Validator and repair**, in this order after the root: stray positions cleared (sorted by ID), detached branches re-attached (their position cleared by `updateNode`), tag rules, expired summaries deleted, `invalidSummary` deleted (topic kept), runs shrunk, then dangling and duplicate images deleted. `invalidSummary` also covers a summary with no `summaryNodeID` at all, which no command writes. A summary topic named by a later summary is a duplicate even if that summary's run is elsewhere under the same parent.
-- **Existing commands touched.** `DuplicateBranchCommand` copies `link` and `callout` and points a copied summary at the copied summary topic (images are MM-64's: not copied yet). `AddGroupCommand` measures runs on `runSiblingIDs`, so a boundary ending on a summary topic is refused (`notSiblings`).
-- **Not done here:** the summary topic's place when its group goes ("becomes the last child") is left to `sortOrder`, so MM-65 gives a new summary topic a `sortOrder` after the parent's last child; layout, outline, export, search and AI context still treat a floating topic as unknown (MM-61, MM-62). The map archive (MM-54) carries link, position, callout and `summaryNodeID`, but not images ([[interchange]], *Map archive*).
+- **Existing commands touched.** `DuplicateBranchCommand` copies `link` and `callout` and points a copied summary at the copied summary topic (images: MM-63, below). `AddGroupCommand` measures runs on `runSiblingIDs`, so a boundary ending on a summary topic is refused (`notSiblings`).
+- **Images, as built (MM-63).** `SetNodeImageCommand` and `UpdateImageCommand` (*Images* in [[node-organization]]); a new image without bytes is refused (`GraphError.imageHasNoData`). `GraphEngine` keeps in `imageData` the bytes every step carries, so removing an image added in the same session is undone without the store; for images loaded from the store the editor still fills `imageData` first, and `GraphState.images(inBranchesOf:)` lists what a Delete, Merge or Remove Summary of those topics would remove. `MapRepository.create(_:imageData:)` stores a whole graph with bytes (`create(_:)` passes none); `imageData(of:)` reads every image of a graph. Measured: bytes over SwiftData's inline limit land in a file beside the store (`ImagePersistenceTests`), and a size or description edit leaves that file untouched. `MergeNodesCommand` moves the first merged topic's image to a survivor without one; `DuplicateBranchCommand` copies images whose bytes are in `imageData` and leaves the others out (a record with no file would never fill). `layoutInvalidation` includes a topic whose image changed.
+- **Not done here:** the summary topic's place when its group goes ("becomes the last child") is left to `sortOrder`, so MM-65 gives a new summary topic a `sortOrder` after the parent's last child; layout, outline, export, search and AI context still treat a floating topic as unknown (MM-61, MM-62). The map archive (MM-54) carries link, position, callout and `summaryNodeID`; images with their bytes since MM-63 ([[interchange]], *Map archive*).
 
 ### Migration test
 
 V1 → (V2 with these fields, or V3): every V1 node has nil link, position and callout, every group nil `summaryNodeID`, no image records. A save-and-reopen test keeps a link, a floating topic, an image with its bytes, a summary and a callout. If V3 is made, the `V2.store` fixture gains no new fields (it is V2 as shipped) and the V3 test opens it.
+
+## Schema V3 (MM-55)
+
+V2 shipped to TestFlight before the chat was saved, so the chat is a new schema with one lightweight V2 → V3 stage, not a record added to V2 (`git merge-base --is-ancestor 9766bc0 a2b8ef3` is true: the uploads of 2026-10-03 contain `SchemaV2.swift`). V3 is V2 with one new record and nothing else changed.
+
+### New record: `ChatTurnRecord` (`ChatTurn`)
+
+| Property | Type | Meaning |
+| --- | --- | --- |
+| `turnID` | `UUID` | `ChatTurn.id` |
+| `mapID` | `UUID` | The map the chat belongs to, by UUID like every record |
+| `question` | `String` | As asked |
+| `answer` | `String` | As the model wrote it, handles in brackets (`[T3]`) included, so it goes back to the model unchanged |
+| `citationsData` | `Data?` | `[ChatCitation]` as JSON; nil when the answer cites nothing. Unreadable JSON loses the chips, not the turn |
+| `createdAt` | `Date` | When the answer finished; orders the conversation (then `turnID`) |
+
+- **One record per turn, not one per conversation:** two devices that ask at the same time each add a record, and no record grows with the conversation. *[Inference]* A conversation blob would be one CloudKit record rewritten on every answer, and the last writer would drop the other device's turns.
+- **Only finished turns** are saved; a stopped or failed answer stays in the panel until the map closes.
+- **Limit:** `ChatHistory.maximumTurns` = 100 turns (200 messages counting questions and answers) per map [Đề xuất]. `appendChatTurn` deletes the oldest beyond it in the same commit. What the model sees is smaller still: `AppleChatProvider` keeps only the latest turns that fit `ChatBudget` ([[chat]], *Budget*).
+- **Not an edit:** saving or clearing the chat does not move `updatedAt`, publish `.saved`, or add an undo step.
+- **Deleted with the map:** `deleteMap`, Delete Permanently and the 30-day purge delete the turns; Recently Deleted keeps them, so Restore brings the chat back.
+- **Sync:** the record follows the CloudKit rules above, so it mirrors with the map's records when iCloud is on. A duplicate from sync shows once (`chatTurns` folds by `turnID`).
+
+| `ChatHistoryStore` (refined by `MapRepository`) | Does |
+| --- | --- |
+| `chatTurns(for:)` | The map's turns, oldest first, at most the limit |
+| `appendChatTurn(_:to:at:)` | Inserts or updates by `turnID`, trims, commits |
+| `clearChat(for:)` | Clear Chat: deletes the map's turns |
+
+### Migration test
+
+`V2MigrationTests` opens `Fixtures/V2.store`, written by `V2Fixture.write` with `SchemaV2` types and raw values only (run `MINDMAP_WRITE_V2_FIXTURE=<path> swift test --filter writeV2Fixture` only if the fixture is lost). It holds a favorite map with the Graphite theme, a topic with every V2 node field (colour, symbol, task, priority, dates, link, callout), a floating topic, a styled relationship, a map tag and a shared tag with a link, a boundary and an image with its bytes. The test expects every value after the V2 → V3 stage, no chat turns, a graph `GraphRepair` leaves alone, and that the migrated store takes a chat turn and an edit and keeps both. `MigrationHarnessTests` still opens `V1.store`, now through both stages.
 
 ## Recently Deleted (MM-19)
 
@@ -228,7 +261,7 @@ Deleting a map sets `MapRecord.deletedAt` and keeps every record (FR-LIB-11, DR-
 | `fetchMaps()` | Live maps only (`deletedAt == nil`). Intents, the Share Extension (`QuickCapture`) and Spotlight read this, so they never offer a deleted map |
 | `fetchDeletedMaps()` | Maps in Recently Deleted, newest deletion first |
 | `moveToRecentlyDeleted(_:at:)`, `restoreMap(_:)` | Set or clear `deletedAt` on every record of the map (sync duplicates included); `updatedAt` does not move |
-| `deleteMap(_:)` | Deletes the map and all its nodes, edges, tags, tag links and groups, one record at a time |
+| `deleteMap(_:)` | Deletes the map and all its nodes, edges, tags, tag links, groups, images and chat turns, one record at a time |
 | `purgeDeletedMaps(deletedBefore:)` | `deleteMap` for every map deleted before the cutoff, in one commit; with nothing due it writes nothing |
 | `fetchTopicCounts()` | Topics per map from node records alone, no graph loaded, for `list_maps` (MM-47). Counts deleted maps too; `MapQueries` filters by `fetchMaps()` |
 | `loadGraph(for:)` | Still loads a deleted map; `EditorSession.open` returns `.recentlyDeleted` and `QuickCapture.add` throws `mapNotFound` for it |

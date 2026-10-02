@@ -131,7 +131,7 @@ public actor SwiftDataMapRepository: MapRepository {
         return records.lazy.compactMap(\.data).first
     }
 
-    public func create(_ graph: GraphState) async throws {
+    public func create(_ graph: GraphState, imageData: [ImageID: Data]) async throws {
         let mapRecord = MapRecord(mapID: graph.map.id.rawValue)
         mapRecord.update(from: graph.map)
         modelContext.insert(mapRecord)
@@ -141,8 +141,11 @@ public actor SwiftDataMapRepository: MapRepository {
         insert(graph.tags.values.filter { $0.mapID == graph.map.id }, as: TagRecord.self)
         insert(Array(graph.nodeTags.values), as: NodeTagRecord.self)
         insert(Array(graph.groups.values), as: GroupRecord.self)
-        // The graph holds no bytes, so a new graph's images are stored without them.
-        insert(Array(graph.images.values), as: ImageRecord.self)
+        insert(graph.images.values.map { image in
+            var image = image
+            image.data = imageData[image.id]
+            return image
+        }, as: ImageRecord.self)
         try commit()
         publish(.saved(mapRecord.domainValue))
     }
@@ -224,6 +227,7 @@ public actor SwiftDataMapRepository: MapRepository {
         try deleteAll(GroupRecord.inMap(id))
         // One by one also removes each image's external file.
         try deleteAll(ImageRecord.inMap(id))
+        try deleteAll(ChatTurnRecord.inMap(id))
     }
 
     public func fetchTopicTexts() async throws -> [MapID: [String]] {
