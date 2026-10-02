@@ -1,4 +1,5 @@
 import AppIntents
+import MindMapDomain
 import SwiftUI
 #if os(macOS)
 import AppKit
@@ -7,6 +8,8 @@ import AppKit
 @main
 struct MindMapAIApp: App {
     static let mainWindowID = "main"
+    /// Windows that show one map each, opened with the map's ID (FR-LIB-10).
+    static let mapWindowID = "map"
 
     @State private var launch: AppLaunch
     @State private var pro: ProEntitlement
@@ -68,6 +71,24 @@ struct MindMapAIApp: App {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await pro.refresh() } }
         }
+
+        // SwiftUI keeps the map ID of each of these windows and opens them
+        // again at relaunch; opening a map that has one brings it forward.
+        WindowGroup(id: Self.mapWindowID, for: MapID.self) { $mapID in
+            Group {
+                if case .ready(let environment) = launch, let mapID {
+                    MapWindowView(environment: environment, mapID: mapID)
+                } else if case .failed = launch {
+                    StartupFailureView()
+                }
+            }
+            .preferredColorScheme(appearance.colorScheme)
+            .environment(pro)
+            .environment(ai)
+        }
+        #if os(macOS)
+        .defaultSize(width: 980, height: 700)
+        #endif
 
         #if os(macOS)
         Settings {

@@ -1,3 +1,4 @@
+import MindMapDomain
 import SwiftUI
 
 /// Sidebar, library and editor. On a narrow iPhone the split view collapses
@@ -6,9 +7,18 @@ struct RootView: View {
     let environment: AppEnvironment
     @Environment(AIService.self) private var ai
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openWindow) private var openWindow
+    /// False on iPhone, which has one window.
+    @Environment(\.supportsMultipleWindows) private var supportsMultipleWindows
     @State private var router: AppRouter
     @State private var library: LibraryModel
     @State private var transfer: FileTransfer
+    @State private var window = WindowToken()
+    @State private var windowHandle = WindowHandle()
+    /// What the window showed, brought back at relaunch (FR-PER-09).
+    @SceneStorage("library.section") private var savedSection: LibrarySection = .all
+    @SceneStorage("editor.map") private var savedMapID: String?
+    @SceneStorage("editor.state") private var savedEditor: Data?
 
     init(environment: AppEnvironment) {
         self.environment = environment
@@ -26,13 +36,19 @@ struct RootView: View {
         NavigationSplitView {
             SidebarView(selection: $router.section)
         } content: {
-            LibraryView(model: library, section: router.section ?? .all, selection: $router.selectedMapID)
+            LibraryView(
+                model: library,
+                section: router.section ?? .all,
+                selection: mapSelection,
+                openInNewWindow: mapWindowOpener
+            )
         } detail: {
             if let mapID = router.selectedMapID {
                 EditorView(
                     mapID: mapID,
-                    repository: environment.repository,
-                    onMapChange: library.didChange,
+                    openMaps: environment.openMaps,
+                    window: window,
+                    restoration: editorRestoration,
                     generatesOnOpen: router.pendingMapGeneration == mapID,
                     onGenerationStarted: { router.pendingMapGeneration = nil }
                 )
@@ -45,6 +61,11 @@ struct RootView: View {
                 )
             }
         }
+        .windowHandle(windowHandle)
+        .onAppear(perform: restoreWindow)
+        .onDisappear { environment.openMaps.unregister(window) }
+        .onChange(of: router.section) { _, section in savedSection = section ?? .all }
+        .onChange(of: router.selectedMapID) { _, id in savedMapID = id?.description }
         .task { await library.observeChanges() }
         // FR-AI-01: Apple Intelligence can be turned on or off while the app is away.
         .task { await ai.refresh() }
@@ -57,6 +78,7 @@ struct RootView: View {
         .onChange(of: environment.openRequests.pending, initial: true) { _, _ in
             openRequestedMap()
         }
+        .focusedSceneValue(\.openInNewWindowAction, openSelectedMapInNewWindow)
         .focusedSceneValue(\.newMapWithAIAction, ai.showsEntryPoints ? NewMapAction(perform: createMapWithAI) : nil)
         .modifier(FileTransferPresenter(transfer: transfer, entitlements: ai.entitlements))
     }
@@ -67,8 +89,54 @@ struct RootView: View {
         guard let id = environment.openRequests.take() else { return }
         Task {
             await library.load()
-            router.selectedMapID = id
+            show(id)
         }
+    }
+
+    /// Joins the app's open maps and shows what the window showed before the
+    /// app quit. A map deleted since shows Map Not Found, which says why.
+    private func restoreWindow() {
+        let handle = windowHandle
+        environment.openMaps.register(window, activate: handle.activate, onMapChange: library.didChange)
+        router.section = savedSection
+        if router.selectedMapID == nil, let saved = savedMapID.flatMap(UUID.init(uuidString:)) {
+            show(MapID(saved))
+        }
+    }
+
+    /// The library's selection. Picking a map another window shows brings
+    /// that window forward and leaves this one as it was (FR-PER-08).
+    private var mapSelection: Binding<MapID?> {
+        Binding(get: { router.selectedMapID }, set: { show($0) })
+    }
+
+    private func show(_ id: MapID?) {
+        if let id, id != router.selectedMapID, environment.openMaps.activateWindow(showing: id, besides: window) {
+            return
+        }
+        router.selectedMapID = id
+    }
+
+    /// A map in a window of its own (FR-LIB-10). This window lets go of it
+    /// first, so the map is in one window.
+    private func openInNewWindow(_ id: MapID) {
+        if environment.openMaps.activateWindow(showing: id, besides: window) { return }
+        if router.selectedMapID == id { router.selectedMapID = nil }
+        openWindow(id: MindMapAIApp.mapWindowID, value: id)
+    }
+
+    private var mapWindowOpener: ((MapID) -> Void)? {
+        guard supportsMultipleWindows else { return nil }
+        return { openInNewWindow($0) }
+    }
+
+    private var openSelectedMapInNewWindow: OpenInNewWindowAction? {
+        guard supportsMultipleWindows, let id = router.selectedMapID else { return nil }
+        return OpenInNewWindowAction { openInNewWindow(id) }
+    }
+
+    private var editorRestoration: Binding<EditorRestoration?> {
+        Binding(get: { EditorRestoration(data: savedEditor) }, set: { savedEditor = $0?.data })
     }
 
     /// A new map that opens on Generate Map (FR-AI-03).
@@ -76,7 +144,7 @@ struct RootView: View {
         Task {
             guard let id = await library.createMap() else { return }
             router.pendingMapGeneration = id
-            router.selectedMapID = id
+            show(id)
         }
     }
 }

@@ -76,10 +76,20 @@ View action ─▶ EditorSession builds a GraphCommand
 | --- | --- | --- |
 | Domain content (maps, nodes, edges) | `GraphState` ▸ repository | Yes |
 | Undo history | `GraphEngine` | No |
-| Selection, focus, open sheets | `EditorSession`, views | No |
-| Navigation | `AppRouter` | No |
+| Selection, focus, open sheets | `EditorSession`, views | Selection and canvas or outline per window, as scene state (`EditorRestoration`) |
+| Navigation | `AppRouter` | Library section and open map per window, as scene state |
 | AI suggestions (Phase 8) | Separate suggestion state | Only once accepted, as commands |
 | Canvas camera, inline edit, canvas or outline | `CanvasModel`, `EditorSession.presentation` ([[canvas]]) | No; possibly per map later, as a preference |
+
+## Windows
+
+A map is open at most once in the app, whatever the number of windows (FR-PER-08). `OpenMaps` (in `AppEnvironment`) hands every window the same `OpenMap` (session, canvas model, AI assistant) for a map ID, so there is one engine and one save queue per map. Two sessions on one map would each save from a graph the other has not seen, and the later save would undo the earlier one in the store (`OpenMapsTests` shows it). When no window shows a map any more, `OpenMaps` keeps it until its last save is done, so reopening it at once gets the same session rather than a load that misses those saves.
+
+The interface keeps one window per map too: picking a map that another window shows brings that window forward (`WindowHandle`: `NSWindow` on the Mac, `UISceneSession` activation on iPad) and leaves the current window as it was. File ▸ Open in New Window (⌥⌘O, and the library's context menu) shows a map in a `WindowGroup(for: MapID.self)` window of its own; on iPad that is one window per map in Stage Manager. The window that showed the map lets go of it first.
+
+The engine's history is per map, but each window has its own `UndoManager`. A window that stops showing a map removes that map's actions from its undo manager, so ⌘Z there never reaches a map it no longer shows; the toolbar's Undo and Redo still step through the engine's history.
+
+Each window keeps its library section, open map and editor state (selected topic IDs, canvas or outline) in `@SceneStorage`, so relaunching brings windows back as they were (FR-PER-09). Only IDs are stored, never map content. Topics deleted since are left out.
 
 ## Concurrency
 

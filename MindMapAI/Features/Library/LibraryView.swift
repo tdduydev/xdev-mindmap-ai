@@ -6,6 +6,8 @@ struct LibraryView: View {
     @Bindable var model: LibraryModel
     let section: LibrarySection
     @Binding var selection: MapID?
+    /// Shows a map in a window of its own (FR-LIB-10).
+    var openInNewWindow: ((MapID) -> Void)?
     @State private var pendingDeletion: MindMap?
     @Environment(FileTransfer.self) private var transfer: FileTransfer?
 
@@ -88,6 +90,14 @@ struct LibraryView: View {
 
     @ViewBuilder
     private func menu(for map: MindMap) -> some View {
+        if let openInNewWindow {
+            Button {
+                openInNewWindow(map.id)
+            } label: {
+                Label("Open in New Window", systemImage: "macwindow.badge.plus")
+            }
+            Divider()
+        }
         Button {
             Task { await model.toggleFavorite(map) }
         } label: {

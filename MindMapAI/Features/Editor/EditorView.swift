@@ -3,19 +3,22 @@ import MindMapDomain
 import MindMapPersistence
 import SwiftUI
 
-/// Opens a map and shows its editor once it is loaded.
+/// Opens a map and shows its editor once it is loaded. The map comes from
+/// `OpenMaps`, so a map shown in two windows is one session (FR-PER-08).
 struct EditorView: View {
     let mapID: MapID
-    let repository: any MapRepository
-    let onMapChange: (MindMap) -> Void
+    let openMaps: OpenMaps
+    let window: WindowToken
+    /// The window's saved editor state: restored once the map opens, then kept up to date (FR-PER-09).
+    @Binding var restoration: EditorRestoration?
     /// Opens the Generate Map sheet once the map is loaded (New Map with AI).
     var generatesOnOpen = false
     var onGenerationStarted: () -> Void = {}
     @Environment(AIService.self) private var ai
-    @State private var opening: EditorSession.Opening?
-    /// Made once per opened map, so the camera survives switching to the outline and back.
-    @State private var canvas: CanvasModel?
-    @State private var assistant: AIAssistant?
+    @Environment(\.undoManager) private var undoManager
+    @State private var opening: OpenMaps.Opening?
+    /// Voice input belongs to this window: its microphone and sheet are not shared
+    /// with another window showing the same map, while the topics it adds are.
     @State private var voice: VoiceInput?
 
     var body: some View {
@@ -23,9 +26,12 @@ struct EditorView: View {
             switch opening {
             case nil:
                 ProgressView()
-            case .ready(let session):
-                if let canvas, let assistant, let voice {
-                    MapEditorView(session: session, canvas: canvas, assistant: assistant, voice: voice)
+            case .ready(let map):
+                if let voice {
+                    MapEditorView(session: map.session, canvas: map.canvas, assistant: map.assistant, voice: voice)
+                        .onChange(of: EditorRestoration(map.session)) { _, state in
+                            restoration = state
+                        }
                 }
             case .missing:
                 ContentUnavailableView(
@@ -42,18 +48,28 @@ struct EditorView: View {
             }
         }
         .task {
-            let opened = await EditorSession.open(mapID: mapID, repository: repository, onMapChange: onMapChange)
-            if case .ready(let session) = opened {
-                let assistant = AIAssistant(session: session, service: ai)
-                self.assistant = assistant
-                voice = VoiceInput(session: session, transcriber: AppleSpeechTranscriber(), entitlements: ai.entitlements)
-                canvas = CanvasModel(session: session, assistant: assistant)
+            let opened = await openMaps.open(mapID, in: window, service: ai)
+            if case .ready(let map) = opened {
+                restoration?.apply(to: map.session)
+                restoration = EditorRestoration(map.session)
+                voice = VoiceInput(session: map.session, transcriber: AppleSpeechTranscriber(), entitlements: ai.entitlements)
                 if generatesOnOpen {
                     onGenerationStarted()
-                    assistant.requestGenerateMap()
+                    map.assistant.requestGenerateMap()
                 }
             }
             opening = opened
+        }
+        .onDisappear {
+            if case .ready(let map) = opening {
+                // This window's ⌘Z must not reach a map it no longer shows,
+                // which may now be in another window.
+                if let undoManager {
+                    undoManager.removeAllActions(withTarget: map.session)
+                    if map.session.undoManager === undoManager { map.session.undoManager = nil }
+                }
+            }
+            openMaps.close(mapID, in: window)
         }
     }
 }

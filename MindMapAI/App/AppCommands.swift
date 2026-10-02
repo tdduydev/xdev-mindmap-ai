@@ -14,6 +14,8 @@ extension FocusedValues {
     @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
     /// Voice input for the frontmost map (FR-AI-21).
     @Entry var voiceInput: VoiceInput?
+    /// The map selected in the library, to show in a window of its own.
+    @Entry var openInNewWindowAction: OpenInNewWindowAction?
 }
 
 struct NewMapAction {
@@ -21,6 +23,10 @@ struct NewMapAction {
 }
 
 struct KeyboardShortcutsAction {
+    let perform: () -> Void
+}
+
+struct OpenInNewWindowAction {
     let perform: () -> Void
 }
 
@@ -36,6 +42,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.canvasModel) private var canvas
     @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
     @FocusedValue(\.voiceInput) private var voice
+    @FocusedValue(\.openInNewWindowAction) private var openInNewWindow
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -46,6 +53,10 @@ struct MapCommands: Commands {
                 .disabled(newMap == nil)
             Button("New Window") { openWindow(id: MindMapAIApp.mainWindowID) }
                 .keyboardShortcut("n", modifiers: [.command, .option])
+            // One window per map (FR-LIB-10); a map already in a window brings that window forward.
+            Button("Open in New Window") { openInNewWindow?.perform() }
+                .keyboardShortcut("o", modifiers: [.command, .option])
+                .disabled(openInNewWindow == nil)
         }
 
         // View menu: canvas or outline (⌘1, ⌘2, as Finder's View As), then zoom.
