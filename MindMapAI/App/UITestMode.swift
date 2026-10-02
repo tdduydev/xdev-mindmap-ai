@@ -9,6 +9,8 @@ import MindMapIntents
 /// app behaves exactly as shipped.
 struct UITestMode {
     let fixture: UITestFixture
+    /// Nil leaves the real model in place.
+    var ai: UITestAI?
 
     static let current: UITestMode? = {
         #if DEBUG
@@ -16,7 +18,9 @@ struct UITestMode {
         guard arguments.contains(UITestLaunch.flag) else { return nil }
         let fixture = arguments.firstIndex(of: UITestLaunch.fixture)
             .flatMap { arguments.indices.contains($0 + 1) ? UITestFixture(rawValue: arguments[$0 + 1]) : nil }
-        return UITestMode(fixture: fixture ?? .empty)
+        let ai = arguments.firstIndex(of: UITestLaunch.ai)
+            .flatMap { arguments.indices.contains($0 + 1) ? UITestAI(rawValue: arguments[$0 + 1]) : nil }
+        return UITestMode(fixture: fixture ?? .empty, ai: ai)
         #else
         return nil
         #endif

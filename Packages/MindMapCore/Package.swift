@@ -37,7 +37,8 @@ let package = Package(
         // AICore never imports FoundationModels, so the graph, the UI and tests
         // depend on plain values; only AIApple talks to the model.
         .target(name: "MindMapAICore", dependencies: ["MindMapDomain", "MindMapGraph"]),
-        .target(name: "MindMapAIApple", dependencies: ["MindMapAICore"]),
+        // The chat's tools read maps through MindMapQuery (docs/chat.md).
+        .target(name: "MindMapAIApple", dependencies: ["MindMapAICore", "MindMapQuery", "MindMapDomain"]),
         .target(name: "MindMapTestSupport", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore", "MindMapCapture"]),
         .testTarget(
             name: "MindMapAICoreTests",
@@ -45,7 +46,10 @@ let package = Package(
         ),
         .testTarget(
             name: "MindMapAIAppleTests",
-            dependencies: ["MindMapAIApple", "MindMapAICore", "MindMapGraph", "MindMapTestSupport"]
+            dependencies: [
+                "MindMapAIApple", "MindMapAICore", "MindMapGraph", "MindMapTestSupport",
+                "MindMapDomain", "MindMapPersistence", "MindMapQuery",
+            ]
         ),
         .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),

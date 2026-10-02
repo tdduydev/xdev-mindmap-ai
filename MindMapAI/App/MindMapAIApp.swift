@@ -1,4 +1,6 @@
 import AppIntents
+import MindMapAIApple
+import MindMapAICore
 import MindMapDomain
 import SwiftUI
 #if os(iOS)
@@ -29,18 +31,31 @@ struct MindMapAIApp: App {
     init() {
         let pro = ProEntitlement()
         _pro = State(initialValue: pro)
-        // The AI's Pro features ask the same entitlement as every other Pro feature.
-        _ai = State(initialValue: AIService(entitlements: pro))
+        let sync = CloudSyncMonitor()
+        _sync = State(initialValue: sync)
+        let launch = AppEnvironment.live(sync: sync.storeSync)
+        _launch = State(initialValue: launch)
+        // The AI's Pro features ask the same entitlement as every other Pro
+        // feature. The chat reads the library, so it needs the store.
+        var chatProvider: (() -> any ChatProvider)?
+        if case .ready(let environment) = launch {
+            chatProvider = { AppleChatProvider(queries: environment.mapQueries) }
+        }
+        #if DEBUG
+        if let mode = UITestMode.current?.ai, case .ready(let environment) = launch {
+            _ai = State(initialValue: UITestAIService.make(mode, queries: environment.mapQueries, entitlements: pro))
+        } else {
+            _ai = State(initialValue: AIService(chatProvider: chatProvider, entitlements: pro))
+        }
+        #else
+        _ai = State(initialValue: AIService(chatProvider: chatProvider, entitlements: pro))
+        #endif
         // Before any view resolves a brand font by name.
         BrandFont.registerAll()
         #if os(iOS)
         // Transitions and keyboard animations too, which SwiftUI's Motion does not drive.
         if UITestMode.isActive { UIView.setAnimationsEnabled(false) }
         #endif
-        let sync = CloudSyncMonitor()
-        _sync = State(initialValue: sync)
-        let launch = AppEnvironment.live(sync: sync.storeSync)
-        _launch = State(initialValue: launch)
         // Intents can run as soon as the app launches for them, before any window exists.
         if case .ready(let environment) = launch {
             let services = environment.intentServices()

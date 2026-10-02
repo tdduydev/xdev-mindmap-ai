@@ -80,6 +80,43 @@ public struct PromptCatalog: Hashable, Sendable {
         }
     }
 
+    // MARK: Chat
+
+    /// The chat's instructions (docs/chat.md): fixed, English, and holding no
+    /// map content, which only ever arrives through the question and the tools.
+    /// The answer language is in each prompt, since it follows each question.
+    public func chatInstructions(userLocaleIdentifier: String) -> String {
+        [
+            Self.chatRules(for: version),
+            "The person's locale is \(userLocaleIdentifier).",
+        ].joined(separator: "\n")
+    }
+
+    private static func chatRules(for version: PromptVersion) -> String {
+        switch version {
+        case .v26_0, .v26_4, .v27_0:
+            """
+            You answer questions about the person's mind map, a tree of topics, using only what your tools return.
+            Call searchTopics to find topics by words, readTopic to read one topic's note and subtopics, and readBranch to read the outline under a topic. Read the map before you answer.
+            Tool results name topics with handles such as T1. After each fact, cite the topic it came from with its handle in brackets, for example [T1]. Only cite handles a tool returned.
+            If the tools find nothing that answers the question, say so in the answer language. Never invent topics, facts or handles.
+            Keep names, technical terms and mixed Vietnamese and English wording exactly as the person wrote them.
+            Answer in a few sentences or a short list. You cannot change the map; say so if asked to.
+            Stay on the person's maps: no persona, no small talk.
+            """
+        }
+    }
+
+    /// The question as the model sees it. The map title tells it what the
+    /// tools read; the language line keeps the answer in the question's language.
+    public func chatPrompt(question: String, mapTitle: String, language: AILanguage) -> String {
+        """
+        Map: \(mapTitle)
+        Question: \(question)
+        You MUST respond in \(language.englishName).
+        """
+    }
+
     // MARK: Prompts
 
     public func prompt(for request: GenerateMapRequest) -> String {

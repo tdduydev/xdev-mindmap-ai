@@ -8,6 +8,7 @@ struct MapEditorView: View {
     @Bindable var session: EditorSession
     let canvas: CanvasModel
     @Bindable var assistant: AIAssistant
+    @Bindable var chat: MapChat
     @Bindable var voice: VoiceInput
     @Environment(\.undoManager) private var undoManager
     @State private var showsKeyboardShortcuts = false
@@ -48,8 +49,20 @@ struct MapEditorView: View {
         .sheet(isPresented: $voice.isPresented, onDismiss: voice.sheetDismissed) {
             VoiceInputSheet(voice: voice)
         }
-        .inspector(isPresented: $session.isInspectorPresented) {
-            MapInspectorView(session: session)
+        // The topic inspector and the chat share the trailing panel (a sheet
+        // on iPhone); showing one hides the other.
+        .inspector(isPresented: trailingPanelBinding) {
+            if chat.isPresented {
+                ChatPanel(chat: chat)
+            } else {
+                MapInspectorView(session: session)
+            }
+        }
+        .onChange(of: session.isInspectorPresented) { _, isPresented in
+            if isPresented { chat.isPresented = false }
+        }
+        .onChange(of: chat.isPresented) { _, isPresented in
+            if isPresented { session.isInspectorPresented = false }
         }
         .sheet(isPresented: $session.isManagingTags) {
             TagManagerView(session: session)
@@ -89,11 +102,26 @@ struct MapEditorView: View {
         .toolbar { toolbar }
         .focusedSceneValue(\.editorSession, session)
         .focusedSceneValue(\.aiAssistant, assistant)
+        .focusedSceneValue(\.mapChat, chat)
         .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
         .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
         .focusedSceneValue(\.voiceInput, voice)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
+    }
+
+    private var trailingPanelBinding: Binding<Bool> {
+        Binding(
+            get: { session.isInspectorPresented || chat.isPresented },
+            set: { isPresented in
+                if !isPresented {
+                    session.isInspectorPresented = false
+                    chat.isPresented = false
+                } else if !chat.isPresented {
+                    session.isInspectorPresented = true
+                }
+            }
+        )
     }
 
     @ToolbarContentBuilder
@@ -154,6 +182,17 @@ struct MapEditorView: View {
         if assistant.service.showsControls {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
+            }
+        }
+        if chat.showsEntryPoints {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    if chat.isPresented { chat.isPresented = false } else { chat.present() }
+                } label: {
+                    Label("Ask About This Map", systemImage: "bubble.left.and.text.bubble.right")
+                }
+                .help(chat.isPresented ? Text("Hide Chat") : Text("Ask About This Map"))
+                .accessibilityIdentifier(AccessibilityID.Chat.toolbar)
             }
         }
         if let transfer {

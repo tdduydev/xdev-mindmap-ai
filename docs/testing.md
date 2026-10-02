@@ -63,6 +63,8 @@ New state that persists across launches (a file, a preference, a first-run flag)
 | `sample` | "Product Launch" (Research ▸ Interviews, Design, Marketing) and "Reading List" (favorite, central topic only) |
 | `large` | "Large Map": a central topic and 9 branches of 110 topics, 1,000 topics in all |
 
+`-uitest-ai <mode>` (`UITestAI`) replaces Apple Intelligence with a scripted model, so AI screens can be tested on a machine without it: `ready` (English and Vietnamese; the chat answers with the first topic whose title matches a word of the question, and cites it) or `ineligible` (every AI entry point hidden). Without it the real model is used.
+
 Titles are data, not interface text, so they are the same in every language. Tests refer to them through `UITestFixture.Title`, never as string literals. A new fixture is a new case and a `makeMaps()` branch; keep existing ones unchanged, because other suites count their topics.
 
 ## Accessibility identifiers

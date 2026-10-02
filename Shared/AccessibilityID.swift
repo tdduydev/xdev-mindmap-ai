@@ -40,6 +40,16 @@ nonisolated enum AccessibilityID {
         static let addCentralTopic = "canvas.addCentralTopic"
     }
 
+    enum Chat {
+        static let panel = "chat.panel"
+        static let field = "chat.field"
+        static let send = "chat.send"
+        static let stop = "chat.stop"
+        static let answer = "chat.answer"
+        static let citation = "chat.citation"
+        static let toolbar = "chat.toolbar"
+    }
+
     enum Settings {
         static let appearance = "settings.appearance"
         static let newMapTheme = "settings.newMapTheme"
