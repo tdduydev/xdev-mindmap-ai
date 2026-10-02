@@ -105,6 +105,10 @@ enum CanvasMetrics {
     /// the collapse badge; the tap area is `Metrics.minimumHitTarget`.
     static let addButtonDiameter: CGFloat = collapseBadgeHeight
     static let addButtonRingWidth: CGFloat = 1.5
+    /// Screen-space clearance from the card (and its unscaled hit area).
+    static let addButtonGap: CGFloat = 4
+    /// Leaves room for a collapsed-count badge before the child button.
+    static let addButtonBadgeClearance: CGFloat = 48
     #if os(iOS)
     static let addButtonSymbolSize: CGFloat = 12
     #else

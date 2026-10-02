@@ -18,8 +18,6 @@ struct TopicView: View {
     var isFindMatch = false
     /// Drawn faded in place while a copy follows the pointer.
     var isDragSource = false
-    /// The + buttons to show, on a hovered or selected topic (MM-57).
-    var addButtons: CanvasModel.AddButtons?
     let model: CanvasModel
     let rotorNamespace: Namespace.ID
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -77,8 +75,7 @@ struct TopicView: View {
         .contentShape(.interaction, Rectangle().inset(by: -hitOutset))
         // After the content shape, which would otherwise keep taps off the
         // badge and buttons outside the card.
-        .overlay(alignment: outerEdge == .leading ? .leading : .trailing) { outerControls }
-        .overlay(alignment: .bottom) { addSiblingButton }
+        .overlay(alignment: topic.side == .left ? .leading : .trailing) { badgeControl }
         // The double tap is listed first so it can see both taps; the single tap
         // runs alongside it, so selection does not wait for the double-tap timeout.
         .onTapGesture(count: 2) { model.beginEditing(topic.id) }
@@ -232,20 +229,10 @@ struct TopicView: View {
             .allowsHitTesting(false)
     }
 
-    /// The side away from the parent, where the badge and the add-child button go.
-    private var outerEdge: HorizontalEdge {
-        addButtons?.childEdge ?? (topic.side == .left ? .leading : .trailing)
-    }
-
-    /// The collapse badge, and the add-child button beyond it, so the button
-    /// never covers the count.
-    private var outerControls: some View {
-        HStack(spacing: CanvasMetrics.collapseBadgeGap) {
-            if outerEdge == .leading, addButtons != nil { addChildButton }
+    private var badgeControl: some View {
+        Group {
             if topic.hiddenDescendantCount > 0 { badge }
-            if outerEdge == .trailing, addButtons != nil { addChildButton }
         }
-        .animation(Motion.addButtons(reduceMotion: reduceMotion), value: addButtons)
         .modifier(CollapseBadgePlacement())
     }
 
@@ -261,30 +248,6 @@ struct TopicView: View {
         .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : 1)
         // The topic element already offers Expand Topic.
         .accessibilityHidden(true)
-    }
-
-    private var addChildButton: some View {
-        TopicAddButton(label: "Add Child Topic") {
-            model.addFromButton(topic.id, sibling: false)
-        }
-        .onHover { model.setHovering(topic.id, part: .addChild, $0) }
-        .transition(.opacity)
-    }
-
-    /// On the middle of the bottom edge, half over the card: the gap to the
-    /// next sibling is too small for a whole button below it.
-    private var addSiblingButton: some View {
-        Group {
-            if addButtons?.showsSibling == true {
-                TopicAddButton(label: "Add Sibling Topic") {
-                    model.addFromButton(topic.id, sibling: true)
-                }
-                .onHover { model.setHovering(topic.id, part: .addSibling, $0) }
-                .offset(y: CanvasMetrics.addButtonDiameter / 2)
-                .transition(.opacity)
-            }
-        }
-        .animation(Motion.addButtons(reduceMotion: reduceMotion), value: addButtons)
     }
 
     /// Touch needs a 44 pt target around small topics; a pointer uses the box.
@@ -389,7 +352,6 @@ struct TopicAddButton: View {
 
     var body: some View {
         let diameter = CanvasMetrics.addButtonDiameter
-        let outset = max(0, (Metrics.minimumHitTarget - diameter) / 2)
         Button(action: action) {
             Image(systemName: "plus")
                 .font(.system(size: CanvasMetrics.addButtonSymbolSize, weight: .bold))
@@ -398,9 +360,10 @@ struct TopicAddButton: View {
                 .background(Palette.accent, in: Circle())
                 // Keeps the circle apart from a card or edge of the same hue.
                 .overlay(Circle().strokeBorder(Palette.canvasBackground, lineWidth: CanvasMetrics.addButtonRingWidth))
+                .frame(width: Metrics.minimumHitTarget, height: Metrics.minimumHitTarget)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .contentShape(.interaction, Circle().inset(by: -outset))
         .help(Text(label))
         .accessibilityLabel(Text(label))
         .accessibilityHidden(true)

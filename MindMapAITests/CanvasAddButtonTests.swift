@@ -154,6 +154,42 @@ struct CanvasAddButtonTests {
 
     // MARK: Where
 
+    @Test func siblingHitAreaStaysBesideCardsAcrossDetailZoom() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        for title in ["Short", "A much longer topic title that wraps to multiple lines", "Third", "Fourth"] {
+            try await addChild(title, to: rootID, in: canvas)
+        }
+        let rightSiblings = canvas.scene.topics
+            .filter { $0.parentID == rootID && $0.side == .right }
+            .sorted { $0.frame.minY < $1.frame.minY }
+        #expect(rightSiblings.count >= 2)
+        let first = try #require(rightSiblings.first)
+        let next = try #require(rightSiblings.dropFirst().first)
+
+        for scale in [CanvasMetrics.detailZoomThreshold, 0.5, 1, 2, 4] {
+            var viewport = canvas.viewport
+            viewport.scale = scale
+            let hit = CanvasAddButtonPlacement.frame(for: first, viewport: viewport, sibling: true)
+            let firstCard = CGRect(
+                x: viewport.toView(first.frame.origin).x,
+                y: viewport.toView(first.frame.origin).y,
+                width: first.frame.width * scale,
+                height: first.frame.height * scale
+            )
+            let nextCard = CGRect(
+                x: viewport.toView(next.frame.origin).x,
+                y: viewport.toView(next.frame.origin).y,
+                width: next.frame.width * scale,
+                height: next.frame.height * scale
+            )
+            #expect(hit.width >= Metrics.minimumHitTarget)
+            #expect(hit.height >= Metrics.minimumHitTarget)
+            #expect(!hit.intersects(firstCard))
+            #expect(!hit.intersects(nextCard))
+        }
+    }
+
     /// The add-child button goes on the side away from the parent.
     @Test func aLeftBranchHasItsChildButtonOnTheLeft() async throws {
         let canvas = try await open()
