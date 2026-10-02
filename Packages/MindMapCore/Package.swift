@@ -26,7 +26,7 @@ let package = Package(
         .target(name: "MindMapLayout", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph"]),
-        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"], resources: [.copy("Fixtures/V1.store")]),
+        .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"], resources: [.copy("Fixtures")]),
         .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout"]),
         // AICore never imports FoundationModels, so the graph, the UI and tests
         // depend on plain values; only AIApple talks to the model.

@@ -2,18 +2,26 @@ import Foundation
 import MindMapDomain
 import MindMapGraph
 
+/// What changed in the store, as the library needs to know it.
 public enum MapRepositoryChange: Sendable, Equatable {
-    case updated(MapID)
+    /// This repository stored a map: created, edited or marked as a favorite.
+    /// Carries the summary as stored, favorite flag included.
+    case saved(MindMap)
     case deleted(MapID)
-    /// Another context or process changed the store; consumers should fetch again.
-    case refresh
+    /// Something other than this repository wrote to the store (another
+    /// context, another process, later iCloud). Which maps changed is not
+    /// known, so a consumer fetches its list again.
+    case storeChanged
 }
 
 /// Where maps live. Features talk to this protocol, never to SwiftData, so the
 /// store can change and tests can use an in-memory one.
 public protocol MapRepository: Sendable {
-    /// Changes after subscription. Consumers fetch their own current snapshot first.
+    /// Every change committed after this call returns, in commit order, until
+    /// the stream's task ends. Each window subscribes before its first fetch,
+    /// so a write cannot fall between the fetch and the subscription.
     func changes() async -> AsyncStream<MapRepositoryChange>
+
     /// Every map, most recently edited first. Nodes are not loaded.
     func fetchMaps() async throws -> [MindMap]
 

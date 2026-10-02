@@ -37,13 +37,26 @@ final class LibraryModel {
         hasLoaded = true
     }
 
-    /// Keep each window's library current while its view is alive. Subscribe
-    /// before the first fetch so a concurrent write cannot fall between them.
+    /// Keeps this window's list current for as long as its view is on screen,
+    /// without polling. Every window shares one repository, so an edit in one
+    /// window reaches the others here; writes from outside the repository
+    /// arrive as `.storeChanged`. Subscribing before the first fetch means a
+    /// write cannot fall between the two.
     func observeChanges() async {
-        let stream = await repository.changes()
+        let changes = await repository.changes()
         await load()
-        for await _ in stream {
-            if Task.isCancelled { break }
+        for await change in changes {
+            await apply(change)
+        }
+    }
+
+    func apply(_ change: MapRepositoryChange) async {
+        switch change {
+        case .saved(let map):
+            show(map)
+        case .deleted(let id):
+            maps.removeAll { $0.id == id }
+        case .storeChanged:
             await load()
         }
     }
@@ -53,7 +66,8 @@ final class LibraryModel {
         let graph = GraphState.newMap(title: String(localized: "Untitled Map"))
         do {
             try await repository.create(graph)
-            maps.append(graph.map)
+            // The change stream may have delivered it already.
+            show(graph.map)
             return graph.map.id
         } catch {
             Log.persistence.error("Creating a map failed: \(error.localizedDescription, privacy: .public)")
@@ -82,6 +96,22 @@ final class LibraryModel {
         } catch {
             Log.persistence.error("Saving a favorite failed: \(error.localizedDescription, privacy: .public)")
             failure = .save
+        }
+    }
+
+    /// Adds or replaces a stored summary. An editor reports each edit before it
+    /// is stored, so a summary from an earlier save can arrive after a newer
+    /// edit; it must not roll the title back. The favorite flag is the
+    /// store's either way, since the editor never sets it.
+    private func show(_ map: MindMap) {
+        guard let index = maps.firstIndex(where: { $0.id == map.id }) else {
+            maps.append(map)
+            return
+        }
+        if map.updatedAt >= maps[index].updatedAt {
+            maps[index] = map
+        } else {
+            maps[index].isFavorite = map.isFavorite
         }
     }
 
