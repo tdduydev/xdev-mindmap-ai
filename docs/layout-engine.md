@@ -26,6 +26,7 @@ protocol MindMapLayoutEngine: Sendable {
 - **Collapsed branches take no space:** their topics are not in the layout, and the collapsed topic reports `hiddenDescendantCount` for the canvas badge.
 - **Deterministic:** the walk follows `GraphState`'s display order (sort order, creation time, ID), never dictionary order, so the same graph, sizes and options give the same `MapLayout` on every device.
 - Walks use explicit stacks, so a very deep map cannot overflow the call stack.
+- **Floating topics** (ADR 0010, MM-61) are laid out after the main tree, in `GraphState.floatingTopicIDs` order. Each is centred on its stored position (relative to the central topic's centre, which is the origin), with side `.right`, depth 1 and no connector; its branch grows to the right by the same band rules whatever `BranchSides` says. Floating branches are not pushed away from the tree or from each other, so they may overlap. `MapLayout.floatingTopicIDs` lists them; bounds and cross-links include them.
 
 ## Updating one branch
 
@@ -33,7 +34,7 @@ protocol MindMapLayoutEngine: Sendable {
 
 1. The changed topics and their ancestors are measured again; every other branch keeps its measure (band height, topic count).
 2. Placement runs from the root, but stops at an untouched branch whose frame, side and depth come out exactly as before, since nothing inside it can have moved. Its connector is still written: the parent can move while the child stays put (a topic re-centered on a block that grew below as much as the block above shrank), and the connector starts on the parent's edge.
-3. Topics that stopped being visible (deleted, collapsed, moved away) are removed.
+3. Topics that stopped being visible (deleted, collapsed, moved away) are removed. A floating topic in the previous `floatingTopicIDs` that is no longer floating (deleted or attached) is removed with its branch unless this pass placed it.
 
 A branch that does move is placed with the same arithmetic as a full layout, never shifted by a delta, so an update is bit-for-bit equal to a full layout. Tests check that equality after every kind of edit and after long seeded chains of edits, undo, redo and size changes, for each `BranchSides`. Changing options or the root falls back to a full layout. Cross-links are recomputed on every pass: a map has few of them, and an edge edit changes no topic.
 

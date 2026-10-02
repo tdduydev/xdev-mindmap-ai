@@ -42,9 +42,14 @@
 | `AddGroupCommand` | Adds a boundary over the siblings from one topic to another (either order), caller-chosen `GroupID` | The root, different parents, the same run twice, crossing another boundary |
 | `UpdateGroupCommand` | Sets a boundary's title (trimmed, blank is none) and colour | A missing boundary |
 | `RemoveGroupCommand` | Removes a boundary; the topics stay | A missing boundary |
+| `AddFloatingTopicCommand(nodeID:title:position:)` | Creates a floating topic (no parent, stored centre, ADR 0010) with a caller-chosen ID; the central topic stays the one root | A map without a central topic (`noCentralTopic`), a duplicate ID |
+| `MoveFloatingTopicCommand(nodeID:to:)` | Sets a floating topic's position; its branch moves with it. The same position is a no-op | A topic that is not floating (`notFloating`) |
+| `DetachBranchCommand(nodeID:position:)` | Takes a branch out of the tree and makes its top floating at `position`; boundaries and summaries it ended shrink, as for any move | The root (`cannotMoveRoot`), a topic already floating (`notInTree`) |
 | `BatchCommand` | Several commands as one atomic undo step | Anything any part refuses; nothing applies |
 
 `DuplicateBranchCommand` also copies colour, symbol, task fields, tags and the boundaries whose parent is inside the branch; `MergeNodesCommand` moves the merged topics' tags to the survivor. Shared tags are library data: only `TagNodesCommand` touches them through a map. Boundaries are kept valid by `GraphTransaction` whenever a topic is deleted, moved or reordered ([[data-model]], *What keeps them valid*).
+
+Attaching a floating topic to a topic is a `ReparentNodeCommand`: `GraphTransaction.updateNode` clears the position of any node given a parent, in the same step, so undo restores both. Undo names for the floating commands (MM-61, wired by MM-62): "Add Floating Topic", "Move Topic" (move and attach), "Detach Topic".
 
 Each command only describes its change. `EditorSession` gives each one an undo action name for the Edit menu.
 
@@ -72,4 +77,4 @@ A change from outside (another device through iCloud, the Share Extension) comes
 
 ## Traversal
 
-`ancestors(of:)` (parent first), `descendants(of:)` (pre-order, display order), `siblings(of:)`, `depth(of:)`, `isAncestor(_:of:)`, and `visibleOutline()` (pre-order, skipping the inside of collapsed branches). All are iterative and track visited nodes, so a deep map cannot overflow the stack and a corrupt loop cannot hang the app.
+`ancestors(of:)` (parent first), `descendants(of:)` (pre-order, display order), `siblings(of:)`, `depth(of:)`, `isAncestor(_:of:)`, and `visibleOutline()` (pre-order, skipping the inside of collapsed branches). `topLevelIDs` is the central topic, then `floatingTopicIDs` (by `createdAt`, then ID); `visibleOutline()` and `readingOrder()` (every branch open, for Find) walk the main tree and then each floating branch, with the floating topic at depth 1, the level it is drawn at. `depth(of:)` stays nil inside a floating branch: it is not connected to the root. All are iterative and track visited nodes, so a deep map cannot overflow the stack and a corrupt loop cannot hang the app.

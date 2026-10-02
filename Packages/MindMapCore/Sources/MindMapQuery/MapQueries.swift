@@ -80,7 +80,10 @@ public struct MapQueries: Sendable {
         var deeper = 0
         var isFull = false
 
-        for (id, level) in Self.walk(state, from: startID) {
+        // The whole map is the main tree, then each floating branch at depth 0
+        // (FR-ORG-27); `isFloating` tells a reader which tree a topic heads.
+        let starts = branch == nil ? state.topLevelIDs : [startID]
+        for (id, level) in Self.walk(state, from: starts) {
             if let maximumDepth, level > maximumDepth {
                 deeper += 1
                 continue
@@ -98,7 +101,8 @@ public struct MapQueries: Sendable {
             if titleCost + noteCost <= remaining {
                 topics.append(OutlineTopic(
                     nodeID: id, depth: level, title: title, note: note,
-                    isNoteCut: false, childCount: state.childIDs(of: id).count
+                    isNoteCut: false, childCount: state.childIDs(of: id).count,
+                    isFloating: node.isFloating(rootID: state.map.rootNodeID)
                 ))
                 remaining -= titleCost + noteCost
             } else if topics.isEmpty {
@@ -107,7 +111,8 @@ public struct MapQueries: Sendable {
                 let cut = note.map { limit.prefix(of: $0, fitting: remaining - titleCost) }
                 topics.append(OutlineTopic(
                     nodeID: id, depth: level, title: title, note: cut.flatMap(Self.nonBlank),
-                    isNoteCut: note != nil, childCount: state.childIDs(of: id).count
+                    isNoteCut: note != nil, childCount: state.childIDs(of: id).count,
+                    isFloating: node.isFloating(rootID: state.map.rootNodeID)
                 ))
                 remaining = 0
                 isFull = true
@@ -226,12 +231,12 @@ public struct MapQueries: Sendable {
         return maps.map(\.id).filter { found.contains($0) || open.contains($0) }
     }
 
-    /// Pre-order from `startID` with depth, every branch open, safe against a
+    /// Pre-order from each start with depth, every branch open, safe against a
     /// corrupt parent loop.
-    private static func walk(_ state: GraphState, from startID: NodeID) -> [(NodeID, Int)] {
+    private static func walk(_ state: GraphState, from starts: [NodeID]) -> [(NodeID, Int)] {
         var result: [(NodeID, Int)] = []
         var visited: Set<NodeID> = []
-        var stack: [(NodeID, Int)] = [(startID, 0)]
+        var stack: [(NodeID, Int)] = starts.reversed().map { ($0, 0) }
         while let (id, depth) = stack.popLast() {
             guard state.node(id) != nil, visited.insert(id).inserted else { continue }
             result.append((id, depth))

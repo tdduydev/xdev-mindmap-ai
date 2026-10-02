@@ -58,3 +58,25 @@ struct MapFindTagTests {
         #expect(MapFind.matches(SearchQuery("#"), in: engine.state).isEmpty)
     }
 }
+
+@Suite("Find in floating branches")
+struct MapFindFloatingTests {
+    /// Floating branches are searched after the main tree, oldest first (FR-ORG-27).
+    @Test func floatingBranchesMatchAfterTheMainTree() throws {
+        var engine = try GraphEngine(state: GraphState.newMap(title: "Plan"))
+        let rootID = try #require(engine.state.map.rootNodeID)
+        let main = NodeID()
+        let floating = NodeID()
+        let later = NodeID()
+        let child = NodeID()
+        try engine.execute(AddFloatingTopicCommand(nodeID: floating, title: "Budget idea", position: TopicPosition(x: 0, y: 300)))
+        try engine.execute(AddFloatingTopicCommand(nodeID: later, title: "Budget aside", position: TopicPosition(x: 0, y: -300)))
+        try engine.execute(BatchCommand([
+            AddNodeCommand(nodeID: child, .child(of: floating), title: "Budget detail"),
+            AddNodeCommand(nodeID: main, .child(of: rootID), title: "Budget"),
+            UpdateNodeCommand(nodeID: floating, .isCollapsed(true)),
+        ]))
+
+        #expect(MapFind.matches(SearchQuery("budget"), in: engine.state) == [main, floating, child, later])
+    }
+}

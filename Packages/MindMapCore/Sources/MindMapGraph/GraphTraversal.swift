@@ -54,13 +54,42 @@ extension GraphState {
         ancestors(of: id).contains(ancestorID)
     }
 
-    /// The map as a reader sees it: pre-order from the root, skipping the
-    /// inside of collapsed branches.
-    public func visibleOutline() -> [OutlineItem] {
+    /// The tops of the map's trees: the central topic, then each floating
+    /// topic in layout order. Empty when the map has no central topic.
+    public var topLevelIDs: [NodeID] {
         guard let rootID = map.rootNodeID, nodes[rootID] != nil else { return [] }
+        return [rootID] + floatingTopicIDs
+    }
+
+    /// Every topic a reader can reach, pre-order with every branch open: the
+    /// main tree, then each floating branch (FR-ORG-27). Depth is the level a
+    /// topic is drawn at, as in `visibleOutline()`.
+    public func readingOrder() -> [(id: NodeID, depth: Int)] {
+        var result: [(id: NodeID, depth: Int)] = []
+        var visited: Set<NodeID> = []
+        var stack = topLevelStack()
+        while let (id, depth) = stack.popLast() {
+            guard nodes[id] != nil, visited.insert(id).inserted else { continue }
+            result.append((id, depth))
+            stack.append(contentsOf: childIDs(of: id).reversed().map { ($0, depth + 1) })
+        }
+        return result
+    }
+
+    /// A floating topic is drawn as a main topic (level 1, its own branch
+    /// colour), so it starts one level below the central topic although it
+    /// has no parent.
+    private func topLevelStack() -> [(id: NodeID, depth: Int)] {
+        topLevelIDs.enumerated().reversed().map { ($0.element, $0.offset == 0 ? 0 : 1) }
+    }
+
+    /// The map as a reader sees it: pre-order from the root, skipping the
+    /// inside of collapsed branches, then each floating branch the same way
+    /// with its floating topic at depth 1, the level it is drawn at.
+    public func visibleOutline() -> [OutlineItem] {
         var result: [OutlineItem] = []
         var visited: Set<NodeID> = []
-        var stack: [(id: NodeID, depth: Int)] = [(rootID, 0)]
+        var stack = topLevelStack()
         while let (id, depth) = stack.popLast() {
             guard let node = nodes[id], visited.insert(id).inserted else { continue }
             let children = childIDs(of: id)

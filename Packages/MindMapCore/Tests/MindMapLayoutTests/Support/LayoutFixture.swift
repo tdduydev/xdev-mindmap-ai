@@ -63,6 +63,14 @@ struct LayoutFixture {
         return id
     }
 
+    /// A floating topic (no parent, a stored centre) after the topics so far.
+    @discardableResult
+    mutating func addFloating(_ title: String, at position: TopicPosition) -> NodeID {
+        let id = add(title, parent: nil)
+        nodes[nodes.count - 1].position = position
+        return id
+    }
+
     mutating func collapse(_ title: String) {
         guard let index = nodes.firstIndex(where: { $0.id == self[title] }) else { return }
         nodes[index].isCollapsed = true
