@@ -21,6 +21,18 @@ The list lives in one place in code, so it can change without touching the featu
 - Settings ▸ MindMap AI Pro shows the status, opens the paywall and has Restore Purchases (`AppStore.sync()`).
 - Family Sharing is on (decided 2026-10-02), in the configuration file and in App Store Connect. It cannot be turned off again once on.
 
+## Pro gift codes
+
+Asked for by the product owner on 2026-10-03 (MM-76, FR-STO-03): a way to give someone Pro for life. App Review 3.1.1 does not allow a license key of our own to unlock features, so a gift is always a code made by Apple.
+
+**Making codes.** In App Store Connect, open the in-app purchase `asia.xdev.mindmapai.pro` and create offer codes for it (one-time-use codes, or a custom code). Apple caps how many codes an app can make; check the current number in App Store Connect before planning a giveaway. Unverified, to be checked in App Store Connect: offer codes for one-time purchases (non-consumables) came in 2025, and the older promo codes for in-app purchases are being retired, so use offer codes.
+
+**Redeeming.** Settings ▸ MindMap AI Pro and the paywall have **Redeem Code…**, and on the Mac the app menu has it under Settings too (disabled once Pro is unlocked). It opens Apple's own redeem sheet with SwiftUI's `offerCodeRedemption`. People can also redeem in the App Store (account ▸ Redeem Gift Card or Code), or at https://apps.apple.com/redeem; the app's error alert links to that page.
+
+**In code** (`MindMapAI/Features/Store/RedeemCode.swift`). The redeemed code becomes an ordinary transaction for the Pro product. `ProEntitlement.finishRedemption` reads the entitlements again as soon as the sheet closes, and the transaction also arrives through `Transaction.updates`. A cancelled sheet says nothing; a failure shows an alert. Checked in the Xcode 27 SDK: `offerCodeRedemption(isPresented:onCompletion:)` is available on macOS 15+ and iOS 16+ and deprecated in 27; the app targets 26, so it uses that one and, on 27, `offerCodeRedemption(options:isPresented:onCompletion:)`, which also returns the transaction. `AppStore.presentOfferCodeRedeemSheet` needs an `NSViewController`/`NSWindow` or a `UIWindowScene`, so the SwiftUI modifier is used. The SDK does not state which product types a code can be for; that is set in App Store Connect.
+
+**Testing.** StoreKitTest cannot drive the redeem sheet. `ProEntitlementTests` stands in for a redeemed code with a transaction made outside the app, and checks cancel and failure.
+
 ## Market check
 
 US App Store prices, checked on 2026-10-02 on each app's App Store page or the vendor's pricing page.

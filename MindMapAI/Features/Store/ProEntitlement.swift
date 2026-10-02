@@ -33,6 +33,14 @@ final class ProEntitlement {
         case failed
     }
 
+    /// How a Redeem Code sheet ended. The sheet shows Apple's own confirmation,
+    /// so only a failure needs words from the app.
+    enum RedeemOutcome: Equatable {
+        case redeemed
+        case cancelled
+        case failed
+    }
+
     private(set) var isUnlocked = false
     private(set) var productState = ProductState.loading
     private(set) var purchaseState = PurchaseState.idle
@@ -145,6 +153,30 @@ final class ProEntitlement {
         }
         await refresh()
         restoreState = isUnlocked ? .restored : .nothingToRestore
+    }
+
+    /// Called when the offer code sheet closes. A redeemed code for Pro is a
+    /// transaction like a purchase: it reaches `Transaction.updates` too, but the
+    /// entitlements are read again so Pro opens without waiting for that.
+    func finishRedemption(_ result: Result<Void, any Error>) async -> RedeemOutcome {
+        switch result {
+        case .success:
+            await refresh()
+            return .redeemed
+        case .failure(StoreKitError.userCancelled):
+            return .cancelled
+        case .failure(let error):
+            Log.store.error("Redeeming an offer code failed: \(error.localizedDescription, privacy: .public)")
+            return .failed
+        }
+    }
+
+    /// The macOS 27 and iOS 27 sheet hands back the transaction it made.
+    func finishRedemption(transaction result: Result<VerificationResult<Transaction>, any Error>) async -> RedeemOutcome {
+        if case .success(let verification) = result {
+            await process(verification)
+        }
+        return await finishRedemption(result.map { _ in })
     }
 
     func dismissRestoreResult() {

@@ -161,6 +161,30 @@ struct ProEntitlementTests {
         #expect(cancelled.restoreState == .idle)
     }
 
+    /// The offer code sheet itself cannot be driven by StoreKitTest, so the
+    /// code is stood in for by a transaction made outside the app, as the App
+    /// Store makes one when a Pro gift code is redeemed.
+    @Test func redeemedCodeUnlocksPro() async throws {
+        let store = ProEntitlement()
+        await store.start()
+        _ = try await session.buyProduct(identifier: ProEntitlement.productID)
+        #expect(await Self.eventually { await Self.hasProEntitlement() })
+
+        let outcome = await store.finishRedemption(.success(()))
+
+        #expect(outcome == .redeemed)
+        #expect(store.isUnlocked)
+    }
+
+    @Test func redeemCancelAndFailureChangeNothing() async {
+        let store = ProEntitlement()
+        await store.start()
+
+        #expect(await store.finishRedemption(.failure(StoreKitError.userCancelled)) == .cancelled)
+        #expect(await store.finishRedemption(.failure(StoreKitError.networkError(URLError(.timedOut)))) == .failed)
+        #expect(!store.isUnlocked)
+    }
+
     /// Waits for a change that arrives asynchronously through `Transaction.updates`.
     /// StoreKit delivers purchases, refunds and clears asynchronously, and later
     /// still on a busy machine, so state is polled for up to five seconds.

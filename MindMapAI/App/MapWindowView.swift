@@ -36,6 +36,7 @@ struct MapWindowView: View {
         }
         .onDisappear { environment.openMaps.unregister(window) }
         .modifier(OptionalFileTransfer(transfer: transfer, entitlements: ai.entitlements))
+        .redeemCodeCommandTarget()
     }
 
     /// Import and Export as in the main window; a map imported as a new map
