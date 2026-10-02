@@ -2176,6 +2176,16 @@
         }
       }
     },
+    "Open in New Window" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở trong cửa sổ mới"
+          }
+        }
+      }
+    },
     "Opens a map." : {
       "comment" : "App Intents (MM-11): Shortcuts, Siri and Spotlight.",
       "extractionState" : "manual",

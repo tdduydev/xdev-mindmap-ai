@@ -11,6 +11,8 @@ final class AppEnvironment {
     let spotlightIndex: any MapSearchIndex
     /// Maps the intents asked to open; every window watches it.
     let openRequests: MapOpenRequests
+    /// One session per open map, whatever the number of windows showing it.
+    let openMaps: OpenMaps
 
     init(
         repository: any MapRepository,
@@ -20,6 +22,7 @@ final class AppEnvironment {
         self.repository = repository
         self.spotlightIndex = spotlightIndex
         self.openRequests = openRequests
+        openMaps = OpenMaps(repository: repository)
     }
 
     static func live() -> AppLaunch {
