@@ -1,6 +1,6 @@
 # MCP server: AI apps read your maps
 
-Design for MM-39, 2026-10-02. Only the shared query layer is built (MM-47); the server is not. Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
+Design for MM-39, 2026-10-02. The shared query layer (MM-47) and the server core `MindMapMCP` (MM-40, [Server core](#server-core)) are built; the app does not host the server yet (M2). Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
 
 ## Summary
 
@@ -61,7 +61,7 @@ The two shipping examples follow the same split: iMCP (direct download, not the 
 
 ### Port and connection details [Đề xuất]
 
-- A fixed default port in the dynamic range, shown and changeable in Settings, because every client's config holds the URL. If it is taken, Settings says so; the app does not pick another one silently.
+- A fixed default port in the dynamic range, `MCPListener.defaultPort` = **51947** (chosen in MM-40), shown and changeable in Settings, because every client's config holds the URL. If it is taken, Settings says so; the app does not pick another one silently.
 - Endpoint `http://127.0.0.1:<port>/mcp`. `Authorization: Bearer <token>` on every request, else 401. Any request with an `Origin` header is refused with 403: no supported client sends one, and browsers always do *[Inference]*.
 - The helper (option C) reads the port and token from its arguments or environment, which the client config passes (`.mcpb` `user_config` keeps the token in the Keychain, per [Desktop Extensions](https://www.anthropic.com/engineering/desktop-extensions)).
 
@@ -92,7 +92,7 @@ Read-only tools, in a fixed order (2026-07-28 asks for deterministic `tools/list
 - **Output limit [Đề xuất]:** about 20,000 characters per result, so one large map does not fill the client's context; `get_map` with `topic_id` and `depth` reads the rest.
 - **Resources [Đề xuất], second step:** `mindmap://map/{map_id}` as a Markdown resource for clients that attach resources. Tools first, since every client in the table calls tools *[Inference]*.
 - **Prompts:** none.
-- **Errors:** an unknown ID or a deleted map is an invalid-params error with a plain message; the store being busy is retried once inside the app.
+- **Errors:** an unknown ID, a deleted map or a bad argument is a tool result with `isError: true` and a plain message the model can act on (changed in MM-40 from invalid-params: 2026-07-28 classes these as tool execution errors that clients pass to the model). An unknown tool name stays a JSON-RPC invalid-params error. A store error says to try again, without its description.
 
 ### Writing, later
 
@@ -168,6 +168,34 @@ public struct MapQueries: Sendable {
 - Errors: `MapQueryError.mapNotFound` and `.topicNotFound`; M1 maps both to invalid-params.
 - Changed from the design: no dependency on `MindMapInterchange` (the outline is structured rows, not `MarkdownOutline.export` text, so each caller can name topics its own way); `GraphSource.openMapIDs()` added so library search does not miss unsaved edits; `MapRepository.fetchTopicCounts()` added for `list_maps`.
 
+## Server core
+
+Built in MM-40 (M1), in `Packages/MindMapCore/Sources/MindMapMCP`. Protocol pages were reread on 2026-10-02: [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog), [Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http), [versioning](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning), [server/discover](https://modelcontextprotocol.io/specification/2026-07-28/server/discover), [tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools).
+
+| Type | Role |
+| --- | --- |
+| `MCPServer` | `handle(HTTPRequest) async -> HTTPResponse`: the checks below, then JSON-RPC. No transport, so tests feed it recorded requests |
+| `MCPListener` | `NWListener` bound to `127.0.0.1` with `acceptLocalOnly`; HTTP/1.1 keep-alive, requests on a connection answered in order; `states` stream (`ready(port:)`, `failed`, `stopped`). A taken port is `failed`, never another port |
+| `MCPAccess`, `MCPTokenList`, `MCPClient` | Token → client. M2 backs `MCPAccess` with the Keychain; `MCPTokenList` (memory, constant-time compare) is for tests and the dev server. `makeToken()` = 32 bytes from `SecRandomCopyBytes`, base64url (43 characters) |
+| `MCPServer.Activity` | Client and tool name per call, for the last-read row and reading indicator (M2). No arguments |
+| `mindmap-mcp-dev` | Developer executable, not shipped: two sample maps in an in-memory store, prints the URL, token and `claude mcp add` line |
+
+**Order of checks** (each answers and stops): path not `/mcp` → 404; any `Origin` → 403; `Host` not `127.0.0.1`, `localhost` or `[::1]` → 403 (a DNS-rebinding page names its own host); not POST → 405 `Allow: POST` (no GET stream, no sessions to DELETE); bearer token missing or unknown → 401 `WWW-Authenticate: Bearer`; over the rate → 429 `Retry-After`; not `application/json` → 415; then JSON-RPC (-32700 parse, -32600 batch or not 2.0, `id` null).
+
+**Eras.** A request whose `_meta` has `io.modelcontextprotocol/protocolVersion` (other than a legacy version) is served as 2026-07-28: `MCP-Protocol-Version`, `Mcp-Method` and, for `tools/call`, `Mcp-Name` (base64 sentinel decoded) must match the body, else 400 -32020; an unknown version is 400 -32022 with `supported`; missing `clientCapabilities` is 400 -32602; unknown method 404 -32601; results carry `resultType: "complete"` and `serverInfo` in `_meta`; `tools/list` and `server/discover` carry `ttlMs` 3,600,000 and `cacheScope: "private"`. Anything else is legacy: `initialize` echoes 2025-11-25 or 2025-06-18 when asked, else answers 2025-11-25; later requests need one of those in `MCP-Protocol-Version` (absent means 2025-03-26, refused); `ping`; JSON-RPC errors with HTTP 200. No era mints `Mcp-Session-Id`. Notifications get 202. Replies are always one JSON object, never SSE.
+
+**Limits** [Đề xuất values, in `MCPServer.Configuration`]: body 64 KiB (413 before reading it), headers 16 KiB (431), `Transfer-Encoding` refused (411; every recorded client sends `Content-Length`), 120 requests per client per sliding minute (any method), 20,000 Markdown characters per tool result (`get_map` sizes its outline with `TextLimit.characters`, the rest is cut with a note; `structuredContent` is never cut, so its size follows the tool's own `limit`), 16 connections, 30 s idle.
+
+**Tool output.** Markdown text plus `structuredContent` with snake_case keys (`map_id`, `topic_id`, `topic_count`, `omitted_topic_count`…). `get_map` writes `- Title <!-- topic_id: UUID -->` per topic, two spaces per level, notes indented under it, and ends with "N more topics did not fit…" or "N topics below depth D not shown." No `outputSchema` yet, so clients do not validate the JSON against one. `instructions` tell the model that map text is data, not commands.
+
+**Changed from the design:** errors as `isError` results (above); 2025-06-18 accepted besides 2025-11-25 (mid-2025 clients still ask for it; the four tools use nothing that differs); a `Host` check besides `Origin`; the Markdown is ours, not `MarkdownOutline.export`, because MM-47 returns rows.
+
+**Tests** (`Tests/MindMapMCPTests`, 43): recorded requests replayed through `MCPServer` (`Fixtures/README.md`): Claude Code 2.1.283 on 2026-07-28 (it probes with `server/discover` first), the same client falling back to `initialize` 2025-11-25 when the probe gets an empty 400, and MCP Inspector CLI 2.9.0 (2025-11-25, also sends a GET for a stream). No recording from Cursor or VS Code: neither was installed on the Mac used. Also each check above, both eras, the four tools in Vietnamese and English, Recently Deleted, the limits, the HTTP parser, and a real `URLSession` round trip through `MCPListener` on a free port.
+
+**MCP Inspector run** (2026-10-02, `npx @modelcontextprotocol/inspector --cli http://127.0.0.1:51947/mcp --transport http --header "Authorization: Bearer …"` against `mindmap-mcp-dev`): `tools/list` returned the four tools with their schemas and annotations; `tools/call` for `list_maps`, `search` (`query=thiet ke`: both Vietnamese topics, title hit first), `get_map` (the outline with topic IDs and notes) and `get_topic` (note, subtopics, the cross-link with its label) returned text and structured content, `isError` false. The Inspector CLI speaks 2025-11-25 (seen in its recorded requests). Claude Code 2.1.283 (`claude -p` with an HTTP `--mcp-config`) was also pointed at the dev server, called `list_maps`, `search` and `get_topic`, and answered with the topic's note; which era it used against this server was not logged *[Inference: 2026-07-28, since it probes with `server/discover` and the server answers it]*. curl checks: an `Origin` header gave 403, no token 401, GET 405.
+
+Try it: `swift run --package-path Packages/MindMapCore mindmap-mcp-dev` (optional port argument; token from `MINDMAP_MCP_TOKEN` or printed).
+
 ## Proposed tasks
 
 For the leader to create; the names are placeholders.
@@ -175,7 +203,7 @@ For the leader to create; the names are placeholders.
 | | Task | Done when | Depends on |
 | --- | --- | --- | --- |
 | Q1 | Query layer `MindMapQuery` ✓ MM-47 | `MapQueries` and `TopicRef` as above; Vietnamese and English tests for search (diacritics, đ), outline limits, deleted maps left out, live state preferred; docs updated | MM-15, MM-31 (done) |
-| M1 | MCP server core `MindMapMCP` | JSON-RPC for 2026-07-28 and 2025-11-25; the four read tools; Streamable HTTP on loopback with token and `Origin` checks; size and rate limits; tests with recorded requests from Claude Code, Cursor and VS Code; MCP Inspector run noted | Q1 |
+| M1 | MCP server core `MindMapMCP` ✓ MM-40 | JSON-RPC for 2026-07-28 and 2025-11-25; the four read tools; Streamable HTTP on loopback with token and `Origin` checks; size and rate limits; tests with recorded requests from Claude Code, Cursor and VS Code; MCP Inspector run noted | Q1 |
 | M2 | MCP in the Mac app | Settings ▸ AI Apps (off by default), clients and Keychain tokens, copy snippets for Claude Code, ChatGPT desktop (Codex config), Cursor and VS Code; reading indicator; menu items; `network.server`; privacy.md, privacy policy, Review Notes; en and vi; UI test for the switch | M1 |
 | M3 | Spike: helper in the Mac App Store | A sandboxed `mindmap-mcp` relay in `Contents/Helpers`, launched by Claude Desktop from a TestFlight build; answer whether App Review and signing accept it, and whether a `.mcpb` can point at it. Ship it (M4) only if yes | M2 |
 | M4 | Claude Desktop through the helper | Helper relays stdio to the app, clear error when the app is closed, own privacy manifest, config snippet or `.mcpb` | M3 |
