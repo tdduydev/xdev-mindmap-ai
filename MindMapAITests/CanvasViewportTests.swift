@@ -62,7 +62,7 @@ struct CanvasViewportTests {
         #expect(camera.visibleRect.contains(map))
         let centre = camera.toView(CGPoint(x: map.midX, y: map.midY))
         #expect(abs(centre.x - 400) < 1e-9 && abs(centre.y - 300) < 1e-9)
-        #expect(camera.scale == (800 - 80) / 2400)
+        #expect(camera.scale == CGFloat(800 - 80) / 2400)
     }
 
     @Test func fitDoesNotEnlargePastTheLimit() {

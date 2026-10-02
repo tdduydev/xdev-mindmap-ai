@@ -14,6 +14,9 @@ final class CanvasModel {
         case centralTopic
         /// The central topic and its children fitted to the width (iPhone).
         case firstLevelWidth
+        /// The central topic and its children fitted to the view, at
+        /// accessibility text sizes where actual size shows only a few topics.
+        case firstLevel
     }
 
     let session: EditorSession
@@ -125,6 +128,9 @@ final class CanvasModel {
             apply(output.scene)
         }
         isLayingOut = false
+        // The last pass did not lay the topic out, so it is hidden or gone;
+        // keeping the request would jump to it after some later, unrelated edit.
+        if let request = pendingReveal, scene.topic(request.id) == nil { pendingReveal = nil }
     }
 
     private func apply(_ newScene: CanvasScene) {
@@ -159,6 +165,8 @@ final class CanvasModel {
             viewport.center(on: CGPoint(x: root.frame.midX, y: root.frame.midY))
         case .firstLevelWidth:
             viewport.fitWidth(scene.firstLevelBounds, padding: CanvasMetrics.revealMargin, limits: CanvasMetrics.fitZoomLimits)
+        case .firstLevel:
+            viewport.fit(scene.firstLevelBounds, padding: CanvasMetrics.revealMargin, limits: CanvasMetrics.fitZoomLimits)
         }
     }
 
@@ -256,7 +264,7 @@ final class CanvasModel {
         pendingReveal = nil
         if request.edit {
             beginEditing(request.id)
-            AccessibilityNotification.Announcement(Text("Topic added")).post()
+            AccessibilityNotification.Announcement(String(localized: "Topic added")).post()
         } else {
             reveal(request.id)
         }

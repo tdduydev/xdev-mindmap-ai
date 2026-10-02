@@ -91,8 +91,8 @@ enum CanvasMetrics {
     /// show topics popping in.
     static let cullingMargin: CGFloat = 0.25
     /// Below this zoom, titles are too small to read (under 4 pt); topics are
-    /// drawn as plain shapes in the edge layer instead of as views, which keeps
-    /// a whole 1,000-topic map at 60 fps.
+    /// drawn as plain shapes in the edge layer instead of as views, so a
+    /// zoomed-out large map is one `Canvas` rather than hundreds of views.
     static let detailZoomThreshold: CGFloat = 0.3
     /// Points one notch of a non-precise mouse wheel pans.
     static let wheelLineStep: CGFloat = 16

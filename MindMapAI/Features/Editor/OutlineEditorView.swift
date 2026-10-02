@@ -38,7 +38,6 @@ struct OutlineEditorView: View {
             if let node { session.selection = node }
         }
     }
-
 }
 
 struct OutlineRow: View {

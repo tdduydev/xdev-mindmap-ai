@@ -5,6 +5,7 @@ import MindMapDomain
 import MindMapGraph
 import MindMapLayout
 import MindMapPersistence
+import SwiftUI
 import Testing
 
 /// The canvas without a window: layout, camera, selection, inline editing and
@@ -76,6 +77,26 @@ struct CanvasModelTests {
         #expect(canvas.viewport.scale < 1)
         #expect(canvas.viewport.visibleRect.minX <= firstLevel.minX)
         #expect(canvas.viewport.visibleRect.maxX >= firstLevel.maxX)
+    }
+
+    @Test func accessibilityTextSizesFitTheFirstLevelInView() async throws {
+        var engine = try GraphEngine(state: .newMap(title: "Plan"))
+        let rootID = try #require(engine.state.map.rootNodeID)
+        for index in 0..<8 {
+            _ = try engine.execute(AddNodeCommand(nodeID: NodeID(), .child(of: rootID), title: "Main topic \(index)"))
+        }
+        try await repository.create(engine.state)
+        guard case .ready(let session) = await EditorSession.open(mapID: engine.state.map.id, repository: repository, onMapChange: { _ in }) else {
+            throw OpenFailed()
+        }
+        let canvas = CanvasModel(session: session)
+        canvas.initialPlacement = .firstLevel
+        canvas.setViewSize(CGSize(width: 390, height: 300))
+        canvas.setTextSpecs(.designSizes())
+        await canvas.layoutSettled()
+
+        #expect(canvas.viewport.visibleRect.contains(canvas.scene.firstLevelBounds))
+        #expect(canvas.viewport.scale < 1)
     }
 
     // MARK: Measuring
@@ -245,6 +266,111 @@ struct CanvasModelTests {
         #expect(canvas.viewport.scale == 1)
     }
 
+    @Test func tappingATopicSelectsIt() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        let child = try await addChild("Research", to: rootID, in: canvas)
+        canvas.select(rootID)
+        #expect(canvas.isDetailed)
+        let frame = try #require(canvas.scene.topic(child)?.frame)
+
+        canvas.tap(at: canvas.viewport.toView(CGPoint(x: frame.midX, y: frame.midY)))
+
+        #expect(canvas.session.selection == child)
+        #expect(canvas.topic(at: canvas.viewport.toView(CGPoint(x: frame.midX, y: frame.midY)))?.id == child)
+    }
+
+    @Test func selectingAnotherTopicCommitsTheEdit() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        let first = try await addChild("Research", to: rootID, in: canvas)
+        let second = try await addChild("Design", to: rootID, in: canvas)
+
+        canvas.beginEditing(first)
+        canvas.editingDraft = "User research"
+        canvas.select(second)
+        await canvas.layoutSettled()
+
+        #expect(canvas.editingID == nil)
+        #expect(canvas.session.selection == second)
+        #expect(canvas.scene.topic(first)?.title == "User research")
+    }
+
+    @Test func addingAChildFromTheTopicActionUndoesAndRedoes() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        let branch = try await addChild("Research", to: rootID, in: canvas)
+        canvas.select(rootID)
+
+        canvas.addChild(of: branch)
+        let id = try #require(canvas.session.selection)
+        canvas.takeFocusRequest()
+        await canvas.layoutSettled()
+        #expect(id != branch)
+        #expect(canvas.session.engine.state.node(id)?.parentID == branch)
+        #expect(canvas.scene.topic(id)?.level == 2)
+        #expect(canvas.editingID == id)
+
+        canvas.commitEditing()
+        canvas.session.undo()
+        await canvas.layoutSettled()
+        #expect(canvas.scene.topic(id) == nil)
+        #expect(canvas.editingID == nil)
+
+        canvas.session.redo()
+        await canvas.layoutSettled()
+        #expect(canvas.scene.topic(id)?.level == 2)
+    }
+
+    @Test func theCentralTopicCannotBeDeleted() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+
+        canvas.delete(rootID)
+        await canvas.layoutSettled()
+
+        #expect(canvas.scene.topic(rootID) != nil)
+        #expect(!canvas.session.canUndo)
+    }
+
+    @Test func collapsingAnAncestorMovesTheSelectionToIt() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        let branch = try await addChild("Research", to: rootID, in: canvas)
+        let leaf = try await addChild("Interviews", to: branch, in: canvas)
+        canvas.select(leaf)
+
+        canvas.toggleCollapsed(branch)
+        await canvas.layoutSettled()
+
+        #expect(canvas.scene.topic(leaf) == nil)
+        #expect(canvas.session.selection == branch)
+    }
+
+    @Test func aRevealForATopicThatIsNotLaidOutIsDropped() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        let branch = try await addChild("Research", to: rootID, in: canvas)
+        let hidden = try await addChild("Interviews", to: branch, in: canvas)
+        canvas.toggleCollapsed(branch)
+        await canvas.layoutSettled()
+
+        // A focus request for a topic the next pass will not lay out.
+        canvas.session.rename(rootID, to: "Plan B")
+        canvas.session.focusRequest = hidden
+        canvas.takeFocusRequest()
+        await canvas.layoutSettled()
+
+        // Showing the topic later must not jump to it or open its title.
+        canvas.pan(by: CGSize(width: 3000, height: 0))
+        let camera = canvas.viewport
+        canvas.toggleCollapsed(branch)
+        await canvas.layoutSettled()
+        #expect(canvas.scene.topic(hidden) != nil)
+        #expect(canvas.editingID == nil)
+        #expect(canvas.viewport == camera)
+    }
+
     @Test func collapsingShowsTheHiddenCountAndExpandingRestores() async throws {
         let canvas = try await open()
         let rootID = try #require(canvas.session.rootID)
@@ -297,6 +423,50 @@ struct CanvasModelTests {
         #expect(canvas.viewport.scale <= 1)
     }
 
+    @Test func pinchAndScrollZoomStayWithinTheLimits() async throws {
+        let canvas = try await open()
+
+        canvas.zoom(to: 40, anchor: CGPoint(x: 100, y: 100))
+        #expect(canvas.viewport.scale == CanvasMetrics.zoomLimits.upperBound)
+        #expect(!canvas.canZoomIn)
+        canvas.zoomIn()
+        #expect(canvas.viewport.scale == CanvasMetrics.zoomLimits.upperBound)
+
+        canvas.zoom(to: 0.001, anchor: CGPoint(x: 100, y: 100))
+        #expect(canvas.viewport.scale == CanvasMetrics.zoomLimits.lowerBound)
+        #expect(!canvas.isDetailed)
+    }
+
+    @Test func zoomKeepsTheTopicUnderThePointerInPlace() async throws {
+        let canvas = try await open()
+        let rootID = try #require(canvas.session.rootID)
+        let child = try await addChild("Research", to: rootID, in: canvas)
+        let frame = try #require(canvas.scene.topic(child)?.frame)
+        let pointer = canvas.viewport.toView(CGPoint(x: frame.midX, y: frame.midY))
+
+        canvas.zoom(to: 2.5, anchor: pointer)
+
+        #expect(canvas.topic(at: pointer)?.id == child)
+        let after = canvas.viewport.toView(CGPoint(x: frame.midX, y: frame.midY))
+        #expect(abs(after.x - pointer.x) < 1e-9 && abs(after.y - pointer.y) < 1e-9)
+    }
+
+    @Test func zoomToFitOnALargeMapLeavesTheDetailZoom() async throws {
+        let canvas = try await open(Self.largeMap(count: 1_000))
+
+        canvas.zoomToFit()
+
+        let fitting = min(
+            (Self.viewSize.width - 2 * CanvasMetrics.fitPadding) / canvas.scene.bounds.width,
+            (Self.viewSize.height - 2 * CanvasMetrics.fitPadding) / canvas.scene.bounds.height
+        )
+        #expect(canvas.viewport.scale == max(fitting, CanvasMetrics.fitZoomLimits.lowerBound))
+        let centre = canvas.viewport.toView(CGPoint(x: canvas.scene.bounds.midX, y: canvas.scene.bounds.midY))
+        #expect(abs(centre.x - Self.viewSize.width / 2) < 1e-6 && abs(centre.y - Self.viewSize.height / 2) < 1e-6)
+        // Topics are shapes in the edge layer here, not 1,000 views.
+        #expect(!canvas.isDetailed)
+    }
+
     // MARK: Layout and culling
 
     @Test func partialLayoutsMatchAFullLayout() async throws {
@@ -334,6 +504,37 @@ struct CanvasModelTests {
         let connectors = canvas.scene.connectors(in: rect)
         #expect(connectors.count < canvas.scene.layout?.connectors.count ?? 0)
         #expect(connectors.allSatisfy { $0.path.controlBounds.intersects(rect) })
+        // Every connector left out lies wholly outside the culling rectangle.
+        let drawn = Set(connectors.map(\.child))
+        let skipped = canvas.scene.layout?.connectors.filter { !drawn.contains($0.key) } ?? [:]
+        #expect(skipped.values.allSatisfy { !$0.controlBounds.intersects(rect) })
+    }
+
+    @Test func panningOffTheMapDrawsNothingAndPanningBackRestores() async throws {
+        let canvas = try await open(Self.largeMap(count: 200))
+        let before = canvas.visibleTopics.map(\.id)
+        #expect(!before.isEmpty)
+
+        canvas.pan(by: CGSize(width: 100_000, height: 0))
+        #expect(canvas.visibleTopics.isEmpty)
+        #expect(canvas.scene.connectors(in: canvas.cullingRect).isEmpty)
+        let drawing = CanvasDrawing.make(model: canvas, colorScheme: .light, contrast: .standard)
+        #expect(drawing.edges.isEmpty)
+
+        canvas.pan(by: CGSize(width: -100_000, height: 0))
+        #expect(canvas.visibleTopics.map(\.id) == before)
+    }
+
+    @Test func belowTheDetailZoomTopicsAreDrawnAsShapes() async throws {
+        let canvas = try await open(Self.largeMap(count: 200))
+        #expect(CanvasDrawing.make(model: canvas, colorScheme: .light, contrast: .standard).fills.isEmpty)
+
+        canvas.zoomToFit()
+        #expect(!canvas.isDetailed)
+        let drawing = CanvasDrawing.make(model: canvas, colorScheme: .light, contrast: .standard)
+        #expect(!drawing.fills.isEmpty)
+        // The central topic is selected on open, so it gets the ring.
+        #expect(!drawing.selection.isEmpty)
     }
 
     /// NFR-PERF-01 cannot be measured without a screen; this times the work the
@@ -373,16 +574,56 @@ struct CanvasModelTests {
                 drawn += output.scene.topics(in: rect).count + output.scene.connectors(in: rect).count
             }
         }
-        let wholeMap = output.scene.topics(in: output.scene.bounds).count
+        // What Zoom to Fit shows: the zoom stops at its lower limit, so a tall
+        // map may not fit in the view.
+        var fitted = CanvasViewport(size: Self.viewSize)
+        fitted.fit(output.scene.bounds, padding: CanvasMetrics.fitPadding, limits: CanvasMetrics.fitZoomLimits)
+        let atFit = output.scene.topics(in: fitted.cullingRect(margin: CanvasMetrics.cullingMargin)).count
+        let mapSize = output.scene.bounds.size
 
         print("""
         [MM-3 timings, 1,000 topics, \(Self.buildKind)] \
         measure + full layout: \(fullTime); \
         one rename, re-measure + partial layout: \(updateTime); \
         culling per frame: \(cullTime / frames) (\(drawn / frames) topics and edges per frame at 100%); \
-        topics at Zoom to Fit: \(wholeMap)
+        map \(Int(mapSize.width)) × \(Int(mapSize.height)) pt, Zoom to Fit at \(Int((fitted.scale * 100).rounded()))% \
+        builds \(atFit) of 1,000 topics in a \(Int(Self.viewSize.width)) × \(Int(Self.viewSize.height)) view
         """)
         #expect(drawn > 0)
+    }
+
+    /// The main-actor work of one pan frame through the model: culling plus
+    /// building the edge layer's paths, at 100% and at Zoom to Fit (where the
+    /// topics are shapes too). It times the model only; SwiftUI's own layout
+    /// and rendering are not in it, so it is not a frame rate.
+    @Test func frameWorkForAThousandTopics() async throws {
+        let canvas = try await open(Self.largeMap(count: 1_000))
+        let clock = ContinuousClock()
+        let frames = 120
+
+        func perFrame() -> (Duration, Int) {
+            var topics = 0
+            let time = clock.measure {
+                for frame in 0..<frames {
+                    canvas.pan(by: CGSize(width: 0, height: frame.isMultiple(of: 2) ? -7 : 5))
+                    topics += canvas.visibleTopics.count
+                    _ = CanvasDrawing.make(model: canvas, colorScheme: .light, contrast: .standard)
+                }
+            }
+            return (time / frames, topics / frames)
+        }
+
+        canvas.zoomToActualSize()
+        let (actualSize, actualTopics) = perFrame()
+        canvas.zoomToFit()
+        let (fitted, fittedTopics) = perFrame()
+
+        print("""
+        [MM-3 frame work, 1,000 topics, \(Self.buildKind)] \
+        at 100%: \(actualSize) per frame (\(actualTopics) topics built); \
+        at Zoom to Fit (\(Int((canvas.viewport.scale * 100).rounded()))%): \(fitted) per frame (\(fittedTopics) topic shapes)
+        """)
+        #expect(actualTopics > 0 && fittedTopics > actualTopics)
     }
 
     // MARK: Fixtures

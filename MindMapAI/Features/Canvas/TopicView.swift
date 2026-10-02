@@ -1,4 +1,5 @@
 import MindMapDomain
+import MindMapLayout
 import SwiftUI
 
 /// One topic card at 100% zoom; the canvas scales and places it. Takes plain
@@ -13,6 +14,7 @@ struct TopicView: View {
     let isEditing: Bool
     let model: CanvasModel
     let rotorNamespace: Namespace.ID
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovering = false
 
     var body: some View {
@@ -32,6 +34,7 @@ struct TopicView: View {
         .overlay {
             if isSelected { selectionRing }
         }
+        .animation(Motion.selection(reduceMotion: reduceMotion), value: isSelected)
         .overlay(alignment: topic.side == .left ? .leading : .trailing) {
             if topic.hiddenDescendantCount > 0 { badge }
         }
@@ -76,7 +79,9 @@ struct TopicView: View {
 
     /// The count of hidden topics, on the side away from the parent; a click expands.
     private var badge: some View {
-        Button {
+        // Alignment guides run outside the main actor; read the gap here.
+        let gap = CanvasMetrics.collapseBadgeGap
+        return Button {
             model.toggleCollapsed(topic.id)
         } label: {
             Text(topic.hiddenDescendantCount, format: .number)
@@ -88,8 +93,8 @@ struct TopicView: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .alignmentGuide(.trailing) { $0[.leading] - CanvasMetrics.collapseBadgeGap }
-        .alignmentGuide(.leading) { $0[.trailing] + CanvasMetrics.collapseBadgeGap }
+        .alignmentGuide(.trailing) { $0[.leading] - gap }
+        .alignmentGuide(.leading) { $0[.trailing] + gap }
         // The topic element already offers Expand Topic.
         .accessibilityHidden(true)
     }

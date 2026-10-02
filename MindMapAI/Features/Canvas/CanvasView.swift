@@ -65,7 +65,11 @@ struct CanvasView: View {
         .focusedSceneValue(\.canvasModel, model)
         .onAppear {
             #if os(iOS)
-            if horizontalSizeClass == .compact { model.initialPlacement = .firstLevelWidth }
+            if dynamicTypeSize.isAccessibilitySize {
+                model.initialPlacement = .firstLevel
+            } else if horizontalSizeClass == .compact {
+                model.initialPlacement = .firstLevelWidth
+            }
             #endif
             model.setTextSpecs(textSpecs)
             model.revealSelection()

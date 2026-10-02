@@ -37,8 +37,23 @@ Only the view knows how a title wraps, so the canvas measures. Each level has a 
 ## Drawing and culling
 
 - The camera transforms each visible topic (`scaleEffect`, `position`) and the edge layer (`translateBy`, `scaleBy`), so a pan re-runs no topic's body.
-- Only topics whose frame meets the visible rectangle plus a quarter of its size on each side are built, and only edges whose control-point box meets it are stroked (FR-CNV-06). The test is a linear scan: 1,000 rectangle tests take microseconds.
-- Below 30% (`CanvasMetrics.detailZoomThreshold`) titles are under 4 pt and unreadable; topics become filled shapes in the edge layer, so Zoom to Fit on a 1,000-topic map draws one `Canvas`, not 1,000 views. A tap there selects the topic under it; a double tap edits it and zooms back to 100%.
+- Only topics whose frame meets the visible rectangle plus a quarter of its size on each side are built, and only edges whose control-point box meets it are stroked (FR-CNV-06). The test is a linear scan; the scene works out each curve's box once when it is built, not on every frame.
+- Below 30% (`CanvasMetrics.detailZoomThreshold`) titles are under 4 pt and unreadable; topics become filled shapes in the edge layer, so a zoomed-out large map draws one `Canvas`, not hundreds of views. A tap there selects the topic under it; a double tap edits it and zooms back to 100%.
+- Zoom to Fit stops at 10%, so a tall map does not always fit: the 1,000-topic test map is 2,487 × 15,812 pt and shows about 680 topics in a 1000 × 700 view.
+
+### Measured (Mac M1)
+
+`timingsForAThousandTopics` and `frameWorkForAThousandTopics` print these; they do not fail on time. The release column comes from running those two tests with `-configuration Release ENABLE_TESTABILITY=YES ENABLE_HARDENED_RUNTIME=NO` (the hardened runtime refuses to load the test bundle into a Release app).
+
+| Work at 1,000 topics | Debug | Release |
+| --- | --- | --- |
+| Measure every title and lay out the whole map | 22–24 ms | 14 ms |
+| One rename: re-measure and partial layout | 5–6 ms | 1.8 ms |
+| Cull topics and connectors, per frame | 0.23 ms | 0.012 ms |
+| Model work per pan frame (cull and build the edge layer's paths) at 100% | 0.28 ms | 0.035 ms |
+| The same at Zoom to Fit (10%, ~680 topic shapes) | 1.6 ms | 0.54 ms |
+
+These time the model only. SwiftUI's layout and rendering are not in them, so they are not a frame rate; 60 fps at 1,000 topics (NFR-PERF-01) still has to be checked with Instruments.
 
 ## Input
 
@@ -50,15 +65,18 @@ Only the view knows how a title wraps, so the canvas measures. Each level has a 
 | Edit title | Double-click, Return, Topic ▸ Rename Topic; Return commits, Esc cancels | Double-tap, Return on a keyboard |
 | Canvas or outline | View ▸ As Canvas ⌘1, As Outline ⌘2, toolbar picker | Toolbar picker |
 
+Collapsing a topic that holds the selection selects the collapsed topic, so Delete and Rename never act on a topic nobody sees.
+
 The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas. Return opens the title from the canvas's key handler, not as a menu key equivalent: a bare Return in the menu would never reach text fields.
 
 ## Accessibility
 
-Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does), actions Collapse/Expand, Add Child Topic, Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. The outline stays the full alternative (FR-EDT-16).
+Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does), actions Collapse/Expand, Add Child Topic, Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. At accessibility text sizes (iOS, iPadOS) the canvas opens with the central topic and its children fitted to the view. The outline stays the full alternative (FR-EDT-16).
 
 ## Not done yet
 
-- Camera and relayout animation (`Motion.camera`, `Motion.relayout`): the edge layer is not animatable yet, so topics would move while their edges jump. Everything moves at once for now.
+- Camera and relayout animation (`Motion.camera`, `Motion.relayout`): the edge layer is not animatable yet, so topics would move while their edges jump. Everything moves at once for now; only the selection ring animates (`Motion.selection`).
+- A frame-rate measurement with Instruments on a Mac and an iPad at 1,000 topics, including the empty VoiceOver frames kept below the detail zoom.
 - Per-level gaps: `LayoutOptions` takes one horizontal and one vertical gap, so the canvas uses the sub-topic gaps (40, 10) for every level.
 - Cross-link labels and cross-links in each topic's accessibility custom content.
 - Multi-selection, drag and drop, context menus, arrow-key navigation (MM-5).

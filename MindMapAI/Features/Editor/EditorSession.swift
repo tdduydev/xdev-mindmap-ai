@@ -147,6 +147,9 @@ final class EditorSession {
         guard let node = engine.state.node(id) else { return }
         let name = node.isCollapsed ? String(localized: "Expand Topic") : String(localized: "Collapse Topic")
         perform(UpdateNodeCommand(nodeID: id, .isCollapsed(!node.isCollapsed)), named: name)
+        // Collapsing an ancestor of the selection (the canvas badge, a VoiceOver
+        // action) would leave Delete and Rename acting on a topic nobody sees.
+        keepSelectionVisible()
     }
 
     func toggleSelectionCollapsed() {

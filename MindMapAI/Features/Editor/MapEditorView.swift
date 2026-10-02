@@ -1,3 +1,4 @@
+import MindMapDomain
 import SwiftUI
 
 /// One open map, as a canvas or an outline. Both show the same session, so

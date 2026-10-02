@@ -24,12 +24,23 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
 /// visible topics in reading order. Built off the main actor; culling queries
 /// it every frame.
 nonisolated struct CanvasScene: Sendable {
+    /// A curve with the box culling tests it against, worked out once per
+    /// layout rather than on every frame of a pan.
+    struct Curve<ID: Sendable>: Sendable {
+        let id: ID
+        let path: EdgePath
+        let bounds: CGRect
+    }
+
     private(set) var layout: MapLayout?
     /// Visible topics in outline order (pre-order), which is also the
     /// VoiceOver and rotor order.
     private(set) var topics: [CanvasTopic]
     private var index: [NodeID: Int]
     private(set) var crossLinkTypes: [EdgeID: EdgeType]
+    /// Hierarchy connectors, keyed by the child they lead to.
+    private let connectorCurves: [Curve<NodeID>]
+    private let crossLinkCurves: [Curve<EdgeID>]
 
     static let empty = CanvasScene(layout: nil, topics: [], crossLinkTypes: [:])
 
@@ -41,6 +52,8 @@ nonisolated struct CanvasScene: Sendable {
         index.reserveCapacity(topics.count)
         for (position, topic) in topics.enumerated() { index[topic.id] = position }
         self.index = index
+        connectorCurves = layout?.connectors.map { Curve(id: $0.key, path: $0.value, bounds: $0.value.controlBounds) } ?? []
+        crossLinkCurves = layout?.crossLinks.map { Curve(id: $0.key, path: $0.value, bounds: $0.value.controlBounds) } ?? []
     }
 
     var bounds: CGRect { layout?.bounds ?? .zero }
@@ -52,8 +65,9 @@ nonisolated struct CanvasScene: Sendable {
 
     // MARK: Culling
     //
-    // A linear scan: 1,000 rectangle tests take microseconds, well inside a
-    // frame, so a spatial index would add code without a measurable gain.
+    // A linear scan over precomputed boxes: at 1,000 topics it stays far
+    // inside a frame (see `timingsForAThousandTopics`), so a spatial index
+    // would add code without a measurable gain.
 
     /// Topics whose frame meets `rect`, in reading order.
     func topics(in rect: CGRect) -> [CanvasTopic] {
@@ -63,17 +77,11 @@ nonisolated struct CanvasScene: Sendable {
     /// Connectors into visible topics whose curve may cross `rect`. A cubic
     /// Bézier stays inside the box of its four points, so that box is the test.
     func connectors(in rect: CGRect) -> [(child: NodeID, path: EdgePath)] {
-        guard let layout else { return [] }
-        return layout.connectors.compactMap { child, path in
-            path.controlBounds.intersects(rect) ? (child, path) : nil
-        }
+        connectorCurves.compactMap { $0.bounds.intersects(rect) ? ($0.id, $0.path) : nil }
     }
 
     func crossLinks(in rect: CGRect) -> [(id: EdgeID, path: EdgePath)] {
-        guard let layout else { return [] }
-        return layout.crossLinks.compactMap { id, path in
-            path.controlBounds.intersects(rect) ? (id, path) : nil
-        }
+        crossLinkCurves.compactMap { $0.bounds.intersects(rect) ? ($0.id, $0.path) : nil }
     }
 
     /// The central topic and its children, which the iPhone fits to the width at first.
@@ -84,12 +92,13 @@ nonisolated struct CanvasScene: Sendable {
 
 extension EdgePath {
     nonisolated var controlBounds: CGRect {
-        let xs = [start.x, control1.x, control2.x, end.x]
-        let ys = [start.y, control1.y, control2.y, end.y]
-        let minX = xs.min() ?? 0, minY = ys.min() ?? 0
+        let minX = min(start.x, control1.x, control2.x, end.x)
+        let maxX = max(start.x, control1.x, control2.x, end.x)
+        let minY = min(start.y, control1.y, control2.y, end.y)
+        let maxY = max(start.y, control1.y, control2.y, end.y)
         // A horizontal or vertical line has zero area, which `intersects` treats
         // as empty; give it a hairline so it is still found.
-        return CGRect(x: minX, y: minY, width: max((xs.max() ?? 0) - minX, 1), height: max((ys.max() ?? 0) - minY, 1))
+        return CGRect(x: minX, y: minY, width: max(maxX - minX, 1), height: max(maxY - minY, 1))
     }
 }
 
