@@ -77,6 +77,19 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 - **MM-14** App Store submission kit for the Mac-only first release: metadata in English and Vietnamese, screenshots, Review Notes on AI availability, privacy and accessibility labels, age rating, TestFlight builds as 0.x, 1.0.0 for the public release.
 
+## UI tests
+
+UI tests (XCUITest) run on macOS and the iOS Simulator through `scripts/ui-tests.sh`; `scripts/ci.sh` stays fast and does not run them. A feature with new UI ships with its UI tests once MM-22 is in.
+
+- **MM-22** Foundation: the `MindMapAIUITests` target, a `-uitest` launch mode (in-memory store, no animation, fixed locale, no onboarding), fixture maps, one accessibility identifier convention, page objects, `scripts/ui-tests.sh`, `docs/testing.md`.
+- **MM-23** Library, outline editor, menus and shortcuts, Settings, search, in English and Vietnamese.
+- **MM-24** Canvas: selection, inline editing, zoom and pan, drag to reparent, multi-select, copy and paste, a 1,000-topic map.
+- **MM-25** AI flows with the mock provider, including partial accept, discard, undo and the unavailable states.
+- **MM-26** Import and export, Recently Deleted, voice input with a fake transcriber.
+- **MM-27** Pro purchase and Restore Purchases with StoreKitTest.
+- **MM-28** Automated accessibility audits, Dynamic Type, Increase Contrast and Vietnamese.
+- **MM-29** App Store screenshots taken by a UI test, in English and Vietnamese, light and dark.
+
 ## Cross-cutting
 
 These run beside the phases above once their dependency is done.

@@ -10,7 +10,10 @@ struct SettingsView: View {
         #if os(macOS)
         TabView {
             Tab("General", systemImage: "gearshape") {
-                Form { GeneralSettingsSection() }
+                Form {
+                    GeneralSettingsSection()
+                    AISettingsSection()
+                }
             }
             Tab("Pro", systemImage: "star") {
                 Form { ProSettingsSection() }
@@ -29,6 +32,7 @@ struct SettingsView: View {
             Form {
                 GeneralSettingsSection()
                 ProSettingsSection()
+                AISettingsSection()
                 PrivacySettingsSection()
                 AboutSettingsSection()
             }
@@ -57,14 +61,16 @@ struct GeneralSettingsSection: View {
     }
 }
 
-/// Plain statements of where data goes. Each row must stay true: add the AI
-/// row when on-device AI ships, and change Data Storage when iCloud sync does.
+/// Plain statements of where data goes. Each row must stay true: change Data
+/// Storage when iCloud sync ships, and the AI row if AI ever leaves the device.
 struct PrivacySettingsSection: View {
     var body: some View {
         Section {
             LabeledContent("Data Storage", value: String(localized: "On this device"))
             LabeledContent("xDev Servers", value: String(localized: "None. Your maps are never sent to xDev."))
             LabeledContent("Analytics", value: String(localized: "None"))
+            LabeledContent("AI", value: String(localized: "On this device. Nothing is sent to xDev."))
+            Link("Privacy Policy", destination: AppLinks.privacyPolicy)
         } header: {
             Text("Privacy")
         } footer: {
@@ -82,6 +88,7 @@ struct AboutSettingsSection: View {
             Text("by xDev")
                 .foregroundStyle(.secondary)
             Link("Website", destination: AppLinks.website)
+            Link("Support", destination: AppLinks.support)
         }
     }
 
