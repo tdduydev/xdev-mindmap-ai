@@ -8,4 +8,7 @@ enum Palette {
     static let favorite = Color(.favorite)
     static let warningFill = Color(.warningFill)
     static let warningText = Color(.warningText)
+    /// Background of a topic matching Find. A system color, which has dark and
+    /// high-contrast variants, until the SearchMatch token from MM-0k is on main.
+    static let searchMatch = Color.yellow.opacity(0.3)
 }

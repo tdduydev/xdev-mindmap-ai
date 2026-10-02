@@ -55,6 +55,22 @@ struct MapCommands: Commands {
                 .disabled(editor?.canDeleteSelection != true)
         }
 
+        // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            Menu("Find") {
+                Button("Find…") { editor?.showFind() }
+                    .keyboardShortcut("f")
+                    .disabled(editor == nil)
+                Button("Find Next") { editor?.findNext() }
+                    .keyboardShortcut("g")
+                    .disabled(editor?.hasFindMatches != true)
+                Button("Find Previous") { editor?.findPrevious() }
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .disabled(editor?.hasFindMatches != true)
+            }
+        }
+
         CommandGroup(replacing: .help) {
             Link("MindMap AI Website", destination: AppLinks.website)
         }

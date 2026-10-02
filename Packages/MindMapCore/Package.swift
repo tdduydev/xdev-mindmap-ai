@@ -13,13 +13,16 @@ let package = Package(
         .library(name: "MindMapDomain", targets: ["MindMapDomain"]),
         .library(name: "MindMapGraph", targets: ["MindMapGraph"]),
         .library(name: "MindMapPersistence", targets: ["MindMapPersistence"]),
+        .library(name: "MindMapSearch", targets: ["MindMapSearch"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
         .target(name: "MindMapGraph", dependencies: ["MindMapDomain"]),
         .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph"]),
         .testTarget(name: "MindMapPersistenceTests", dependencies: ["MindMapPersistence"]),
+        .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch"]),
     ]
 )

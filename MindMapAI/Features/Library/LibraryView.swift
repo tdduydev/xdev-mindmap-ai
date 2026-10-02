@@ -1,17 +1,20 @@
 import MindMapDomain
+import MindMapSearch
 import SwiftUI
 
 struct LibraryView: View {
-    let model: LibraryModel
+    @Bindable var model: LibraryModel
     let section: LibrarySection
     @Binding var selection: MapID?
     @State private var pendingDeletion: MindMap?
 
     var body: some View {
-        let maps = model.maps(in: section)
+        let rows = rows
+        let maps = rows.map(\.map)
         List(selection: $selection) {
-            ForEach(maps) { map in
-                MapRow(map: map)
+            ForEach(rows) { row in
+                let map = row.map
+                MapRow(map: map, excerpt: row.excerpt)
                     .contextMenu { menu(for: map) }
                     .swipeActions {
                         Button(role: .destructive) {
@@ -23,9 +26,17 @@ struct LibraryView: View {
             }
         }
         .overlay {
-            if model.hasLoaded, maps.isEmpty {
+            if model.isSearching {
+                if maps.isEmpty, model.searchedQuery == SearchQuery(model.searchText) {
+                    ContentUnavailableView.search(text: model.searchText)
+                }
+            } else if model.hasLoaded, maps.isEmpty {
                 emptyState
             }
+        }
+        .searchable(text: $model.searchText, prompt: Text("Maps and Topics"))
+        .task(id: SearchKey(text: model.searchText, generation: model.searchGeneration)) {
+            await model.search()
         }
         .navigationTitle(Text(section.title))
         .toolbar {
@@ -101,6 +112,30 @@ struct LibraryView: View {
         }
     }
 
+    private struct Row: Identifiable {
+        let map: MindMap
+        let excerpt: String?
+        var id: MapID { map.id }
+    }
+
+    private struct SearchKey: Equatable {
+        let text: String
+        let generation: Int
+    }
+
+    /// The section's maps, or while searching, the ones that match.
+    private var rows: [Row] {
+        guard model.isSearching else {
+            return model.maps(in: section).map { Row(map: $0, excerpt: nil) }
+        }
+        return model.searchRows(in: section).map { row in
+            switch row.match {
+            case .title: Row(map: row.map, excerpt: nil)
+            case .content(let excerpt): Row(map: row.map, excerpt: excerpt)
+            }
+        }
+    }
+
     private var isConfirmingDeletion: Binding<Bool> {
         Binding { pendingDeletion != nil } set: { if !$0 { pendingDeletion = nil } }
     }
@@ -127,6 +162,8 @@ struct LibraryView: View {
 
 struct MapRow: View {
     let map: MindMap
+    /// Topic text that matched a search, shown when the title did not match.
+    var excerpt: String?
 
     var body: some View {
         HStack(spacing: Spacing.sm) {
@@ -134,6 +171,11 @@ struct MapRow: View {
                 Text(map.title.isEmpty ? String(localized: "Untitled Map") : map.title)
                     .font(Typography.rowTitle)
                     .lineLimit(1)
+                if let excerpt {
+                    Text(excerpt)
+                        .font(Typography.rowDetail)
+                        .lineLimit(1)
+                }
                 Text("Edited \(map.updatedAt, format: .relative(presentation: .named))")
                     .font(Typography.rowDetail)
                     .foregroundStyle(.secondary)

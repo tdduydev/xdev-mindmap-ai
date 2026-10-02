@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%lld of %lld": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
     "About": {
       "localizations": {
         "vi": {
@@ -291,6 +301,16 @@
         }
       }
     },
+    "Done": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xong"
+          }
+        }
+      }
+    },
     "Duplicate Topic": {
       "localizations": {
         "vi": {
@@ -371,6 +391,66 @@
         }
       }
     },
+    "Find": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm"
+          }
+        }
+      }
+    },
+    "Find Match": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết quả tìm"
+          }
+        }
+      }
+    },
+    "Find Next": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm kết quả tiếp"
+          }
+        }
+      }
+    },
+    "Find Previous": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm kết quả trước"
+          }
+        }
+      }
+    },
+    "Find in map": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm trong sơ đồ"
+          }
+        }
+      }
+    },
+    "Find…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm…"
+          }
+        }
+      }
+    },
     "General": {
       "localizations": {
         "vi": {
@@ -407,6 +487,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Không tìm thấy sơ đồ"
+          }
+        }
+      }
+    },
+    "Maps and Topics": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sơ đồ và chủ đề"
           }
         }
       }
@@ -520,6 +610,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chưa có sơ đồ gần đây"
+          }
+        }
+      }
+    },
+    "No Results": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có kết quả"
           }
         }
       }
@@ -644,6 +744,16 @@
         }
       }
     },
+    "Reveal Topic": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện chủ đề"
+          }
+        }
+      }
+    },
     "Something Went Wrong": {
       "localizations": {
         "vi": {
@@ -763,6 +873,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trang web"
+          }
+        }
+      }
+    },
+    "^[%lld match](inflect: true)": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld kết quả"
           }
         }
       }

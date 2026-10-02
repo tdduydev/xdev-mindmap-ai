@@ -2,6 +2,7 @@ import Foundation
 import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
+import MindMapSearch
 import Observation
 import OSLog
 
@@ -23,6 +24,22 @@ final class EditorSession {
     /// A node whose title field should take focus, such as one just created.
     var focusRequest: NodeID?
     private(set) var saveFailed = false
+
+    /// Whether the find bar shows.
+    private(set) var isFinding = false
+    /// What the find field holds; matches follow it as it changes.
+    var findText = "" {
+        didSet { if findText != oldValue { updateFind(selectingFirst: true) } }
+    }
+    /// Topics matching `findText`, in reading order with every branch open.
+    private(set) var findMatches: [NodeID] = []
+    private(set) var findMatchSet: Set<NodeID> = []
+    /// The match Find Next and Find Previous last went to.
+    private(set) var currentMatch: NodeID?
+    /// Asks the find field to take focus, as ⌘F does when the bar is already open.
+    var findFocusRequest = false
+    /// A topic the outline should scroll into view.
+    var scrollRequest: NodeID?
 
     /// The window's undo manager, so the Edit menu, ⌘Z and the iOS undo gestures
     /// drive the engine's history. Set by the view.
@@ -230,6 +247,73 @@ final class EditorSession {
         }
     }
 
+    // MARK: Find
+
+    var hasFindMatches: Bool { !findMatches.isEmpty }
+
+    /// Position of the current match, from 1, for "2 of 5".
+    var currentMatchNumber: Int? {
+        currentMatch.flatMap { findMatches.firstIndex(of: $0) }.map { $0 + 1 }
+    }
+
+    func showFind() {
+        isFinding = true
+        findFocusRequest = true
+    }
+
+    func endFind() {
+        isFinding = false
+        findText = ""
+    }
+
+    func findNext() {
+        stepThroughMatches(forward: true)
+    }
+
+    func findPrevious() {
+        stepThroughMatches(forward: false)
+    }
+
+    private func stepThroughMatches(forward: Bool) {
+        guard !findMatches.isEmpty else { return }
+        let count = findMatches.count
+        // Step from the selected match if there is one, so clicking a match and
+        // pressing ⌘G continues from there.
+        let anchor = selection.flatMap { findMatches.firstIndex(of: $0) }
+            ?? currentMatch.flatMap { findMatches.firstIndex(of: $0) }
+        let index = anchor.map { (forward ? $0 + 1 : $0 - 1 + count) % count } ?? (forward ? 0 : count - 1)
+        showMatch(findMatches[index])
+    }
+
+    /// Selects a match and scrolls to it. A match inside a collapsed branch is
+    /// revealed first, which changes the map and so is an undo step: the
+    /// branch stays open after Find closes, as the person last saw it.
+    private func showMatch(_ id: NodeID) {
+        if RevealNodeCommand.isHidden(id, in: engine.state) {
+            perform(RevealNodeCommand(nodeID: id), named: String(localized: "Reveal Topic"))
+        }
+        currentMatch = id
+        selection = id
+        scrollRequest = id
+    }
+
+    /// Typing in the find field selects the first visible match but opens no
+    /// branch: each keystroke would otherwise leave an undo step behind.
+    private func updateFind(selectingFirst: Bool) {
+        findMatches = MapFind.matches(SearchQuery(findText), in: engine.state)
+        findMatchSet = Set(findMatches)
+        if let currentMatch, !findMatchSet.contains(currentMatch) {
+            self.currentMatch = nil
+        }
+        guard selectingFirst else { return }
+        currentMatch = nil
+        if let first = findMatches.first(where: { !RevealNodeCommand.isHidden($0, in: engine.state) }) {
+            currentMatch = first
+            selection = first
+            scrollRequest = first
+        }
+    }
+
     // MARK: Engine and history
 
     @discardableResult
@@ -285,6 +369,7 @@ final class EditorSession {
         guard !changes.isEmpty else { return }
         let map = engine.state.map
         onMapChange(map)
+        if !findText.isEmpty { updateFind(selectingFirst: false) }
         let previous = lastSave
         lastSave = Task { [repository, weak self] in
             await previous?.value

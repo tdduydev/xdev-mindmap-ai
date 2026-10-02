@@ -23,4 +23,8 @@ public protocol MapRepository: Sendable {
     func setFavorite(_ isFavorite: Bool, for mapID: MapID) async throws
 
     func deleteMap(_ mapID: MapID) async throws
+
+    /// The title and note of every topic, by map, for library search. Empty
+    /// titles and notes are left out.
+    func fetchTopicTexts() async throws -> [MapID: [String]]
 }
