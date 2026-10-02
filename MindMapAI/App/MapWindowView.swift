@@ -44,9 +44,9 @@ struct MapWindowView: View {
         let environment = environment
         let openWindow = openWindow
         return FileTransfer(
-            createMap: { graph in
+            createMap: { graph, imageData in
                 do {
-                    try await environment.repository.create(graph)
+                    try await environment.repository.create(graph, imageData: imageData)
                     await environment.spotlightIndex.update(graph.map)
                     return graph.map.id
                 } catch {

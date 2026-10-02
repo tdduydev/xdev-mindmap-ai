@@ -110,7 +110,7 @@ struct MapImportTests {
     @Test func importAsANewMapStoresAndOpensIt() async throws {
         let library = LibraryModel(repository: repository)
         var opened: MapID?
-        let transfer = FileTransfer(createMap: { await library.createMap($0) }, openMap: { opened = $0 })
+        let transfer = FileTransfer(createMap: { await library.createMap($0, imageData: $1) }, openMap: { opened = $0 })
         let url = try file("Ideas.txt", "Research\n\tInterviews\nDesign\n")
 
         await transfer.importFile(at: url, into: .newMap)
@@ -129,7 +129,7 @@ struct MapImportTests {
     @Test func aFailedImportOpensNothing() async throws {
         let library = LibraryModel(repository: repository)
         var opened: MapID?
-        let transfer = FileTransfer(createMap: { await library.createMap($0) }, openMap: { opened = $0 })
+        let transfer = FileTransfer(createMap: { await library.createMap($0, imageData: $1) }, openMap: { opened = $0 })
         let url = try file("Picture.png", Data([0x89, 0x50, 0x4E, 0x47]))
 
         await transfer.importFile(at: url, into: .newMap)
@@ -147,7 +147,7 @@ struct MapImportTests {
         let undoManager = UndoManager()
         undoManager.groupsByEvent = false
         session.undoManager = undoManager
-        let transfer = FileTransfer(createMap: { _ in nil }, openMap: { _ in })
+        let transfer = FileTransfer(createMap: { _, _ in nil }, openMap: { _ in })
         let url = try file("Steps.md", "- One\n  - One A\n- Two\n")
 
         undoManager.beginUndoGrouping()

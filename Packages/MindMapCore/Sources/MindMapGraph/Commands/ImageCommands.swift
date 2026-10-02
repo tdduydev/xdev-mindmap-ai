@@ -61,6 +61,13 @@ public struct UpdateImageCommand: GraphCommand {
 }
 
 extension GraphState {
+    /// `image(of:)` for every topic in one pass over the images, for layout.
+    public func imagesByNode() -> [NodeID: MindImage] {
+        Dictionary(images.values.map { ($0.nodeID, $0) }) { first, second in
+            (first.createdAt, first.id) > (second.createdAt, second.id) ? first : second
+        }
+    }
+
     /// The images on these topics and every topic under them: what Delete,
     /// Merge or Remove Summary of them would remove. The editor loads their
     /// bytes into `GraphEngine.imageData` first, so undo can restore them.

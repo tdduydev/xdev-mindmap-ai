@@ -181,9 +181,10 @@ final class LibraryModel {
     }
 
     /// Stores a map built elsewhere, such as an imported file, and returns its ID.
-    func createMap(_ graph: GraphState) async -> MapID? {
+    /// `imageData` holds the bytes of its images (`MapArchive.imported`).
+    func createMap(_ graph: GraphState, imageData: [ImageID: Data] = [:]) async -> MapID? {
         do {
-            try await repository.create(graph)
+            try await repository.create(graph, imageData: imageData)
             // The change stream may have delivered it already.
             show(graph.map)
             invalidateSearch()

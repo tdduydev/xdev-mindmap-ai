@@ -2,6 +2,7 @@ import Foundation
 import OSLog
 import MindMapDomain
 import MindMapGraph
+import MindMapPersistence
 import SwiftUI
 
 /// File ▸ Export…: the format and its options, then the save panel. The file
@@ -162,11 +163,14 @@ struct ExportSheet: View {
         var options = options
         options.branch = scope == .selectedBranch ? selectedBranch : nil
         let graph = session.engine.state
+        let repository = session.repository
         isPreparing = true
         Task {
             defer { isPreparing = false }
             do {
-                file = ExportedFile(data: try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme))
+                // Only a backup carries the pictures; the other formats leave them out.
+                let imageData = options.format == .backup ? try await repository.imageData(of: graph) : [:]
+                file = ExportedFile(data: try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme, imageData: imageData))
             } catch {
                 Log.interchange.error("Making an export failed: \(String(describing: error), privacy: .private)")
                 failed = true

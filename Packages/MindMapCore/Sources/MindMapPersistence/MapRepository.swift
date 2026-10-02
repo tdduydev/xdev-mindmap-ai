@@ -140,4 +140,14 @@ extension MapRepository {
     public func create(_ graph: GraphState) async throws {
         try await create(graph, imageData: [:])
     }
+
+    /// The stored bytes of every image of `graph`, for a backup or a copy of
+    /// the map. Images whose bytes have not synced yet are left out.
+    public func imageData(of graph: GraphState) async throws -> [ImageID: Data] {
+        var result: [ImageID: Data] = [:]
+        for id in graph.images.keys {
+            if let data = try await imageData(for: id) { result[id] = data }
+        }
+        return result
+    }
 }
