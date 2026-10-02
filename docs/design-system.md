@@ -97,7 +97,7 @@ Used for: the `sparkles` symbol on AI buttons and menu items, the dashed outline
 
 ## Typography
 
-Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with `OFL.txt`, registered through `UIAppFonts` (iOS) and `ATSApplicationFontsPath` (macOS).
+Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with one `OFL.txt` holding both families' copyright lines (the synchronized group copies resources flat into the bundle, so two files named `OFL.txt` would collide). `BrandFont.registerAll()` registers them with CoreText for the process when the app starts, on iOS and macOS alike: the generated Info.plist cannot hold the `UIAppFonts` array, and one code path is easier to test than two plist keys. Space Grotesk ships as a static SemiBold file (`SpaceGrotesk-SemiBold.ttf`, an instance of the variable font) so its PostScript name is fixed.
 
 Content styles (canvas points at 100% zoom). On iOS and iPadOS each is `Font.custom(_:size:relativeTo:)`, so it scales with Dynamic Type; macOS has no Dynamic Type and uses the size as is.
 
@@ -224,7 +224,7 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 
 ## Accessibility
 
-- **Contrast:** text 4.5:1 or more, graphics 3:1 or more, in all four colour variants. The tables above give the figures; a unit test recomputes them from the tokens so a change cannot regress.
+- **Contrast:** text 4.5:1 or more, graphics 3:1 or more, in all four colour variants. The tables above give the figures; a unit test recomputes them from the tokens so a change cannot regress. Exception, open for the product owner: `searchMatchBorder` reaches 3:1 against the canvas only with Increase Contrast (about 1.5:1 light and 2.4:1 dark otherwise), so in standard contrast a match is carried by the fill and border together.
 - **Increase Contrast:** IC colours, 2 pt strokes, 3 pt selection ring, gradients become solid.
 - **Reduce Transparency:** canvas controls use the system's frosted fallback; nothing on the canvas is translucent anyway.
 - **Differentiate Without Color:** levels differ in font size and weight and in shape (central filled, main outlined, sub plain); suggestions have the dashed outline and the symbol; search matches have an outline.
@@ -244,14 +244,14 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 
 | Swift name | Holds |
 | --- | --- |
-| `Palette` | Semantic colours (asset catalog colour sets with Any, Dark and High Contrast appearances) |
+| `Palette` | Semantic colours (asset catalog colour sets with Any, Dark and High Contrast appearances); `Palette.Tokens` holds the same values for code that computes with them, and a test keeps the two equal |
 | `BranchPalette`, `MapTheme` | Branch colours per theme and the derived fills (computed, so no asset per derived colour) |
 | `Typography` | Chrome styles (system) and `Typography.Content` (brand fonts, `relativeTo`) |
 | `Spacing`, `Radius`, `Metrics` | Existing scales |
 | `CanvasMetrics` | The canvas table above |
 | `Elevation` | The drag shadow |
 | `Motion` | Durations, curves and the Reduce Motion rule |
-| `TopicStyle` | Resolves fill, stroke, font, padding and radius for a level, theme, colour scheme and contrast setting |
+| `TopicStyle` | `resolve(level:branch:theme:colorScheme:contrast:)`: fill, stroke, font, padding and radius for a level, the index of its level-1 branch, theme, colour scheme and contrast setting |
 
 - A debug-only `DesignSystemGallery` view shows every token and topic state in both modes for review and screenshots.
 - Colour sets are named after their token (`CanvasBackground`, `TopicText`…), each with Any, Dark, and High Contrast variants.

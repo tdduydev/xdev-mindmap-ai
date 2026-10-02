@@ -7,6 +7,11 @@ struct MindMapAIApp: App {
     @State private var launch = AppEnvironment.live()
     @AppStorage(AppearancePreference.storageKey) private var appearance = AppearancePreference.system
 
+    init() {
+        // Before any view resolves a brand font by name.
+        BrandFont.registerAll()
+    }
+
     var body: some Scene {
         WindowGroup(id: Self.mainWindowID) {
             Group {
@@ -28,6 +33,13 @@ struct MindMapAIApp: App {
         Settings {
             SettingsView()
                 .preferredColorScheme(appearance.colorScheme)
+        }
+        #endif
+
+        #if DEBUG && os(macOS)
+        // Listed in the Window menu of debug builds only, for design review.
+        Window(Text(verbatim: "Design System Gallery"), id: "design-system-gallery") {
+            DesignSystemGallery()
         }
         #endif
     }
