@@ -1,0 +1,50 @@
+{
+  "fill-specializations": [
+    {
+      "value": {
+        "solid": "extended-srgb:0.96863,0.97647,0.98824,1.00000"
+      }
+    },
+    {
+      "appearance": "dark",
+      "value": {
+        "solid": "extended-srgb:0.07843,0.15294,0.27059,1.00000"
+      }
+    }
+  ],
+  "groups": [
+    {
+      "layers": [
+        {
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.90980,0.92549,0.97255,1.00000"
+              }
+            }
+          ],
+          "glass": true,
+          "image-name": "branches.svg",
+          "name": "branches"
+        },
+        {
+          "glass": true,
+          "image-name": "x.svg",
+          "name": "x"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.4
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  }
+}

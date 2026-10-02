@@ -12,6 +12,7 @@ How the app is tested, from the package up to the UI. The table per layer is in 
 | iOS Simulator build | `scripts/ci.sh` | Every change |
 | Core and app tests as x86_64 under Rosetta | `scripts/rosetta-tests.sh` | Before merging a change to the AI gate, build settings or code under `#if arch` ([[architecture]], Platforms) |
 | `MindMapAIUITests` (XCUITest, macOS and iOS Simulator) | `scripts/ui-tests.sh` | Before merging a change to the interface |
+| `MacSnapshotTests` (the Mac interface drawn off screen, compared with reference PNGs) | `scripts/snapshot-tests.sh` | Before merging a change to the Mac interface; runs while the screen is locked |
 
 `scripts/ci.sh` stays fast and does not run UI tests (NFR-TEST-03). Warnings are errors in both scripts.
 
@@ -39,6 +40,30 @@ The iOS Simulator needs none of this.
 ### A busy machine
 
 A cold simulator, or a Mac running many builds at once, can take a minute to launch the app. Queries wait `MindMapApp.timeout` (30 s) after launch. If the runner crashes with "operation never finished bootstrapping" before the first test, the simulator was still booting: run again.
+
+## Snapshot tests
+
+XCUITest on the Mac needs an unlocked login session, and the shared Mac mini locks its screen when no one is at it. Snapshot tests check the Mac's own interface without one: `MacSnapshotTests` (`MindMapAITests/Snapshots/`) draws each scene into an off-screen window and compares the pixels with a reference PNG kept in the repo. They are hosted app tests, so they run while the Mac is locked, like the rest of `MindMapAITests`.
+
+```sh
+scripts/snapshot-tests.sh            # compare, in English then Vietnamese (about 2 minutes)
+scripts/snapshot-tests.sh en         # one language: en or vi
+scripts/snapshot-tests.sh --record   # draw new references, on purpose
+```
+
+The script prints whether the screen was locked, so a run's log says which case it checked. `scripts/ci.sh` does not run the suite: it is skipped unless `MINDMAP_SNAPSHOTS` is `compare` or `record`, and an OS or Xcode update that changes how AppKit draws would otherwise fail every merge until someone records again.
+
+**What is covered.** From the `sample` fixture of the UI test mode (`UITestFixture.makeMaps()`), in light, dark and Increase Contrast, in English and Vietnamese: the main window with the library (`library`), with a map on the canvas (`canvas`) and in the outline (`outline`); the sidebar, the inspector with a topic selected, and the AI suggestion bar with three suggestions from `MockAIProvider` (`sidebar`, `inspector`, `suggestionBar`); every Settings pane (`settings-<pane>`); the paywall with the product from `MindMapAI.storekit` (`paywall`). References are named `<scene>.<appearance>.<language>.png`.
+
+**How it draws.** An `NSHostingView` in a titled `NSWindow` placed off every display; AppKit's `cacheDisplay` draws the window's frame view (title bar and toolbar included) into a 1× bitmap, whatever the screen's scale, so references stay small and the same on any Mac. The capture repeats until two in a row match, because the toolbar and environment settle a few frames after the content. `ImageRenderer` is not used for windows: it draws grouped Forms and AppKit controls blank. The opposite holds for Liquid Glass: `cacheDisplay` draws nothing of a glass view or of what it floats over, which is why the sidebar and inspector are drawn on their own, outside the split view (they show blank in the main window scenes), and why the suggestion bar, a SwiftUI view with no AppKit controls, goes through `ImageRenderer`.
+
+**What it fixes.** Preferences: the test host shares the real app's defaults, so `SnapshotApp` puts every preference a Mac view reads at its default in the argument domain, which wins over stored values and is never written. AI: a ready `MockAIProvider`, so AI controls show on any Mac. Pro is not unlocked. Library dates are set a fixed number of days before now, so "Edited 2 days ago" reads the same every day; the inspector's dates are absolute, so the script sets `TZ=UTC`. The test host is never the active app, so views get `controlActiveState` `.key`; the traffic lights still draw inactive.
+
+**Comparing.** Self-written (no dependency, [[adr-0001]]): both images are drawn into sRGB RGBA bytes; a pixel differs when a channel moves more than 24 of 255, and a scene fails when more than 0.2% of its pixels differ, or when the size changed. A failure leaves `actual.<name>.png` and `diff.<name>.png` (differing pixels in red over the faded reference) in `scripts/out/snapshots/<language>/`. Hosted tests run in the app sandbox and cannot write into the repo, so the test records images as attachments and the script takes them out of the result bundle; references reach the test as resources of the test bundle, which means a rebuild, done by the script.
+
+**Updating references.** Only on purpose: after a deliberate interface change, or after an OS or Xcode update that changes drawing. Run `--record`, open every changed PNG (`git diff --stat`, then look at each), and commit them with the change that caused them. Never record to make a failure you do not understand go away. References belong to the machine that recorded them (macOS version, fonts); record on the Mac that runs the suite.
+
+**Snapshot or UI test.** A snapshot says how a screen looks: layout, colours in each appearance, Increase Contrast, Vietnamese text that no longer fits. It does not click, type or open menus. A flow (rename then undo, ⌘ shortcuts, the menu bar, focus, drag and drop, sheets opening) needs a UI test: on the iOS Simulator any time, and on macOS when someone has unlocked the Mac (`scripts/ui-tests.sh macos`). A change to the Mac interface runs both: snapshots right away, the macOS UI tests the next time the Mac is unlocked.
 
 ## The UI test mode
 
