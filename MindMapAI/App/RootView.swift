@@ -34,7 +34,7 @@ struct RootView: View {
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(selection: $router.section)
+            SidebarView(selection: $router.section, environment: environment)
         } content: {
             LibraryView(
                 model: library,
@@ -65,6 +65,9 @@ struct RootView: View {
         .onAppear(perform: restoreWindow)
         .onDisappear { environment.openMaps.unregister(window) }
         .onChange(of: router.section) { _, section in savedSection = section ?? .all }
+        .onReceive(NotificationCenter.default.publisher(for: .showRecentlyDeleted)) { _ in
+            router.section = .recentlyDeleted
+        }
         .onChange(of: router.selectedMapID) { _, id in savedMapID = id?.description }
         .task {
             await environment.prepare()
