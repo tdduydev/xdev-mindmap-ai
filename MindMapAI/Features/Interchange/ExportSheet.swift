@@ -171,6 +171,7 @@ struct ExportSheet: View {
         Task {
             defer { isPreparing = false }
             do {
+                await session.flush()
                 let imageData = [ExportFormat.backup, .png, .pdf].contains(options.format)
                     ? try await repository.imageData(of: graph) : [:]
                 file = ExportedFile(data: try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme, imageData: imageData))

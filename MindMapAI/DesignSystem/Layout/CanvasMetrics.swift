@@ -108,6 +108,7 @@ enum CanvasMetrics {
     /// Between the picture and the title.
     static let imageGap: CGFloat = 8
     static let imageCornerRadius: CGFloat = Radius.sm
+    static let imagePlaceholderOpacity: Double = 0.3
 
     /// The pointer hit area is the visual box, at least this tall.
     static let minimumPointerHeight: CGFloat = 28

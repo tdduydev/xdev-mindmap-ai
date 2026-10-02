@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -5,6 +6,7 @@ import ImageIO
 import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
+import PDFKit
 import SwiftUI
 import Testing
 import UniformTypeIdentifiers
@@ -108,6 +110,27 @@ struct TopicImageTests {
         pixel.draw(output, in: CGRect(x: -x, y: -(output.height - 1 - y), width: output.width, height: output.height))
         let channels = try #require(pixel.data?.assumingMemoryBound(to: UInt8.self))
         #expect(channels[0] > 200 && channels[1] < 100 && channels[2] < 100)
+
+        options.format = .pdf
+        let pdf = try await MapExporter.data(for: engine.state, options: options,
+            colorScheme: .light, imageData: [image.id: bytes])
+        let document = try #require(PDFDocument(data: pdf))
+        let page = try #require(document.page(at: 0))
+        let thumbnail = page.thumbnail(of: CGSize(width: 400, height: 400), for: .mediaBox)
+        let tiff = try #require(thumbnail.tiffRepresentation)
+        let bitmap = try #require(NSBitmapImageRep(data: tiff))
+        var hasRedImagePixel = false
+        for y in stride(from: 0, to: bitmap.pixelsHigh, by: 4) {
+            for x in stride(from: 0, to: bitmap.pixelsWide, by: 4) {
+                guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB) else { continue }
+                if color.redComponent > 0.8 && color.greenComponent < 0.4 && color.blueComponent < 0.4 {
+                    hasRedImagePixel = true
+                    break
+                }
+            }
+            if hasRedImagePixel { break }
+        }
+        #expect(hasRedImagePixel)
 
         options.format = .markdown
         let markdown = try await MapExporter.data(for: engine.state, options: options, colorScheme: .light)

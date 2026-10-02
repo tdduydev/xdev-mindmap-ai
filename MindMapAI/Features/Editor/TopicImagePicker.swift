@@ -76,13 +76,11 @@ private struct TopicImageFailureAlert: ViewModifier {
     let session: EditorSession
 
     func body(content: Content) -> some View {
-        content.alert("Couldn’t Add Image", isPresented: Binding(
+        content.alert(session.imageFailure ?? "", isPresented: Binding(
             get: { session.imageFailure != nil },
             set: { if !$0 { session.imageFailure = nil } }
         )) {
             Button("OK") { session.imageFailure = nil }
-        } message: {
-            Text(session.imageFailure ?? "")
         }
     }
 }

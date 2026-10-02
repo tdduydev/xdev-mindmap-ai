@@ -125,6 +125,7 @@ struct OutlineRow: View {
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(accessibilityLabel)
+                .modifier(TopicImageAccessibility(image: row.topicImage))
                 .accessibilityIdentifier(AccessibilityID.Outline.topic)
             if !row.tags.isEmpty {
                 OutlineTagChips(tags: row.tags)
@@ -154,7 +155,6 @@ struct OutlineRow: View {
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
         .modifier(TopicLinkAccessibility(link: row.node.link))
-        .modifier(TopicImageAccessibility(image: row.topicImage))
         .accessibilityActions {
             if let onAttachOrDetach {
                 Button(isFloating ? "Attach to Topic…" : "Detach Topic", action: onAttachOrDetach)

@@ -106,7 +106,10 @@ struct TopicView: View {
             guard provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) else { return false }
             provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
                 let url = item as? URL ?? (item as? Data).flatMap { URL(dataRepresentation: $0, relativeTo: nil) }
-                guard let url, let data = try? Data(contentsOf: url) else { return }
+                guard let url else { return }
+                let access = url.startAccessingSecurityScopedResource()
+                defer { if access { url.stopAccessingSecurityScopedResource() } }
+                guard let data = try? Data(contentsOf: url) else { return }
                 Task { @MainActor in await model.session.addImage(data, to: topic.id) }
             }
             return true
