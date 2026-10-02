@@ -94,5 +94,24 @@ final class MenuShortcutUITests: XCTestCase {
         settings.close()
         XCTAssertTrue(settings.appearancePicker.waitForNonExistence(timeout: MindMapApp.timeout))
     }
+
+    @MainActor
+    func testAppMenuOpensSettings() {
+        let app = MindMapApp.launch()
+        app.app.menuBars.menuBarItems["MindMap AI"].firstMatch.waitToExist().click()
+        menuItem("Settings…", in: app.app).waitToExist().click()
+        let settings = SettingsPage(app: app.app)
+        settings.window.waitToExist()
+        settings.paneButton(.general).waitToExist()
+    }
+
+    @MainActor
+    func testSidebarButtonOpensSettings() {
+        let app = MindMapApp.launch()
+        app.app.buttons[AccessibilityID.Sidebar.settings].firstMatch.waitToExist().click()
+        let settings = SettingsPage(app: app.app)
+        settings.window.waitToExist()
+        settings.paneButton(.general).waitToExist()
+    }
 }
 #endif
