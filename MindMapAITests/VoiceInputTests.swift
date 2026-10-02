@@ -23,11 +23,11 @@ struct VoiceInputTests {
     private struct OpenFailed: Error {}
 
     private struct Locked: ProEntitlements {
-        func isUnlocked(_ feature: ProFeature) -> Bool { feature != .voiceInput }
+        func allows(_ feature: ProFeature) -> Bool { feature != .voiceInput }
     }
 
     private func open(
-        entitlements: any ProEntitlements = AllFeaturesUnlocked(),
+        entitlements: any ProEntitlements = Unlocked(),
         preferredLanguages: [String] = ["en-US"]
     ) async throws -> VoiceInput {
         var engine = try GraphEngine(state: GraphState.newMap(title: "Trip"))
@@ -216,4 +216,8 @@ struct VoiceInputTests {
         #expect(strings["NSMicrophoneUsageDescription"]?.isEmpty == false)
         #expect(strings["NSSpeechRecognitionUsageDescription"]?.isEmpty == false)
     }
+}
+
+private struct Unlocked: ProEntitlements {
+    func allows(_ feature: ProFeature) -> Bool { true }
 }
