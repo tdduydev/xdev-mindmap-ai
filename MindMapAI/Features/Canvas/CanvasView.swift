@@ -139,6 +139,7 @@ struct CanvasView: View {
                     isRoot: topic.id == rootID,
                     isSelected: topic.isSuggestion ? topic.id == selectedSuggestion : selection.contains(topic.id),
                     isEditing: topic.id == model.editingID,
+                    isFindMatch: session.findMatchSet.contains(topic.id),
                     isDragSource: dragged.contains(topic.id),
                     model: model,
                     rotorNamespace: rotorNamespace
@@ -158,7 +159,7 @@ struct CanvasView: View {
         return ForEach(model.visibleTopics) { topic in
             Color.clear
                 .frame(width: topic.frame.width * viewport.scale, height: topic.frame.height * viewport.scale)
-                .modifier(TopicAccessibility(topic: topic, isRoot: topic.id == rootID, isSelected: selection.contains(topic.id), model: model))
+                .modifier(TopicAccessibility(topic: topic, isRoot: topic.id == rootID, isSelected: selection.contains(topic.id), isFindMatch: session.findMatchSet.contains(topic.id), model: model))
                 .accessibilityRotorEntry(id: topic.id, in: rotorNamespace)
                 .position(viewport.toView(CGPoint(x: topic.frame.midX, y: topic.frame.midY)))
                 .allowsHitTesting(false)

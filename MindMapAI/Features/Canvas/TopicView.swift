@@ -12,6 +12,8 @@ struct TopicView: View {
     let isRoot: Bool
     let isSelected: Bool
     let isEditing: Bool
+    /// A result of Find (FR-KBD-06), marked as in the outline.
+    var isFindMatch = false
     /// Drawn faded in place while a copy follows the pointer.
     var isDragSource = false
     let model: CanvasModel
@@ -66,7 +68,7 @@ struct TopicView: View {
         .gesture(moveDrag, including: isEditing ? .subviews : .all)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenu }
-        .modifier(TopicAccessibility(topic: topic, isRoot: isRoot, isSelected: isSelected, isEditing: isEditing, model: model))
+        .modifier(TopicAccessibility(topic: topic, isRoot: isRoot, isSelected: isSelected, isEditing: isEditing, isFindMatch: isFindMatch, model: model))
         .accessibilityRotorEntry(id: topic.id, in: rotorNamespace)
     }
 
@@ -178,6 +180,15 @@ struct TopicView: View {
         .multilineTextAlignment(.center)
         .frame(width: textWidth)
         .fixedSize(horizontal: false, vertical: true)
+        .background {
+            // Outside the text's frame, so marking a match never changes the measure.
+            if isFindMatch {
+                RoundedRectangle(cornerRadius: Radius.sm)
+                    .fill(Palette.searchMatchFill)
+                    .strokeBorder(Palette.searchMatchBorder)
+                    .padding(-Spacing.xxs)
+            }
+        }
     }
 
     /// A ring outside the box with a gap, so it reads on any fill (NFR-A11Y-07:
@@ -302,6 +313,7 @@ struct TopicAccessibility: ViewModifier {
     let isRoot: Bool
     let isSelected: Bool
     var isEditing = false
+    var isFindMatch = false
     let model: CanvasModel
 
     func body(content: Content) -> some View {
@@ -342,6 +354,7 @@ struct TopicAccessibility: ViewModifier {
     /// Levels count from 1 below the central topic, as the outline reads them.
     private var value: String {
         let level = isRoot ? String(localized: "Central Topic") : String(localized: "Level \(topic.level + 1)")
-        return "\(level), \(String(localized: "\(topic.childCount) subtopics"))"
+        let summary = "\(level), \(String(localized: "\(topic.childCount) subtopics"))"
+        return isFindMatch ? "\(summary), \(String(localized: "Find Match"))" : summary
     }
 }

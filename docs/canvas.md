@@ -73,7 +73,7 @@ These time the model only. SwiftUI's layout and rendering are not in them, so th
 
 Collapsing a topic that holds the selection selects the collapsed topic, so Delete and Rename never act on a topic nobody sees.
 
-The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas. Delete is a menu key equivalent, so it is switched on only while `EditorSession.deleteKeyDeletesTopic` holds: `CanvasModel` reports the canvas's focus and its title editing, the outline reports its own (MM-0i). Delete removes every selected branch as one step.
+The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas. Delete is a menu key equivalent, so it is switched on only while `EditorSession.deleteKeyDeletesTopic` holds: `CanvasModel` reports the canvas's focus and its title editing, the outline reports its own (MM-0i). Delete removes every selected branch as one step. Find (MM-15) selects and reveals each match on the canvas too, and every match gets the `searchMatchFill` and `searchMatchBorder` of [[design-system]] behind its title, drawn outside the measured text so the layout does not move (FR-KBD-06).
 
 ## Keys, selection, drag and clipboard (MM-5)
 
@@ -96,4 +96,3 @@ Each topic in view is one element: label the title, value "Level n, m subtopics"
 - Per-level gaps: `LayoutOptions` takes one horizontal and one vertical gap, so the canvas uses the sub-topic gaps (40, 10) for every level.
 - Cross-link labels and cross-links in each topic's accessibility custom content.
 - Auto-scrolling while a drag nears the edge of the view, and moving topics with the keyboard (no shortcut for Move Up/Down yet).
-- Find on the canvas (FR-KBD-06, with MM-15).
