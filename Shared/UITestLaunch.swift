@@ -28,6 +28,9 @@ nonisolated enum UITestFixture: String, CaseIterable {
     case sample
     /// One map with a central topic and 999 topics below it, for scrolling and performance.
     case large
+    /// Localized, fictional launch plan for App Store screenshots.
+    case showcaseEn
+    case showcaseVi
 
     enum Title {
         static let plan = "Product Launch"
@@ -37,6 +40,9 @@ nonisolated enum UITestFixture: String, CaseIterable {
         static let marketing = "Marketing"
         static let favorite = "Reading List"
         static let large = "Large Map"
+        static func showcase(_ language: String) -> String {
+            language == "vi" ? "Ra mắt ứng dụng sáng tạo" : "Creative App Launch"
+        }
     }
 
     static let largeTopicCount = 1_000

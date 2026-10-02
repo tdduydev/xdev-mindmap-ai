@@ -79,6 +79,7 @@ struct AISuggestionBar: View {
         } else if assistant.hasSuggestions {
             Button("Review…") { isReviewing = true }
                 .buttonStyle(.glass)
+                .accessibilityIdentifier(AccessibilityID.ScreenshotAI.review)
                 .popover(isPresented: $isReviewing) {
                     if assistant.hasTagSuggestions {
                         AITagSuggestionList(assistant: assistant)

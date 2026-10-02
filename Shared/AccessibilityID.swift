@@ -74,6 +74,11 @@ nonisolated enum AccessibilityID {
         static let toolbar = "chat.toolbar"
     }
 
+    enum ScreenshotAI {
+        static let menu = "screenshot.ai.menu"
+        static let review = "screenshot.ai.review"
+    }
+
     enum Settings {
         static let appearance = "settings.appearance"
         static let newMapTheme = "settings.newMapTheme"
