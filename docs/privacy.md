@@ -22,4 +22,4 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 
 ## What users see
 
-Settings explains, in plain words, where data is stored, that there is no xDev backend, and where AI runs. If a cloud AI provider is ever added, each request says which provider processes it, before it is sent.
+Settings explains, in plain words, where data is stored, that there is no xDev backend, and where AI runs. The public privacy policy (`https://xdev.asia/mindmap/privacy`, text in [web/privacy-policy.md](web/privacy-policy.md)) says the same and changes with this page. If a cloud AI provider is ever added, each request says which provider processes it, before it is sent.

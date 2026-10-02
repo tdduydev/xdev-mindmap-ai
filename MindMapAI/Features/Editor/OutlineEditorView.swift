@@ -1,11 +1,10 @@
 import MindMapDomain
 import SwiftUI
 
-/// The minimal editor: the map as an indented outline. The canvas replaces it
-/// as the main view in a later phase; the outline stays as the accessible one.
+/// The map as an indented outline: the way to use a map without the canvas,
+/// for VoiceOver and the keyboard. Toolbar and menus come from `MapEditorView`.
 struct OutlineEditorView: View {
     @Bindable var session: EditorSession
-    @Environment(\.undoManager) private var undoManager
     @FocusState private var focusedNode: NodeID?
     @FocusState private var isListFocused: Bool
 
@@ -32,26 +31,7 @@ struct OutlineEditorView: View {
                 }
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            if session.saveFailed {
-                SaveFailedBanner()
-            }
-        }
-        // The window title on the Mac: the map, never the app name.
-        .navigationTitle(session.displayTitle)
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        #if os(macOS)
-        // Kept next to the menu's Delete shortcut: it still answers Delete if
-        // the list holds focus without SwiftUI reporting it.
-        .onDeleteCommand(perform: session.deleteSelection)
-        #endif
-        .toolbar { toolbar }
-        .focusedSceneValue(\.editorSession, session)
-        .onAppear { session.undoManager = undoManager }
-        .onChange(of: undoManager) { _, manager in session.undoManager = manager }
-        .onChange(of: session.focusRequest) { _, request in
+        .onChange(of: session.focusRequest, initial: true) { _, request in
             guard let request else { return }
             focusedNode = request
             session.focusRequest = nil
@@ -61,37 +41,13 @@ struct OutlineEditorView: View {
             reportKeyboardFocus()
         }
         .onChange(of: isListFocused) { reportKeyboardFocus() }
-        .onDisappear { session.keyboardFocus = .elsewhere }
+        .onAppear(perform: reportKeyboardFocus)
     }
 
-    @ToolbarContentBuilder
-    private var toolbar: some ToolbarContent {
-        ToolbarItemGroup {
-            Button(action: session.undo) {
-                Label("Undo", systemImage: "arrow.uturn.backward")
-            }
-            .disabled(!session.canUndo)
-            Button(action: session.redo) {
-                Label("Redo", systemImage: "arrow.uturn.forward")
-            }
-            .disabled(!session.canRedo)
-        }
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button(action: session.addChild) {
-                Label("Add Child Topic", systemImage: "arrow.turn.down.right")
-            }
-            Button(action: session.addSibling) {
-                Label("Add Sibling Topic", systemImage: "plus")
-            }
-            Button(role: .destructive, action: session.deleteSelection) {
-                Label("Delete Topic", systemImage: "trash")
-            }
-            .disabled(!session.canDeleteSelection)
-        }
-    }
-
+    /// Delete Topic's bare-Delete shortcut follows this (see `EditorSession.deleteKeyDeletesTopic`).
     private func reportKeyboardFocus() {
-        session.keyboardFocus = focusedNode != nil ? .editingText : isListFocused ? .content : .elsewhere
+        let focus: EditorSession.KeyboardFocus = focusedNode != nil ? .editingText : isListFocused ? .content : .elsewhere
+        session.reportKeyboardFocus(focus, from: .outline)
     }
 }
 

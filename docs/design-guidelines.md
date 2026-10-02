@@ -213,16 +213,16 @@ As of commit `1e18d58`; rows marked MM-0i were updated by that task.
 | Area | State | Where |
 | --- | --- | --- |
 | Split view | Sidebar ▸ library ▸ editor in `NavigationSplitView`; collapses on iPhone | `MindMapAI/App/RootView.swift` |
-| Empty states | `ContentUnavailableView` everywhere; the empty library has the `BrandMark` lockup and a New Mind Map button, an empty map has Add Central Topic (MM-0i) | `LibraryView.swift`, `OutlineEditorView.swift` |
+| Empty states | `ContentUnavailableView` everywhere; the empty library has the `BrandMark` lockup and a New Mind Map button, an empty map has Add Central Topic on the canvas and in the outline, the startup failure screen has the small `BrandMark` and Contact Support (MM-0i) | `LibraryView.swift`, `CanvasView.swift`, `OutlineEditorView.swift`, `RootView.swift` |
 | New map and window | ⌘N New Mind Map, ⌥⌘N New Window | `MindMapAI/App/AppCommands.swift` |
 | Topic menu | Add Sibling (Return), Add Child (⇧⌘Return), Collapse/Expand, Delete; items disabled, not hidden | `AppCommands.swift` |
-| Delete shortcut | Delete Topic answers the bare Delete key only while the editor's list has focus and no title is being typed (`EditorSession.deleteKeyDeletesTopic`); otherwise the shortcut is removed so text fields and the library keep Delete (MM-0i) | `AppCommands.swift`, `EditorSession.swift` |
+| Delete shortcut | Delete Topic answers the bare Delete key only while the canvas or the outline list has focus and no title is being typed (`EditorSession.deleteKeyDeletesTopic`, reported by `CanvasModel` and `OutlineEditorView`), and no AI suggestion is selected and no AI sheet is open (`AIAssistant.holdsDeleteKey`); otherwise the shortcut is removed so text fields and the library keep Delete, and the editor's `onDeleteCommand` discards a selected suggestion (MM-0i) | `AppCommands.swift`, `EditorSession.swift`, `MapEditorView.swift` |
 | Undo | Window `UndoManager` with action names (MM-0c); also toolbar Undo/Redo buttons | `MindMapAI/Features/Editor/OutlineEditorView.swift` |
-| View menu | `SidebarCommands()` adds View ▸ Show/Hide Sidebar with ⌃⌘S (MM-0i) | `MindMapAI/App/MindMapAIApp.swift` |
+| View menu | `SidebarCommands()` adds View ▸ Show/Hide Sidebar with ⌃⌘S (MM-0i), next to `InspectorCommands()` | `MindMapAI/App/MindMapAIApp.swift` |
 | Help menu | Website only; no privacy policy or help page | `AppCommands.swift` |
 | Settings | Mac: `Settings` scene, tabs General, Privacy, About, applies at once, fixed 480 pt width. iPad and iPhone: sheet from a sidebar toolbar button. | `MindMapAI/Features/Settings/SettingsView.swift`, `MindMapAI/Features/Library/SidebarView.swift` |
-| Window title | The editor's `navigationTitle` is the map's title ("Untitled Map" when empty); the sidebar has no title on the Mac, so the app name never becomes the window title (MM-0i) | `OutlineEditorView.swift`, `SidebarView.swift` |
-| Toolbar labels | Toolbar and Topic menu both say "Add Child Topic", "Add Sibling Topic", "Delete Topic" (MM-0i) | `OutlineEditorView.swift` |
+| Window title | The editor's `navigationTitle` is the map's title ("Untitled Map" when empty); the sidebar has no title on the Mac, so the app name never becomes the window title (MM-0i) | `MapEditorView.swift`, `SidebarView.swift` |
+| Toolbar labels | Toolbar and Topic menu both say "Add Child Topic", "Add Sibling Topic", "Delete Topic" (MM-0i) | `MapEditorView.swift` |
 | Hit targets | `Metrics.minimumHitTarget` 44 pt on iOS, 24 pt on macOS (inside HIG's 20–28 pt) | `MindMapAI/DesignSystem/Layout/Spacing.swift` |
 | Reduce Motion | `Motion.standard(reduceMotion:)` returns no animation | `MindMapAI/DesignSystem/Motion/Motion.swift` |
 | VoiceOver | Outline rows labelled "Central Topic" / "Topic, level n"; disclosure labelled and hidden when empty | `OutlineEditorView.swift` |

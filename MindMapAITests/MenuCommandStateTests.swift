@@ -85,15 +85,32 @@ struct MenuCommandStateTests {
         session.addChild()
         #expect(session.canDeleteSelection)
 
-        session.keyboardFocus = .elsewhere
+        session.reportKeyboardFocus(.elsewhere, from: .canvas)
         #expect(!session.deleteKeyDeletesTopic)
-        session.keyboardFocus = .editingText
+        session.reportKeyboardFocus(.editingText, from: .canvas)
         #expect(!session.deleteKeyDeletesTopic)
-        session.keyboardFocus = .content
+        session.reportKeyboardFocus(.content, from: .canvas)
         #expect(session.deleteKeyDeletesTopic)
 
         session.selection = session.rootID
         #expect(!session.deleteKeyDeletesTopic)
+    }
+
+    /// The canvas and the outline swap in no set order, so the one going away
+    /// cannot leave Delete switched on for the one coming in.
+    @Test func switchingViewsForgetsTheFocusOfTheOldOne() async throws {
+        let session = try await open()
+        session.addChild()
+        session.reportKeyboardFocus(.content, from: .canvas)
+        #expect(session.deleteKeyDeletesTopic)
+
+        session.presentation = .outline
+        #expect(session.keyboardFocus == .elsewhere)
+        session.reportKeyboardFocus(.content, from: .canvas)
+        #expect(session.keyboardFocus == .elsewhere, "a late report from the canvas is ignored")
+
+        session.reportKeyboardFocus(.content, from: .outline)
+        #expect(session.deleteKeyDeletesTopic)
     }
 
     @Test func windowTitleIsTheMapTitle() async throws {

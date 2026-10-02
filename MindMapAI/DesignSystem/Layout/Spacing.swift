@@ -34,6 +34,15 @@ enum Metrics {
     static let minimumHitTarget: CGFloat = 24
     #endif
 
+    /// Room for "400%" in the canvas controls, so the cluster does not resize while zooming.
+    static let zoomLabelWidth: CGFloat = 48
+
     /// Width of the Mac Settings window.
     static let settingsWidth: CGFloat = 480
+
+    /// The AI suggestion review popover.
+    static let suggestionListWidth: CGFloat = 320
+    static let suggestionListHeight: CGFloat = 280
+    /// AI sheets on the Mac, where a sheet takes its content's size.
+    static let aiSheetWidth: CGFloat = 440
 }
