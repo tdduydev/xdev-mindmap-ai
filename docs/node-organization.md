@@ -1,12 +1,12 @@
 # Node organization
 
-How people sort, mark and group topics beyond the tree: tags, colour and symbol, tasks, styled cross-links, boundaries, and the filter bar with Focus on Branch. This is the design for MM-31 to MM-37 (MM-30). The stored fields are in [[data-model]] (*Schema V2*); the research behind it, 14 apps compared on 2026-10-02, is the Hive page [[research-node-features]].
+How people sort, mark and group topics beyond the tree: tags, colour and symbol, tasks, styled connections (cross-links), boundaries, and the filter bar with Focus on Branch (design for MM-31 to MM-37, MM-30); and the V1 node types: links, floating topics, images, summaries and callouts (design for MM-59 to MM-66, MM-58, *Node types* below). The stored fields are in [[data-model]] (*Schema V2*); the research behind it, 14 apps compared on 2026-10-02, is the Hive page [[research-node-features]].
 
 Status: the stored fields, domain values, commands and repair rules are built (MM-31, see [[data-model]] *Schema V2* and [[graph-engine]]). Tags are built end to end (MM-34, *Tags* below says what was built and how); the other features have no UI yet, except where *What exists today* says so.
 
 ## Principles
 
-1. **The tree stays the structure.** Tags, colours, tasks and boundaries describe topics; they never move them. Hierarchy is still `MindNode.parentID` only (ADR 0004). A boundary is a range of siblings, not a second parent.
+1. **The tree stays the structure.** Tags, colours, tasks and boundaries describe topics; they never move them. Hierarchy is still `MindNode.parentID` only (ADR 0004). A boundary or a summary is a range of siblings, not a second parent. The only stored position is that of a floating topic, which has no parent to derive one from (ADR 0010).
 2. **Every change is a command.** Tagging, colouring, task fields, link styles and boundaries go through `GraphCommand` and `GraphEngine` with one undo step per user action, named for the Edit menu ([[graph-engine]]). Filters and Focus are view state, never commands.
 3. **Colour is never the only signal.** Each colour comes with a shape, a symbol or text (WCAG 1.4.1, [[design-guidelines]]). Priority shows as `!` marks, overdue as a symbol and a word, done as a checkmark.
 4. **AI proposes, people accept.** Suggested tags, groups and boundary titles are previews with the AI style; Accept is one command with `origin = ai` and one undo step ([[ai-architecture]]).
@@ -72,13 +72,15 @@ Checked against `main` at `8f28e35`:
 - **Commands.** `SetTaskCommand(nodeIDs:state:priority:start:due:)` with "leave unchanged" for each field, so one command covers Make Task, Mark as Done, a priority key and a date. Removing the task clears state and keeps priority and dates, so Make Task undoes cleanly and toggling back loses nothing.
 - **Markdown.** List items export as `- [ ] Title` and `- [x] Title`; heading-level tasks as `## [ ] Title`. Import reads both into `taskState` instead of dropping the box. Plain text writes `[ ] ` and `[x] ` before the title and escapes a title that starts with `[`. Priority, dates, tags, colours, boundaries and link styles are not written to Markdown or plain text: there is no common syntax for them, and an invented one would read as noise in other apps. PNG and PDF draw everything the canvas draws.
 
-## Cross-links (MM-33)
+## Connections (MM-33)
+
+A cross-link between two topics is called **Connection** / **kết nối** in the UI (product owner, 2026-10-02), so that "Link" / "liên kết" means only a URL on a topic (*Links* below). In code and storage it stays `MindEdge` / `EdgeRecord` and "cross-link".
 
 - **Fields.** `label` (exists in V1), `lineStyle` (`solid`, `dashed`, `dotted`), `arrowHeads` (`none`, `end`, `start`, `both`), `colorToken`. `nil` style fields keep today's look derived from `edgeType`: dashed 4–3, an arrow at the end for `reference`, none for `relationship`. Old links therefore draw exactly as before.
-- **Making a link.** Topic ▸ Add Link… (⌘K) with a topic selected enters link mode: the pointer becomes a crosshair, a line follows it, and the next topic clicked becomes the target; Esc cancels. On iPad, the topic's context menu has Add Link…, then tap the target. With two topics selected, Add Link links the primary to the other without link mode. The outline and VoiceOver use Add Link… with a target picker sheet that lists topics by path.
-- **Editing.** A link is selectable by clicking its line or its label (hit width `Metrics.minimumHitTarget`). Space or double-click edits the label in place; the Delete key removes the selected link. The inspector's Links section lists the selected topic's links (direction, other end, label) with Line, Arrows, Color and Remove.
-- **Commands.** `UpdateEdgeCommand(edgeID:label:lineStyle:arrowHeads:color:)` on `GraphTransaction.updateEdge`; Reverse Link swaps the ends. One undo step each ("Edit Link", "Change Link Style", "Reverse Link").
-- **Hidden ends.** When an end is inside a collapsed branch or hidden by a filter, the link is drawn to the nearest visible ancestor, at 60% opacity, and that ancestor gets a `link` badge with the count of such links. Today these links vanish. Both ends at the same visible ancestor: not drawn, but the badge counts it.
+- **Making a connection.** Topic ▸ Add Connection… (⌘L) with a topic selected enters connect mode: the pointer becomes a crosshair, a line follows it, and the next topic clicked becomes the target; Esc cancels. On iPad, the topic's context menu has Add Connection…, then tap the target. With two topics selected, Add Connection connects the primary to the other without connect mode. The outline and VoiceOver use Add Connection… with a target picker sheet that lists topics by path. ⌘L follows MindNode's key for the same action; ⌘K is Add Link….
+- **Editing.** A connection is selectable by clicking its line or its label (hit width `Metrics.minimumHitTarget`). Space or double-click edits the label in place; the Delete key removes the selected connection. The inspector's Connections section lists the selected topic's connections (direction, other end, label) with Line, Arrows, Color and Remove.
+- **Commands.** `ConnectNodesCommand` ("Add Connection"), `UpdateEdgeCommand(edgeID:label:lineStyle:arrowHeads:color:)` on `GraphTransaction.updateEdge`, Reverse Connection swaps the ends, `RemoveEdgeCommand` ("Remove Connection"). One undo step each ("Edit Connection", "Change Connection Style", "Reverse Connection").
+- **Hidden ends.** When an end is inside a collapsed branch or hidden by a filter, the link is drawn to the nearest visible ancestor, at 60% opacity, and that ancestor gets a connection badge (symbol in [[design-system]] *Symbols*, not `link`, which now marks a URL) with the count of such connections. Today these connections vanish. Both ends at the same visible ancestor: not drawn, but the badge counts it.
 - **Label** is the capsule of [[design-system]] (*Edges*): on the arc's midpoint, `badge` text, `canvasBackground` fill, stroked in the link colour; it wraps at 160 pt and is measured by the layout pass, so labels do not collide with topics *[Inference]*.
 
 ## Boundaries (MM-37)
@@ -108,6 +110,148 @@ A boundary is a frame around a run of adjacent siblings and everything under the
 - **Never synced, never in the map.** Filter and focus live in `EditorSession` per window. MM-36 may add them to `EditorRestoration` (MM-17), which is device-local `@SceneStorage`. They are never written to SwiftData or CloudKit: a filter on the Mac must not hide topics on the iPad.
 - The filter's predicates (`MapFilter`) live in `MindMapSearch`, next to Find, and return the visible and matching sets from a `GraphState`; the canvas and outline only draw them.
 
+## Node types (MM-58)
+
+Five additions the product owner put into V1 on 2026-10-02 (FR-ORG-26..31), after the comparison on the Hive page [[research-node-types]]. Built by MM-59 (stored fields, domain values, validator and repair, no commands) and MM-60 to MM-66 (commands and UI). Every change is a `GraphCommand` with one undo step named for the Edit menu, tested for undo and redo; every menu item is disabled, never hidden, when it does not apply; texts go into `Localizable.xcstrings` in `en` and `vi`; sizes, colours and motion come from `DesignSystem` (*Node types* in [[design-system]]). The stored fields are in [[data-model]] (*Node types (MM-59)*).
+
+| Type | What it is | Stored as | Tasks |
+| --- | --- | --- | --- |
+| Link | One URL on a topic | `NodeRecord.linkURL` | MM-59, MM-60 |
+| Floating topic | A topic with no parent that is not the central topic, at a stored position | `NodeRecord.positionX`, `positionY` | MM-59, MM-61, MM-62 |
+| Image | One picture on a topic | A new `ImageRecord` with external storage | MM-59, MM-63, MM-64 |
+| Summary | A bracket over a run of siblings and a summary topic beyond it | `GroupRecord` with `kind = summary` and `summaryNodeID` | MM-59, MM-65 |
+| Callout | A short floating note attached to a topic, not a child | `NodeRecord.calloutText` | MM-59, MM-66 |
+
+### Links (MM-60)
+
+**Behaviour.** A topic has at most one link: a URL with the scheme `http`, `https` or `mailto`. Topic ▸ Add Link… (⌘K) opens a popover anchored to the topic (a sheet on iPhone) with one URL field, Cancel and Add (Save and Remove Link when the topic already has one; the item then reads Edit Link…). The inspector has a Link section with the same field. The URL is checked as it is typed and on Add:
+
+1. Trim whitespace and newlines; an empty field is "no link".
+2. Without a scheme, `example.com/path` becomes `https://example.com/path`, and `name@example.com` (one `@`, no `/`) becomes `mailto:name@example.com`.
+3. Parse with `URL(string:encodingInvalidCharacters: true)`, so spaces and Vietnamese letters in the path are percent-encoded. The scheme and host are lowercased; an IDN host is stored as given, not as punycode *[Inference: `URL` keeps it as typed]*.
+4. Refused, with the reason under the field: another scheme ("Only web and email links can be added"; covers `file:`, `javascript:`, `data:` and app schemes), `http`/`https` without a host, `mailto` without an address, more than 2,048 characters [Đề xuất] ("This link is too long").
+
+The stored value is the normalised absolute string, so two devices compare and show the same text. A stored value this build cannot parse or whose scheme it does not allow (written by a newer build) shows no link icon, cannot be opened and stays in storage until the topic's link is really changed, as for every raw value.
+
+**On the canvas** the link shows as `link` (`envelope` for `mailto`) after the title and the note mark, 11 pt, in the note mark's colour (`topicTextSecondary`, `centralText` on the central topic), measured with the title. Clicking or tapping the icon (hit target `Metrics.minimumHitTarget`) opens it through `openURL` in the default browser or mail app; the pointer is a pointing hand over it and its help tag shows the URL. Topic ▸ Open Link (⇧⌘O) opens the primary selection's link. ⌘-click on the topic does **not** open it, unlike the [Đề xuất] in FR-ORG-26: ⌘-click already toggles selection on the canvas ([[canvas]]). Nothing is fetched: no preview, no favicon, no title lookup ([[privacy]]). The outline shows the same icon after the title.
+
+**Commands.** `SetNodeLinkCommand(nodeIDs:link:)` with `TopicLink?`; the session names it "Add Link" (none before), "Edit Link" or "Remove Link". Setting the same value is a no-op. Duplicate Branch, Split (stays on the first topic) and Merge (the survivor keeps its own, else takes the other's) carry it like the note.
+
+**Context menu.** Add Link…, or Open Link, Edit Link… and Remove Link.
+
+**VoiceOver.** Custom content "Link: example.com" (the host, or the address for `mailto`, never the full URL with its query); action Open Link. Outline row the same.
+
+**Export.** Markdown writes the title as a link: `- [Title](https://example.com)`, `## [Title](url)`, with a task `- [ ] [Title](url)`; brackets in the title and `)` in the URL are escaped. Import reads a heading or list item whose whole text is one inline link with an allowed scheme back into title and link; any other inline link stays text. Plain text writes `Title <https://example.com>` and reads a trailing `<…>` with an allowed scheme back [Đề xuất]. PNG and PDF draw the icon; the PDF also gets a link annotation over it [Đề xuất, if `ImageRenderer` cannot, drop it]. AI context and MCP: the link is not sent to the on-device model; `get_topic` returns it [Đề xuất].
+
+**Sync and repair.** One optional field on the node record, so it merges with the rest of the node (newest record wins, as for the title). Nothing to repair.
+
+### Floating topics (MM-61, MM-62)
+
+**What it is.** A topic whose `parentID` is nil, that is not the map's central topic, and that has a stored position (`position` set). Its own children are ordinary: hierarchy below it is `parentID` as everywhere, laid out by the tree layout. The map still has exactly one central topic (FR-EDT-01); a floating topic is not a second root of the map, and nothing (title, Generate Map, export file name) takes it for the central topic. Only the floating topic stores a position; its descendants never do (ADR 0010).
+
+**Position.** `position` is the floating topic's centre in canvas points relative to the central topic's centre, y down, the coordinates `MapLayout` already uses. So the map can move as a whole and a floating topic keeps its place beside the tree. It is stored as two `Double`s; a non-finite value reads as `(0, 0)`, and values are clamped to ±100,000 pt [Đề xuất].
+
+**Behaviour.**
+
+- **Create.** Double-click (Mac) or double-tap (iPad, iPhone) on empty canvas makes a floating topic centred at that point and opens its title for typing; an empty title on Return or Esc deletes it again, the way a new topic does. Topic ▸ Add Floating Topic (⌥⌘↩), and Add Floating Topic in the empty canvas's context menu, put it at the centre of the visible canvas, moved down in steps of `CanvasMetrics.floatingTopicNudge` (24 pt) [Đề xuất] until it overlaps no laid-out topic.
+- **Move.** Dragging a floating topic moves it with its branch; dropping it on empty canvas stores the new position ("Move Topic"). The drop indicator for reparenting (MM-5) shows only when the pointer is over a topic, so a free move never reparents by accident.
+- **Attach.** Dropping a floating topic on a topic makes it a child there, with the drag rules of MM-5 (not onto its own branch). Topic ▸ Attach to Topic… is the non-drag way: a picker sheet that lists topics by path, also offered to VoiceOver and the outline.
+- **Detach.** Dragging a branch out of the tree onto empty canvas with ⌥ held [Đề xuất: a plain drag to empty canvas stays a cancelled drag, as today in MM-5, so nothing changes for people who drop by mistake] makes its top a floating topic at the drop point. Topic ▸ Detach Topic does it without a drag and places it with the Add Floating Topic rule. Not allowed on the central topic.
+- **Edit like any topic.** Add Child Topic, rename, note, collapse, tags, colour, task, link, image, callout, connections, boundaries and summaries inside its branch, Delete (deletes the branch). Add Sibling Topic, Promote and Demote are disabled on the floating topic itself (no parent), as on the central topic; a boundary or summary cannot include it.
+- **Colour.** A floating topic is drawn with the main-topic style (level 1) and takes the next branch colour after the main topics, in creation order; a `colorToken` overrides it.
+- **Layout.** `HorizontalTreeLayout` lays out the main tree as today, then each floating topic's branch as its own tree around its stored position, children to the right [Đề xuất]. The layout does not push the tree and floating branches apart: they can overlap, as in XMind, and the person moves the floating topic. The order (floating topics by `createdAt`, then ID) is fixed, so layout stays deterministic. Map bounds, Zoom to Fit and export include them.
+- **Find, Select All, rotors, library search, MCP and AI** include floating branches. `AIContextBuilder` treats a floating topic as a topic without ancestors; Generate Map never makes one.
+
+**Commands** (MM-61): `AddFloatingTopicCommand(id:title:position:)` "Add Floating Topic"; `MoveFloatingTopicCommand(nodeID:to:)` "Move Topic"; `DetachBranchCommand(nodeID:position:)` "Detach Topic"; attaching goes through `ReparentNodeCommand`, which clears the position in the same update ("Move Topic"). `DeleteNodeCommand` needs no change. Each with undo and redo tests.
+
+**Outline.** After the main tree, a section "Floating Topics" with each floating branch as a top-level row, ordered as in the layout. Reordering rows there changes nothing stored (they have no `sortOrder` among each other).
+
+**VoiceOver.** Value "Floating topic, m subtopics"; actions Attach to Topic, Detach Topic (on tree topics); the Topics rotor lists floating topics after the main tree.
+
+**Export.** PNG and PDF draw them where they are. Markdown and plain text write the main tree, then each floating branch as a further top-level item (`#` heading or top-level list item) [Đề xuất]. Import keeps today's rule (several top-level items become children of a new central topic), so a round trip turns floating topics into main topics; FR-IO-03's round trip holds for maps without floating topics. Making extra top-level items floating on import would change MM-10a's rule and is left to the product owner.
+
+**Sync and repair.** How `GraphRepair` tells a floating topic from an orphaned branch, deterministically:
+
+| Stored node | Today | With floating topics |
+| --- | --- | --- |
+| `parentID` points to a node that is not there | Detached branch, moved under the central topic | Same. A missing parent means the branch belongs in the tree; a stored position on it is cleared |
+| `parentID` nil, not the root, no position | Detached branch, moved under the central topic | Same: only a position makes a topic floating |
+| `parentID` nil, not the root, with a position | Detached branch | Floating topic, valid, left alone |
+| `parentID` set and a position | — | The tree wins (ADR 0004): the position is cleared (new issue `strayPosition`) |
+| The root ID missing or pointing to nothing | `rootCandidate`: oldest parentless node, then oldest branch top, then oldest node | Parentless nodes **without** a position first; a floating topic becomes the root only if there is no other candidate, and its position is cleared |
+| A floating topic inside a loop | Loop cut at its most recently edited node | Same rule, unchanged |
+
+A move on one device and a rename on another resolve by the newest node record, as for any two edits of one topic.
+
+### Images (MM-63, MM-64)
+
+**Behaviour.** A topic has at most one image [Đề xuất: one per topic keeps layout and VoiceOver simple; several would be a later `sortOrder` on the same record]. Ways to add one, all ending in the same command:
+
+- Drag an image file (or an image from Photos or Safari) onto a topic; onto empty canvas it makes a floating topic with the image and an empty title [Đề xuất].
+- Paste (⌘V) with a topic selected when the pasteboard holds an image and no branch or text: a branch or text paste keeps its current meaning (MM-5).
+- Topic ▸ Add Image… (⌥⌘I): on the Mac a file panel (`fileImporter`, image types); on iPad and iPhone `PhotosPicker`, which runs out of process and needs no Photos permission, plus Files on iPad.
+- With an image already there, the item reads Replace Image….
+
+**Processing** (`MindMapImages` in the core package [Đề xuất name], ImageIO and Core Graphics, no platform branch, off the main actor): decode, apply the EXIF orientation, scale so the longest side is at most 2,048 px (FR-ORG-28 [Đề xuất]), re-encode as HEIC at quality 0.8, or PNG when the image has transparency [Đề xuất: HEIC decodes on every OS 26 device; JPEG is the fallback if MM-63 finds a gap]. Re-encoding from pixels without copying the source properties drops GPS, EXIF, maker notes and the file name. An encoded result over 5 MB is refused ("This image is too large") [Đề xuất]. An unreadable file is refused with "This file isn't an image the app can read".
+
+**On the canvas.** The image sits above the title inside the card, at its display width (Small 96, Medium 160, Large 240 pt [Đề xuất], default Medium, never wider than the level's maximum width), aspect ratio kept, height at most 1.5× the width (cropped to fill), corner radius `CanvasMetrics.imageCornerRadius`. It is decoded as a thumbnail at the display size (`CGImageSourceCreateThumbnailAtIndex`) and cached by image ID, so a large map does not hold full images. Size changes through Format ▸ Image Size ▸ and the inspector, not by dragging handles in V1. Below the detail zoom it is a filled placeholder of the same frame. The layout measures the topic with the image frame, known from the stored pixel size before the bytes load, so nothing jumps.
+
+**Inspector.** An Image section: the preview, Size, Description (a text field, up to 250 characters [Đề xuất], "Describe the image for VoiceOver"), Replace Image… and Remove Image.
+
+**Commands.** `SetNodeImageCommand(nodeID:image:)` with a `MindImage` (new or replacing) or nil: "Add Image", "Replace Image", "Remove Image"; `UpdateImageCommand(imageID:displayWidth:description:)`: "Change Image Size", "Edit Image Description". The change set keeps the whole `MindImage` including its bytes, so undoing Remove Image or Delete Topic brings the image back without a file; the cost is memory in the undo stack, at most the 5 MB cap per step. Deleting a topic deletes its image in the same transaction. Duplicate Branch copies the image to a new record (same bytes, new ID); Merge keeps the survivor's image, else takes the other's; Split leaves it on the first topic.
+
+**Context menu.** Add Image…, or Replace Image…, Image Size ▸ and Remove Image.
+
+**VoiceOver.** The image is not a separate element; the topic's custom content says "Image: <description>" or "Image, no description". The outline row shows a `photo` symbol after the title and reads the same.
+
+**Export.** PNG and PDF draw the image at its canvas size; `MapPicture` and `StaticTopicCard` (MM-10) must draw it like `TopicView`. Markdown and plain text leave images out [Đề xuất]; they have no file to point to. Copy of a branch puts the images in the app's own pasteboard type only.
+
+**Privacy.** Image bytes and descriptions are map content: never logged, never sent to the model (Foundation Models is not given images in V1). `PhotosPicker`, `fileImporter`, drag and paste need no usage string and no required-reason API *[Inference: checked against the required-reason categories; MM-64 confirms when it adds the code]*. iCloud storage of images uses the person's own iCloud quota.
+
+**Sync and repair.** The image is its own record (`ImageRecord`), so the node record stays small and an image edit does not conflict with a title edit. It refers to its node by `nodeID`. An image whose node is gone is deleted (`danglingImage`). Two images for one topic (added on two devices offline) keep the newest by `createdAt`, then ID; the others are deleted (`duplicateImage`) [Đề xuất: the rare loss of one of two pictures is accepted to keep one image per topic; the product owner may prefer keeping both]. A node whose image has not arrived yet draws without it, and grows when it arrives.
+
+### Summaries (MM-65)
+
+**What it is.** A bracket (`}` facing away from the parent) beyond a run of adjacent siblings, and a summary topic beyond the bracket that sums them up. The run is positional, with the same rules as a boundary (FR-ORG-13, 14): first and last sibling under one parent, members are every sibling between them, nesting allowed, crossing another summary under the same parent refused. Not allowed on the central topic or on a floating topic itself (no parent); allowed over main topics only if they are on the same side of the central topic.
+
+**Where the summary topic lives** (keeps ADR 0004). The summary topic is an ordinary node whose `parentID` is the run's parent, so it is in the tree: reachable, deleted with the parent's branch, moved with it, found by Find, exported. The group record names it in `summaryNodeID`. What makes it a summary topic is that a live summary group names it, nothing on the node, so there is one fact in one record. A summary topic is left out of its parent's child column, out of sibling runs (it is never a member of a boundary or summary under that parent), and out of Add Sibling, Promote, Demote and reorder targets among those siblings. If its group disappears it becomes the parent's last child: nothing is lost. Its own children are ordinary, laid out outward from it.
+
+**Behaviour.** Select a run of siblings (or one topic), Topic ▸ Add Summary (⌥⌘]): the bracket appears and the summary topic opens for typing with the placeholder "Summary". It renames, gets children, notes, tags, colour, link, image and callout like any topic. Selecting the bracket (click it, hit width `Metrics.minimumHitTarget`) and pressing Delete, or Topic ▸ Remove Summary, removes the bracket and the summary topic with its branch in one step. Deleting the summary topic removes the bracket too.
+
+**Layout.** The bracket spans the run's laid-out frames (members and their visible descendants), placed `CanvasMetrics.summaryBracketGap` beyond the outermost edge of those frames, so it clears the widest member branch; the summary topic is centred on the bracket's tip at the main-to-sub gap beyond it. The layout reserves no extra vertical space; the summary branch takes the vertical room it needs beside the run and pushes later siblings only if it is taller than the run [Đề xuất]. `HorizontalTreeLayout` takes summaries as input, like boundaries, and returns their bracket paths in `MapLayout.summaries`.
+
+**Kept valid** as boundaries are (MM-37, *Boundaries*): endpoints deleted or moved move inward; a run with no member left deletes the group, and the summary topic stays as an ordinary last child [Đề xuất: no topic is ever deleted by a rule the person did not trigger]; reordering follows the boundary rules; Duplicate Branch copies summaries whose parent is inside the copied branch, with a copy of the summary topic.
+
+**Commands.** `AddSummaryCommand(groupID:nodeID:parent:first:last:title:)` adds the group and the summary topic (caller-chosen IDs, so the session can start editing it): "Add Summary". `RemoveSummaryCommand(groupID:)` removes the group and the summary topic's branch: "Remove Summary". Deleting the summary topic through `DeleteNodeCommand` removes its group in the same transaction. Renaming is `UpdateNodeCommand` ("Rename Topic").
+
+**Context menu.** On a selected run: Add Summary. On the bracket: Remove Summary. The summary topic has the topic menu.
+
+**VoiceOver.** The summary topic's value: "Summary of <first> to <last>, m subtopics" (one member: "Summary of <title>"); members get "In summary <title>" in custom content. The bracket is not an element; Remove Summary is an action on the summary topic. The outline shows the summary topic as a row right after the run's last member, at the members' level, with a `curlybraces` [verify name] mark and a caption "Summary of n topics".
+
+**Export.** PNG and PDF draw bracket and topic. Markdown and plain text write the summary topic as the parent's child right after the run's last member, with no mark [Đề xuất], so its text and children survive; import does not rebuild the bracket.
+
+**Sync and repair.** Same rules as boundaries for the run (`invalidGroup`). Added for summaries: a summary group whose `summaryNodeID` is missing is drawn as a bracket only and deleted by repair once it is older than the orphan lifetime (30 days [Đề xuất], as tag links), since the topic may still be syncing; a summary topic whose `parentID` is no longer the group's parent (moved on another device) stays where its parent says and the group is deleted (`invalidSummary`); two summary groups naming one topic keep the oldest. A summary group kind unknown to an older build is hidden and kept, as `GroupKind` already does, and the topic it names shows as a plain last child there.
+
+### Callouts (MM-66)
+
+**What it is.** One short text attached to a topic, shown in a bubble above it with a tail pointing to the topic. It is a property of the topic, not a child, not a node: no children, no tags, no links, no connections [Đề xuất in FR-ORG-30, kept]. Up to 280 characters [Đề xuất], one line or wrapped at the topic's maximum width.
+
+**Why a property and not a node or record.** A callout node would sit in every tree walk (counts, Find, Markdown, AI context, outline levels) and need filtering everywhere; a separate record would need its own repair and a cascade on delete. A text field on the node is deleted with the topic, copied with it, undone with it, and needs no repair. If callouts ever need children or styling, a later schema can move them to records.
+
+**Behaviour.** Topic ▸ Add Callout (⌥⇧⌘↩) adds an empty bubble with the text field open; an empty text on Return or Esc removes it again. Clicking the bubble selects it (selecting the callout, not the topic), Space or double-click edits it in place, Delete removes it. The inspector shows it under Note as Callout with a field and Remove Callout. Hidden when the topic is hidden (collapsed parent, filter).
+
+**Layout.** The bubble is centred above its topic. FR-ORG-30 asked that it not take room in the tree; a bubble drawn over the tree would cover the sibling above, so this design **reserves** its height: the layout measures the topic's slot as bubble + `CanvasMetrics.calloutGap` + card, and the connector still attaches to the card's centre. The tree therefore moves when a callout is added, the same way it does when a title wraps. This is a change to FR-ORG-30 for the leader to carry into the SRS.
+
+**Commands.** `SetCalloutCommand(nodeIDs:text:)`: "Add Callout", "Edit Callout", "Remove Callout". Trimmed; blank is none. `DeleteNodeCommand` needs nothing: the text goes with the node. Duplicate copies it; Merge keeps the survivor's, else the other's.
+
+**Context menu.** Add Callout on a topic; Edit Callout and Remove Callout on the bubble.
+
+**VoiceOver.** Custom content "Callout: <text>" on the topic; actions Add Callout or Edit Callout. The outline shows it as a caption line under the title, read after the title.
+
+**Export.** PNG and PDF draw it. Markdown and plain text leave it out [Đề xuất in FR-ORG-30, kept]. The lossless format (MM-54) keeps it.
+
+**Sync and repair.** A field on the node record, merged with the node; nothing to repair.
+
 ## Where it shows
 
 ### Canvas
@@ -122,7 +266,12 @@ A boundary is a frame around a run of adjacent siblings and everything under the
 | Due date | Caption under the title with `calendar`, `danger` and `exclamationmark.circle` when overdue | Hidden |
 | Progress | "3/5" with a ring, after the title | Hidden |
 | Topic colour | Fill and stroke as a branch colour | Shown |
-| Link badge | `link` with a count on the visible ancestor | Hidden |
+| Connection badge | Connection symbol with a count on the visible ancestor | Hidden |
+| Link (URL) | `link` (or `envelope` for `mailto`) after the title and note mark | Hidden |
+| Image | Above the title, inside the card | A filled placeholder of the same size |
+| Callout | Bubble above the topic | Bubble outline only |
+| Summary | Bracket beyond the run and the summary topic | Bracket and topic shape |
+| Floating topic | At its stored position, with its branch | Shown |
 | Boundary | Frame and title | Frame only |
 
 Every adornment has a fixed size in `CanvasMetrics` and is measured with the title, so a topic's size is known before it is drawn. Adornments are drawn in content fonts and `Palette` colours, never glass.
@@ -133,7 +282,7 @@ Each row gets, in order: checkbox, symbol, title, priority marks, tag chips (up 
 
 ### Inspector
 
-Sections for the selected topic, in order: Note (exists), Tags (a token field with suggestions from map and shared tags, new names offered as "Create Tag"), Style (colour swatches with shapes and names, symbol picker, None), Task (Task toggle, Done, Priority picker, Start and Due date pickers with Clear, progress read-only), Links, Boundary (when the selection is a boundary or inside one), Details (exists), Map (exists). With several topics selected, Tags, Style and Task apply to all of them and show mixed values as such.
+Sections for the selected topic, in order: Note (exists), Tags (a token field with suggestions from map and shared tags, new names offered as "Create Tag"), Style (colour swatches with shapes and names, symbol picker, None), Task (Task toggle, Done, Priority picker, Start and Due date pickers with Clear, progress read-only), Link, Image, Callout, Connections, Boundary (when the selection is a boundary or inside one), Details (exists), Map (exists). With several topics selected, Tags, Style, Task, Link and Callout apply to all of them and show mixed values as such; Image applies to one topic only.
 
 ### Menus and shortcuts (Mac)
 
@@ -141,7 +290,17 @@ Every item is also in the iPad menu bar. Items that do not apply are disabled, n
 
 | Menu | Item | Key |
 | --- | --- | --- |
-| Topic | Add Link… | ⌘K |
+| Topic | Add Link… / Edit Link… (URL, MM-60) | ⌘K (product owner, 2026-10-02) |
+| Topic | Open Link | ⇧⌘O |
+| Topic | Remove Link | — |
+| Topic | Add Connection… (MM-33) | ⌘L (product owner, 2026-10-02) |
+| Topic | Add Floating Topic (MM-62) | ⌥⌘↩ |
+| Topic | Detach Topic / Attach to Topic… (MM-62) | — |
+| Topic | Add Image… / Replace Image… (MM-64) | ⌥⌘I |
+| Topic | Remove Image | — |
+| Topic | Add Summary / Remove Summary (MM-65) | ⌥⌘] |
+| Topic | Add Callout / Edit Callout (MM-66) | ⌥⇧⌘↩ |
+| Topic | Remove Callout | — |
 | Topic | Add Tag… (opens the inspector's tag field) | ⇧⌘T (built, MM-34) |
 | Topic | Tags ▸ the map's most used tags as toggles, Add Tag…, Manage Tags… | — |
 | Topic | Manage Tags… | ⌥⇧⌘T (built, MM-34) |
@@ -152,7 +311,8 @@ Every item is also in the iPad menu bar. Items that do not apply are disabled, n
 | Topic | Add Boundary / Remove Boundary | ⌥⌘B |
 | Format (new, between Edit and View) | Topic Color ▸ None, Blue … Graphite | — |
 | Format | Topic Symbol ▸ Choose Symbol…, Emoji & Symbols, None | — |
-| Format | Link ▸ Line ▸ Solid, Dashed, Dotted; Arrows ▸ None, At End, At Start, Both Ends; Color ▸; Reverse Link | — |
+| Format | Connection ▸ Line ▸ Solid, Dashed, Dotted; Arrows ▸ None, At End, At Start, Both Ends; Color ▸; Reverse Connection | — |
+| Format | Image Size ▸ Small, Medium, Large | — |
 | Format | Boundary Color ▸ | — |
 | View | Show Filter Bar / Hide Filter Bar | ⌥⌘L |
 | View | Clear Filter | ⌥⇧⌘L |
@@ -162,9 +322,11 @@ Every item is also in the iPad menu bar. Items that do not apply are disabled, n
 | AI | Suggest Groups | ⌃⌘O |
 | AI | Summarize Boundary | ⌃⌘Y |
 
-Picker submenus (colours, symbols, line styles) have no keys of their own, as Rewrite Topic ▸ and Promote/Demote do today. Each new key also goes into Help ▸ Keyboard Shortcuts (`KeyboardShortcutsView.groups`), which no test checks against the menus.
+Remove items and picker submenus (colours, symbols, line styles, image sizes) have no keys of their own: a remove is in the same sheet or popover as the add, and the Delete key removes a selected connection, boundary or callout, as Rewrite Topic ▸ and Promote/Demote do today. Each new key also goes into Help ▸ Keyboard Shortcuts (`KeyboardShortcutsView.groups`), which no test checks against the menus.
 
-Context menus: a topic gains Tags ▸, Task ▸, Color ▸, Add Link…, Add Boundary, Focus on Branch and Suggest Tags; a link has Edit Label, Line ▸, Arrows ▸, Color ▸, Reverse Link, Remove Link; a boundary has Rename Boundary, Color ▸, Summarize Boundary, Remove Boundary.
+Context menus: a topic gains Tags ▸, Task ▸, Color ▸, Add Link… (or Open Link, Edit Link…, Remove Link), Add Connection…, Add Image… (or Replace Image…, Image Size ▸, Remove Image), Add Callout, Add Summary (with a run of siblings selected), Add Boundary, Detach Topic or Attach to Topic…, Focus on Branch and Suggest Tags; a connection has Edit Label, Line ▸, Arrows ▸, Color ▸, Reverse Connection, Remove Connection; a boundary has Rename Boundary, Color ▸, Summarize Boundary, Remove Boundary; a summary bracket has Remove Summary; a callout has Edit Callout and Remove Callout; empty canvas has Add Floating Topic (at the pointer).
+
+The new keys (⌘K, ⌘L, ⇧⌘O, ⌥⌘↩, ⌥⇧⌘↩, ⌥⌘I, ⌥⌘]) were checked against `AppCommands`, `FileTransferCommands` and the View menu on `main` at `d11c11c`: ⌘↩ is Add Sibling Topic, ⇧⌘↩ Add Child Topic, ⇧⌘I Import…, ⌥⇧⌘I Import into Map…, ⌃⌘I Show Inspector, ⌥⌘O Open in New Window; none of the new ones is taken there or in the standard list of [[design-guidelines]]. ⌘] and ⌘[ are left alone because text editing uses them for indent. ⌥⌘] needs another key on some keyboard layouts; macOS remaps menu keys for those layouts *[Unverified]*, so MM-65 checks it with a German layout.
 
 On iPhone the filter bar is a sheet from the toolbar, the inspector is a sheet as today, and chips show up to 2 tags.
 
@@ -184,11 +346,11 @@ Three new requests, each a `@Generable` result turned into a proposal, previewed
 
 ## Accessibility
 
-- **VoiceOver value** of a topic stays short: "Level n, m subtopics", then "task, done" or "task, not done", "priority high", "overdue" when it applies. Tags, dates, colour name, symbol name, links ("Link to Budget, label: depends on") and boundary ("In boundary Phase 1") go to accessibility custom content, read with "more content".
-- **Actions** on a topic element: Mark as Done, Add Tag, Add Link, Focus on Branch, beside the existing ones.
-- **Rotors**: Topics (exists), Open Tasks, Links, and Matches while a filter is on.
+- **VoiceOver value** of a topic stays short: "Level n, m subtopics" ("Floating topic, m subtopics" for a floating topic, "Summary of Design to Launch, m subtopics" for a summary topic), then "task, done" or "task, not done", "priority high", "overdue" when it applies. Tags, dates, colour name, symbol name, connections ("Connection to Budget, label: depends on"), the link ("Link: example.com"), the image description ("Image: whiteboard sketch", or "Image, no description"), the callout text, boundary ("In boundary Phase 1") and summary ("In summary Q3 plan") go to accessibility custom content, read with "more content".
+- **Actions** on a topic element: Mark as Done, Add Tag, Add Link or Open Link, Add Connection, Add Callout, Detach Topic or Attach to Topic, Focus on Branch, beside the existing ones. Every drag in *Node types* has one of these as its non-drag alternative.
+- **Rotors**: Topics (exists; floating topics after the main tree), Open Tasks, Connections, Links, and Matches while a filter is on.
 - **Differentiate Without Color**: the colour shape on coloured topics and in tag chips; overdue and priority already carry symbols and marks. Boundaries have titles and a stroke.
-- **Increase Contrast**: IC variants of every token, 2 pt boundary and link strokes. **Reduce Motion**: dim, hide and focus changes crossfade through `Motion`.
+- **Increase Contrast**: IC variants of every token, 2 pt boundary, bracket, connection and callout strokes. **Reduce Motion**: dim, hide and focus changes crossfade through `Motion`.
 - Each chip, checkbox and badge has a hit target of `Metrics.minimumHitTarget` on touch, without changing the drawing.
 - The outline row reads the same facts in the same order, so the outline remains the full alternative (FR-EDT-16).
 
@@ -205,21 +367,20 @@ New records follow the CloudKit rules of [[data-model]]: optional or defaulted p
 | Two links between the same node and tag | The oldest is kept |
 | Boundary endpoints no longer siblings under `parentNodeID`, or in the wrong order, after a remote move | Repair shrinks the run to the endpoint still under the parent, swaps endpoints out of order, and deletes a boundary with no member left. Crossing boundaries from two devices are drawn as they are and not repaired |
 | An unknown `taskState`, colour, line style or group kind from a newer version | Read with the fallback (`open`, theme colour, derived style, hidden group) and left untouched in storage |
+| Links, floating topics, images, summaries, callouts | Rules in *Node types* below, each under *Sync and repair*; summarised in [[data-model]] *Node types (MM-59)* |
 
 Every rule depends only on stored values, timestamps and IDs, so two devices repair to the same graph. Repair changes are saved, as today, so they run once.
 
 ## Not in V2
 
-Listed so later tasks can build on the same records; the fields they need are in [[data-model]] (*Not in V2*).
+Listed so later tasks can build on the same records; the fields they need are in [[data-model]] (*Not in V2*). Summary topics, floating topics, images and callouts left this table on 2026-10-02: they are V1 now (*Node types*).
 
 | When | Feature | Why not now |
 | --- | --- | --- |
-| V1.x | Summary topics (bracket over siblings, `MindGroup.kind = summary`) | Needs a node type for the summary and layout rules for brackets |
-| V1.x | Floating topics and several main topics | Needs stored positions, which the derived layout avoids today |
 | V1.x | Saved filters and smart views across maps | Filters are device-local first; a saved view is a new synced record |
 | V1.x | Links to other maps and backlinks | Needs `targetMapID` and handling of maps that are deleted or not synced yet |
 | V1.x | Structure per branch (logic chart, org chart, timeline) | Needs more layout engines than `HorizontalTreeLayout` |
 | V1.x | Numbering (1, 1.1) and per-branch styles | Display rules, best designed with the branch structures |
 | V1.x | Presentation and zen mode | View-only; Focus on Branch covers part of it |
-| V1.x | Images and attachments | Large data in its own record with external storage, not in a node |
-| Later | Board view, Gantt, custom properties, rule-based formatting, zones, callouts, equations and code, ratings and assignees, comments (needs CloudKit sharing) | Rare in the compared apps or depends on sharing |
+| V1.x | File attachments, several images per topic, audio notes | Same storage path as images (*Images*), plus Quick Look and file types |
+| Later | Board view, Gantt, custom properties, rule-based formatting, zones, equations and code, ratings and assignees, comments (needs CloudKit sharing) | Rare in the compared apps or depends on sharing |
