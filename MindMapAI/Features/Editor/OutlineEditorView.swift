@@ -125,12 +125,19 @@ struct OutlineRow: View {
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(accessibilityLabel)
+                .modifier(TopicImageAccessibility(image: row.topicImage))
                 .accessibilityIdentifier(AccessibilityID.Outline.topic)
             if !row.tags.isEmpty {
                 OutlineTagChips(tags: row.tags)
             }
             if let link = row.node.link, let url = link.url {
                 OutlineLinkButton(link: link, url: url)
+            }
+            if row.topicImage != nil {
+                Image(systemName: "photo")
+                    .font(Typography.rowDetail)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
             if row.node.hasNote {
                 Image(systemName: "note.text")

@@ -156,6 +156,15 @@ struct MapCommands: Commands {
                 if let editor, let id = editor.selection { editor.removeLink(from: id) }
             }
             .disabled(editor?.selectionHasLink != true)
+            Button(editor?.selectedImage == nil ? "Add Image…" : "Replace Image…") {
+                editor?.imagePickerTarget = editor?.selection
+            }
+            .keyboardShortcut("i", modifiers: [.command, .option])
+            .disabled(editor?.canEditSelectionImage != true)
+            Button("Remove Image") {
+                if let editor, let id = editor.selection { Task { await editor.removeImage(from: id) } }
+            }
+            .disabled(editor?.selectedImage == nil)
             // ⇧⌘T and ⌥⇧⌘T: free in the menus; this app has no Fonts panel (⌘T).
             Button("Add Tag…") { editor?.beginAddingTag() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])
@@ -196,6 +205,27 @@ struct MapCommands: Commands {
             Button("Delete Topic") { editor?.deleteSelection() }
                 .keyboardShortcut(deleteTopicShortcut)
                 .disabled(editor?.canDeleteSelection != true)
+        }
+
+        CommandMenu("Format") {
+            Menu("Image Size") {
+                Button("Small") {
+                    if let editor, let image = editor.selectedImage {
+                        editor.setImageSize(CanvasMetrics.imageWidthSmall, for: image.id)
+                    }
+                }
+                Button("Medium") {
+                    if let editor, let image = editor.selectedImage {
+                        editor.setImageSize(CanvasMetrics.imageWidthMedium, for: image.id)
+                    }
+                }
+                Button("Large") {
+                    if let editor, let image = editor.selectedImage {
+                        editor.setImageSize(CanvasMetrics.imageWidthLarge, for: image.id)
+                    }
+                }
+            }
+            .disabled(editor?.selectedImage == nil)
         }
 
         // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.

@@ -22,6 +22,16 @@ struct MapInspectorView: View {
                     TopicLinkInspectorField(session: session, nodeID: node.id, link: node.link)
                         .id(node.id)
                 }
+                if session.selectedIDs.count == 1 {
+                    Section("Image") {
+                        if let image = session.selectedImage {
+                            TopicImageInspector(session: session, image: image)
+                                .id(image.id)
+                        } else {
+                            Button("Add Image…") { session.imagePickerTarget = node.id }
+                        }
+                    }
+                }
                 Section {
                     TagField(session: session)
                 } header: {

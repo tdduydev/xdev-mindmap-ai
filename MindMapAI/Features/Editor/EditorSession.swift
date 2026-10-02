@@ -19,6 +19,7 @@ final class EditorSession {
         let hasChildren: Bool
         /// The topic's tags, as the outline row shows them.
         var tags: [MindTag] = []
+        var topicImage: MindImage?
         var id: NodeID { node.id }
     }
 
@@ -50,6 +51,8 @@ final class EditorSession {
     var noteFocusRequest: NodeID?
     /// The topic whose link sheet shows (Topic ▸ Add Link…, FR-ORG-26).
     var linkEditorTarget: NodeID?
+    var imagePickerTarget: NodeID?
+    var imageFailure: String?
     /// Asks the inspector's tag field to take focus (Topic ▸ Add Tag…).
     var tagFieldFocusRequest = false
     /// Whether Manage Tags shows.
@@ -171,6 +174,10 @@ final class EditorSession {
 
     var selectedNode: MindNode? { selection.flatMap { engine.state.node($0) } }
 
+    func cacheImageData(_ data: Data, for id: ImageID) {
+        engine.imageData[id] = data
+    }
+
     /// A bare Delete in the menu bar is matched before the focused view sees
     /// the key, so it is the Delete Topic shortcut only while the editor holds
     /// focus outside a text field: otherwise it would eat Delete in a title
@@ -210,7 +217,7 @@ final class EditorSession {
     var canCopySelection: Bool { !selectedBranchRoots.isEmpty }
     /// Cut deletes, so it follows Delete: the central topic stays.
     var canCutSelection: Bool { canDeleteSelection }
-    var canPaste: Bool { (selection ?? rootID) != nil && clipboard.hasText }
+    var canPaste: Bool { (selection ?? rootID) != nil && (clipboard.hasText || SystemImageClipboard.hasImage) }
 
     func isSelected(_ id: NodeID) -> Bool { selectedIDs.contains(id) }
 
@@ -253,7 +260,8 @@ final class EditorSession {
         let tags = state.tagsByNode()
         return state.visibleOutline().compactMap { item in
             state.node(item.nodeID).map {
-                Row(node: $0, depth: item.depth, hasChildren: item.hasChildren, tags: tags[item.nodeID] ?? [])
+                Row(node: $0, depth: item.depth, hasChildren: item.hasChildren,
+                    tags: tags[item.nodeID] ?? [], topicImage: state.image(of: item.nodeID))
             }
         }
     }
@@ -334,8 +342,22 @@ final class EditorSession {
         guard let first = targets.first else { return }
         let fallbacks = [neighbour(replacing: first)].compactMap { $0 } + engine.state.ancestors(of: first)
         let name = name ?? (targets.count == 1 ? String(localized: "Delete Topic") : String(localized: "Delete Topics"))
-        if perform(DeleteNodeCommand(nodeIDs: targets), named: name) {
-            selection = fallbacks.first { engine.state.node($0) != nil } ?? rootID
+        let images = engine.state.images(inBranchesOf: targets)
+        if images.isEmpty {
+            if perform(DeleteNodeCommand(nodeIDs: targets), named: name) {
+                selection = fallbacks.first { engine.state.node($0) != nil } ?? rootID
+            }
+            return
+        }
+        Task {
+            do {
+                try await loadImageBytes(images)
+                if perform(DeleteNodeCommand(nodeIDs: targets), named: name) {
+                    selection = fallbacks.first { engine.state.node($0) != nil } ?? rootID
+                }
+            } catch {
+                imageFailure = String(localized: "Couldn’t load the image")
+            }
         }
     }
 
@@ -347,9 +369,19 @@ final class EditorSession {
         let copies = originals.map { (original: $0, copy: NodeID()) }
         let command = BatchCommand(copies.map { DuplicateBranchCommand(nodeID: $0.original, copyID: $0.copy) })
         let name = originals.count == 1 ? String(localized: "Duplicate Topic") : String(localized: "Duplicate Topics")
-        if perform(command, named: name) {
-            let primary = copies.first { $0.original == primarySelection }?.copy ?? copies[0].copy
-            setSelection(Set(copies.map(\.copy)), primary: primary)
+        let primary = copies.first { $0.original == primarySelection }?.copy ?? copies[0].copy
+        let images = engine.state.images(inBranchesOf: originals)
+        if images.isEmpty {
+            if perform(command, named: name) { setSelection(Set(copies.map(\.copy)), primary: primary) }
+            return
+        }
+        Task {
+            do {
+                try await loadImageBytes(images)
+                if perform(command, named: name) { setSelection(Set(copies.map(\.copy)), primary: primary) }
+            } catch {
+                imageFailure = String(localized: "Couldn’t load the image")
+            }
         }
     }
 
@@ -447,8 +479,9 @@ final class EditorSession {
     }
 
     func paste() {
-        guard let text = clipboard.text else { return }
-        paste(text)
+        if let text = clipboard.text { paste(text); return }
+        guard let parent = selection ?? rootID, let data = SystemImageClipboard.imageData else { return }
+        Task { await addImage(data, to: parent) }
     }
 
     /// Text on the clipboard becomes children of the selected topic: Markdown
@@ -486,8 +519,20 @@ final class EditorSession {
     /// Takes IDs because multi-selection arrives later (MM-5).
     func merge(_ ids: [NodeID]) {
         guard let survivor = ids.first, ids.count > 1 else { return }
-        if perform(MergeNodesCommand(into: survivor, merging: Array(ids.dropFirst())), named: String(localized: "Merge Topics")) {
-            selection = survivor
+        let command = MergeNodesCommand(into: survivor, merging: Array(ids.dropFirst()))
+        let name = String(localized: "Merge Topics")
+        let images = engine.state.images(inBranchesOf: ids)
+        if images.isEmpty {
+            if perform(command, named: name) { selection = survivor }
+            return
+        }
+        Task {
+            do {
+                try await loadImageBytes(images)
+                if perform(command, named: name) { selection = survivor }
+            } catch {
+                imageFailure = String(localized: "Couldn’t load the image")
+            }
         }
     }
 

@@ -85,7 +85,7 @@ struct CanvasClipboard: ViewModifier {
             .onCutCommand(perform: session.canCutSelection ? {
                 session.cutSelectionReturningText().map { [NSItemProvider(object: $0 as NSString)] } ?? []
             } : nil)
-            .onPasteCommand(of: [.plainText]) { _ in session.paste() }
+            .onPasteCommand(of: [.plainText, .image]) { _ in session.paste() }
             .onCommand(#selector(NSText.selectAll(_:))) { model.selectAll() }
         #else
         content
