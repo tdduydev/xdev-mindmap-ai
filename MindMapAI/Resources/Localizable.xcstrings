@@ -1323,6 +1323,16 @@
         }
       }
     },
+    "Clear the chat for this map?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá cuộc trò chuyện của sơ đồ này?"
+          }
+        }
+      }
+    },
     "Clearer" : {
       "localizations" : {
         "vi" : {
@@ -2544,6 +2554,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Có thể sơ đồ đã bị xoá trên thiết bị khác."
+          }
+        }
+      }
+    },
+    "Its questions and answers are deleted. This can’t be undone." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các câu hỏi và câu trả lời sẽ bị xoá. Không thể hoàn tác."
           }
         }
       }
