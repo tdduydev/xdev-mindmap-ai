@@ -3,6 +3,10 @@ import Foundation
 /// Public pages the app links to.
 enum AppLinks {
     static let website = URL(literal: "https://xdev.asia/mindmap")
+    /// App Review needs this in App Store Connect and inside the app (5.1.1(i)).
+    static let privacyPolicy = URL(literal: "https://xdev.asia/mindmap/privacy")
+    /// Also the target of Help ▸ MindMap AI Help: the app has no help book.
+    static let support = URL(literal: "https://xdev.asia/mindmap/support")
 }
 
 extension URL {

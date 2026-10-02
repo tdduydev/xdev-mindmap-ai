@@ -1,795 +1,2013 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "About": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Giới thiệu"
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld AI suggestions" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld AI suggestion"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld AI suggestions"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld đề xuất của AI"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld subtopics" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subtopic"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subtopics"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld chủ đề con"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld suggestions" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld suggestion"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld suggestions"
+                }
+              }
+            }
           }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld đề xuất"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "AI" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI"
+          }
+        }
+      }
+    },
+    "AI can make mistakes. Suggestions change your map only when you accept them, and Undo takes them back." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI có thể sai. Đề xuất chỉ thay đổi sơ đồ khi bạn chấp nhận, và Hoàn tác sẽ gỡ chúng đi."
+          }
+        }
+      }
+    },
+    "AI runs on this device" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI chạy trên thiết bị này"
+          }
+        }
+      }
+    },
+    "AI runs on this device. Your maps and requests are never sent to xDev." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI chạy trên thiết bị này. Sơ đồ và yêu cầu của bạn không bao giờ được gửi tới xDev."
+          }
+        }
+      }
+    },
+    "AI suggestion, %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đề xuất của AI, %@"
+          }
+        }
+      }
+    },
+    "About" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giới thiệu"
+          }
+        }
+      }
+    },
+    "Accept All" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chấp nhận tất cả"
+          }
+        }
+      }
+    },
+    "Accept All Suggestions" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chấp nhận tất cả đề xuất"
+          }
+        }
+      }
+    },
+    "Accept Suggestion" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chấp nhận đề xuất"
+          }
+        }
+      }
+    },
+    "Actual Size" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kích thước thật"
+          }
+        }
+      }
+    },
+    "Add AI Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề AI"
+          }
+        }
+      }
+    },
+    "Add Central Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề trung tâm"
+          }
+        }
+      }
+    },
+    "Add Child" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề con"
+          }
+        }
+      }
+    },
+    "Add Child Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề con"
+          }
+        }
+      }
+    },
+    "Add Link" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm liên kết"
+          }
+        }
+      }
+    },
+    "Add Sibling" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề cùng cấp"
+          }
+        }
+      }
+    },
+    "Add Sibling Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề cùng cấp"
+          }
+        }
+      }
+    },
+    "Add Summary to Note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm tóm tắt vào ghi chú"
+          }
+        }
+      }
+    },
+    "Add Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề"
+          }
+        }
+      }
+    },
+    "Add to Favorites" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm vào Yêu thích"
+          }
+        }
+      }
+    },
+    "Add to Note" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm vào ghi chú"
+          }
+        }
+      }
+    },
+    "All Maps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tất cả sơ đồ"
+          }
+        }
+      }
+    },
+    "Analytics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thống kê sử dụng"
+          }
+        }
+      }
+    },
+    "Appearance" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giao diện"
+          }
+        }
+      }
+    },
+    "Apple Intelligence" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence"
+          }
+        }
+      }
+    },
+    "Apple Intelligence Is Off" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence đang tắt"
+          }
+        }
+      }
+    },
+    "Apple Intelligence doesn’t support this language yet." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence chưa hỗ trợ ngôn ngữ này."
+          }
+        }
+      }
+    },
+    "Apple Intelligence is busy. Try again in a moment." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence đang bận. Hãy thử lại sau giây lát."
+          }
+        }
+      }
+    },
+    "Apple Intelligence isn’t available right now." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence hiện chưa dùng được."
+          }
+        }
+      }
+    },
+    "As Canvas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem dạng khung vẽ"
+          }
+        }
+      }
+    },
+    "As Outline" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem dạng dàn ý"
+          }
+        }
+      }
+    },
+    "Ask a question to focus the ideas, or leave it empty to brainstorm around the topic." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt một câu hỏi để ý tưởng tập trung hơn, hoặc để trống để động não quanh chủ đề."
+          }
+        }
+      }
+    },
+    "Brainstorm" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Động não"
+          }
+        }
+      }
+    },
+    "Brainstorm Ideas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Động não ý tưởng"
+          }
+        }
+      }
+    },
+    "Brainstorm Ideas…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Động não ý tưởng…"
+          }
+        }
+      }
+    },
+    "Brainstorming ideas…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang động não ý tưởng…"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Huỷ"
+          }
+        }
+      }
+    },
+    "Cancel AI Request" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Huỷ yêu cầu AI"
+          }
+        }
+      }
+    },
+    "Canvas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khung vẽ"
+          }
+        }
+      }
+    },
+    "Can’t Open Your Maps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được dữ liệu sơ đồ"
+          }
+        }
+      }
+    },
+    "Central Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề trung tâm"
+          }
+        }
+      }
+    },
+    "Change Theme" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi bộ màu"
+          }
+        }
+      }
+    },
+    "Choose a map, or start a new one." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn một sơ đồ, hoặc bắt đầu sơ đồ mới."
+          }
+        }
+      }
+    },
+    "Clearer" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rõ hơn"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đóng"
+          }
+        }
+      }
+    },
+    "Collapse" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu gọn"
+          }
+        }
+      }
+    },
+    "Collapse All" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu gọn tất cả"
+          }
+        }
+      }
+    },
+    "Collapse Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu gọn chủ đề"
+          }
+        }
+      }
+    },
+    "Contact Support" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên hệ hỗ trợ"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếp tục"
+          }
+        }
+      }
+    },
+    "Couldn’t Open Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được sơ đồ"
+          }
+        }
+      }
+    },
+    "Couldn’t load your maps." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tải được danh sách sơ đồ."
+          }
+        }
+      }
+    },
+    "Couldn’t save the map." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không lưu được sơ đồ."
+          }
+        }
+      }
+    },
+    "Couldn’t save your latest changes." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa lưu được các thay đổi mới nhất."
+          }
+        }
+      }
+    },
+    "Current Title" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiêu đề hiện tại"
+          }
+        }
+      }
+    },
+    "Dark" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tối"
+          }
         }
       }
     },
-    "Add Central Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm chủ đề trung tâm"
+    "Data Storage" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lưu trữ dữ liệu"
           }
         }
       }
     },
-    "Add Child": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm chủ đề con"
+    "Delete" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá"
           }
         }
       }
     },
-    "Add Child Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm chủ đề con"
+    "Delete Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá chủ đề"
           }
         }
       }
     },
-    "Add Link": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm liên kết"
+    "Delete this map?" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá sơ đồ này?"
           }
         }
       }
     },
-    "Add Sibling": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm chủ đề cùng cấp"
+    "Delete…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá…"
           }
         }
       }
     },
-    "Add Sibling Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm chủ đề cùng cấp"
+    "Demote Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đưa chủ đề xuống một cấp"
           }
         }
       }
     },
-    "Add Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm chủ đề"
+    "Describe the map you want, for example “Plan a product launch”. Suggestions appear on the canvas for you to review." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mô tả sơ đồ bạn muốn, ví dụ “Lên kế hoạch ra mắt sản phẩm”. Đề xuất sẽ hiện trên khung vẽ để bạn xem lại."
           }
         }
       }
     },
-    "Add to Favorites": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm vào Yêu thích"
+    "Description" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mô tả"
           }
         }
       }
     },
-    "All Maps": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tất cả sơ đồ"
+    "Discard" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ"
           }
         }
       }
     },
-    "Analytics": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thống kê sử dụng"
+    "Discard Suggestion" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ đề xuất"
           }
         }
       }
     },
-    "Appearance": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Giao diện"
+    "Discard Suggestions" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ các đề xuất"
           }
         }
       }
     },
-    "Can’t Open Your Maps": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không mở được dữ liệu sơ đồ"
+    "Duplicate Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhân bản chủ đề"
           }
         }
       }
     },
-    "Central Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chủ đề trung tâm"
+    "Edit Request…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa yêu cầu…"
           }
         }
       }
     },
-    "Choose a map, or start a new one.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chọn một sơ đồ, hoặc bắt đầu sơ đồ mới."
+    "Edit Suggestion" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa đề xuất"
           }
         }
       }
     },
-    "Collapse": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thu gọn"
+    "Edit the title before using it if you like." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn có thể sửa tiêu đề trước khi dùng."
           }
         }
       }
     },
-    "Collapse All": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thu gọn tất cả"
+    "Edited %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã sửa %@"
           }
         }
       }
     },
-    "Collapse Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thu gọn chủ đề"
+    "Empty Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ trống"
           }
         }
       }
     },
-    "Couldn’t Open Map": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không mở được sơ đồ"
+    "Expand" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở rộng"
           }
         }
       }
     },
-    "Couldn’t load your maps.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không tải được danh sách sơ đồ."
+    "Expand All" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở rộng tất cả"
           }
         }
       }
     },
-    "Couldn’t save the map.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không lưu được sơ đồ."
+    "Expand Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở rộng chủ đề"
           }
         }
       }
     },
-    "Couldn’t save your latest changes.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chưa lưu được các thay đổi mới nhất."
+    "Favorite" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu thích"
           }
         }
       }
     },
-    "Dark": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tối"
+    "Favorites" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu thích"
           }
         }
       }
     },
-    "Data Storage": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lưu trữ dữ liệu"
+    "Find Missing Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm chủ đề còn thiếu"
           }
         }
       }
     },
-    "Delete": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xoá"
+    "General" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chung"
           }
         }
       }
     },
-    "Delete Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xoá chủ đề"
+    "Generate" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo"
           }
         }
       }
     },
-    "Delete this map?": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xoá sơ đồ này?"
+    "Generate Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo sơ đồ bằng AI"
           }
         }
       }
     },
-    "Delete…": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xoá…"
+    "Generate Map…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo sơ đồ bằng AI…"
           }
         }
       }
     },
-    "Demote Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đưa chủ đề xuống một cấp"
+    "Generating map…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tạo sơ đồ…"
           }
         }
       }
     },
-    "Duplicate Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nhân bản chủ đề"
+    "Getting Ready" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang chuẩn bị"
           }
         }
       }
     },
-    "Edited %@": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã sửa %@"
+    "Getting ready. Apple Intelligence is still downloading; AI actions will be available soon." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang chuẩn bị. Apple Intelligence vẫn đang tải về; các lệnh AI sẽ sớm dùng được."
           }
         }
       }
     },
-    "Empty Map": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sơ đồ trống"
+    "Graphite" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Graphite"
           }
         }
       }
     },
-    "Expand": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mở rộng"
+    "Hide Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn bảng thông tin"
           }
         }
       }
     },
-    "Expand All": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mở rộng tất cả"
+    "Ideas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ý tưởng"
           }
         }
       }
     },
-    "Expand Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mở rộng chủ đề"
+    "In English" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sang tiếng Anh"
           }
         }
       }
     },
-    "Favorite": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yêu thích"
+    "In Vietnamese" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sang tiếng Việt"
           }
         }
       }
     },
-    "Favorites": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yêu thích"
+    "Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bảng thông tin"
           }
         }
       }
     },
-    "General": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chung"
+    "It may have been deleted on another device." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có thể sơ đồ đã bị xoá trên thiết bị khác."
           }
         }
       }
     },
-    "It may have been deleted on another device.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Có thể sơ đồ đã bị xoá trên thiết bị khác."
+    "Language Not Supported" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa hỗ trợ ngôn ngữ"
           }
         }
       }
     },
-    "Light": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sáng"
+    "Level %lld" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cấp %lld"
           }
         }
       }
     },
-    "Map Not Found": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không tìm thấy sơ đồ"
+    "Light" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sáng"
           }
         }
       }
     },
-    "Maps you edit appear here.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sơ đồ bạn chỉnh sửa sẽ hiện ở đây."
+    "Looking for missing topics…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tìm chủ đề còn thiếu…"
           }
         }
       }
     },
-    "Mark a map as a favorite to find it here.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đánh dấu yêu thích để tìm sơ đồ ở đây."
+    "Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ"
           }
         }
       }
     },
-    "Merge Topics": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gộp chủ đề"
+    "Map Not Found" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy sơ đồ"
           }
         }
       }
     },
-    "MindMap AI": {
-      "shouldTranslate": false
+    "Maps you edit appear here." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ bạn chỉnh sửa sẽ hiện ở đây."
+          }
+        }
+      }
+    },
+    "Mark a map as a favorite to find it here." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đánh dấu yêu thích để tìm sơ đồ ở đây."
+          }
+        }
+      }
+    },
+    "Merge Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gộp chủ đề"
+          }
+        }
+      }
+    },
+    "MindMap AI" : {
+      "shouldTranslate" : false
+    },
+    "MindMap AI Help" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trợ giúp MindMap AI"
+          }
+        }
+      }
+    },
+    "MindMap AI Website" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trang web MindMap AI"
+          }
+        }
+      }
+    },
+    "MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI không mở được nơi lưu dữ liệu. Hãy khởi động lại ứng dụng. Nếu vẫn lỗi, hãy liên hệ hỗ trợ của xDev."
+          }
+        }
+      }
+    },
+    "MindMap AI keeps your maps on your devices. There is no account and no tracking." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI giữ sơ đồ trên thiết bị của bạn. Không cần tài khoản, không theo dõi."
+          }
+        }
+      }
+    },
+    "MindMap AI uses Apple Intelligence on this device. Your maps and requests are processed here and are never sent to xDev." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI dùng Apple Intelligence trên thiết bị này. Sơ đồ và yêu cầu của bạn được xử lý tại đây và không bao giờ được gửi tới xDev."
+          }
+        }
+      }
+    },
+    "More Formal" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trang trọng hơn"
+          }
+        }
+      }
+    },
+    "More Technical" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kỹ thuật hơn"
+          }
+        }
+      }
+    },
+    "New Map with AI…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ mới bằng AI…"
+          }
+        }
+      }
+    },
+    "New Mind Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ mới"
+          }
+        }
+      }
+    },
+    "New Title" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiêu đề mới"
+          }
+        }
+      }
+    },
+    "New Window" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cửa sổ mới"
+          }
+        }
+      }
+    },
+    "No Favorites" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có sơ đồ yêu thích"
+          }
+        }
+      }
+    },
+    "No Map Selected" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa chọn sơ đồ"
+          }
+        }
+      }
+    },
+    "No Recent Maps" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa có sơ đồ gần đây"
+          }
+        }
+      }
+    },
+    "No suggestions this time. Try again or reword the request." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lần này chưa có đề xuất. Hãy thử lại hoặc diễn đạt yêu cầu khác đi."
+          }
+        }
+      }
+    },
+    "None" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có"
+          }
+        }
+      }
+    },
+    "None. Your maps are never sent to xDev." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có. Sơ đồ của bạn không bao giờ được gửi tới xDev."
+          }
+        }
+      }
+    },
+    "Not Available" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng được"
+          }
+        }
+      }
+    },
+    "Not Available on This Device" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng được trên thiết bị này"
+          }
+        }
+      }
+    },
+    "Not Now" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để sau"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "On this device" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trên thiết bị này"
+          }
+        }
+      }
+    },
+    "On this device. Nothing is sent to xDev." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trên thiết bị này. Không gửi gì tới xDev."
+          }
+        }
+      }
+    },
+    "Outline" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dàn ý"
+          }
+        }
+      }
+    },
+    "Possible missing topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có thể còn thiếu các chủ đề này"
+          }
+        }
+      }
     },
-    "MindMap AI Website": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trang web MindMap AI"
+    "Privacy" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quyền riêng tư"
           }
         }
       }
     },
-    "MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MindMap AI không mở được nơi lưu dữ liệu. Hãy khởi động lại ứng dụng. Nếu vẫn lỗi, hãy liên hệ hỗ trợ của xDev."
+    "Privacy Policy" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chính sách quyền riêng tư"
           }
         }
       }
     },
-    "MindMap AI keeps your maps on your devices. There is no account and no tracking.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MindMap AI giữ sơ đồ trên thiết bị của bạn. Không cần tài khoản, không theo dõi."
+    "Promote Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đưa chủ đề lên một cấp"
           }
         }
       }
     },
-    "New Mind Map": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sơ đồ mới"
+    "Question (optional)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Câu hỏi (không bắt buộc)"
           }
         }
       }
     },
-    "New Window": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cửa sổ mới"
+    "Ready" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sẵn sàng"
           }
         }
       }
     },
-    "No Favorites": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chưa có sơ đồ yêu thích"
+    "Recent" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gần đây"
           }
         }
       }
     },
-    "No Map Selected": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chưa chọn sơ đồ"
+    "Redo" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Làm lại"
           }
         }
       }
     },
-    "No Recent Maps": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chưa có sơ đồ gần đây"
+    "Remove Link" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá liên kết"
           }
         }
       }
     },
-    "None": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không có"
+    "Remove from Favorites" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ khỏi Yêu thích"
           }
         }
       }
     },
-    "None. Your maps are never sent to xDev.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không có. Sơ đồ của bạn không bao giờ được gửi tới xDev."
+    "Rename Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi tên sơ đồ"
           }
         }
       }
     },
-    "OK": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
+    "Rename Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi tên chủ đề"
           }
         }
       }
     },
-    "On this device": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trên thiết bị này"
+    "Review…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem lại…"
           }
         }
       }
     },
-    "Privacy": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quyền riêng tư"
+    "Rewrite Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viết lại chủ đề"
           }
         }
       }
     },
-    "Promote Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đưa chủ đề lên một cấp"
+    "Rewriting the title…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang viết lại tiêu đề…"
           }
         }
       }
     },
-    "Recent": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gần đây"
+    "Shorter" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngắn hơn"
           }
         }
       }
     },
-    "Redo": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Làm lại"
+    "Show Inspector" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện bảng thông tin"
           }
         }
       }
     },
-    "Remove Link": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xoá liên kết"
+    "Simpler" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đơn giản hơn"
           }
         }
       }
     },
-    "Remove from Favorites": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bỏ khỏi Yêu thích"
+    "Something Went Wrong" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã có lỗi"
           }
         }
       }
     },
-    "Rename Map": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đổi tên sơ đồ"
+    "Split Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tách chủ đề"
           }
         }
       }
     },
-    "Rename Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đổi tên chủ đề"
+    "Standard" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiêu chuẩn"
           }
         }
       }
     },
-    "Something Went Wrong": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Đã có lỗi"
+    "Start with one thought." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bắt đầu từ một ý tưởng."
           }
         }
       }
     },
-    "Split Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tách chủ đề"
+    "Suggest Subtopics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đề xuất chủ đề con"
           }
         }
       }
     },
-    "Start with one thought.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bắt đầu từ một ý tưởng."
+    "Suggested by AI" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do AI đề xuất"
           }
         }
       }
     },
-    "System": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Theo hệ thống"
+    "Suggested by AI on this device. Nothing changes until you accept." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do AI trên thiết bị này đề xuất. Sơ đồ không đổi cho tới khi bạn chấp nhận."
           }
         }
       }
     },
-    "Think. Draw. Connect.": {
-      "shouldTranslate": false
+    "Suggested map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ đề xuất"
+          }
+        }
+      }
+    },
+    "Suggested subtopics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề con đề xuất"
+          }
+        }
+      }
+    },
+    "Suggesting subtopics…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang đề xuất chủ đề con…"
+          }
+        }
+      }
+    },
+    "Suggestions" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đề xuất"
+          }
+        }
+      }
+    },
+    "Summarize Branch" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tóm tắt nhánh"
+          }
+        }
+      }
+    },
+    "Summarizing part %lld of %lld…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summarizing part %1$lld of %2$lld…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tóm tắt phần %1$lld/%2$lld…"
+          }
+        }
+      }
+    },
+    "Summarizing the branch…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tóm tắt nhánh…"
+          }
+        }
+      }
+    },
+    "Summary" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tóm tắt"
+          }
+        }
+      }
+    },
+    "Support" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỗ trợ"
+          }
+        }
+      }
+    },
+    "System" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theo hệ thống"
+          }
+        }
+      }
+    },
+    "The suggestions couldn’t be used. Try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không dùng được các đề xuất này. Hãy thử lại."
+          }
+        }
+      }
+    },
+    "The topic was deleted, so its suggestions were removed." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề đã bị xoá nên các đề xuất của nó cũng được gỡ đi."
+          }
+        }
+      }
+    },
+    "Theme" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bộ màu"
+          }
+        }
+      }
+    },
+    "Think. Draw. Connect." : {
+      "shouldTranslate" : false
+    },
+    "This branch is too large. Select a smaller branch and try again." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhánh này quá lớn. Hãy chọn một nhánh nhỏ hơn rồi thử lại."
+          }
+        }
+      }
+    },
+    "This device can’t run Apple Intelligence." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiết bị này không chạy được Apple Intelligence."
+          }
+        }
+      }
+    },
+    "This is part of MindMap AI Pro." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tính năng này thuộc MindMap AI Pro."
+          }
+        }
+      }
+    },
+    "This request couldn’t be completed. Try wording it differently." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thực hiện được yêu cầu này. Hãy thử diễn đạt khác đi."
+          }
+        }
+      }
+    },
+    "To use AI, turn on Apple Intelligence in Settings ▸ Apple Intelligence & Siri." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để dùng AI, hãy bật Apple Intelligence trong Cài đặt ▸ Apple Intelligence & Siri."
+          }
+        }
+      }
+    },
+    "To use AI, turn on Apple Intelligence in System Settings ▸ Apple Intelligence & Siri." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để dùng AI, hãy bật Apple Intelligence trong Cài đặt hệ thống ▸ Apple Intelligence & Siri."
+          }
+        }
+      }
+    },
+    "Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề"
+          }
+        }
+      }
+    },
+    "Topic added" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã thêm chủ đề"
+          }
+        }
+      }
+    },
+    "Topic, level %lld" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề, cấp %lld"
+          }
+        }
+      }
+    },
+    "Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề"
+          }
+        }
+      }
+    },
+    "Try again. If it keeps happening, restart the app." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy thử lại. Nếu vẫn lỗi, hãy khởi động lại ứng dụng."
+          }
+        }
+      }
+    },
+    "Undo" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoàn tác"
+          }
+        }
+      }
+    },
+    "Untitled Map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ chưa đặt tên"
+          }
+        }
+      }
     },
-    "Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chủ đề"
+    "Untitled Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề chưa đặt tên"
           }
         }
       }
     },
-    "Topic, level %lld": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chủ đề, cấp %lld"
+    "Use Title" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng tiêu đề này"
           }
         }
       }
     },
-    "Try again. If it keeps happening, restart the app.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hãy thử lại. Nếu vẫn lỗi, hãy khởi động lại ứng dụng."
+    "Version %@ (%@)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phiên bản %1$@ (%2$@)"
           }
         }
       }
     },
-    "Undo": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hoàn tác"
+    "View As" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem dạng"
           }
         }
       }
     },
-    "Untitled Map": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sơ đồ chưa đặt tên"
+    "Website" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trang web"
           }
         }
       }
     },
-    "Untitled Topic": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chủ đề chưa đặt tên"
+    "Written from part of the branch, which was too large to read in full." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viết từ một phần của nhánh, vì nhánh quá lớn để đọc hết."
           }
         }
       }
     },
-    "Version %@ (%@)": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Phiên bản %1$@ (%2$@)"
+    "Zoom In" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phóng to"
           }
         }
       }
     },
-    "Website": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trang web"
+    "Zoom Out" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thu nhỏ"
           }
         }
       }
     },
-    "by xDev": {
-      "shouldTranslate": false
+    "Zoom to Fit" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vừa khung nhìn"
+          }
+        }
+      }
+    },
+    "by xDev" : {
+      "shouldTranslate" : false
+    },
+    "xDev Blue" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "xDev Blue"
+          }
+        }
+      }
     },
-    "xDev Servers": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Máy chủ xDev"
+    "xDev Servers" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ xDev"
           }
         }
       }
     },
-    "“%@” and all its topics will be deleted. This can’t be undone.": {
-      "localizations": {
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "“%@” cùng mọi chủ đề trong đó sẽ bị xoá. Không thể hoàn tác."
+    "“%@” and all its topics will be deleted. This can’t be undone." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” cùng mọi chủ đề trong đó sẽ bị xoá. Không thể hoàn tác."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

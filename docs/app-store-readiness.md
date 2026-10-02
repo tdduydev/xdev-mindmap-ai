@@ -4,7 +4,7 @@ Research for MM-0e, 2026-10-02. It is a checklist for shipping MindMap AI on the
 
 ## Summary
 
-- **Blocking before the first submission:** a privacy policy URL, reachable in App Store Connect and inside the app (5.1.1(i)), and a support URL. The app has neither yet.
+- **Blocking before the first submission:** a privacy policy URL, reachable in App Store Connect and inside the app (5.1.1(i)), and a support URL. The app links both (MM-0h); the pages still have to be published on xdev.asia from the text in `docs/web/`.
 - **Toolchain:** since 2026-04-28, uploads need Xcode 26 and the 26 SDKs. From April 2027, iOS and iPadOS uploads need the 27 SDKs; the macOS SDK rule is not verified ([upcoming requirements](https://developer.apple.com/news/upcoming-requirements/), [news 2026-09-09](https://developer.apple.com/news/?id=k1mtkt1k)).
 - **Privacy label:** "Data Not Collected" holds while everything stays on the device, including Foundation Models ([App privacy details](https://developer.apple.com/app-store/app-privacy-details/)). Revisit it if sync, analytics or cloud AI changes that.
 - **Pricing:** a one-time unlock (non-consumable) is the lower-risk model for a backendless app. A subscription has to show ongoing value (3.1.2(a)) *[Inference]*.
@@ -95,7 +95,7 @@ Source: [2.4.5 hardware compatibility](https://developer.apple.com/app-store/rev
 
 | Guideline | Requirement | For MindMap AI |
 | --- | --- | --- |
-| 5.1.1(i) | Privacy policy link in App Store Connect **and** inside the app, even if nothing is collected. It says what is collected, how it is used, third parties, retention and deletion. | **Missing.** Write a policy page (for example `https://xdev.asia/mindmap/privacy`) and link it from Settings ▸ Privacy. |
+| 5.1.1(i) | Privacy policy link in App Store Connect **and** inside the app, even if nothing is collected. It says what is collected, how it is used, third parties, retention and deletion. | Linked in the app (Settings ▸ Privacy, Help ▸ Privacy Policy) to `https://xdev.asia/mindmap/privacy`; page text in `docs/web/privacy-policy.md`, not yet published. |
 | 5.1.1(ii)–(v) | Consent before collecting; paid features never require data access; minimum data; in-app account deletion when accounts exist | No accounts, no collection |
 | 5.1.2(i) | Disclose sharing personal data with third parties, "including with third-party AI", and get explicit permission first (clarified 2025-11-13) | Does not apply to on-device Foundation Models *[Inference, not verified]*: no data leaves the device and Apple is not acting as a third party receiving it. Applies in full to any cloud AI provider: name the provider and ask before each request ([privacy](privacy.md)). Source: [news](https://developer.apple.com/news/?id=ey6d8onl). |
 | 5.1.3(ii) | No personal health data in iCloud | Not applicable |
@@ -192,8 +192,8 @@ As of commit `1e18d58`:
 | Version | `MARKETING_VERSION = 0.1.0`; the roadmap says "version 26" for MM-0c | same; decide before the first upload |
 | Localisation | en and vi in the one bundle | `MindMapAI/Resources/Localizable.xcstrings` |
 | Website link | `https://xdev.asia/mindmap` in Help and Settings ▸ About | `MindMapAI/App/AppLinks.swift` |
-| Privacy policy link | **Missing** in the app and on the web | — |
-| Support link | **Missing**; the startup failure screen tells people to contact support without saying how | `MindMapAI/App/RootView.swift` |
+| Privacy policy link | `https://xdev.asia/mindmap/privacy` in Settings ▸ Privacy and Help; page **not yet published** (text in `docs/web/privacy-policy.md`) | `MindMapAI/App/AppLinks.swift` |
+| Support link | `https://xdev.asia/mindmap/support` in Help ▸ MindMap AI Help, Settings ▸ About and the startup failure screen; page **not yet published**, contact method not decided (text in `docs/web/support.md`) | `MindMapAI/App/AppLinks.swift` |
 | Restore purchases | Not applicable until StoreKit | — |
 | Permission usage strings | None needed yet | — |
 
@@ -201,7 +201,7 @@ As of commit `1e18d58`:
 
 Items that cost little now and block a submission later. None are code changes in this task.
 
-1. **Privacy policy and support pages** on xdev.asia, in English and Vietnamese, matching [privacy](privacy.md): on-device storage, no xDev servers, no analytics, on-device AI, iCloud once sync ships. Add `AppLinks.privacyPolicy` and `AppLinks.support`; link them from Settings ▸ Privacy, the Help menu and the startup failure screen.
+1. **Publish the privacy policy and support pages** on xdev.asia from `docs/web/privacy-policy.md` and `docs/web/support.md` (English and Vietnamese), after choosing the support contact. The app already links them (MM-0h).
 2. **Decide the version scheme** (`MARKETING_VERSION` 0.1.0 against "version 26" in the roadmap) before the first TestFlight upload; the build number must grow with every upload.
 3. **Create the App Store Connect record** for `asia.xdev.mindmapai` as a macOS app, reserving the name, and set the DSA trader status for the xDev account.
 4. **Add a release checklist** to MM-12: screenshots per device, Review Notes text for AI availability, privacy label answers, accessibility labels, age rating answers, quarantine check, CloudKit schema deployed.

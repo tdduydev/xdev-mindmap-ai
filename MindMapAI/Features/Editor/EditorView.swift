@@ -7,7 +7,14 @@ struct EditorView: View {
     let mapID: MapID
     let repository: any MapRepository
     let onMapChange: (MindMap) -> Void
+    /// Opens the Generate Map sheet once the map is loaded (New Map with AI).
+    var generatesOnOpen = false
+    var onGenerationStarted: () -> Void = {}
+    @Environment(AIService.self) private var ai
     @State private var opening: EditorSession.Opening?
+    /// Made once per opened map, so the camera survives switching to the outline and back.
+    @State private var canvas: CanvasModel?
+    @State private var assistant: AIAssistant?
 
     var body: some View {
         Group {
@@ -15,7 +22,9 @@ struct EditorView: View {
             case nil:
                 ProgressView()
             case .ready(let session):
-                OutlineEditorView(session: session)
+                if let canvas, let assistant {
+                    MapEditorView(session: session, canvas: canvas, assistant: assistant)
+                }
             case .missing:
                 ContentUnavailableView(
                     "Map Not Found",
@@ -31,7 +40,17 @@ struct EditorView: View {
             }
         }
         .task {
-            opening = await EditorSession.open(mapID: mapID, repository: repository, onMapChange: onMapChange)
+            let opened = await EditorSession.open(mapID: mapID, repository: repository, onMapChange: onMapChange)
+            if case .ready(let session) = opened {
+                let assistant = AIAssistant(session: session, service: ai)
+                self.assistant = assistant
+                canvas = CanvasModel(session: session, assistant: assistant)
+                if generatesOnOpen {
+                    onGenerationStarted()
+                    assistant.requestGenerateMap()
+                }
+            }
+            opening = opened
         }
     }
 }
