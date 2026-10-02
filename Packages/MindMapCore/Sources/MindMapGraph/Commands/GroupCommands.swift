@@ -39,7 +39,8 @@ public struct AddGroupCommand: GraphCommand {
         guard let parentID = first.parentID, last.parentID != nil else { throw GraphError.cannotGroupRoot }
         guard last.parentID == parentID else { throw GraphError.notSiblings(lastNodeID) }
 
-        let siblings = state.childIDs(of: parentID)
+        // A summary topic is never a member of a run under its parent.
+        let siblings = state.runSiblingIDs(of: parentID)
         guard let a = siblings.firstIndex(of: firstNodeID), let b = siblings.firstIndex(of: lastNodeID) else {
             throw GraphError.notSiblings(lastNodeID)
         }

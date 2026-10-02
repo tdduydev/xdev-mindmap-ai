@@ -262,6 +262,54 @@ struct NodeTypeGraphTests {
         #expect(expired.changes.deletedGroupIDs == [waiting.id])
     }
 
+    /// The copy's summary names the copy's summary topic, and links and callouts come along.
+    @Test func duplicatingABranchCopiesItsSummaryLinkAndCallout() throws {
+        var fixture = try GraphFixture("""
+        Root
+          Plan
+            A
+            B
+            S
+        """)
+        let summary = MindGroup(
+            mapID: fixture.state.map.id, kind: .summary, parentNodeID: fixture["Plan"],
+            firstNodeID: fixture["A"], lastNodeID: fixture["B"], summaryNodeID: fixture["S"]
+        )
+        let a = fixture["A"]
+        try fixture.engine.execute(EditForTest { transaction in
+            try transaction.insertGroup(summary)
+            try transaction.updateNode(a) { node in
+                node.link = TopicLink(string: "https://example.com")
+                node.callout = "Note"
+            }
+        })
+        let copyID = NodeID()
+
+        try fixture.engine.execute(DuplicateBranchCommand(nodeID: fixture["Plan"], copyID: copyID))
+
+        let copied = try #require(fixture.state.groups(under: copyID).first)
+        #expect(copied.kind == .summary)
+        #expect(copied.summaryNodeID.flatMap { fixture.state.node($0)?.title } == "S")
+        #expect(copied.summaryNodeID != fixture["S"])
+        let copiedA = try #require(fixture.state.children(of: copyID).first { $0.title == "A" })
+        #expect(copiedA.link == TopicLink(string: "https://example.com"))
+        #expect(copiedA.callout == "Note")
+        fixture.engine.undo()
+        #expect(fixture.state.node(copyID) == nil)
+        fixture.engine.redo()
+        #expect(fixture.state.groups(under: copyID).count == 1)
+    }
+
+    @Test func aBoundaryCannotEndOnASummaryTopic() throws {
+        var fixture = try Self.fixture()
+        let summary = Self.summary(fixture)
+        try fixture.engine.execute(EditForTest { try $0.insertGroup(summary) })
+
+        #expect(throws: GraphError.notSiblings(fixture["S"])) {
+            try fixture.engine.execute(AddGroupCommand(from: fixture["C"], to: fixture["S"]))
+        }
+    }
+
     // MARK: Images
 
     static func image(on nodeID: NodeID, in fixture: GraphFixture, at date: Date? = nil) -> MindImage {
