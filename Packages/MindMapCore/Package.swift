@@ -18,6 +18,7 @@ let package = Package(
         .library(name: "MindMapAIApple", targets: ["MindMapAIApple"]),
         .library(name: "MindMapTestSupport", targets: ["MindMapTestSupport"]),
         .library(name: "MindMapInterchange", targets: ["MindMapInterchange"]),
+        .library(name: "MindMapSharing", targets: ["MindMapSharing"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -43,5 +44,15 @@ let package = Package(
         ),
         .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange"]),
+        // What the Share Extension and the App Intents do to maps, without UI
+        // or AI, so the extension links only the core it needs (NFR-PERF-08).
+        .target(
+            name: "MindMapSharing",
+            dependencies: ["MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapInterchange"]
+        ),
+        .testTarget(
+            name: "MindMapSharingTests",
+            dependencies: ["MindMapSharing", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapInterchange"]
+        ),
     ]
 )

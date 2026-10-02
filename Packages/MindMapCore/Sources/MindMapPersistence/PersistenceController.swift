@@ -7,6 +7,10 @@ public enum PersistenceController {
         /// The app's default store on this device.
         case standard
         case file(URL)
+        /// The store shared with the Share Extension and the intents, in an App
+        /// Group container (`AppGroup.containerURL()`). Opening it first moves a
+        /// store left at `.standard` by an older build into it.
+        case appGroup(containerURL: URL)
         /// Gone when the process ends; for tests and previews.
         case inMemory
     }
@@ -20,10 +24,24 @@ public enum PersistenceController {
             ModelConfiguration("MindMapAI", schema: schema, cloudKitDatabase: .none)
         case .file(let url):
             ModelConfiguration("MindMapAI", schema: schema, url: url, cloudKitDatabase: .none)
+        case .appGroup(let containerURL):
+            try sharedConfiguration(schema: schema, containerURL: containerURL)
         case .inMemory:
             ModelConfiguration("MindMapAI", schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         }
         return try ModelContainer(for: schema, migrationPlan: MindMapMigrationPlan.self, configurations: configuration)
+    }
+
+    /// Where `.standard` keeps the store: the app's own container.
+    public static var standardStoreURL: URL {
+        ModelConfiguration("MindMapAI", schema: Schema(versionedSchema: SchemaV1.self), cloudKitDatabase: .none).url
+    }
+
+    private static func sharedConfiguration(schema: Schema, containerURL: URL) throws -> ModelConfiguration {
+        let url = AppGroup.storeURL(in: containerURL)
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try StoreRelocation.move(from: standardStoreURL, to: url)
+        return ModelConfiguration("MindMapAI", schema: schema, url: url, cloudKitDatabase: .none)
     }
 
     public static func makeRepository(at location: Location = .standard) throws -> SwiftDataMapRepository {
