@@ -6,6 +6,7 @@ import SwiftUI
 /// only its toolbar button does (docs/design-guidelines.md).
 struct ChatPanel: View {
     @Bindable var chat: MapChat
+    @Bindable var dictation: ChatDictation
     @FocusState private var isFieldFocused: Bool
     @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -34,6 +35,7 @@ struct ChatPanel: View {
             .scrollDismissesKeyboard(.immediately)
             Divider()
             scopePicker
+            dictationStatus
             composer
         }
         // `.contain` keeps the children's own identifiers, which UI tests use.
@@ -51,6 +53,9 @@ struct ChatPanel: View {
         } message: {
             Text("Its questions and answers are deleted. This can’t be undone.")
         }
+        .proChoicePaywall($dictation.paywall)
+        // The microphone stays with the panel: closing it stops listening.
+        .onDisappear(perform: dictation.end)
         .onChange(of: chat.selectableBranch) { chat.selectionChanged() }
         .onAppear { if chat.focusRequest { takeFocus() } }
         .onChange(of: chat.focusRequest) { _, requested in
@@ -130,15 +135,20 @@ struct ChatPanel: View {
                     if press.modifiers.contains(.shift) {
                         chat.draft += "\n"
                     } else {
-                        chat.ask()
+                        ask()
                     }
                     return .handled
                 }
                 .onKeyPress(.escape) {
-                    // Back to the map, as Escape leaves other fields.
-                    isFieldFocused = false
+                    if dictation.isActive {
+                        dictation.cancel()
+                    } else {
+                        // Back to the map, as Escape leaves other fields.
+                        isFieldFocused = false
+                    }
                     return .handled
                 }
+            microphone
             if chat.isAnswering {
                 Button(action: chat.stop) {
                     composerIcon("Stop", systemImage: "stop.circle.fill")
@@ -147,7 +157,7 @@ struct ChatPanel: View {
                 .help(Text("Stop"))
                 .accessibilityIdentifier(AccessibilityID.Chat.stop)
             } else {
-                Button(action: chat.ask) {
+                Button(action: ask) {
                     composerIcon("Ask", systemImage: "arrow.up.circle.fill")
                 }
                 .buttonStyle(.borderless)
@@ -158,6 +168,81 @@ struct ChatPanel: View {
         }
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.sm)
+    }
+
+    /// Asking takes the draft as it is; listening stops so no late words
+    /// start the next question.
+    private func ask() {
+        guard chat.canAsk else { return }
+        dictation.end()
+        chat.ask()
+    }
+
+    /// Ask by Voice (MM-80): the words heard go into the field, to be checked
+    /// before Ask. Hidden where the chat cannot ask at all.
+    @ViewBuilder
+    private var microphone: some View {
+        if dictation.isAvailable {
+            switch dictation.phase {
+            case .preparing, .downloading, .finishing:
+                ProgressView()
+                    .controlSize(.small)
+                    .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
+                    .accessibilityLabel(Text("Getting ready…"))
+            case .listening:
+                Button(action: dictation.stop) {
+                    composerIcon("Stop Listening", systemImage: "mic.fill")
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.tint)
+                .help(Text("Stop Listening"))
+                .accessibilityHint(Text("Listening. The words go into the question field."))
+                .accessibilityIdentifier(AccessibilityID.Chat.microphone)
+            case .idle, .needsDownload, .failed:
+                Button(action: dictation.start) {
+                    composerIcon("Ask by Voice", systemImage: "mic")
+                }
+                .buttonStyle(.borderless)
+                .help(Text("Ask by Voice"))
+                .accessibilityIdentifier(AccessibilityID.Chat.microphone)
+            }
+        }
+    }
+
+    /// One line on the dictation, above the field, while it needs one.
+    @ViewBuilder
+    private var dictationStatus: some View {
+        let row = HStack(spacing: Spacing.sm) {
+            switch dictation.phase {
+            case .listening, .preparing, .finishing:
+                Label(dictation.isListening ? LocalizedStringKey("Listening…") : LocalizedStringKey("Getting ready…"), systemImage: "waveform")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Cancel", action: dictation.cancel)
+                    .accessibilityIdentifier(AccessibilityID.Chat.cancelVoice)
+            case .needsDownload:
+                Text("Voice input needs the \(Text(dictation.language.title)) speech model, which the system downloads once.")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Download Speech Model", action: dictation.download)
+            case .downloading(let fraction):
+                ProgressView(value: fraction) {
+                    Text("Downloading speech model…")
+                }
+                Button("Cancel", action: dictation.cancel)
+            case .failed(let failure):
+                Label(failure.message, systemImage: "exclamationmark.circle")
+                    .foregroundStyle(.secondary)
+            case .idle:
+                EmptyView()
+            }
+        }
+        if dictation.phase != .idle {
+            row
+                .font(.footnote)
+                .frame(minHeight: Metrics.minimumHitTarget)
+                .padding(.horizontal, Spacing.lg)
+        }
     }
 
     /// The whole minimum hit target takes the tap, not just the symbol.

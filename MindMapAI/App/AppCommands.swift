@@ -16,6 +16,8 @@ extension FocusedValues {
     @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
     /// Voice input for the frontmost map (FR-AI-21).
     @Entry var voiceInput: VoiceInput?
+    /// The chat's microphone in the frontmost map window (MM-80).
+    @Entry var chatDictation: ChatDictation?
     /// The map selected in the library, to show in a window of its own.
     @Entry var openInNewWindowAction: OpenInNewWindowAction?
     /// The map selected in the focused library list, for File ▸ Delete Map and the Recently Deleted commands.
@@ -54,6 +56,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.canvasModel) private var canvas
     @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
     @FocusedValue(\.voiceInput) private var voice
+    @FocusedValue(\.chatDictation) private var dictation
     @FocusedValue(\.openInNewWindowAction) private var openInNewWindow
     @FocusedValue(\.libraryMapActions) private var libraryMap
     @Environment(\.openWindow) private var openWindow
@@ -265,6 +268,14 @@ struct MapCommands: Commands {
         Button("Ask About This Map…") { chat?.present() }
             .keyboardShortcut("a", modifiers: [.command, .control])
             .disabled(chat?.showsEntryPoints != true)
+        // The chat's microphone (MM-80). No key yet: none has been approved.
+        Button {
+            chat?.present()
+            dictation?.toggle()
+        } label: {
+            dictation?.isListening == true ? Text("Stop Asking by Voice") : Text("Ask by Voice")
+        }
+        .disabled(dictation?.canToggle != true)
         Button("Clear Chat") { chat?.requestClear() }
             .disabled(chat?.canClear != true)
         // The answer buttons on the last answer (MM-79). No keys yet: none
