@@ -1,4 +1,5 @@
 #if os(iOS)
+import OSLog
 import SwiftUI
 import UIKit
 
