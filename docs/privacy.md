@@ -6,7 +6,7 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 
 | Topic | Answer |
 | --- | --- |
-| Data storage | On the device (SwiftData) and, once sync ships, in the user's own private iCloud database |
+| Data storage | On the device (SwiftData) and, while iCloud sync is on, in the person's own private CloudKit database (MM-6, [cloudkit-sync](cloudkit-sync.md)); xDev cannot read it. Sync is on by default when signed in to iCloud; off on the Mac in Settings ▸ Data, on iPhone and iPad in the system's iCloud settings. The Share Extension never talks to iCloud itself |
 | xDev backend | None. Maps are never sent to xDev. |
 | Account | None required |
 | AI processing | On-device (Apple Foundation Models) where the device supports it |
@@ -15,6 +15,7 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 | Share Extension | Writes shared text and links into the store in the App Group container on the device; images and PDFs are copied there to wait for the app |
 | Spotlight | Map titles only, in the device's own index; maps moved to Recently Deleted or deleted are removed |
 | Clipboard | Read only when the user runs Map from Clipboard |
+| Sync status | Reads the iCloud account status, the network status and the mirroring's events on the device, to show them; nothing about them leaves the device. CloudKit errors are logged by code only |
 
 ## Planned
 

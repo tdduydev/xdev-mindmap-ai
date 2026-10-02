@@ -26,7 +26,7 @@ flowchart LR
   Persistence --> Domain
   Layout --> Graph
   Layout --> Domain
-  Persistence -.later.-> CloudKit[(iCloud / CloudKit)]
+  Persistence -.sync on.-> CloudKit[(iCloud / CloudKit)]
   AICore --> Graph
   AIApple --> AICore
   AIApple --> FM[(Foundation Models, on device)]

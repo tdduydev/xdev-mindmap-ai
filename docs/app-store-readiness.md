@@ -6,7 +6,7 @@ Research for MM-0e, 2026-10-02. It is a checklist for shipping MindMap AI on the
 
 - **Blocking before the first submission:** a privacy policy URL, reachable in App Store Connect and inside the app (5.1.1(i)), and a support URL. The app links both (MM-0h); the pages still have to be published on xdev.asia from the text in `docs/web/`.
 - **Toolchain:** since 2026-04-28, uploads need Xcode 26 and the 26 SDKs. From April 2027, iOS and iPadOS uploads need the 27 SDKs; the macOS SDK rule is not verified ([upcoming requirements](https://developer.apple.com/news/upcoming-requirements/), [news 2026-09-09](https://developer.apple.com/news/?id=k1mtkt1k)).
-- **Privacy label:** "Data Not Collected" holds while everything stays on the device, including Foundation Models ([App privacy details](https://developer.apple.com/app-store/app-privacy-details/)). Revisit it if sync, analytics or cloud AI changes that.
+- **Privacy label:** "Data Not Collected" holds while everything stays on the device, including Foundation Models ([App privacy details](https://developer.apple.com/app-store/app-privacy-details/)). Revisit it if analytics or cloud AI changes that. iCloud sync (MM-6) keeps it *[Inference, not verified with Apple]*: maps go only to the person's private CloudKit database, which xDev cannot access, and Apple counts data as collected when the developer or its partners can access it.
 - **Pricing:** a one-time unlock (non-consumable) is the lower-risk model for a backendless app. A subscription has to show ongoing value (3.1.2(a)) *[Inference]*.
 - **Universal purchase:** one app record, one bundle ID `asia.xdev.mindmapai`. Never create a second record for iOS; records cannot be merged later ([universal purchase](https://developer.apple.com/support/universal-purchase/)).
 
@@ -146,7 +146,7 @@ Declared per platform in App Store Connect: VoiceOver, Voice Control, Larger Tex
 ## iCloud and CloudKit
 
 - Deploy the development schema to production before release: App Store builds use only the production environment, and production changes can only add record types and fields ([deploying a schema](https://developer.apple.com/documentation/cloudkit/deploying-an-icloud-container-s-schema)). This matches the SwiftData rule of never changing a shipped schema ([data model](data-model.md)).
-- The app needs the iCloud capability with a CloudKit container (`iCloud.asia.xdev.mindmapai` *[Inference]*) and the remote notification background mode on iOS. Exact entitlement setup was not checked against an Apple page (not verified).
+- The app needs the iCloud capability with the CloudKit container `iCloud.asia.xdev.mindmapai`, Push Notifications, and the remote notification background mode on iOS (MM-6: `Entitlements/MindMapAI+iCloud-*.entitlements` behind `MINDMAP_ICLOUD`, `Config/MindMapAI-iOS-Info.plist`). The account steps are in [cloudkit-sync](cloudkit-sync.md), *Turning it on*. Exact entitlement setup was not checked against an Apple page (not verified).
 - No App Review guideline specifically about iCloud was found beyond 5.1.3(ii).
 
 ## Share Extension and App Intents

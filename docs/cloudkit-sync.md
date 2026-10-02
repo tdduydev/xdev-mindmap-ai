@@ -1,37 +1,102 @@
 # iCloud sync
 
-Status: planned for Phase 6. The schema is already CloudKit-ready (see [data-model.md](data-model.md)); sync is switched off in `PersistenceController` until then.
+Status: built in MM-6, switched off in every build until the iCloud container exists on the Apple Developer account and a build sets `MINDMAP_ICLOUD = YES` (see *Turning it on*). The schema is CloudKit-ready (see [data-model.md](data-model.md)).
 
 ## Goals
 
-- Maps sync between the user's own iPhone and iPad through their private iCloud database.
+- Maps sync between the person's own Mac, iPad and iPhone through their private iCloud database (FR-SYN-01).
 - No xDev account and no sync button.
-- Editing never waits for sync. The device is always fully usable on its own.
+- Editing never waits for sync. The device is always fully usable on its own: offline, signed out of iCloud, or with sync off (FR-SYN-02).
 
-## Plan
+## How it works
 
-1. Add the iCloud capability with a CloudKit container (`iCloud.asia.xdev.mindmapai`) and background remote notifications.
-2. Set `cloudKitDatabase: .private(...)` in `PersistenceController`; keep a local-only store when the user is signed out or has disabled iCloud for the app.
-3. Observe remote changes and reload open maps through `GraphRepair` before showing them.
-4. Show sync state quietly (`CloudSyncState`: on, off, signed out, waiting, error) in Settings and as a small status line, never as a blocking alert. Being offline is not an error.
+| Part | Where | What it does |
+| --- | --- | --- |
+| Store | `PersistenceController.makeContainer(at:sync:)` | `Sync.privateDatabase(containerIdentifier:)` sets SwiftData's `cloudKitDatabase: .private("iCloud.asia.xdev.mindmapai")`; `.off` keeps `.none`. The same file opens either way, and persistent history stays on, so what was written while sync was off goes up once it is on. Tests, previews, UI tests and the Share Extension always use `.off`. |
+| Choice at launch | `CloudSyncMonitor.storeSync` | `.appContainer` only when the build is entitled (`MINDMAP_ICLOUD`), the device's switch is on (`sync.iCloudEnabled`, default on) and it is not a UI test run. A build without the entitlement never touches CloudKit, because CloudKit stops a process that asks for a container it is not entitled to. |
+| Changes from outside | `SwiftDataMapRepository` publishes `.storeChanged` for every transaction not signed by itself (CloudKit's import, the Share Extension, intents in another process) | Each open map runs `EditorSession.takeStoredChanges()`: saves its pending edits, loads the map, and gives it to `GraphEngine.takeStored(_:now:)`, which repairs, diffs and updates the canvas (FR-SYN-04). A burst of notices loads the map at most twice. |
+| Map deleted elsewhere | `EditorSession.removedElsewhere` | The window shows "Map Not Found" or "Map in Recently Deleted" instead of the editor, so a later save cannot bring the map back. |
+| Status | `CloudSyncMonitor` → `CloudSyncState` | Account status (`CKContainer.accountStatus`, `CKAccountChanged`, again on activation), network (`NWPathMonitor`) and the mirroring's events (`NSPersistentCloudKitContainer.eventChangedNotification`, which SwiftData's mirroring posts too). |
+
+### Repair is shown, not saved
+
+`takeStored` repairs what it loaded but does not save the repair. A topic that arrives before its parent hangs under the root only until the parent arrives; saving the repair would move it there for good and send that move to every device. `EditorSession.open` still saves its repairs, as before MM-6 (see *Open questions*).
+
+## Undo after a change from another device (FR-UND-05)
+
+Decided 2026-10-02 (Q5): drop the undo steps that touch the topics the remote change touched and keep the rest.
+
+How `GraphEngine.takeStored` applies it:
+
+- The change from outside is the difference between the open graph and the repaired stored graph. It **writes** a record when the record differs, and **removes** it when it is gone. The map record counts only when a graph field changed (title, root, theme, layout): every edit moves `updatedAt`, and the favorite flag and Recently Deleted are library data.
+- An undo step is dropped when it writes a record the outside change wrote, or points at a record the outside change removed (a parent, the ends of a link, the topic or tag of a tag link, the ends of a boundary). A step that only adds a topic under a topic renamed elsewhere stays.
+- Then every step that depends on a dropped step goes too: one writes a record the other points at or writes. Without this, undoing the add of a parent whose child's add is gone would leave the child without its parent.
+- Redo is emptied whenever a step is dropped or a redo step touches the change, since the window's `UndoManager` cannot rebuild redo actions.
+- The window's undo actions are registered again from `GraphEngine.undoStepNames`, one group each, with their names (`EditorSession.rebuildUndoActions`). If the undo manager is inside an open group, history is cleared instead of merging steps into one.
+- Safety net: once steps were dropped, `undo()` and `redo()` validate the graph before a step lands. A step that would break it clears history and changes nothing.
+
+## Status and Settings (FR-SYN-03, FR-SYN-06, FR-SET-04)
+
+| `CloudSyncState` | Status line under the library sidebar | Settings ▸ Data ▸ iCloud |
+| --- | --- | --- |
+| `upToDate` | nothing | Up to Date |
+| `syncing` | Syncing… | Syncing… |
+| `waitingForNetwork` (offline, or a step failed on the network) | Waiting for Network | Waiting for Network; "Changes stay on this device and sync when you're back online." Not an error. |
+| `notSignedIn` (no account, or the account went away mid-sync) | nothing | Not Using iCloud, with where to sign in |
+| `restricted`, `accountNeedsAttention` | nothing | the state and where to look |
+| `error(.quotaExceeded)`, `error(.other)` | iCloud Storage Is Full / Couldn't Sync | the same with what to do |
+| `off`, `unavailable` | nothing | Off / Not Available |
+
+Never an alert. Every state that is not syncing says the maps are still on this device. The Privacy row Data Storage reads "On this device and in your private iCloud" while the state is active. CloudKit errors are logged by code only.
+
+**The switch.** The PO decided (2026-10-02) to keep an in-app switch only where the system has no per-app iCloud switch. iPhone and iPad list apps that use iCloud in Settings ▸ [name] ▸ iCloud with a switch each *[Inference, not checked on a device for a CloudKit-only app]*, so they show the status only. On the Mac, System Settings ▸ Apple Account ▸ iCloud lists apps that sync through iCloud Drive; a CloudKit-only app is not expected there *[Unverified: not checked on this Mac, no CloudKit-only app installed to compare; a person must look once the signed build exists]*. So the Mac gets the switch (Settings ▸ Data ▸ iCloud Sync). Turning it off keeps the maps and stops syncing; it deletes nothing. It applies at the next launch ("Quit and reopen MindMap AI to apply this change."): reopening the store under open windows was not worth the risk [Đề xuất; settings.md had planned to reopen at once].
 
 ## Conflicts
 
-Sync merges per record, last writer wins per field set. The design keeps that safe:
+Sync merges per record, last writer wins per record. The design keeps that safe:
 
-| Case | Outcome |
-| --- | --- |
-| Two devices edit different nodes | Both edits survive (one record each). |
-| Two devices edit the same node | Last writer wins for that node only. |
-| A node arrives before its parent | Stored as is; shown under the root until the parent arrives (repair). |
-| One device deletes a branch, another adds under it | The added nodes hang under the root; nothing is silently lost. |
-| Two devices move nodes under each other | A loop; repair cuts it at the most recently edited node. |
-| The same record arrives twice | The newest `updatedAt` wins on load; the repository folds duplicates on save. |
+| Case | Outcome | Test (`SyncConflictTests`) |
+| --- | --- | --- |
+| Two devices edit different nodes | Both edits survive (one record each). | `editsOfDifferentTopicsBothSurvive` |
+| Two devices edit the same node | Last writer wins for that node only; the losing device's undo keeps its other steps. | `theLastWriterWinsForTheSameTopicOnly`, `undoOnTheLosingDeviceKeepsOnlyUntouchedSteps` |
+| A node arrives before its parent | Stored as is; shown under the root until the parent arrives, then under its parent. | `aTopicThatArrivesBeforeItsParentWaitsUnderTheRoot` |
+| One device deletes a branch, another adds under it | The added nodes hang under the root; nothing is silently lost. | `topicsAddedUnderABranchDeletedElsewhereHangUnderTheRoot` |
+| Two devices move nodes under each other | A loop; repair cuts it at the most recently edited node, the same way on both. | `movesUnderEachOtherAreCutTheSameWayOnBothDevices` |
+| Offline edits on both, synced in either order | Same result on both. | `theOrderOfPullsDoesNotChangeTheResult` |
+| The same record arrives twice | The newest `updatedAt` wins on load; the repository folds duplicates on save. | `SwiftDataMapRepositoryTests.duplicateRecordsAreFolded` |
 
-Repair is deterministic, so devices reach the same result independently.
+Repair is deterministic, so devices reach the same result independently (FR-SYN-05).
 
-## Open questions for Phase 6
+`SyncConflictTests` simulates two devices: each has its own store and an open `GraphEngine`; a third store plays the private database. A push writes the device's change sets record by record (last push wins per record), a pull writes what differs into the device's store and the editor takes it in with `takeStored`. It does not simulate CloudKit's own behaviour (field-level merges, server-side tombstones, account changes). `StoredChangeSessionTests` (app) covers the editor: a second repository on the same file plays CloudKit's import, including the undo manager rebuild and a map deleted elsewhere.
 
-- Undo history after a remote change: decided 2026-10-02, drop the undo steps that touch the topics the remote change touched and keep the rest.
+## Turning it on (needs the Apple Developer account)
+
+Not done by agents. In this order:
+
+1. **Container.** developer.apple.com ▸ Certificates, Identifiers & Profiles ▸ Identifiers ▸ iCloud Containers: create `iCloud.asia.xdev.mindmapai`. *[Unverified]* The App Store Connect API has no endpoint for iCloud containers, so this step is on the website.
+2. **Capability.** On the App ID `asia.xdev.mindmapai` enable iCloud (CloudKit, with the container above) and Push Notifications. The Share Extension (`asia.xdev.mindmapai.share`) needs neither: it writes to the shared store without mirroring, and the app sends those changes up.
+3. **Profiles.** Regenerate the development and "MindMap AI Mac App Store" profiles of the app after the capability change (App Store Connect API `POST /v1/profiles`, or the website) and install them on the Mac mini. iOS profiles when iOS ships.
+4. **Build setting.** Set `MINDMAP_ICLOUD = YES` (with `MINDMAP_MAC_APP_GROUP = YES`) for signed builds, for example in `scripts/upload-testflight.sh` beside `DEVELOPMENT_TEAM`. It picks `Entitlements/MindMapAI+iCloud-macOS.entitlements` or `-iOS.entitlements` (container, CloudKit, push, App Group) and compiles `MINDMAP_ICLOUD`. Leave the project default `NO`, so `scripts/ci.sh` keeps building without a certificate.
+5. **Schema (FR-SYN-07).** Run a Debug build signed for the container once with the launch argument `-InitializeCloudKitSchema` (`PersistenceController.initializeCloudKitSchema`, Core Data's `initializeCloudKitSchema` on the same model, in a throwaway store). Check the record types in the CloudKit Console (development), then **Deploy Schema Changes** to production before the first TestFlight build with sync. Production only grows: never deploy a field before the schema that has it ships ([data-model.md](data-model.md)).
+6. **Two-device test** (a person): the tests below.
+
+The `aps-environment` value in the entitlements files is `development`; distribution signing is expected to take the profile's value *[Unverified]*. Check the exported app with `codesign -d --entitlements - "MindMap AI.app"` on the first upload.
+
+## Testing on real devices (a person)
+
+With two devices on the same Apple Account and a build from step 4:
+
+1. Mac (or iPad) creates a map → the other device shows it without relaunching; the other edits a topic → the first shows the edit, and its undo menu no longer offers the step that touched that topic.
+2. Airplane mode on one device, edit on both, reconnect → both edits survive (different topics), last writer wins (same topic); the status line says Waiting for Network while offline, never an alert.
+3. Signed out of iCloud: the app opens and edits normally; Settings says Not Using iCloud.
+4. Turn the Mac switch off, relaunch: edits stay local and do not reach the other device; turn it on, relaunch: they go up.
+5. Delete a map that is open on the other device → that window shows "Map Not Found".
+6. Fill iCloud storage (or use an account that is full) → Settings says iCloud Storage Is Full; nothing is lost.
+7. Sign out and sign in with another Apple Account: what happens to the maps on the device *[Unverified: NSPersistentCloudKitContainer is reported to remove mirrored data from the store when the account changes; must be observed before release, and the privacy policy and Settings text checked against it]*.
+
+## Open questions
+
+- Whether `EditorSession.open` should stop saving tree repairs too (a topic whose parent has not arrived is moved under the root for good when the map is opened at that moment).
 - Whether the map record's `updatedAt` should come from the server's modification time, so "Recent" ordering agrees across devices.
-- Test plan for account changes and storage-full errors on real devices.
+- Persistent history is never pruned; CloudKit mirroring needs it, so pruning waits for a measurement on a large store.
+- iCloud key-value store for taste preferences (decided 2026-10-02, after MM-6) is not built; see [settings.md](settings.md).

@@ -1,4 +1,5 @@
 import MindMapDomain
+import MindMapPersistence
 import SwiftUI
 
 /// Settings: a window of panes on the Mac (⌘,), a list with one page per pane
@@ -78,6 +79,7 @@ struct SettingsPaneView: View {
             case .general: GeneralSettingsSection()
             case .export: ExportSettingsSection()
             case .ai: AISettingsSection()
+            case .data: CloudSyncSettingsSection()
             case .pro: ProSettingsSection()
             case .privacy: PrivacySettingsSection()
             case .about: AboutSettingsSection()
@@ -87,12 +89,14 @@ struct SettingsPaneView: View {
     }
 }
 
-/// The panes, in the order of docs/settings.md. Data (MM-45) and AI Apps
-/// (MM-46, Mac only) slot in after AI once they are built.
+/// The panes, in the order of docs/settings.md. Data holds iCloud (MM-6);
+/// MM-45 adds the rest of it. AI Apps (MM-46, Mac only) slots in after Data
+/// once it is built.
 enum SettingsPane: String, CaseIterable, Identifiable {
     case general
     case export
     case ai
+    case data
     case pro
     case privacy
     case about
@@ -107,6 +111,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .general: "General"
         case .export: "Export"
         case .ai: "AI"
+        case .data: "Data"
         case .pro: "Pro"
         case .privacy: "Privacy"
         case .about: "About"
@@ -118,6 +123,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .general: "gearshape"
         case .export: "square.and.arrow.up"
         case .ai: "sparkles"
+        case .data: "icloud"
         case .pro: "star"
         case .privacy: "hand.raised"
         case .about: "info.circle"
@@ -177,12 +183,19 @@ struct GeneralSettingsSection: View {
     }
 }
 
-/// Plain statements of where data goes. Each row must stay true: change Data
-/// Storage when iCloud sync ships, and the AI row if AI ever leaves the device.
+/// Plain statements of where data goes. Each row must stay true: Data
+/// Storage follows sync; change the AI row if AI ever leaves the device.
 struct PrivacySettingsSection: View {
+    @Environment(CloudSyncMonitor.self) private var sync
+
     var body: some View {
         Section {
-            LabeledContent("Data Storage", value: String(localized: "On this device"))
+            LabeledContent(
+                "Data Storage",
+                value: sync.state.isActive
+                    ? String(localized: "On this device and in your private iCloud")
+                    : String(localized: "On this device")
+            )
             LabeledContent("xDev Servers", value: String(localized: "None. Your maps are never sent to xDev."))
             LabeledContent("Analytics", value: String(localized: "None"))
             LabeledContent("AI", value: String(localized: "On this device. Nothing is sent to xDev."))

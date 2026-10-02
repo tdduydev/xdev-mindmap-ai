@@ -17,6 +17,7 @@ struct MindMapAIApp: App {
     @State private var pro: ProEntitlement
     /// Shared by every window and Settings; the model itself loads on first use.
     @State private var ai: AIService
+    @State private var sync: CloudSyncMonitor
     @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
     @Environment(\.scenePhase) private var scenePhase
 
@@ -31,7 +32,9 @@ struct MindMapAIApp: App {
         // Transitions and keyboard animations too, which SwiftUI's Motion does not drive.
         if UITestMode.isActive { UIView.setAnimationsEnabled(false) }
         #endif
-        let launch = AppEnvironment.live()
+        let sync = CloudSyncMonitor()
+        _sync = State(initialValue: sync)
+        let launch = AppEnvironment.live(sync: sync.storeSync)
         _launch = State(initialValue: launch)
         // Intents can run as soon as the app launches for them, before any window exists.
         if case .ready(let environment) = launch {
@@ -54,11 +57,14 @@ struct MindMapAIApp: App {
             .environment(pro)
             .task { await pro.start() }
             .environment(ai)
+            .environment(sync)
+            .task { sync.start() }
             #if os(macOS)
             // A Mac window can stay in the active phase while another app is
             // in front, so coming back is caught from the app itself too.
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 Task { await pro.refresh() }
+                sync.refreshAccount()
             }
             #endif
         }
@@ -77,7 +83,10 @@ struct MindMapAIApp: App {
         }
         // A refund or a purchase on another device can change while the app is in the background.
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await pro.refresh() } }
+            if phase == .active {
+                Task { await pro.refresh() }
+                sync.refreshAccount()
+            }
         }
 
         // SwiftUI keeps the map ID of each of these windows and opens them
@@ -93,6 +102,9 @@ struct MindMapAIApp: App {
             .preferredColorScheme(appearance.colorScheme)
             .environment(pro)
             .environment(ai)
+            .environment(sync)
+            // A restored map window can be the only window at launch.
+            .task { sync.start() }
         }
         #if os(macOS)
         .defaultSize(width: 980, height: 700)
@@ -104,6 +116,7 @@ struct MindMapAIApp: App {
                 .preferredColorScheme(appearance.colorScheme)
                 .environment(pro)
                 .environment(ai)
+                .environment(sync)
         }
         #endif
 

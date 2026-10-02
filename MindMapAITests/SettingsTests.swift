@@ -22,8 +22,8 @@ struct SettingsTests {
     // MARK: Panes
 
     @Test func panesAreInTheDocumentedOrder() {
-        #expect(SettingsPane.available(showsAI: true) == [.general, .export, .ai, .pro, .privacy, .about])
-        #expect(SettingsPane.available(showsAI: false) == [.general, .export, .pro, .privacy, .about])
+        #expect(SettingsPane.available(showsAI: true) == [.general, .export, .ai, .data, .pro, .privacy, .about])
+        #expect(SettingsPane.available(showsAI: false) == [.general, .export, .data, .pro, .privacy, .about])
     }
 
     @Test func lastPaneReopensAndAMissingOneOpensGeneral() {
