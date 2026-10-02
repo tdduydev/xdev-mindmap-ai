@@ -3,6 +3,7 @@ import MindMapDomain
 import MindMapGraph
 import MindMapInterchange
 import MindMapPersistence
+import MindMapSearch
 import Observation
 import OSLog
 
@@ -33,14 +34,36 @@ final class EditorSession {
     /// A node whose title field should take focus, such as one just created.
     var focusRequest: NodeID?
     private(set) var saveFailed = false
+    /// Where the window's keyboard focus is, as far as this editor knows.
+    /// The canvas and the outline report it through `reportKeyboardFocus`.
+    private(set) var keyboardFocus: KeyboardFocus = .elsewhere
     /// Canvas or outline; both show the same map and selection (FR-CNV-12).
-    var presentation: EditorPresentation = .canvas
+    var presentation: EditorPresentation = .canvas {
+        // The view that had focus is gone; the one that replaces it reports its own.
+        didSet { if presentation != oldValue { keyboardFocus = .elsewhere } }
+    }
     /// Whether the inspector shows beside the map.
     var isInspectorPresented = false
 
     /// Called with every change the map goes through (command, undo, redo),
     /// so the canvas lays out only what changed.
     @ObservationIgnored var onGraphChange: ((GraphChangeSet) -> Void)?
+
+    /// Whether the find bar shows.
+    private(set) var isFinding = false
+    /// What the find field holds; matches follow it as it changes.
+    var findText = "" {
+        didSet { if findText != oldValue { updateFind(selectingFirst: true) } }
+    }
+    /// Topics matching `findText`, in reading order with every branch open.
+    private(set) var findMatches: [NodeID] = []
+    private(set) var findMatchSet: Set<NodeID> = []
+    /// The match Find Next and Find Previous last went to.
+    private(set) var currentMatch: NodeID?
+    /// Asks the find field to take focus, as ⌘F does when the bar is already open.
+    var findFocusRequest = false
+    /// A topic the outline should scroll into view.
+    var scrollRequest: NodeID?
 
     /// The window's undo manager, so the Edit menu, ⌘Z and the iOS undo gestures
     /// drive the engine's history. Set by the view.
@@ -105,6 +128,25 @@ final class EditorSession {
     var canRedo: Bool { engine.canRedo }
     var canDeleteSelection: Bool { !movableBranchRoots.isEmpty }
     var canRenameSelection: Bool { selection.flatMap { engine.state.node($0) } != nil }
+
+    /// A bare Delete in the menu bar is matched before the focused view sees
+    /// the key, so it is the Delete Topic shortcut only while the editor holds
+    /// focus outside a text field: otherwise it would eat Delete in a title
+    /// being typed, or delete a topic while the library list is focused.
+    var deleteKeyDeletesTopic: Bool { keyboardFocus == .content && canDeleteSelection }
+
+    /// The display name of the map, also the editor's window title.
+    var displayTitle: String {
+        map.title.isEmpty ? String(localized: "Untitled Map") : map.title
+    }
+
+    /// Takes a view's report of where focus is. The canvas and the outline
+    /// swap with no set order of appearing and disappearing, so a late report
+    /// from the one no longer shown is ignored.
+    func reportKeyboardFocus(_ focus: KeyboardFocus, from source: EditorPresentation) {
+        guard source == presentation else { return }
+        keyboardFocus = focus
+    }
 
     var canToggleSelection: Bool {
         guard let selection else { return false }
@@ -423,6 +465,73 @@ final class EditorSession {
         }
     }
 
+    // MARK: Find
+
+    var hasFindMatches: Bool { !findMatches.isEmpty }
+
+    /// Position of the current match, from 1, for "2 of 5".
+    var currentMatchNumber: Int? {
+        currentMatch.flatMap { findMatches.firstIndex(of: $0) }.map { $0 + 1 }
+    }
+
+    func showFind() {
+        isFinding = true
+        findFocusRequest = true
+    }
+
+    func endFind() {
+        isFinding = false
+        findText = ""
+    }
+
+    func findNext() {
+        stepThroughMatches(forward: true)
+    }
+
+    func findPrevious() {
+        stepThroughMatches(forward: false)
+    }
+
+    private func stepThroughMatches(forward: Bool) {
+        guard !findMatches.isEmpty else { return }
+        let count = findMatches.count
+        // Step from the selected match if there is one, so clicking a match and
+        // pressing ⌘G continues from there.
+        let anchor = selection.flatMap { findMatches.firstIndex(of: $0) }
+            ?? currentMatch.flatMap { findMatches.firstIndex(of: $0) }
+        let index = anchor.map { (forward ? $0 + 1 : $0 - 1 + count) % count } ?? (forward ? 0 : count - 1)
+        showMatch(findMatches[index])
+    }
+
+    /// Selects a match and scrolls to it. A match inside a collapsed branch is
+    /// revealed first, which changes the map and so is an undo step: the
+    /// branch stays open after Find closes, as the person last saw it.
+    private func showMatch(_ id: NodeID) {
+        if RevealNodeCommand.isHidden(id, in: engine.state) {
+            perform(RevealNodeCommand(nodeID: id), named: String(localized: "Reveal Topic"))
+        }
+        currentMatch = id
+        selection = id
+        scrollRequest = id
+    }
+
+    /// Typing in the find field selects the first visible match but opens no
+    /// branch: each keystroke would otherwise leave an undo step behind.
+    private func updateFind(selectingFirst: Bool) {
+        findMatches = MapFind.matches(SearchQuery(findText), in: engine.state)
+        findMatchSet = Set(findMatches)
+        if let currentMatch, !findMatchSet.contains(currentMatch) {
+            self.currentMatch = nil
+        }
+        guard selectingFirst else { return }
+        currentMatch = nil
+        if let first = findMatches.first(where: { !RevealNodeCommand.isHidden($0, in: engine.state) }) {
+            currentMatch = first
+            selection = first
+            scrollRequest = first
+        }
+    }
+
     // MARK: Engine and history
 
     /// Runs a command as one named undo step. Intents above use it; so does
@@ -481,6 +590,7 @@ final class EditorSession {
         let map = engine.state.map
         onMapChange(map)
         onGraphChange?(changes)
+        if !findText.isEmpty { updateFind(selectingFirst: false) }
         let previous = lastSave
         lastSave = Task { [repository, weak self] in
             await previous?.value
@@ -613,4 +723,15 @@ enum EditorPresentation: String, CaseIterable, Identifiable {
     case outline
 
     var id: Self { self }
+}
+
+extension EditorSession {
+    enum KeyboardFocus {
+        /// Focus is outside the editor, such as in the sidebar or the library.
+        case elsewhere
+        /// The editor's content has focus and no text is being edited.
+        case content
+        /// A topic title or another text field in the editor is being edited.
+        case editingText
+    }
 }

@@ -35,6 +35,16 @@
         }
       }
     },
+    "%lld of %lld" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
     "%lld subtopics" : {
       "localizations" : {
         "en" : {
@@ -267,16 +277,6 @@
         }
       }
     },
-    "Add Child" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thêm chủ đề con"
-          }
-        }
-      }
-    },
     "Add Child Topic" : {
       "localizations" : {
         "vi" : {
@@ -293,16 +293,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm liên kết"
-          }
-        }
-      }
-    },
-    "Add Sibling" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thêm chủ đề cùng cấp"
           }
         }
       }
@@ -598,6 +588,7 @@
       }
     },
     "Central Topic" : {
+      "comment" : "Glossary: the one topic at the centre of a map is “chủ đề trung tâm”, never “root” or “gốc”.",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -1067,12 +1058,72 @@
         }
       }
     },
+    "Find" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm"
+          }
+        }
+      }
+    },
+    "Find Match" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết quả tìm"
+          }
+        }
+      }
+    },
     "Find Missing Topics" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tìm chủ đề còn thiếu"
+          }
+        }
+      }
+    },
+    "Find Next" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm kết quả tiếp"
+          }
+        }
+      }
+    },
+    "Find Previous" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm kết quả trước"
+          }
+        }
+      }
+    },
+    "Find in map" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm trong sơ đồ"
+          }
+        }
+      }
+    },
+    "Find…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm…"
           }
         }
       }
@@ -1307,6 +1358,16 @@
         }
       }
     },
+    "Maps and Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ và chủ đề"
+          }
+        }
+      }
+    },
     "Maps you edit appear here." : {
       "localizations" : {
         "vi" : {
@@ -1359,6 +1420,9 @@
           }
         }
       }
+    },
+    "MindMap AI by xDev" : {
+      "shouldTranslate" : false
     },
     "MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support." : {
       "localizations" : {
@@ -1506,6 +1570,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chưa có sơ đồ gần đây"
+          }
+        }
+      }
+    },
+    "No Results" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có kết quả"
           }
         }
       }
@@ -1776,6 +1850,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đổi tên chủ đề"
+          }
+        }
+      }
+    },
+    "Reveal Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiện chủ đề"
           }
         }
       }
@@ -2160,6 +2244,7 @@
       }
     },
     "Topic" : {
+      "comment" : "Glossary: “topic” is always “chủ đề”, never “node” or “nút”. English buttons, menu items and titles use Title Case (“Add Child Topic”); Vietnamese uses sentence case (“Thêm chủ đề con”).",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -2220,6 +2305,7 @@
       }
     },
     "Untitled Map" : {
+      "comment" : "Glossary: “map” is always “sơ đồ”, never “bản đồ”; “mind map”, as in “New Mind Map”, is also “sơ đồ”.",
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -2249,12 +2335,12 @@
         }
       }
     },
-    "Version %@ (%@)" : {
+    "Version" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phiên bản %1$@ (%2$@)"
+            "value" : "Phiên bản"
           }
         }
       }
@@ -2329,8 +2415,15 @@
         }
       }
     },
-    "by xDev" : {
-      "shouldTranslate" : false
+    "^[%lld match](inflect: true)" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld kết quả"
+          }
+        }
+      }
     },
     "xDev Blue" : {
       "localizations" : {

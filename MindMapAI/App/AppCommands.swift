@@ -104,7 +104,24 @@ struct MapCommands: Commands {
             .disabled(editor?.canToggleSelection != true)
             Divider()
             Button("Delete Topic") { editor?.deleteSelection() }
+                .keyboardShortcut(deleteTopicShortcut)
                 .disabled(editor?.canDeleteSelection != true)
+        }
+
+        // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            Menu("Find") {
+                Button("Find…") { editor?.showFind() }
+                    .keyboardShortcut("f")
+                    .disabled(editor == nil)
+                Button("Find Next") { editor?.findNext() }
+                    .keyboardShortcut("g")
+                    .disabled(editor?.hasFindMatches != true)
+                Button("Find Previous") { editor?.findPrevious() }
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .disabled(editor?.hasFindMatches != true)
+            }
         }
 
         // Hidden, like every AI entry point, where the device can never run
@@ -162,6 +179,13 @@ struct MapCommands: Commands {
         Button("Cancel AI Request") { assistant?.cancel() }
             .keyboardShortcut(".")
             .disabled(assistant?.isWorking != true)
+    }
+
+    /// The bare Delete key comes and goes with focus, so it stays with text
+    /// fields and with a selected suggestion (see `EditorSession.deleteKeyDeletesTopic`).
+    private var deleteTopicShortcut: KeyboardShortcut? {
+        guard editor?.deleteKeyDeletesTopic == true, assistant?.holdsDeleteKey != true else { return nil }
+        return KeyboardShortcut(.delete, modifiers: [])
     }
 
     private var themeBinding: Binding<MindMapTheme> {

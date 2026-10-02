@@ -68,11 +68,12 @@ These time the model only. SwiftUI's layout and rendering are not in them, so th
 | Edit title | Double-click, Space, Topic ▸ Rename Topic; Return commits, Esc cancels | Double-tap, Space on a keyboard |
 | Move | Drag a topic: middle of a topic drops inside it, top or bottom quarter beside it | Drag a topic |
 | Copy, cut, paste | Edit ▸ Cut, Copy, Paste (⌘X ⌘C ⌘V), context menu | Context menu, ⌘X ⌘C ⌘V on a keyboard |
+| Delete topic | Delete while the canvas has focus and no title is being edited (a selected suggestion is discarded instead), Topic ▸ Delete Topic | Topic ▸ Delete Topic |
 | Canvas or outline | View ▸ As Canvas ⌘1, As Outline ⌘2, toolbar picker | Toolbar picker |
 
 Collapsing a topic that holds the selection selects the collapsed topic, so Delete and Rename never act on a topic nobody sees.
 
-The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas.
+The Mac's scroll events reach SwiftUI's hosting view rather than a background view, so `CanvasScrollInput` watches the window's scroll events and takes those over the canvas. Delete is a menu key equivalent, so it is switched on only while `EditorSession.deleteKeyDeletesTopic` holds: `CanvasModel` reports the canvas's focus and its title editing, the outline reports its own (MM-0i). Delete removes every selected branch as one step.
 
 ## Keys, selection, drag and clipboard (MM-5)
 
@@ -82,7 +83,7 @@ The Mac's scroll events reach SwiftUI's hosting view rather than a background vi
 - **Arrows** follow the tree as drawn (`CanvasScene.neighbour`): away from the central topic goes to the child nearest in height, towards it to the parent, up and down to the next sibling on screen, else the nearest topic of the same level on that side.
 - **Drag and drop** is a `DragGesture` on each topic in the canvas's named coordinate space, not system drag and drop, so the drop target updates on every move. The middle half of a topic drops inside it (last child), the top and bottom quarters before and after it; the central topic only takes children. A topic dragged from the selection moves the whole selection. Over the moving branches the drop is refused: a no-entry badge follows the pointer, and dropping plays error feedback and posts an announcement (FR-KBD-04). Dropping into a collapsed topic opens it in the same step, and a drop that changes nothing is no undo step. The source stays at 60% opacity; a copy with the drag shadow follows the pointer; the target gets the dashed accent outline or the 3 pt bar of [[design-system]].
 - **Clipboard.** Copy writes the selected branches as a nested Markdown list (`MarkdownOutline.export` with no heading levels, one branch after another), notes as indented paragraphs; paste reads Markdown lists, headings or any indented lines with `InterchangeFormat.markdown.parse` and adds them under the selected topic with one `InsertOutlineCommand` (origin `.user`), then selects the new top-level topics (FR-EDT-14). See [[interchange]]. On the Mac the canvas answers Edit ▸ Cut, Copy, Paste and Select All (`onCopyCommand`, `onCutCommand`, `onPasteCommand`, `onCommand(selectAll:)`); SwiftUI's `copyable`/`pasteDestination` need iOS 27, so on iOS the keys come through `onKeyPress` and the context menu. The session writes through `TextClipboard` (`SystemClipboard` per platform, `MemoryClipboard` in tests), so it does not branch by platform.
-- **Context menu** on each topic (FR-KBD-03): Add Child, Add Sibling, Rename, Duplicate, Cut, Copy, Paste, Collapse/Expand, Delete. Opened on a selected topic it acts on the selection, otherwise on that topic alone; Paste goes under the topic it opened on. AI items come with MM-8.
+- **Context menu** on each topic (FR-KBD-03): Add Child, Add Sibling, Rename, Duplicate, Cut, Copy, Paste, Collapse/Expand, Delete. Opened on a selected topic it acts on the selection, otherwise on that topic alone; Paste goes under the topic it opened on. The AI actions (MM-8) follow; a suggestion keeps its own menu (Accept, Edit, Discard), is selected alone, and is neither dragged nor a drop target.
 
 ## Accessibility
 

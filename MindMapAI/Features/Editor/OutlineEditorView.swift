@@ -6,19 +6,32 @@ import SwiftUI
 struct OutlineEditorView: View {
     @Bindable var session: EditorSession
     @FocusState private var focusedNode: NodeID?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var isListFocused: Bool
 
     var body: some View {
-        List(selection: $session.selection) {
-            ForEach(session.rows) { row in
-                OutlineRow(
-                    row: row,
-                    isRoot: row.id == session.rootID,
-                    focus: $focusedNode,
-                    onRename: { session.rename(row.id, to: $0) },
-                    onToggle: { session.toggleCollapsed(row.id) }
-                )
+        ScrollViewReader { proxy in
+            List(selection: $session.selection) {
+                ForEach(session.rows) { row in
+                    OutlineRow(
+                        row: row,
+                        isRoot: row.id == session.rootID,
+                        isFindMatch: session.findMatchSet.contains(row.id),
+                        focus: $focusedNode,
+                        onRename: { session.rename(row.id, to: $0) },
+                        onToggle: { session.toggleCollapsed(row.id) }
+                    )
+                }
+            }
+            .onChange(of: session.scrollRequest) { _, request in
+                guard let request else { return }
+                withAnimation(Motion.standard(reduceMotion: reduceMotion)) {
+                    proxy.scrollTo(request)
+                }
+                session.scrollRequest = nil
             }
         }
+        .focused($isListFocused)
         .overlay {
             if session.rows.isEmpty {
                 ContentUnavailableView {
@@ -36,13 +49,23 @@ struct OutlineEditorView: View {
         }
         .onChange(of: focusedNode) { _, node in
             if let node { session.selection = node }
+            reportKeyboardFocus()
         }
+        .onChange(of: isListFocused) { reportKeyboardFocus() }
+        .onAppear(perform: reportKeyboardFocus)
+    }
+
+    /// Delete Topic's bare-Delete shortcut follows this (see `EditorSession.deleteKeyDeletesTopic`).
+    private func reportKeyboardFocus() {
+        let focus: EditorSession.KeyboardFocus = focusedNode != nil ? .editingText : isListFocused ? .content : .elsewhere
+        session.reportKeyboardFocus(focus, from: .outline)
     }
 }
 
 struct OutlineRow: View {
     let row: EditorSession.Row
     let isRoot: Bool
+    let isFindMatch: Bool
     var focus: FocusState<NodeID?>.Binding
     let onRename: (String) -> Void
     let onToggle: () -> Void
@@ -52,12 +75,14 @@ struct OutlineRow: View {
     init(
         row: EditorSession.Row,
         isRoot: Bool,
+        isFindMatch: Bool,
         focus: FocusState<NodeID?>.Binding,
         onRename: @escaping (String) -> Void,
         onToggle: @escaping () -> Void
     ) {
         self.row = row
         self.isRoot = isRoot
+        self.isFindMatch = isFindMatch
         self.focus = focus
         self.onRename = onRename
         self.onToggle = onToggle
@@ -73,8 +98,16 @@ struct OutlineRow: View {
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
+            if isFindMatch {
+                // A shape as well as the color, so a match never shows by color alone.
+                Image(systemName: "magnifyingglass")
+                    .font(Typography.rowDetail)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("Find Match")
+            }
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
+        .listRowBackground(isFindMatch ? Palette.searchMatchFill : nil)
         // Undo changes the title from outside; show it unless the user is typing here.
         .onChange(of: row.node.title) { _, title in
             if focus.wrappedValue != row.id { draft = title }

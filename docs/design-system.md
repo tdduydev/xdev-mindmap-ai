@@ -223,6 +223,7 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 | `EmptyState` | `ContentUnavailableView` with a `display` headline on the canvas, system text in lists | Always with an action button |
 | `SyncStatusLine` | Caption text and symbol in the sidebar footer | Never an alert |
 | `TopicInspector` | `.inspector`, note editor in the `note` font | Sheet on iPhone |
+| `BrandMark` | `BrandMark` image set (from `docs/brand/mindmap-ai-icon-v1.png`, 64 pt at @1x/@2x/@3x) in a continuous rounded square, plus live text: "MindMap AI" in `display` (Space Grotesk SemiBold) and "by xDev" in `brandByline` | Lockup in the library's empty state and Settings ▸ About; icon alone, 32 pt, on the storage recovery screen. Never in the sidebar or toolbar. One VoiceOver element, "MindMap AI by xDev" |
 
 ## Accessibility
 
