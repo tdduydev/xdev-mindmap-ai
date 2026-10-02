@@ -28,6 +28,7 @@ nonisolated enum AccessibilityID {
         static let addSibling = "editor.addSibling"
         static let delete = "editor.delete"
         static let find = "editor.find"
+        static let inspector = "editor.inspector"
     }
 
     /// Find in the open map (the bar above the canvas or the outline).

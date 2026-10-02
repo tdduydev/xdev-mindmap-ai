@@ -225,6 +225,7 @@ struct MapEditorView: View {
                 Label("Inspector", systemImage: "sidebar.trailing")
             }
             .help(session.isInspectorPresented ? Text("Hide Inspector") : Text("Show Inspector"))
+            .accessibilityIdentifier(AccessibilityID.Editor.inspector)
         }
     }
 }
