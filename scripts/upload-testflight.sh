@@ -46,6 +46,7 @@ xcodebuild archive -quiet \
   -archivePath "$archive" \
   CURRENT_PROJECT_VERSION="$build_number" \
   DEVELOPMENT_TEAM=M6C7NX9MUZ \
+  MINDMAP_MAC_APP_GROUP=YES \
   "${auth[@]}"
 
 cat > "$out/ExportOptions.plist" <<PLIST

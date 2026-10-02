@@ -8,7 +8,7 @@ How a build of MindMap AI reaches TestFlight and the Mac App Store. Set up on 20
 | --- | --- |
 | App | MindMap AI by xDev, Apple ID 6818476277, SKU `MINDMAPAI-MAC`, primary language English (U.S.) |
 | Platforms | macOS first; iOS is added to the same app later (universal purchase, ADR 0006) |
-| Bundle ID | `asia.xdev.mindmapai`, registered as UNIVERSAL so iOS can share it |
+| Bundle ID | `asia.xdev.mindmapai`, registered as UNIVERSAL so iOS can share it. Capabilities: In-App Purchase, Push Notifications, iCloud (CloudKit, container `iCloud.asia.xdev.mindmapai`), App Groups (`group.asia.xdev.mindmapai`); the Share Extension `asia.xdev.mindmapai.share` has App Groups. Set on 2026-10-02 |
 | Team ID | `M6C7NX9MUZ`, passed as `DEVELOPMENT_TEAM` by `scripts/upload-testflight.sh` only; the project leaves it empty so `scripts/ci.sh` builds on machines without a signing certificate |
 | Version | 0.x for TestFlight while in beta, 1.0.0 for the public release; the build number is the upload time (`YYYYMMDDHHmm`) |
 
@@ -27,6 +27,15 @@ Nothing below is ever committed or written to Hive. If the machine is replaced, 
 The API key has the App Manager role, which cannot use Xcode's cloud-managed distribution certificates. So the certificates were created through the API from locally generated keys, and the export signs manually. A key with the Admin role would allow cloud signing instead; it was not created, to keep the key's rights small.
 
 The certificates and the profile expire on 2027-10-02.
+
+## iCloud before it can ship
+
+The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). Two steps remain before `MINDMAP_ICLOUD=YES` can go into the upload script, and both need a Mac signed in to iCloud (the Mac mini is not):
+
+1. Run a Debug build with `MINDMAP_ICLOUD=YES` once with CloudKit schema initialisation (docs/cloudkit-sync.md), check the record types in CloudKit Console, then **Deploy Schema Changes** to production. TestFlight and App Store builds use only the production schema.
+2. Test two devices as in docs/cloudkit-sync.md *Testing*.
+
+Until then uploads keep iCloud off; the App Group is on.
 
 ## Upload a build
 
