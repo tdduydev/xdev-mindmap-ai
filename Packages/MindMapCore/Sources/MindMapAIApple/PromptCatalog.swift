@@ -109,12 +109,16 @@ public struct PromptCatalog: Hashable, Sendable {
 
     /// The question as the model sees it. The map title tells it what the
     /// tools read; the language line keeps the answer in the question's language.
-    public func chatPrompt(question: String, mapTitle: String, language: AILanguage) -> String {
-        """
-        Map: \(mapTitle)
-        Question: \(question)
-        You MUST respond in \(language.englishName).
-        """
+    /// `branchTitle` is the branch the tools are limited to (MM-78); the
+    /// answer says so, since it may miss what lies outside.
+    public func chatPrompt(question: String, mapTitle: String, language: AILanguage, branchTitle: String? = nil) -> String {
+        var lines = ["Map: \(mapTitle)"]
+        if let branchTitle {
+            lines.append("Scope: only the branch \u{201C}\(branchTitle.split(whereSeparator: \.isNewline).joined(separator: " "))\u{201D}. The tools read only this branch. Begin the answer by saying it covers this branch.")
+        }
+        lines.append("Question: \(question)")
+        lines.append("You MUST respond in \(language.englishName).")
+        return lines.joined(separator: "\n")
     }
 
     // MARK: Prompts

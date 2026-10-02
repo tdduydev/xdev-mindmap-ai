@@ -79,6 +79,55 @@ struct ChatMapReaderTests {
         #expect(await reader.readTopic("T1") == "Topic T1 no longer exists.")
     }
 
+    // MARK: Branch scope (MM-78)
+
+    @Test func aBranchQuestionSearchesOnlyInsideTheBranch() async {
+        reader.setBranch(fixture["Kế hoạch"])
+
+        let inside = await reader.searchTopics("beta")
+        let outside = await reader.searchTopics("ngân sách")
+
+        #expect(inside.contains(": Beta"))
+        #expect(outside.hasPrefix("No topic matches"))
+        #expect(outside.contains("the whole branch"))
+        let cited = Set(reader.citationTable.citations(in: "[T1] [T2] [T3]").map(\.nodeID))
+        let branch: Set<NodeID> = [fixture["Kế hoạch"], fixture["Beta"], fixture["Báo chí"]]
+        #expect(!cited.isEmpty && cited.isSubset(of: branch), "every handle handed out lies in the branch")
+    }
+
+    @Test func aHandleFromOutsideTheBranchIsNotRead() async {
+        _ = await reader.searchTopics("ngân sách")
+        reader.setBranch(fixture["Kế hoạch"])
+
+        #expect(await reader.readTopic("T1") == ChatMapReader.outsideBranch("T1"))
+        #expect(await reader.readBranch("T1", depth: 1) == ChatMapReader.outsideBranch("T1"))
+    }
+
+    @Test func anEmptyHandleReadsFromTheBranchTopic() async {
+        reader.setBranch(fixture["Kế hoạch"])
+
+        let output = await reader.readBranch("", depth: 2)
+
+        #expect(output.contains("- T1: Kế hoạch"))
+        #expect(output.contains("Beta"))
+        #expect(!output.contains("Ngân sách"))
+        #expect(!output.contains("Ra mắt sản phẩm"))
+    }
+
+    @Test func aTopicInsideTheBranchReadsAsUsual() async {
+        reader.setBranch(fixture["Kế hoạch"])
+        _ = await reader.searchTopics("beta")
+
+        #expect(await reader.readTopic("T1").hasPrefix("T1: Beta"))
+    }
+
+    @Test func clearingTheBranchReadsTheWholeMapAgain() async {
+        reader.setBranch(fixture["Kế hoạch"])
+        reader.setBranch(nil)
+
+        #expect(await reader.searchTopics("ngân sách").contains(": Ngân sách"))
+    }
+
     @Test func outputStaysWithinTheBudget() async throws {
         let fixture = try OutlineFixture("Root\n" + (1...60).map { "  Chủ đề số \($0) có tiêu đề khá dài" }.joined(separator: "\n"))
         try await repository.create(fixture.state)
@@ -109,6 +158,14 @@ struct ChatPromptTests {
         let prompt = catalog.chatPrompt(question: "Khi nào ra mắt?", mapTitle: "Ra mắt", language: .vietnamese)
 
         #expect(prompt == "Map: Ra mắt\nQuestion: Khi nào ra mắt?\nYou MUST respond in Vietnamese.")
+    }
+
+    @Test func aBranchQuestionSaysWhichBranchTheToolsRead() {
+        let prompt = catalog.chatPrompt(question: "Còn thiếu gì?", mapTitle: "Ra mắt", language: .vietnamese, branchTitle: "Kế\nhoạch")
+
+        #expect(prompt.contains("Scope: only the branch \u{201C}Kế hoạch\u{201D}."))
+        #expect(prompt.contains("saying it covers this branch"))
+        #expect(prompt.hasSuffix("Question: Còn thiếu gì?\nYou MUST respond in Vietnamese."))
     }
 
     @Test func everyModelGenerationHasChatInstructions() {

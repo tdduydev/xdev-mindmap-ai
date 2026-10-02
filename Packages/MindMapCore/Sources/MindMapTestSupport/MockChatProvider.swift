@@ -101,7 +101,7 @@ public final class MockChatProvider: ChatProvider {
                                 await Task.yield()
                             }
                             try Task.checkCancellation()
-                            history.withLock { $0.append(ChatTurn(question: message.text, answer: text, citations: citations)) }
+                            history.withLock { $0.append(ChatTurn(question: message.text, answer: text, citations: citations, branch: message.branch)) }
                             continuation.yield(ChatUpdate(text: text, citations: citations, isComplete: true))
                             continuation.finish()
                         case .failure(let error):

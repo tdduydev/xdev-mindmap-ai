@@ -23,6 +23,8 @@ final class ChatMapReader: Sendable {
     let mapID: MapID
     private let table: Mutex<CitationTable>
     private let toolOutput: Mutex<Int>
+    /// The branch this question is limited to (MM-78), nil for the whole map.
+    private let branch = Mutex<NodeID?>(nil)
 
     init(queries: MapQueries, mapID: MapID, toolOutput: Int, table: CitationTable = CitationTable()) {
         self.queries = queries
@@ -39,6 +41,16 @@ final class ChatMapReader: Sendable {
 
     func setToolOutput(_ tokens: Int) {
         toolOutput.withLock { $0 = tokens }
+    }
+
+    /// Set before each question: every tool then reads only this branch, and a
+    /// handle from earlier in the conversation that lies outside it is refused.
+    func setBranch(_ nodeID: NodeID?) {
+        branch.withLock { $0 = nodeID }
+    }
+
+    var currentBranch: NodeID? {
+        branch.withLock { $0 }
     }
 
     /// The map's title for the prompt, or an empty string when it is gone.
@@ -61,9 +73,11 @@ final class ChatMapReader: Sendable {
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return "Give a few words to search for." }
         do {
-            let hits = try await queries.search(query, in: mapID, limit: Self.searchLimit)
+            let branch = currentBranch
+            let hits = try await queries.search(query, in: mapID, under: branch, limit: Self.searchLimit)
             guard !hits.isEmpty else {
-                return "No topic matches \(Self.quoted(query)). Try other words, or readBranch with an empty handle for the whole map."
+                let whole = branch == nil ? "the whole map" : "the whole branch"
+                return "No topic matches \(Self.quoted(query)). Try other words, or readBranch with an empty handle for \(whole)."
             }
             let limit = self.limit
             var lines = ["Topics matching \(Self.quoted(query)):"]
@@ -94,6 +108,7 @@ final class ChatMapReader: Sendable {
             guard let topic = try await queries.topic(TopicRef(mapID: citation.mapID, nodeID: citation.nodeID)) else {
                 return "Topic \(citation.handle) no longer exists."
             }
+            if let branch = currentBranch, !Self.topic(topic, isIn: branch) { return Self.outsideBranch(citation.handle) }
             let ownHandle = self.handle(for: topic.ref.nodeID, title: MapQueries.oneLine(topic.title))
             var lines = ["\(ownHandle): \(MapQueries.oneLine(topic.title))"]
             if !topic.path.isEmpty {
@@ -130,12 +145,19 @@ final class ChatMapReader: Sendable {
     /// `handle` empty reads from the central topic.
     func readBranch(_ handle: String, depth: Int) async -> String {
         let trimmed = handle.trimmingCharacters(in: .whitespacesAndNewlines)
-        var branch: NodeID?
-        if !trimmed.isEmpty {
-            guard let citation = citationTable.citation(for: trimmed) else { return Self.unknownHandle(trimmed) }
-            branch = citation.nodeID
-        }
+        let scope = currentBranch
+        var branch = scope
         do {
+            if !trimmed.isEmpty {
+                guard let citation = citationTable.citation(for: trimmed) else { return Self.unknownHandle(trimmed) }
+                if let scope {
+                    guard let topic = try await queries.topic(TopicRef(mapID: citation.mapID, nodeID: citation.nodeID)) else {
+                        return "Topic \(citation.handle) no longer exists."
+                    }
+                    guard Self.topic(topic, isIn: scope) else { return Self.outsideBranch(citation.handle) }
+                }
+                branch = citation.nodeID
+            }
             // In Vietnamese every character is a token, so the indentation,
             // bullet and handle of each row count, and the header and the
             // "more topics" lines get their share up front.
@@ -186,6 +208,14 @@ final class ChatMapReader: Sendable {
             remaining -= cost
         }
         return kept.joined(separator: "\n")
+    }
+
+    private static func topic(_ topic: TopicDetail, isIn branch: NodeID) -> Bool {
+        topic.ref.nodeID == branch || topic.path.contains { $0.nodeID == branch }
+    }
+
+    static func outsideBranch(_ handle: String) -> String {
+        "Topic \(handle) is outside the branch this question is about. Use searchTopics or readBranch to read inside the branch."
     }
 
     static func unknownHandle(_ handle: String) -> String {
