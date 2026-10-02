@@ -243,14 +243,14 @@ As of commit `1e18d58`; rows marked MM-0i were updated by that task.
 | Hit targets | `Metrics.minimumHitTarget` 44 pt on iOS, 24 pt on macOS (inside HIG's 20–28 pt) | `MindMapAI/DesignSystem/Layout/Spacing.swift` |
 | Reduce Motion | `Motion.standard(reduceMotion:)` returns no animation | `MindMapAI/DesignSystem/Motion/Motion.swift` |
 | VoiceOver | Outline rows labelled "Central Topic" / "Topic, level n"; disclosure labelled and hidden when empty | `OutlineEditorView.swift` |
-| App icon | PNG asset catalog: one universal 1024 px iOS image and the macOS sizes 16–512 @1x/@2x; no Icon Composer `.icon`, no dark, clear or tinted variants | `MindMapAI/Resources/Assets.xcassets/AppIcon.appiconset` |
+| App icon | Icon Composer `.icon`: background fill `#F7F9FC` (navy 850 `#142745` in dark), one glass group with the X (brand gradient) and the three navy branches (`#E8ECF8` in dark) as flat SVG layers; clear and tinted derived by the system (MM-0j). `swift scripts/render-app-icon.swift` renders every appearance to `docs/brand/mindmap-ai-app-icon-appearances.png` | `MindMapAI/AppIcon.icon` |
 | Increase Contrast colours | No colour set has a high-contrast variant | `Assets.xcassets/*.colorset` |
 
 ## Do now
 
-Small gaps worth closing before the canvas work builds on them. Items 2–5 and 7 are done in MM-0i, item 6 in MM-0k.
+Small gaps worth closing before the canvas work builds on them. Items 2–5 and 7 are done in MM-0i, item 6 in MM-0k, item 1 in MM-0j.
 
-1. **Icon Composer icon** from the MM-0g artwork: background layer `#F7F9FC`, X and branches as foreground layers, with dark and tinted checked. The current PNGs get the system's automatic treatment on macOS 26.
+1. **Icon Composer icon** from the MM-0g artwork: background layer `#F7F9FC`, X and branches as foreground layers, with dark and tinted checked.
 2. **View menu:** add `SidebarCommands()` (and later toolbar and inspector commands) so Show/Hide Sidebar is in the View menu with ⌃⌘S.
 3. **Delete shortcut** on Delete Topic (`.delete`), active only while no text field is editing.
 4. **One name per action:** make toolbar labels match menu items ("Add Child Topic"), and set the editor window title to the map's title.

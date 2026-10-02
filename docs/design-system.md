@@ -312,5 +312,5 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 ## Not decided yet
 
 - The exact list and colours of themes beyond Standard (MM-18).
-- Icon Composer appearances (MM-0j) and whether the app icon picks up the AI gradient.
+- Whether the app icon picks up the AI gradient (the icon itself is in [design-guidelines.md](design-guidelines.md), MM-0j).
 - Topic shapes chosen by the user (not in V1). Topic colour and symbol per topic are designed in [node-organization.md](node-organization.md) (MM-32).
