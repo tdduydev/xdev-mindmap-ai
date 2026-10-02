@@ -15,3 +15,13 @@ Use case: logo-brand, wordmark lockup concept.
 On a solid opaque white #FFFFFF background, a horizontal landscape lockup in the exact style of the attached approved reference X + HIVE / DEV HUB: at left the same gradient xDev X with its soft glow; to its right "MINDMAP" in thin, evenly stroked uppercase letters with rounded caps and joins, color #344568, cap height equal to roughly 40 percent of the X height and aligned to the X's upper half; directly below "MINDMAP", a smaller "AI" in the same stroke style and color, left aligned with "MINDMAP", like DEV HUB under HIVE. Generous spacing, precise alignment, crisp flat vector-like edges. The X geometry and gradient must match the approved xDev brand reference: geometric broad diagonal X, center light cyan #7BD4FF through #1E90FF to blue #004CFF at tips.
 Text only: "MINDMAP" and "AI" next to the X. Spell MINDMAP exactly M-I-N-D-M-A-P and AI exactly A-I. No other words, no icon tile, no mockup, no shadows, no transparency.
 ```
+
+## Icon Composer icon (MM-0j)
+
+The shipped icon is `MindMapAI/AppIcon.icon`, redrawn by hand from the PNG above rather than traced:
+
+- `Assets/x.svg`: the X as one polygon (two 120 px strokes, 444 px tall, crossing at x 371, y 512), filled with a radial gradient `#7BD4FF` → `#1E90FF` → `#004CFF`. No glow; the system adds the lighting.
+- `Assets/branches.svg`: three navy `#344568` branches (24 px, round caps) from the X's right notch, ending in nodes of radius 37, 46 and 37.
+- `icon.json`: background `fill-specializations` `#F7F9FC` and dark `#142745`; the branches layer turns `#E8ECF8` in dark. Clear and tinted have no overrides: the system derives them.
+
+The composition is shifted 21 px left of the PNG so the mark is centred. Edit the SVGs or `icon.json` directly or in Icon Composer, then run `swift scripts/render-app-icon.swift` and check `docs/brand/mindmap-ai-app-icon-appearances.png` (rows iOS, macOS; columns Default, Dark, Clear Light, Clear Dark, Tinted Light, Tinted Dark).
