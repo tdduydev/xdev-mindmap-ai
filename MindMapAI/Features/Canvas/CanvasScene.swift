@@ -7,6 +7,8 @@ import MindMapLayout
 /// One visible topic as the canvas draws it.
 nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     let id: NodeID
+    /// Nil for the central topic.
+    let parentID: NodeID?
     let title: String
     /// 0 for the central topic.
     let level: Int
@@ -177,6 +179,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
             if item.depth == 1 { branch += 1 }
             topics.append(CanvasTopic(
                 id: node.id,
+                parentID: node.parentID,
                 title: node.title,
                 level: item.depth,
                 branch: max(branch, 0),

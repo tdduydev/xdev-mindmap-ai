@@ -6,9 +6,14 @@ extension FocusedValues {
     @Entry var newMapAction: NewMapAction?
     /// Set while the canvas shows; the zoom commands act on it.
     @Entry var canvasModel: CanvasModel?
+    @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
 }
 
 struct NewMapAction {
+    let perform: () -> Void
+}
+
+struct KeyboardShortcutsAction {
     let perform: () -> Void
 }
 
@@ -19,6 +24,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.editorSession) private var editor
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
+    @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -62,16 +68,16 @@ struct MapCommands: Commands {
             Button("Add Child Topic") { editor?.addChild() }
                 .keyboardShortcut(.return, modifiers: [.command, .shift])
                 .disabled(editor == nil)
-            // Return opens the title on the canvas; it is not a menu key equivalent
-            // here, because a bare Return would then never reach text fields.
+            // Space opens the title on the canvas (Return adds a sibling there,
+            // FR-KBD-01). Neither is a menu key equivalent: a bare key in the menu
+            // would never reach text fields. Help ▸ Keyboard Shortcuts lists them.
             Button("Rename Topic") { canvas?.beginEditingSelection() }
                 .disabled(canvas == nil || editor?.canRenameSelection != true)
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
             Divider()
-            // ⇧Tab for Promote comes with the keyboard work in MM-5, where Tab is
-            // kept for typing while a title is being edited.
+            // ⇧Tab promotes on the canvas, for the same reason as Space above.
             Button("Promote Topic") { editor?.promoteSelection() }
                 .disabled(editor?.canPromoteSelection != true)
             Button("Demote Topic") { editor?.demoteSelection() }
@@ -87,6 +93,8 @@ struct MapCommands: Commands {
         }
 
         CommandGroup(replacing: .help) {
+            Button("Keyboard Shortcuts") { keyboardShortcuts?.perform() }
+                .disabled(keyboardShortcuts == nil)
             Link("MindMap AI Website", destination: AppLinks.website)
         }
     }

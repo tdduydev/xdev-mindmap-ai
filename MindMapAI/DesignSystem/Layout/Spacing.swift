@@ -39,4 +39,6 @@ enum Metrics {
 
     /// Width of the Mac Settings window.
     static let settingsWidth: CGFloat = 480
+    /// The Mac's Keyboard Shortcuts sheet.
+    static let shortcutsSheetSize = CGSize(width: 480, height: 560)
 }
