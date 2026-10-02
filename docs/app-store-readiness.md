@@ -194,7 +194,7 @@ As of commit `1e18d58`:
 | Website link | `https://xdev.asia/mindmap` in Help and Settings ▸ About | `MindMapAI/App/AppLinks.swift` |
 | Privacy policy link | **Missing** in the app and on the web | — |
 | Support link | **Missing**; the startup failure screen tells people to contact support without saying how | `MindMapAI/App/RootView.swift` |
-| Restore purchases | Not applicable until StoreKit | — |
+| Restore purchases | Settings ▸ MindMap AI Pro and the paywall; StoreKit 2 entitlements at launch and on activation | `MindMapAI/Features/Store/` |
 | Permission usage strings | None needed yet | — |
 
 ## Do now

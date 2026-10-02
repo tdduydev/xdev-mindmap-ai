@@ -12,6 +12,9 @@ struct SettingsView: View {
             Tab("General", systemImage: "gearshape") {
                 Form { GeneralSettingsSection() }
             }
+            Tab("Pro", systemImage: "star") {
+                Form { ProSettingsSection() }
+            }
             Tab("Privacy", systemImage: "hand.raised") {
                 Form { PrivacySettingsSection() }
             }
@@ -25,6 +28,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 GeneralSettingsSection()
+                ProSettingsSection()
                 PrivacySettingsSection()
                 AboutSettingsSection()
             }

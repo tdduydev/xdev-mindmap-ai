@@ -8,4 +8,5 @@ enum Typography {
     static let rowTitle = Font.body.weight(.medium)
     static let rowDetail = Font.subheadline
     static let banner = Font.callout
+    static let paywallTitle = Font.title2.weight(.semibold)
 }

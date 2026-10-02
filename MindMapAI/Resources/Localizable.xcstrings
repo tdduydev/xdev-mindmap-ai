@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "A one-time purchase, not a subscription. Payment is charged to your Apple Account.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mua một lần, không phải gói đăng ký. Khoản thanh toán được tính vào Tài khoản Apple của bạn."
+          }
+        }
+      }
+    },
     "About": {
       "localizations": {
         "vi": {
@@ -121,12 +131,32 @@
         }
       }
     },
+    "Bought Pro before, or on another device? Restore Purchases unlocks it here.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã mua Pro trước đây hoặc trên thiết bị khác? Khôi phục giao dịch mua sẽ mở khoá Pro trên máy này."
+          }
+        }
+      }
+    },
     "Can’t Open Your Maps": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Không mở được dữ liệu sơ đồ"
+          }
+        }
+      }
+    },
+    "Can’t reach the App Store. Check your connection and try again.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không kết nối được App Store. Kiểm tra kết nối mạng rồi thử lại."
           }
         }
       }
@@ -187,6 +217,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Không mở được sơ đồ"
+          }
+        }
+      }
+    },
+    "Couldn’t Restore Purchases": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không khôi phục được giao dịch mua"
           }
         }
       }
@@ -291,6 +331,16 @@
         }
       }
     },
+    "Done": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xong"
+          }
+        }
+      }
+    },
     "Duplicate Topic": {
       "localizations": {
         "vi": {
@@ -371,12 +421,52 @@
         }
       }
     },
+    "Find Missing Ideas": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tìm ý còn thiếu"
+          }
+        }
+      }
+    },
     "General": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Chung"
+          }
+        }
+      }
+    },
+    "Generate a Map from a Long Description": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tạo sơ đồ từ mô tả dài"
+          }
+        }
+      }
+    },
+    "High-Resolution PNG Export": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xuất PNG độ phân giải cao"
+          }
+        }
+      }
+    },
+    "Included in Pro": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Có trong Pro"
           }
         }
       }
@@ -397,6 +487,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sáng"
+          }
+        }
+      }
+    },
+    "Loading price…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đang tải giá…"
           }
         }
       }
@@ -444,6 +544,19 @@
     "MindMap AI": {
       "shouldTranslate": false
     },
+    "MindMap AI Pro": {
+      "shouldTranslate": false
+    },
+    "MindMap AI Pro is unlocked on this device.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MindMap AI Pro đã được mở khoá trên thiết bị này."
+          }
+        }
+      }
+    },
     "MindMap AI Website": {
       "localizations": {
         "vi": {
@@ -470,6 +583,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "MindMap AI giữ sơ đồ trên thiết bị của bạn. Không cần tài khoản, không theo dõi."
+          }
+        }
+      }
+    },
+    "More Themes": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm theme"
+          }
+        }
+      }
+    },
+    "Multi-Page Vector PDF Export": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xuất PDF vector nhiều trang"
           }
         }
       }
@@ -544,12 +677,52 @@
         }
       }
     },
+    "Not Now": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Để sau"
+          }
+        }
+      }
+    },
+    "Not unlocked": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa mở khoá"
+          }
+        }
+      }
+    },
+    "Nothing to Restore": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có gì để khôi phục"
+          }
+        }
+      }
+    },
     "OK": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "OK"
+          }
+        }
+      }
+    },
+    "OPML Import and Export": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập và xuất OPML"
           }
         }
       }
@@ -574,12 +747,45 @@
         }
       }
     },
+    "Pro": {
+      "shouldTranslate": false
+    },
+    "Pro adds extra export formats, themes, AI tools and voice input. Maps, topics, sync and everything else stay free.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro thêm định dạng xuất, theme, công cụ AI và nhập bằng giọng nói. Sơ đồ, chủ đề, đồng bộ và mọi thứ khác vẫn miễn phí."
+          }
+        }
+      }
+    },
+    "Pro is unlocked. Thank you for supporting MindMap AI.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã mở khoá Pro. Cảm ơn bạn đã ủng hộ MindMap AI."
+          }
+        }
+      }
+    },
     "Promote Topic": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Đưa chủ đề lên một cấp"
+          }
+        }
+      }
+    },
+    "Purchases Restored": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã khôi phục giao dịch mua"
           }
         }
       }
@@ -644,6 +850,26 @@
         }
       }
     },
+    "Restore Purchases": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khôi phục giao dịch mua"
+          }
+        }
+      }
+    },
+    "See What’s in Pro…": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem Pro có gì…"
+          }
+        }
+      }
+    },
     "Something Went Wrong": {
       "localizations": {
         "vi": {
@@ -674,6 +900,26 @@
         }
       }
     },
+    "Status": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trạng thái"
+          }
+        }
+      }
+    },
+    "Summarize a Whole Map": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tóm tắt cả sơ đồ"
+          }
+        }
+      }
+    },
     "System": {
       "localizations": {
         "vi": {
@@ -684,8 +930,28 @@
         }
       }
     },
+    "The purchase didn’t go through. Try again.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giao dịch mua chưa hoàn tất. Hãy thử lại."
+          }
+        }
+      }
+    },
     "Think. Draw. Connect.": {
       "shouldTranslate": false
+    },
+    "This Apple Account hasn’t bought MindMap AI Pro.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tài khoản Apple này chưa mua MindMap AI Pro."
+          }
+        }
+      }
     },
     "Topic": {
       "localizations": {
@@ -707,6 +973,16 @@
         }
       }
     },
+    "Try Again": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử lại"
+          }
+        }
+      }
+    },
     "Try again. If it keeps happening, restart the app.": {
       "localizations": {
         "vi": {
@@ -723,6 +999,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hoàn tác"
+          }
+        }
+      }
+    },
+    "Unlock Pro for %@": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở khoá Pro với giá %@"
+          }
+        }
+      }
+    },
+    "Unlocked": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã mở khoá"
           }
         }
       }
@@ -757,12 +1053,32 @@
         }
       }
     },
+    "Voice Input": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nhập bằng giọng nói"
+          }
+        }
+      }
+    },
     "Website": {
       "localizations": {
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Trang web"
+          }
+        }
+      }
+    },
+    "Your purchase is waiting for approval. Pro unlocks as soon as it’s approved.": {
+      "localizations": {
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giao dịch mua đang chờ duyệt. Pro sẽ mở khoá ngay khi được duyệt."
           }
         }
       }

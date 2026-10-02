@@ -71,7 +71,7 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 13. Purchases
 
-- **MM-13** StoreKit 2 for a free app with a one-time Pro unlock: entitlement check, Restore Purchases in Settings, a paywall that states price and terms. The price and the Pro feature list are still to be decided.
+- **MM-13** StoreKit 2 for a free app with a one-time Pro unlock: entitlement check, Restore Purchases in Settings, a paywall that states price and terms. Price (USD 14.99) and the Pro list are in [pricing](pricing.md).
 
 ## 14. Release
 

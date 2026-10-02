@@ -36,4 +36,7 @@ enum Metrics {
 
     /// Width of the Mac Settings window.
     static let settingsWidth: CGFloat = 480
+
+    /// Width of the paywall sheet on the Mac.
+    static let paywallWidth: CGFloat = 420
 }
