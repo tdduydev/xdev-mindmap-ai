@@ -162,9 +162,11 @@ final class LibraryModel {
         }
     }
 
-    /// Creates a map whose root topic carries its title and returns its ID, so the caller can open it.
-    func createMap() async -> MapID? {
-        await createMap(GraphState.newMap(title: String(localized: "Untitled Map")))
+    /// Creates a map whose root topic carries its title and returns its ID, so
+    /// the caller can open it. `theme` is Settings ▸ Theme for New Maps
+    /// (`NewMapPreferences.theme`), resolved by the caller, which knows Pro.
+    func createMap(theme: MindMapTheme = .standard) async -> MapID? {
+        await createMap(GraphState.newMap(title: String(localized: "Untitled Map"), theme: theme))
     }
 
     /// Stores a map built elsewhere, such as an imported file, and returns its ID.

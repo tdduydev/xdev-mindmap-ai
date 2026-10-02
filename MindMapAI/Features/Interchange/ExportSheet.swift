@@ -13,12 +13,19 @@ struct ExportSheet: View {
     let onClose: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
-    @AppStorage(ExportPreferences.includeNotesKey, store: AppDefaults.store) private var includeNotes = true
-    @State private var options = ExportOptions()
+    /// Starts from Settings ▸ Export; a change here becomes the new default there.
+    @State private var options: ExportOptions
     @State private var scope = ExportScope.wholeMap
     @State private var file: ExportedFile?
     @State private var isPreparing = false
     @State private var failed = false
+
+    init(session: EditorSession, entitlements: any ProEntitlements, onClose: @escaping () -> Void) {
+        self.session = session
+        self.entitlements = entitlements
+        self.onClose = onClose
+        _options = State(initialValue: ExportPreferences().options(entitlements: entitlements))
+    }
 
     private var lockedFeature: ProFeature? {
         options.requiredFeature.flatMap { entitlements.allows($0) ? nil : $0 }
@@ -78,6 +85,9 @@ struct ExportSheet: View {
                 failed = true
             }
         }
+        .onChange(of: options) { old, new in
+            ExportPreferences().save(new, changedFrom: old)
+        }
         .alert("Couldn’t Export Map", isPresented: $failed) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -93,7 +103,7 @@ struct ExportSheet: View {
                 Text("Selected Branch").tag(ExportScope.selectedBranch)
                     .selectionDisabled(selectedBranch == nil)
             }
-            Toggle("Include Notes", isOn: $includeNotes)
+            Toggle("Include Notes", isOn: $options.includeNotes)
         } footer: {
             Text("Markdown and plain text open in any text editor and can be imported again.")
         }
@@ -146,7 +156,6 @@ struct ExportSheet: View {
 
     private func prepare() {
         var options = options
-        options.includeNotes = includeNotes
         options.branch = scope == .selectedBranch ? selectedBranch : nil
         let graph = session.engine.state
         isPreparing = true

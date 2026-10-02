@@ -5,6 +5,17 @@ import Testing
 
 @Suite("Changing the theme")
 struct ChangeThemeCommandTests {
+    @Test func newMapStartsWithTheThemeItIsGiven() throws {
+        #expect(GraphState.newMap(title: "Plan").map.theme == .standard)
+        // The theme for new maps is only a start: undoing a later change goes back to it, not to Standard.
+        var engine = try GraphEngine(state: GraphState.newMap(title: "Plan", theme: .xdevBlue))
+        try engine.execute(ChangeThemeCommand(theme: .graphite))
+        #expect(engine.undo() != nil)
+        #expect(engine.state.map.theme == .xdevBlue)
+        #expect(engine.redo() != nil)
+        #expect(engine.state.map.theme == .graphite)
+    }
+
     @Test func changesOnlyTheMapTheme() throws {
         var engine = try GraphEngine(state: GraphState.newMap(title: "Plan"))
         let nodesBefore = engine.state.nodes

@@ -145,7 +145,7 @@ struct RootView: View {
     /// A new map that opens on Generate Map (FR-AI-03).
     private func createMapWithAI() {
         Task {
-            guard let id = await library.createMap() else { return }
+            guard let id = await library.createMap(theme: NewMapPreferences.theme(entitlements: ai.entitlements)) else { return }
             router.pendingMapGeneration = id
             show(id)
         }
