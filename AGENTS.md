@@ -27,10 +27,10 @@ How the team does recurring work. Claude Code loads them from `.claude/skills/`;
 
 # xdev-mindmap-ai-ios
 
-App iOS/iPadOS **MindMap AI by xDev**: Swift, SwiftUI, SwiftData, không backend. Lõi ở `Packages/MindMapCore` (`MindMapDomain`, `MindMapGraph`, `MindMapPersistence`), app ở `MindMapAI/`. Xem [[architecture]], [[product]].
+App **MindMap AI by xDev** cho macOS, iPadOS, iOS: Swift, SwiftUI, SwiftData, không backend. **macOS làm trước** ([[adr-0006]]): một target SwiftUI đa nền tảng, chạy native trên Mac, iOS vẫn phải build được. Lõi ở `Packages/MindMapCore` (`MindMapDomain`, `MindMapGraph`, `MindMapPersistence`), app ở `MindMapAI/`. Xem [[architecture]], [[product]].
 
 ## Trước khi merge
-- Không có CI trên GitHub: chạy `scripts/ci.sh` tại máy (test lõi bằng `swift test`, rồi build app cho iOS Simulator). Cần Xcode 26 trở lên.
+- Không có CI trên GitHub: chạy `scripts/ci.sh` tại máy (test lõi bằng `swift test`, test app trên macOS, build iOS Simulator; warning tính là lỗi). Cần Xcode 26 trở lên; nếu `xcode-select` còn trỏ vào CommandLineTools thì script tự dùng `/Applications/Xcode.app`.
 - Mỗi mục roadmap là một task `MM-*` trên Hive; tiêu chí xong ở note của task, thứ tự ở [[roadmap]].
 - Đổi kiến trúc thì sửa `docs/` trong cùng commit. Quyết định lớn thì thêm ADR ở `docs/adr/` và một dòng trong `.xdev-hive/docs.json`. Các trang đó mirror từ repo, không sửa trên Hive.
 
@@ -40,6 +40,8 @@ App iOS/iPadOS **MindMap AI by xDev**: Swift, SwiftUI, SwiftData, không backend
 - Schema SwiftData đã phát hành thì không sửa: thêm `SchemaV2`, một migration stage và test mở store V1 ([[data-model]]).
 - Chữ trên giao diện vào `MindMapAI/Resources/Localizable.xcstrings`, đủ `en` và `vi`.
 - Màu, chữ, khoảng cách, chuyển động lấy từ `MindMapAI/DesignSystem/`, không đặt số lẻ trong View.
+- Khác biệt nền tảng để trong View (`#if os(macOS)` cho một modifier, file riêng khi cả view khác); model, session và package lõi không rẽ nhánh theo nền tảng.
+- Undo đi qua `UndoManager` của cửa sổ (menu Edit, ⌘Z); `EditorSession` đặt tên thao tác cho mọi command.
 - Không log nội dung map (tiêu đề, node, ghi chú, prompt AI): dùng `Logger` với `privacy: .private` ([[privacy]]).
 - Không thêm dependency ngoài, Firebase hay backend khi chưa có quyết định ([[adr-0001]]).
 - Test bằng Swift Testing; command mới phải có test cả undo lẫn redo.
