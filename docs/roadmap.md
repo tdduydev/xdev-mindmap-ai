@@ -2,12 +2,20 @@
 
 Each bold ID is a task on xDev Hive (project `xdev-mindmap-ai-ios`) whose note holds the acceptance criteria. Status lives on the task; this file says what each phase covers and in what order. A phase starts only when the one it builds on is stable.
 
+The detailed requirements (FR and NFR IDs, acceptance scenarios, open questions) live in the SRS on Hive (`project/xdev-mindmap-ai-ios/srs`, Vietnamese); task notes cite its IDs. Phase numbers give the reading order, not a strict sequence: the task dependencies on Hive decide what can run in parallel. Since 2026-10-02 the layout engine (MM-4), the AI foundation (MM-7) and the Markdown/text interchange (MM-10a) depend only on the core package, so they run beside MM-1, and the canvas (MM-3) waits for the layout engine.
+
 ## 0. Foundation (Milestone 0)
 
 - **MM-0a** Core package: domain types, `GraphState`, `GraphCommand`, Add, Update, Delete and Reparent commands, `GraphValidator` (cycles refused), `GraphRepair`, `GraphEngine` with undo and redo, Swift Testing coverage.
 - **MM-0b** SwiftData persistence: schema V1 (CloudKit-ready, sync off), migration plan, `MapRepository` and its SwiftData actor, tests for create, save, reopen from disk and migration.
 - **MM-0c** App shell: multiplatform Xcode project `MindMapAI` (`asia.xdev.mindmapai`, version 26), run on macOS first, design system foundation, Library screen with empty state, minimal outline editor on the graph engine with the Edit menu's undo, English and Vietnamese strings, app tests on macOS, `scripts/ci.sh`.
 - **MM-0d** Documentation: README, architecture, data model, graph engine, privacy, ADRs 0001 to 0006, this roadmap, mirrored to Hive.
+- **MM-0e** Research: on-device AI, module structure, design guidelines, App Store readiness.
+- **MM-0f** Menu commands, Settings, privacy manifest, export compliance key.
+- **MM-0g** App icon and wordmark in the xDev brand.
+- **MM-0h** Privacy policy and support pages (en, vi), linked from Settings, Help and the startup failure screen.
+- **MM-0i** Shell polish from the design guidelines: View menu sidebar command, Delete shortcut, one name per action, window title, empty state action, Increase Contrast colours, glossary.
+- **MM-0j** Icon Composer icon with default, dark, clear and tinted appearances.
 
 No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
@@ -21,7 +29,7 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 3. Basic canvas
 
-- **MM-3** Map editor on an infinite canvas, trackpad and mouse first: node rendering, pan, zoom, pinch, select, inline editing, add and delete nodes, viewport culling, VoiceOver elements for nodes. The outline editor stays as the accessible alternative.
+- **MM-3** Map editor on an infinite canvas, trackpad and mouse first: node rendering, pan, zoom, pinch, select, inline editing, add and delete nodes, viewport culling, VoiceOver elements for nodes. The outline editor stays as the accessible alternative. Builds on the layout engine (MM-4), which is done first.
 
 ## 4. Layout engine
 
@@ -49,7 +57,8 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 10. Import and export
 
-- **MM-10** Plain text and Markdown import (indented lists, headings), Markdown and plain text export (notes optional), PNG and high-resolution PDF export (fit to page, pagination), all on-device.
+- **MM-10a** `MindMapInterchange` package: plain text and Markdown import (indented lists, headings) and export (notes optional), as graph commands, without UI.
+- **MM-10** File ▸ Import and Export in the app, PNG and high-resolution PDF export (fit to page, pagination), all on-device.
 
 ## 11. Share and system integration
 
@@ -58,3 +67,19 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 ## 12. Polish
 
 - **MM-12** Onboarding (three screens) and sample map, settings, motion with Reduce Motion, accessibility audit, large-map performance with Instruments, error messages, localization review, App Store assets and privacy labels.
+
+## 13. Purchases
+
+- **MM-13** Pricing and StoreKit 2: the unlock model, Restore Purchases in Settings, a paywall that states price and terms. Waits on the product owner's pricing decision.
+
+## 14. Release
+
+- **MM-14** App Store submission kit: metadata in English and Vietnamese, screenshots, Review Notes on AI availability, privacy and accessibility labels, age rating, TestFlight build.
+
+## Cross-cutting
+
+These run beside the phases above once their dependency is done.
+
+- **MM-15** Search: maps by title and topic text in the library, Find in the open map, diacritic-insensitive for Vietnamese.
+- **MM-16** Topic inspector: notes and details, toggled from the toolbar and the View menu.
+- **MM-17** Multiple windows: one session per map shared by its windows, one window per map on iPad, state restoration at relaunch.
