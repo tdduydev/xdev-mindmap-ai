@@ -113,6 +113,50 @@
         }
       }
     },
+    "%lld topics selected" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld topic selected"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld topics selected"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã chọn %lld chủ đề"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "A topic can’t move into its own branch." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể chuyển chủ đề vào chính nhánh của nó."
+          }
+        }
+      }
+    },
     "AI" : {
       "localizations" : {
         "vi" : {
@@ -283,6 +327,36 @@
         }
       }
     },
+    "Add a topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm một chủ đề"
+          }
+        }
+      }
+    },
+    "Add or remove a topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm hoặc bỏ một chủ đề"
+          }
+        }
+      }
+    },
+    "Add the next topic to the selection" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề kế bên vào vùng chọn"
+          }
+        }
+      }
+    },
     "Add to Favorites" : {
       "localizations" : {
         "vi" : {
@@ -299,6 +373,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm vào ghi chú"
+          }
+        }
+      }
+    },
+    "Add to Selection" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm vào vùng chọn"
+          }
+        }
+      }
+    },
+    "Add topics in a rectangle" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm các chủ đề trong khung"
           }
         }
       }
@@ -594,6 +688,16 @@
         }
       }
     },
+    "Copy" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép"
+          }
+        }
+      }
+    },
     "Couldn’t Open Map" : {
       "localizations" : {
         "vi" : {
@@ -644,6 +748,36 @@
         }
       }
     },
+    "Cut" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cắt"
+          }
+        }
+      }
+    },
+    "Cut Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cắt chủ đề"
+          }
+        }
+      }
+    },
+    "Cut Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cắt chủ đề"
+          }
+        }
+      }
+    },
     "Dark" : {
       "localizations" : {
         "vi" : {
@@ -675,6 +809,16 @@
       }
     },
     "Delete Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá chủ đề"
+          }
+        }
+      }
+    },
+    "Delete Topics" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
@@ -774,12 +918,42 @@
         }
       }
     },
+    "Drag a topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kéo một chủ đề"
+          }
+        }
+      }
+    },
     "Duplicate Topic" : {
       "localizations" : {
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhân bản chủ đề"
+          }
+        }
+      }
+    },
+    "Duplicate Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhân bản chủ đề"
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa"
           }
         }
       }
@@ -1044,6 +1218,16 @@
         }
       }
     },
+    "Hold, then drag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giữ rồi kéo"
+          }
+        }
+      }
+    },
     "Ideas" : {
       "localizations" : {
         "vi" : {
@@ -1090,6 +1274,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Có thể sơ đồ đã bị xoá trên thiết bị khác."
+          }
+        }
+      }
+    },
+    "Keep only the first selected topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ giữ chủ đề chọn đầu tiên"
+          }
+        }
+      }
+    },
+    "Keyboard Shortcuts" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phím tắt"
           }
         }
       }
@@ -1270,6 +1474,36 @@
         }
       }
     },
+    "Move Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Di chuyển chủ đề"
+          }
+        }
+      }
+    },
+    "Move Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Di chuyển chủ đề"
+          }
+        }
+      }
+    },
+    "Move it, or drop it on another topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Di chuyển, hoặc thả lên chủ đề khác"
+          }
+        }
+      }
+    },
     "New Map with AI…" : {
       "localizations" : {
         "vi" : {
@@ -1420,6 +1654,16 @@
         }
       }
     },
+    "On the Canvas" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trên canvas"
+          }
+        }
+      }
+    },
     "On this device" : {
       "localizations" : {
         "vi" : {
@@ -1446,6 +1690,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dàn ý"
+          }
+        }
+      }
+    },
+    "Paste" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dán"
+          }
+        }
+      }
+    },
+    "Paste Topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dán chủ đề"
+          }
+        }
+      }
+    },
+    "Paste Topics" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dán chủ đề"
           }
         }
       }
@@ -1550,6 +1824,16 @@
         }
       }
     },
+    "Remove from Selection" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ khỏi vùng chọn"
+          }
+        }
+      }
+    },
     "Rename Map" : {
       "localizations" : {
         "vi" : {
@@ -1610,6 +1894,46 @@
         }
       }
     },
+    "Select All" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn tất cả"
+          }
+        }
+      }
+    },
+    "Select the next topic" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn chủ đề kế bên"
+          }
+        }
+      }
+    },
+    "Select topics in a rectangle" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn các chủ đề trong khung"
+          }
+        }
+      }
+    },
+    "Selection and Moving" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn và di chuyển"
+          }
+        }
+      }
+    },
     "Shorter" : {
       "localizations" : {
         "vi" : {
@@ -1646,6 +1970,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đã có lỗi"
+          }
+        }
+      }
+    },
+    "Space" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phím cách"
           }
         }
       }
@@ -2011,6 +2345,16 @@
         }
       }
     },
+    "View" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem"
+          }
+        }
+      }
+    },
     "View As" : {
       "localizations" : {
         "vi" : {
@@ -2107,6 +2451,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@” cùng mọi chủ đề trong đó sẽ bị xoá. Không thể hoàn tác."
+          }
+        }
+      }
+    },
+    "⇧-click" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧-bấm"
+          }
+        }
+      }
+    },
+    "⇧-drag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧-kéo"
+          }
+        }
+      }
+    },
+    "⌘-click" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘-bấm"
+          }
+        }
+      }
+    },
+    "⌘-drag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘-kéo"
           }
         }
       }

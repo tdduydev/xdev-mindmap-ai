@@ -9,6 +9,7 @@ struct MapEditorView: View {
     let canvas: CanvasModel
     @Bindable var assistant: AIAssistant
     @Environment(\.undoManager) private var undoManager
+    @State private var showsKeyboardShortcuts = false
 
     var body: some View {
         Group {
@@ -65,6 +66,8 @@ struct MapEditorView: View {
         .toolbar { toolbar }
         .focusedSceneValue(\.editorSession, session)
         .focusedSceneValue(\.aiAssistant, assistant)
+        .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
+        .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
@@ -80,6 +83,14 @@ struct MapEditorView: View {
             }
             .pickerStyle(.segmented)
             .help(Text("View As"))
+        }
+        // Design system: a multi-selection shows its count in the toolbar.
+        ToolbarItem {
+            if session.selectedIDs.count > 1 {
+                Text("\(session.selectedIDs.count) topics selected")
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
         }
         ToolbarItemGroup {
             Button(action: session.undo) {

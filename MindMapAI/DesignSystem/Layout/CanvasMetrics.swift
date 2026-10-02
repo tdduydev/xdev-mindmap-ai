@@ -58,7 +58,17 @@ enum CanvasMetrics {
 
     static let dropTargetOutlineWidth: CGFloat = 2
     static let dropInsertionBarWidth: CGFloat = 3
+    static let dropTargetDash: [CGFloat] = [5, 3]
     static let dragSourceOpacity: Double = 0.6
+    /// How far a pointer or finger moves on a topic before it drags (MM-5).
+    static let dragStartDistance: CGFloat = 4
+    /// The top and bottom quarter of a topic drop beside it, the middle inside.
+    static let dropEdgeFraction: CGFloat = 0.25
+    /// The selection rectangle dragged on empty canvas.
+    static let marqueeStrokeWidth: CGFloat = 1
+    static let marqueeFillOpacity: Double = 0.12
+    /// On touch, a hold on empty canvas before a drag draws a selection rectangle.
+    static let marqueeHoldDuration: Double = 0.4
 
     /// Size of the note symbol after a title.
     static let noteSymbolSize: CGFloat = 11

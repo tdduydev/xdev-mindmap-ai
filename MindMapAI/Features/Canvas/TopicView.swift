@@ -12,6 +12,10 @@ struct TopicView: View {
     let isRoot: Bool
     let isSelected: Bool
     let isEditing: Bool
+    /// A result of Find (FR-KBD-06), marked as in the outline.
+    var isFindMatch = false
+    /// Drawn faded in place while a copy follows the pointer.
+    var isDragSource = false
     let model: CanvasModel
     let rotorNamespace: Namespace.ID
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -54,15 +58,45 @@ struct TopicView: View {
         .overlay(alignment: topic.side == .left ? .leading : .trailing) {
             if topic.hiddenDescendantCount > 0 { badge }
         }
+        .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : 1)
         .contentShape(.interaction, Rectangle().inset(by: -hitOutset))
         // The double tap is listed first so it can see both taps; the single tap
         // runs alongside it, so selection does not wait for the double-tap timeout.
         .onTapGesture(count: 2) { model.beginEditing(topic.id) }
-        .simultaneousGesture(TapGesture().onEnded { model.select(topic.id) })
+        .simultaneousGesture(selectionTap)
+        // While the title is a text field, a drag selects text instead.
+        .gesture(moveDrag, including: isEditing ? .subviews : .all)
         .onHover { isHovering = $0 }
         .contextMenu { contextMenu }
-        .modifier(TopicAccessibility(topic: topic, isRoot: isRoot, isSelected: isSelected, isEditing: isEditing, model: model))
+        .modifier(TopicAccessibility(topic: topic, isRoot: isRoot, isSelected: isSelected, isEditing: isEditing, isFindMatch: isFindMatch, model: model))
         .accessibilityRotorEntry(id: topic.id, in: rotorNamespace)
+    }
+
+    #if os(macOS)
+    /// ⌘-click toggles, ⇧-click adds, a plain click selects the topic alone
+    /// (FR-CNV-03). A modifier tap fails without its key, so the next one runs.
+    private var selectionTap: some Gesture {
+        TapGesture().modifiers(.command).onEnded { model.click(topic.id, .toggle) }
+            .exclusively(before: TapGesture().modifiers(.shift).onEnded { model.click(topic.id, .add) })
+            .exclusively(before: TapGesture().onEnded { model.click(topic.id, .replace) })
+    }
+    #else
+    /// SwiftUI gestures read no modifier keys on iOS; touch adds topics with
+    /// the context menu, a hold-and-drag rectangle or ⇧-arrows instead.
+    private var selectionTap: some Gesture {
+        TapGesture().onEnded { model.click(topic.id, .replace) }
+    }
+    #endif
+
+    /// Dragging a topic moves its branch, or the whole selection (FR-KBD-04).
+    /// Locations are in the canvas's space, as the camera's view points.
+    private var moveDrag: some Gesture {
+        DragGesture(minimumDistance: CanvasMetrics.dragStartDistance, coordinateSpace: .named(CanvasView.coordinateSpace))
+            .onChanged { value in
+                model.beginDrag(topic.id, at: value.startLocation)
+                model.updateDrag(to: value.location)
+            }
+            .onEnded { _ in model.endDrag() }
     }
 
     /// Suggestions use the secondary text colour, so they read as not yet part of the map.
@@ -120,8 +154,12 @@ struct TopicView: View {
             Button("Edit Suggestion") { model.beginEditing(topic.id) }
             Divider()
             Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
-        } else if let assistant = model.assistant, assistant.service.showsEntryPoints {
-            AIActionsMenu(assistant: assistant, nodeID: topic.id)
+        } else {
+            TopicContextMenu(topic: topic, isRoot: isRoot, model: model)
+            if let assistant = model.assistant, assistant.service.showsEntryPoints {
+                Divider()
+                AIActionsMenu(assistant: assistant, nodeID: topic.id)
+            }
         }
     }
 
@@ -142,6 +180,15 @@ struct TopicView: View {
         .multilineTextAlignment(.center)
         .frame(width: textWidth)
         .fixedSize(horizontal: false, vertical: true)
+        .background {
+            // Outside the text's frame, so marking a match never changes the measure.
+            if isFindMatch {
+                RoundedRectangle(cornerRadius: Radius.sm)
+                    .fill(Palette.searchMatchFill)
+                    .strokeBorder(Palette.searchMatchBorder)
+                    .padding(-Spacing.xxs)
+            }
+        }
     }
 
     /// A ring outside the box with a gap, so it reads on any fill (NFR-A11Y-07:
@@ -186,6 +233,46 @@ struct TopicView: View {
     }
 }
 
+/// Right-click or a long press on a topic (FR-KBD-03). Acts on the selection
+/// when the topic is in it, else on the topic alone.
+struct TopicContextMenu: View {
+    let topic: CanvasTopic
+    let isRoot: Bool
+    let model: CanvasModel
+
+    var body: some View {
+        Button("Add Child Topic") { perform { $0.addChild() } }
+        Button("Add Sibling Topic") { perform { $0.addSibling() } }
+            .disabled(isRoot)
+        Button("Rename Topic") { model.beginEditing(topic.id) }
+        #if os(iOS)
+        // Touch has no ⌘-click.
+        Button(model.session.isSelected(topic.id) ? "Remove from Selection" : "Add to Selection") {
+            model.click(topic.id, .toggle)
+        }
+        #endif
+        Button("Duplicate Topic") { perform { $0.duplicateSelection() } }
+            .disabled(isRoot)
+        Divider()
+        Button("Cut") { perform { $0.cutSelection() } }
+            .disabled(isRoot)
+        Button("Copy") { perform { $0.copySelection() } }
+        // Paste goes under the topic the menu opened on, even in a multi-selection.
+        Button("Paste") { perform { $0.selection = topic.id; $0.paste() } }
+            .disabled(!model.session.clipboard.hasText)
+        Divider()
+        Button(topic.isCollapsed ? "Expand Topic" : "Collapse Topic") { model.toggleCollapsed(topic.id) }
+            .disabled(topic.childCount == 0)
+        Divider()
+        Button("Delete Topic", role: .destructive) { perform { $0.deleteSelection() } }
+            .disabled(isRoot)
+    }
+
+    private func perform(_ action: (EditorSession) -> Void) {
+        model.performFromContextMenu(on: topic.id, action)
+    }
+}
+
 /// The title field shown in place of the title: same font, size and position,
 /// so nothing moves when editing starts.
 struct TopicTitleEditor: View {
@@ -226,6 +313,7 @@ struct TopicAccessibility: ViewModifier {
     let isRoot: Bool
     let isSelected: Bool
     var isEditing = false
+    var isFindMatch = false
     let model: CanvasModel
 
     func body(content: Content) -> some View {
@@ -266,6 +354,7 @@ struct TopicAccessibility: ViewModifier {
     /// Levels count from 1 below the central topic, as the outline reads them.
     private var value: String {
         let level = isRoot ? String(localized: "Central Topic") : String(localized: "Level \(topic.level + 1)")
-        return "\(level), \(String(localized: "\(topic.childCount) subtopics"))"
+        let summary = "\(level), \(String(localized: "\(topic.childCount) subtopics"))"
+        return isFindMatch ? "\(summary), \(String(localized: "Find Match"))" : summary
     }
 }
