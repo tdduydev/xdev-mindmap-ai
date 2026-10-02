@@ -112,7 +112,7 @@ struct OutlineRow: View {
             disclosure
             TextField("Topic", text: $draft, prompt: Text("Untitled Topic"))
                 .textFieldStyle(.plain)
-                .font(isRoot ? Typography.rootTopic : Typography.topic)
+                .font(isRoot ? Typography.Content.outlineRoot.font : Typography.Content.outlineTopic.font)
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(isRoot ? Text("Central Topic") : Text("Topic, level \(row.depth + 1)"))
