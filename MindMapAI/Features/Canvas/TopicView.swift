@@ -64,14 +64,12 @@ struct TopicView: View {
         .simultaneousGesture(selectionTap)
         // While the title is a text field, a drag selects text instead.
         .gesture(moveDrag, including: isEditing ? .subviews : .all)
-        .contextMenu { TopicContextMenu(topic: topic, isRoot: isRoot, model: model) }
         .onHover { isHovering = $0 }
         .contextMenu { contextMenu }
         .modifier(TopicAccessibility(topic: topic, isRoot: isRoot, isSelected: isSelected, isEditing: isEditing, model: model))
         .accessibilityRotorEntry(id: topic.id, in: rotorNamespace)
     }
 
-<<<<<<< HEAD
     #if os(macOS)
     /// ⌘-click toggles, ⇧-click adds, a plain click selects the topic alone
     /// (FR-CNV-03). A modifier tap fails without its key, so the next one runs.
@@ -97,7 +95,8 @@ struct TopicView: View {
                 model.updateDrag(to: value.location)
             }
             .onEnded { _ in model.endDrag() }
-=======
+    }
+
     /// Suggestions use the secondary text colour, so they read as not yet part of the map.
     private var textColor: Color {
         (topic.isSuggestion ? style.secondaryTextColor : style.textColor).color
@@ -153,10 +152,13 @@ struct TopicView: View {
             Button("Edit Suggestion") { model.beginEditing(topic.id) }
             Divider()
             Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
-        } else if let assistant = model.assistant, assistant.service.showsEntryPoints {
-            AIActionsMenu(assistant: assistant, nodeID: topic.id)
+        } else {
+            TopicContextMenu(topic: topic, isRoot: isRoot, model: model)
+            if let assistant = model.assistant, assistant.service.showsEntryPoints {
+                Divider()
+                AIActionsMenu(assistant: assistant, nodeID: topic.id)
+            }
         }
->>>>>>> main
     }
 
     private var textWidth: CGFloat {

@@ -124,12 +124,8 @@ struct CanvasView: View {
     }
 
     private var topics: some View {
-<<<<<<< HEAD
         let selection = session.selectedIDs
-=======
-        let selection = session.selection
         let selectedSuggestion = model.selectedSuggestionPreviewID
->>>>>>> main
         let rootID = session.rootID
         let dragged = model.drag.map { Set($0.ids) } ?? []
         return ForEach(model.visibleTopics) { topic in
@@ -139,11 +135,7 @@ struct CanvasView: View {
                     style: model.style(for: topic, colorScheme: colorScheme, contrast: contrast),
                     spec: spec,
                     isRoot: topic.id == rootID,
-<<<<<<< HEAD
-                    isSelected: selection.contains(topic.id),
-=======
-                    isSelected: topic.id == (topic.isSuggestion ? selectedSuggestion : selection),
->>>>>>> main
+                    isSelected: topic.isSuggestion ? topic.id == selectedSuggestion : selection.contains(topic.id),
                     isEditing: topic.id == model.editingID,
                     isDragSource: dragged.contains(topic.id),
                     model: model,

@@ -404,7 +404,10 @@ final class CanvasModel {
     }
 
     func click(_ id: NodeID, _ gesture: SelectionGesture) {
+        // A suggestion is not a topic yet, so it never joins a multi-selection.
+        if assistant?.suggestionID(forPreview: id) != nil { return select(id) }
         if editingID != nil, editingID != id { commitEditing() }
+        assistant?.selectedSuggestion = nil
         switch gesture {
         case .replace: session.selection = id
         case .toggle: session.toggleSelected(id)
@@ -427,7 +430,7 @@ final class CanvasModel {
         let rect = CGRect(x: min(start.x, current.x), y: min(start.y, current.y), width: abs(current.x - start.x), height: abs(current.y - start.y))
         marquee = rect
         let canvasRect = CGRect(origin: viewport.toCanvas(rect.origin), size: CGSize(width: rect.width / viewport.scale, height: rect.height / viewport.scale))
-        let hit = scene.topics(in: canvasRect)
+        let hit = scene.topics(in: canvasRect).filter { !$0.isSuggestion }
         let primary = marqueeBase.primary ?? hit.first?.id
         session.setSelection(marqueeBase.ids.union(hit.map(\.id)), primary: primary)
     }
@@ -529,7 +532,7 @@ final class CanvasModel {
     /// A drag starting on a topic moves the selection if the topic is in it,
     /// else the topic alone. The central topic does not move.
     func beginDrag(_ id: NodeID, at viewPoint: CGPoint) {
-        guard drag == nil, id != session.rootID, let topic = scene.topic(id) else { return }
+        guard drag == nil, id != session.rootID, let topic = scene.topic(id), !topic.isSuggestion else { return }
         commitEditing()
         if !session.isSelected(id) { session.selection = id }
         let ids = session.movableBranchRoots
@@ -564,6 +567,8 @@ final class CanvasModel {
         guard let (topic, zone) = scene.dropZone(at: point, slack: layoutOptions.verticalSpacing / 2, edgeFraction: CanvasMetrics.dropEdgeFraction) else {
             return (nil, false)
         }
+        // Suggestions are drawn in the gaps but are not topics to drop on.
+        guard !topic.isSuggestion else { return (nil, false) }
         let drop: TopicDrop = switch zone {
         case .before: .before(topic.id)
         case .after: .after(topic.id)

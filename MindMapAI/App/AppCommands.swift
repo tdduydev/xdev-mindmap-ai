@@ -8,13 +8,10 @@ extension FocusedValues {
     @Entry var newMapAction: NewMapAction?
     /// Set while the canvas shows; the zoom commands act on it.
     @Entry var canvasModel: CanvasModel?
-<<<<<<< HEAD
-    @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
-=======
     /// The AI side of the frontmost map, for the AI menu.
     @Entry var aiAssistant: AIAssistant?
     @Entry var newMapWithAIAction: NewMapAction?
->>>>>>> main
+    @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
 }
 
 struct NewMapAction {
@@ -110,20 +107,15 @@ struct MapCommands: Commands {
                 .disabled(editor?.canDeleteSelection != true)
         }
 
-<<<<<<< HEAD
-        CommandGroup(replacing: .help) {
-            Button("Keyboard Shortcuts") { keyboardShortcuts?.perform() }
-                .disabled(keyboardShortcuts == nil)
-            Link("MindMap AI Website", destination: AppLinks.website)
-=======
         // Hidden, like every AI entry point, where the device can never run
         // Apple Intelligence (FR-AI-02); otherwise disabled with one line of why.
         if ai.showsEntryPoints {
             CommandMenu("AI") { aiMenu }
->>>>>>> main
         }
 
         CommandGroup(replacing: .help) {
+            Button("Keyboard Shortcuts") { keyboardShortcuts?.perform() }
+                .disabled(keyboardShortcuts == nil)
             Link("MindMap AI Help", destination: AppLinks.support)
             Link("MindMap AI Website", destination: AppLinks.website)
             Link("Privacy Policy", destination: AppLinks.privacyPolicy)

@@ -50,12 +50,9 @@ struct MapEditorView: View {
         #endif
         .toolbar { toolbar }
         .focusedSceneValue(\.editorSession, session)
-<<<<<<< HEAD
+        .focusedSceneValue(\.aiAssistant, assistant)
         .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
         .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
-=======
-        .focusedSceneValue(\.aiAssistant, assistant)
->>>>>>> main
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
