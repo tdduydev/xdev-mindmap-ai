@@ -30,12 +30,13 @@ struct LibraryView: View {
         .navigationTitle(Text(section.title))
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
+                // ⌘N lives in the File menu (MapCommands), which calls the same action.
                 Button(action: create) {
                     Label("New Mind Map", systemImage: "plus")
                 }
-                .keyboardShortcut("n", modifiers: .command)
             }
         }
+        .focusedSceneValue(\.newMapAction, NewMapAction(perform: create))
         #if os(macOS)
         .navigationSplitViewColumnWidth(min: 240, ideal: 280)
         .onDeleteCommand {
@@ -145,5 +146,6 @@ struct MapRow: View {
             }
         }
         .padding(.vertical, Spacing.xs)
+        .accessibilityElement(children: .combine)
     }
 }

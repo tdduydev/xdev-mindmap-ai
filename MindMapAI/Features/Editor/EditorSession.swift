@@ -74,6 +74,15 @@ final class EditorSession {
     var canRedo: Bool { engine.canRedo }
     var canDeleteSelection: Bool { selection != nil && selection != rootID }
 
+    var canToggleSelection: Bool {
+        guard let selection else { return false }
+        return !engine.state.childIDs(of: selection).isEmpty
+    }
+
+    var selectionIsCollapsed: Bool {
+        selection.flatMap { engine.state.node($0)?.isCollapsed } ?? false
+    }
+
     var rows: [Row] {
         let state = engine.state
         return state.visibleOutline().compactMap { item in
@@ -115,6 +124,11 @@ final class EditorSession {
         guard let node = engine.state.node(id) else { return }
         let name = node.isCollapsed ? String(localized: "Expand Topic") : String(localized: "Collapse Topic")
         perform(UpdateNodeCommand(nodeID: id, .isCollapsed(!node.isCollapsed)), named: name)
+    }
+
+    func toggleSelectionCollapsed() {
+        guard let selection, canToggleSelection else { return }
+        toggleCollapsed(selection)
     }
 
     /// Deletes the selected branch; the root stays, the map itself is deleted from the library.

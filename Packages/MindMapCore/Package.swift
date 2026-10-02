@@ -5,8 +5,8 @@ let package = Package(
     name: "MindMapCore",
     platforms: [
         .iOS(.v26),
-        // The product ships on iOS and iPadOS only. macOS is listed so `swift test`
-        // can run the core tests on a Mac in seconds, without a simulator.
+        // macOS ships too (ADR 0006), and lets `swift test` run the core tests on
+        // the Mac in seconds, without a simulator.
         .macOS(.v26),
     ],
     products: [

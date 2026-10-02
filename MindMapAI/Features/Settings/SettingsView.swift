@@ -1,0 +1,90 @@
+import SwiftUI
+
+/// Settings: a tabbed window on the Mac (⌘,), a sheet on iPad and iPhone.
+struct SettingsView: View {
+    #if os(iOS)
+    @Environment(\.dismiss) private var dismiss
+    #endif
+
+    var body: some View {
+        #if os(macOS)
+        TabView {
+            Tab("General", systemImage: "gearshape") {
+                Form { GeneralSettingsSection() }
+            }
+            Tab("Privacy", systemImage: "hand.raised") {
+                Form { PrivacySettingsSection() }
+            }
+            Tab("About", systemImage: "info.circle") {
+                Form { AboutSettingsSection() }
+            }
+        }
+        .formStyle(.grouped)
+        .frame(width: Metrics.settingsWidth)
+        #else
+        NavigationStack {
+            Form {
+                GeneralSettingsSection()
+                PrivacySettingsSection()
+                AboutSettingsSection()
+            }
+            .navigationTitle("Settings")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        #endif
+    }
+}
+
+struct GeneralSettingsSection: View {
+    @AppStorage(AppearancePreference.storageKey) private var appearance = AppearancePreference.system
+
+    var body: some View {
+        Section("General") {
+            Picker("Appearance", selection: $appearance) {
+                ForEach(AppearancePreference.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+        }
+    }
+}
+
+/// Plain statements of where data goes. Each row must stay true: add the AI
+/// row when on-device AI ships, and change Data Storage when iCloud sync does.
+struct PrivacySettingsSection: View {
+    var body: some View {
+        Section {
+            LabeledContent("Data Storage", value: String(localized: "On this device"))
+            LabeledContent("xDev Servers", value: String(localized: "None. Your maps are never sent to xDev."))
+            LabeledContent("Analytics", value: String(localized: "None"))
+        } header: {
+            Text("Privacy")
+        } footer: {
+            Text("MindMap AI keeps your maps on your devices. There is no account and no tracking.")
+        }
+    }
+}
+
+struct AboutSettingsSection: View {
+    var body: some View {
+        Section("About") {
+            LabeledContent("MindMap AI", value: Self.version)
+            Text("Think. Draw. Connect.")
+                .foregroundStyle(.secondary)
+            Text("by xDev")
+                .foregroundStyle(.secondary)
+            Link("Website", destination: AppLinks.website)
+        }
+    }
+
+    private static var version: String {
+        let info = Bundle.main.infoDictionary
+        let marketing = info?["CFBundleShortVersionString"] as? String ?? "–"
+        let build = info?["CFBundleVersion"] as? String ?? "–"
+        return String(localized: "Version \(marketing) (\(build))")
+    }
+}
