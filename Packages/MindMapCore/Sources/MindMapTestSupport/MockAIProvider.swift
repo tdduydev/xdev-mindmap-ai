@@ -15,6 +15,8 @@ public final class MockAIProvider: AIProvider {
         case rewrite(AIRewrite)
         case summary(AISummary)
         case tags(AITagSuggestions)
+        case groups(AIGroupSuggestions)
+        case boundaryTitle(AIBoundaryTitle)
         case failure(AIError)
         /// Partial proposals streamed before the last, complete one.
         case stream([AIProposal])
@@ -30,6 +32,8 @@ public final class MockAIProvider: AIProvider {
         case summarize(SummarizeRequest)
         case findMissingTopics(MissingTopicsRequest)
         case suggestTags(SuggestTagsRequest)
+        case suggestGroups(SuggestGroupsRequest)
+        case summarizeBoundary(SummarizeBoundaryRequest)
     }
 
     private struct State {
@@ -96,6 +100,18 @@ public final class MockAIProvider: AIProvider {
         let answer = try await waitingNext(.suggestTags, language: request.language, recording: .suggestTags(request))
         guard case .tags(let tags) = answer else { throw AIError.generationFailed }
         return tags
+    }
+
+    public func suggestGroups(_ request: SuggestGroupsRequest) async throws -> AIGroupSuggestions {
+        let answer = try await waitingNext(.suggestGroups, language: request.language, recording: .suggestGroups(request))
+        guard case .groups(let groups) = answer else { throw AIError.generationFailed }
+        return groups
+    }
+
+    public func summarizeBoundary(_ request: SummarizeBoundaryRequest) async throws -> AIBoundaryTitle {
+        let answer = try await waitingNext(.summarizeBoundary, language: request.language, recording: .summarizeBoundary(request))
+        guard case .boundaryTitle(let title) = answer else { throw AIError.generationFailed }
+        return title
     }
 
     public func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error> {

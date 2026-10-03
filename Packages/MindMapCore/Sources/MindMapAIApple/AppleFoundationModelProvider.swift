@@ -120,6 +120,36 @@ public struct AppleFoundationModelProvider: AIProvider {
         }
     }
 
+    public func suggestGroups(_ request: SuggestGroupsRequest) async throws -> AIGroupSuggestions {
+        let generated = try await respond(
+            .suggestGroups,
+            language: request.language,
+            userLocaleIdentifier: request.userLocaleIdentifier,
+            prompt: catalog.prompt(for: request),
+            generating: GeneratedGroups.self
+        )
+        do {
+            return try AIGroupSuggestions.checked(generated.groups.map { ($0.title, $0.references) }, for: request)
+        } catch let error as ProposalError {
+            throw failure(.invalidResponse(error), feature: .suggestGroups)
+        }
+    }
+
+    public func summarizeBoundary(_ request: SummarizeBoundaryRequest) async throws -> AIBoundaryTitle {
+        let generated = try await respond(
+            .summarizeBoundary,
+            language: request.language,
+            userLocaleIdentifier: request.userLocaleIdentifier,
+            prompt: catalog.prompt(for: request),
+            generating: GeneratedBoundaryTitle.self
+        )
+        do {
+            return try AIBoundaryTitle.checked(generated.title, for: request)
+        } catch let error as ProposalError {
+            throw failure(.invalidResponse(error), feature: .summarizeBoundary)
+        }
+    }
+
     // MARK: Streaming
 
     public func streamSuggestions(_ request: SuggestionRequest) -> AsyncThrowingStream<ProposalSnapshot, any Error> {
@@ -228,7 +258,7 @@ public struct AppleFoundationModelProvider: AIProvider {
         // keeps the default guardrails.
         let guardrails: SystemLanguageModel.Guardrails = switch feature {
         case .rewrite, .summarize: .permissiveContentTransformations
-        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags: .default
+        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags, .suggestGroups, .summarizeBoundary: .default
         }
         let model = SystemLanguageModel(guardrails: guardrails)
         let instructions = catalog.instructions(for: feature, language: language, userLocaleIdentifier: userLocaleIdentifier)
