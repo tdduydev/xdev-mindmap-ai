@@ -187,4 +187,15 @@ import Testing
         let imported = try await IThoughtsMap.read(itmz(xml), fileName: "File", now: now)
         #expect(imported.maps.first?.nodes.count == depth)
     }
+
+    @Test func extensionsPickTheReaders() async throws {
+        #expect(ForeignFormat(fileExtension: "SMMX") == .simpleMind)
+        #expect(ForeignFormat(fileExtension: "itmz") == .iThoughts)
+        #expect(ForeignFormat(fileExtension: "mindnode") == .mindNode)
+        for format in [ForeignFormat.simpleMind, .iThoughts, .mindNode] {
+            #expect(ForeignFormat(fileExtension: format.fileExtension) == format)
+        }
+        let imported = try await ForeignFormat.iThoughts.read(itmz(Self.iThoughts), fileName: "File", now: now)
+        #expect(imported.maps.count == 1)
+    }
 }

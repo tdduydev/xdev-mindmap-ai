@@ -3,14 +3,22 @@ import MindMapDomain
 import MindMapGraph
 
 /// A file format made by another app that File ▸ Import… reads into new maps
-/// (FR-IO-13). OPML comes first (MM-101); FreeMind, XMind and MindNode
-/// (MM-102..104) add a case each, with a reader that fills a `ForeignImport`.
+/// (FR-IO-13). OPML comes first (MM-101); FreeMind, XMind, then SimpleMind,
+/// iThoughts and MindNode (MM-102..104) add a case each, with a reader that
+/// fills a `ForeignImport`.
 public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
     case opml
     /// FreeMind and Freeplane (MM-102); both use `.mm`.
     case freeMind
     /// XMind 8 and XMind 2020 and later (MM-103): a ZIP with one map per sheet.
     case xmind
+    /// SimpleMind (MM-104): a ZIP holding `document/mindmap.xml`.
+    case simpleMind
+    /// iThoughts (MM-104): a ZIP holding `mapdata.xml`.
+    case iThoughts
+    /// MindNode (MM-104): a package; `read` takes the bytes of its
+    /// `contents.xml`, which the caller reads out of the folder.
+    case mindNode
 
     /// Nil for an extension no importer reads.
     public init?(fileExtension: String) {
@@ -18,6 +26,9 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
         case "opml": self = .opml
         case "mm": self = .freeMind
         case "xmind": self = .xmind
+        case "smmx": self = .simpleMind
+        case "itmz": self = .iThoughts
+        case "mindnode": self = .mindNode
         default: return nil
         }
     }
@@ -27,6 +38,9 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
         case .opml: "opml"
         case .freeMind: "mm"
         case .xmind: "xmind"
+        case .simpleMind: "smmx"
+        case .iThoughts: "itmz"
+        case .mindNode: "mindnode"
         }
     }
 
@@ -51,6 +65,12 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
             return ForeignImport(maps: [map], imageData: [:], report: document.report)
         case .xmind:
             return try XMindMap.read(data, fileName: fileName, now: now)
+        case .simpleMind:
+            return try await SimpleMindMap.read(data, fileName: fileName, now: now)
+        case .iThoughts:
+            return try await IThoughtsMap.read(data, fileName: fileName, now: now)
+        case .mindNode:
+            return try await MindNodeMap.read(contents: data, fileName: fileName, now: now)
         }
     }
 }
