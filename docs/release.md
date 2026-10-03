@@ -9,6 +9,7 @@ How a build of MindMap AI reaches TestFlight and the Mac App Store. Set up on 20
 | App | MindMap AI by xDev, Apple ID 6818476277, SKU `MINDMAPAI-MAC`, primary language English (U.S.) |
 | Platforms | macOS first; iOS is added to the same app later (universal purchase, ADR 0006) |
 | Bundle ID | `asia.xdev.mindmapai`, registered as UNIVERSAL so iOS can share it. Capabilities: In-App Purchase, Push Notifications, iCloud (CloudKit, container `iCloud.asia.xdev.mindmapai`), App Groups (`group.asia.xdev.mindmapai`); the Share Extension `asia.xdev.mindmapai.share` has App Groups. Set on 2026-10-02 |
+| More bundle IDs (2026-10-03, ADR 0012) | App Clip `asia.xdev.mindmapai.Clip` (App Clip type, parent `asia.xdev.mindmapai`; App Groups `group.asia.xdev.mindmapai.clip`, Associated Domains, On Demand Install Capable); watch app `asia.xdev.mindmapai.watchkitapp` (iCloud with container `iCloud.asia.xdev.mindmapai`, Push Notifications); watch widgets `asia.xdev.mindmapai.watchkitapp.widgets`. The app itself gained Associated Domains and the second App Group `group.asia.xdev.mindmapai.clip` the same day |
 | Team ID | `M6C7NX9MUZ`, passed as `DEVELOPMENT_TEAM` by `scripts/upload-testflight.sh` only; the project leaves it empty so `scripts/ci.sh` builds on machines without a signing certificate |
 | Version | 0.1.0 for the TestFlight beta; `MARKETING_VERSION` is 1.0.0 from 2026-10-03, the first public release. The build number is the upload time (`YYYYMMDDHHmm`) |
 
@@ -23,6 +24,7 @@ Nothing below is ever committed or written to Hive. If the machine is replaced, 
 | `~/.appstoreconnect/signing/` | Private keys of the two distribution certificates, the keychain password | 700 / 600 |
 | `~/Library/Keychains/mindmap-build.keychain-db` | Keychain with the Apple Distribution and Mac Installer Distribution identities, the Apple Development identity (created through the API on 2026-10-03 for `scripts/init-cloudkit-schema.sh`, expires 2027-10-02; the Mac mini is registered as device "hc-duytd20-macmini") and the Apple WWDR G3 intermediate | — |
 | `~/Library/Developer/Xcode/UserData/Provisioning Profiles/` | Profiles "MindMap AI Mac App Store" (app) and "MindMap AI Share Mac App Store" (Share Extension, bundle ID `asia.xdev.mindmapai.share`, created 2026-10-02 with the same Apple Distribution certificate as the app, expires 2027-10-02), both MAC_APP_STORE | — |
+| Same folder and `~/Library/MobileDevice/Provisioning Profiles/` | Since 2026-10-03, after the capability changes for ADR 0012: "MindMap AI iOS App Store" and "MindMap AI Mac App Store" generated again, and new IOS_APP_STORE profiles "MindMap AI Clip iOS App Store", "MindMap AI Watch App Store" and "MindMap AI Watch Widgets App Store". On this Mac a new profile file sometimes shows up in only one of the two folders; copy it to both | — |
 
 The API key has the App Manager role, which cannot use Xcode's cloud-managed distribution certificates. So the certificates were created through the API from locally generated keys, and the export signs manually. A key with the Admin role would allow cloud signing instead; it was not created, to keep the key's rights small.
 
