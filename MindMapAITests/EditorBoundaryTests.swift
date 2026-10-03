@@ -133,6 +133,24 @@ struct EditorBoundaryTests {
         #expect(scene.boundary(at: CGPoint(x: 300, y: 60), tolerance: 4) == nil)
     }
 
+    /// PNG and PDF lay out and draw through the canvas scene, boundaries included.
+    @Test func exportPictureFramesTheBoundary() async throws {
+        let (session, _, ids) = try await open()
+        session.selection = ids[1]
+        session.addBoundary()
+        let id = try #require(session.activeBoundary)
+        session.renameBoundary(id, to: "Middle")
+
+        let picture = await MapPicture.make(session.engine.state)
+
+        let boundary = try #require(picture.scene.boundaries.first)
+        #expect(boundary.id == id)
+        #expect(boundary.title == "Middle")
+        #expect(picture.frame.contains(boundary.frame))
+        let topic = try #require(picture.scene.topic(ids[1]))
+        #expect(boundary.frame.contains(topic.frame))
+    }
+
     // MARK: AI
 
     private func assistant(for session: EditorSession, provider: MockAIProvider) async throws -> AIAssistant {
