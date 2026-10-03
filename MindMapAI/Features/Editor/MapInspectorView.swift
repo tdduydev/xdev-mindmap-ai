@@ -35,6 +35,9 @@ struct MapInspectorView: View {
                 Section("Style") {
                     TopicStyleInspector(session: session)
                 }
+                if session.selectedIDs.count == 1 {
+                    ConnectionsInspectorSection(session: session, nodeID: node.id)
+                }
                 Section {
                     TagField(session: session)
                 } header: {
@@ -42,6 +45,15 @@ struct MapInspectorView: View {
                         Text("Tags of \(session.selectedIDs.count) Topics")
                     } else {
                         Text("Tags")
+                    }
+                }
+                Section {
+                    TaskInspectorSection(session: session, node: node)
+                } header: {
+                    if session.selectedIDs.count > 1 {
+                        Text("Task of \(session.selectedIDs.count) Topics")
+                    } else {
+                        Text("Task")
                     }
                 }
                 Section("Topic") {

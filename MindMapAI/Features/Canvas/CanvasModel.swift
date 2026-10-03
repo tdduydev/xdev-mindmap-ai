@@ -33,6 +33,8 @@ final class CanvasModel {
     private(set) var editingID: NodeID? {
         didSet { reportKeyboardFocus() }
     }
+    /// The connection whose label is being edited in place (double-click).
+    var editingConnectionLabel: EdgeID?
     /// Whether the canvas itself holds keyboard focus. Set by the view.
     var hasKeyboardFocus = false {
         didSet { reportKeyboardFocus() }
@@ -84,7 +86,8 @@ final class CanvasModel {
     /// Shared with export, so a picture of the map has the canvas's layout.
     static let layoutOptions = LayoutOptions(
         horizontalSpacing: CanvasMetrics.layoutParentGap,
-        verticalSpacing: CanvasMetrics.layoutSiblingGap
+        verticalSpacing: CanvasMetrics.layoutSiblingGap,
+        calloutSpacing: CanvasMetrics.calloutSpacing
     )
 
     init(session: EditorSession, assistant: AIAssistant? = nil) {
@@ -182,7 +185,8 @@ final class CanvasModel {
                 specs: specs,
                 options: layoutOptions,
                 suggestions: suggested,
-                tagSuggestions: assistant?.tagSuggestionChips ?? [:]
+                tagSuggestions: assistant?.tagSuggestionChips ?? [:],
+                calloutDraft: session.calloutEditorTarget
             )
             pendingChanges = []
             needsFullLayout = false
@@ -281,7 +285,8 @@ final class CanvasModel {
     /// Scrolls a topic into view, for the VoiceOver rotor and new topics.
     func reveal(_ id: NodeID) {
         guard let topic = scene.topic(id) else { return }
-        viewport.reveal(topic.frame, margin: CanvasMetrics.revealMargin)
+        let frame = topic.calloutFrame.map { topic.frame.union($0) } ?? topic.frame
+        viewport.reveal(frame, margin: CanvasMetrics.revealMargin)
     }
 
     // MARK: Selection and editing
@@ -307,6 +312,8 @@ final class CanvasModel {
     /// The canvas's chip settings, once it has its text settings.
     var chipSpec: TopicChipSpec? { specs?.chip }
     var markSpec: TopicMarkSpec? { specs?.mark }
+    /// The callout bubble's text settings, once the canvas has them.
+    var calloutSpec: TopicCalloutSpec? { specs?.callout }
 
     /// What a topic's context menu tags: the selection when the topic is in
     /// it, else the topic alone, as `performFromContextMenu` decides.
@@ -346,6 +353,10 @@ final class CanvasModel {
     func tap(at viewPoint: CGPoint) {
         if let topic = topic(at: viewPoint) {
             select(topic.id)
+        } else if let connection = connection(at: viewPoint) {
+            commitEditing()
+            session.selectConnection(connection)
+            assistant?.selectedSuggestion = nil
         } else {
             commitEditing()
             session.selection = nil
@@ -357,6 +368,12 @@ final class CanvasModel {
     /// topic centred there and opens its title (FR-ORG-27).
     func doubleTap(at viewPoint: CGPoint) {
         if let topic = topic(at: viewPoint) { return beginEditing(topic.id) }
+        if let connection = connection(at: viewPoint) {
+            commitEditing()
+            session.selectConnection(connection)
+            editingConnectionLabel = connection
+            return
+        }
         guard session.canAddFloatingTopic, let position = position(at: viewport.toCanvas(viewPoint)) else { return }
         commitEditing()
         session.addFloatingTopic(at: position)
@@ -399,6 +416,17 @@ final class CanvasModel {
     }
 
     /// The topic drawn under a view point; the last drawn wins, as on screen.
+    /// Hit width `Metrics.minimumHitTarget` on screen, whatever the zoom.
+    func connection(at viewPoint: CGPoint) -> EdgeID? {
+        let tolerance = Metrics.minimumHitTarget / 2 / max(viewport.scale, .ulpOfOne)
+        return scene.connection(at: viewport.toCanvas(viewPoint), tolerance: tolerance)
+    }
+
+    /// Where a connection's label field goes, in view points.
+    func connectionLabelAnchor(_ id: EdgeID) -> CGPoint? {
+        scene.crossLinkPath(id).map { viewport.toView($0.midpoint) }
+    }
+
     func topic(at viewPoint: CGPoint) -> CanvasTopic? {
         let point = viewport.toCanvas(viewPoint)
         return scene.topics(in: CGRect(origin: point, size: .zero).insetBy(dx: -1, dy: -1)).last { $0.frame.contains(point) }
@@ -586,6 +614,14 @@ final class CanvasModel {
         session.editSelectionNote()
     }
 
+    /// Always the picker: the context menu and VoiceOver name one topic, so a
+    /// second selected topic must not become the target unasked.
+    func addConnection(from id: NodeID) {
+        commitEditing()
+        session.selection = id
+        session.beginAddingConnection()
+    }
+
     func editLink(_ id: NodeID) {
         performFromContextMenu(on: id) { $0.selection = id; $0.beginEditingSelectionLink() }
     }
@@ -593,6 +629,27 @@ final class CanvasModel {
     func removeLink(_ id: NodeID) {
         commitEditing()
         session.removeLink(from: id)
+    }
+
+    // MARK: Callouts
+
+    func editCallout(_ id: NodeID) {
+        performFromContextMenu(on: id) { $0.selection = id; $0.beginEditingSelectionCallout() }
+    }
+
+    func removeCallout(_ id: NodeID) {
+        commitEditing()
+        session.removeCallout(from: id)
+    }
+
+    /// A bubble opened or closed for typing: it takes or gives back room in
+    /// the layout, and an opened one scrolls into view.
+    func calloutEditingDidChange() {
+        if let id = session.calloutEditorTarget {
+            commitEditing()
+            pendingReveal = (id, false)
+        }
+        scheduleLayout()
     }
 
     // MARK: Multi-selection

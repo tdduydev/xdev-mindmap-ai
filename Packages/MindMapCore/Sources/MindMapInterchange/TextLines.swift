@@ -80,8 +80,8 @@ struct DraftBuilder {
 
     var lastIndex: Int? { items.indices.last }
 
-    mutating func add(depth: Int, title: String, link: TopicLink? = nil) -> Int {
-        items.append(OutlineDraft.Item(depth: depth, title: title, link: link))
+    mutating func add(depth: Int, title: String, link: TopicLink? = nil, taskState: TaskState? = nil) -> Int {
+        items.append(OutlineDraft.Item(depth: depth, title: title, link: link, taskState: taskState))
         notes.append([])
         return items.count - 1
     }
@@ -118,5 +118,22 @@ struct DraftBuilder {
         while let first = lines.first, first.allSatisfy(\.isWhitespace) { lines.removeFirst() }
         while let last = lines.last, last.allSatisfy(\.isWhitespace) { lines.removeLast() }
         return lines.isEmpty ? nil : lines.joined(separator: "\n")
+    }
+}
+
+/// A task box at the start of a title (MM-35), shared by Markdown and plain text.
+enum TaskBox {
+    /// `[ ] ` is open, `[x] ` or `[X] ` done, as GitHub writes task lists; a
+    /// box alone is a task with an empty title. Returns the state and the
+    /// length to drop.
+    static func prefix(_ text: Substring) -> (TaskState, Int)? {
+        if text.hasPrefix("[ ] ") || text == "[ ]" { return (.open, min(4, text.count)) }
+        if text.hasPrefix("[x] ") || text.hasPrefix("[X] ") || text == "[x]" || text == "[X]" { return (.done, min(4, text.count)) }
+        return nil
+    }
+
+    /// Anything but done is written open, as `TaskState.isDone` reads it.
+    static func write(_ state: TaskState) -> String {
+        state.isDone ? "[x] " : "[ ] "
     }
 }

@@ -1,4 +1,5 @@
 import MindMapDomain
+import MindMapGraph
 import SwiftUI
 
 /// The map as an indented outline: the way to use a map without the canvas,
@@ -90,7 +91,8 @@ struct OutlineEditorView: View {
             focus: $focusedNode,
             onRename: { session.rename(row.id, to: $0) },
             onToggle: { session.toggleCollapsed(row.id) },
-            onAttachOrDetach: attachOrDetach(row)
+            onAttachOrDetach: attachOrDetach(row),
+            onToggleDone: { session.toggleDone(row.id) }
         )
     }
 
@@ -123,6 +125,8 @@ struct OutlineRow: View {
     let onRename: (String) -> Void
     let onToggle: () -> Void
     var onAttachOrDetach: (() -> Void)?
+    /// The task box (MM-35).
+    var onToggleDone: (() -> Void)?
     @State private var draft: String
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -134,7 +138,8 @@ struct OutlineRow: View {
         focus: FocusState<NodeID?>.Binding,
         onRename: @escaping (String) -> Void,
         onToggle: @escaping () -> Void,
-        onAttachOrDetach: (() -> Void)? = nil
+        onAttachOrDetach: (() -> Void)? = nil,
+        onToggleDone: (() -> Void)? = nil
     ) {
         self.row = row
         self.isRoot = isRoot
@@ -144,12 +149,16 @@ struct OutlineRow: View {
         self.onRename = onRename
         self.onToggle = onToggle
         self.onAttachOrDetach = onAttachOrDetach
+        self.onToggleDone = onToggleDone
         _draft = State(initialValue: row.node.title)
     }
 
     var body: some View {
         HStack(spacing: Spacing.xs) {
             disclosure
+            if let state = row.node.taskState, let onToggleDone {
+                OutlineTaskBox(isDone: state.isDone, action: onToggleDone)
+            }
             if let color = ownColor {
                 // The shape with the colour, so it never shows by colour alone.
                 OutlineColorShape(color: color)
@@ -163,12 +172,17 @@ struct OutlineRow: View {
             TextField("Topic", text: $draft, prompt: Text("Untitled Topic"))
                 .textFieldStyle(.plain)
                 .font(isRoot ? Typography.Content.outlineRoot.font : Typography.Content.outlineTopic.font)
+                .foregroundStyle(row.node.taskState?.isDone == true ? .secondary : .primary)
                 .focused(focus, equals: row.id)
                 .onSubmit(commit)
                 .accessibilityLabel(accessibilityLabel)
+                .accessibilityValue(Text(verbatim: taskValue))
                 .modifier(TopicImageAccessibility(image: row.topicImage))
                 .modifier(TopicStyleCustomContent(color: ownColor, symbol: TopicSymbolCatalog.drawable(row.node.symbol)))
                 .accessibilityIdentifier(AccessibilityID.Outline.topic)
+            if row.node.priority != nil || row.progress != nil || row.node.dueDate != nil {
+                OutlineTaskDetails(node: row.node, progress: row.progress, today: .today())
+            }
             if !row.tags.isEmpty {
                 OutlineTagChips(tags: row.tags)
             }
@@ -197,7 +211,11 @@ struct OutlineRow: View {
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
         .modifier(TopicLinkAccessibility(link: row.node.link))
+        .modifier(TaskDateCustomContent(due: row.node.dueDate))
         .accessibilityActions {
+            if let state = row.node.taskState, let onToggleDone {
+                Button(state.isDone ? "Mark as Not Done" : "Mark as Done", action: onToggleDone)
+            }
             if let onAttachOrDetach {
                 Button(isFloating ? "Attach to Topic…" : "Detach Topic", action: onAttachOrDetach)
             }
@@ -240,6 +258,22 @@ struct OutlineRow: View {
     private var accessibilityLabel: Text {
         if isRoot { return Text("Central Topic") }
         return isFloating ? Text("Floating topic") : Text("Topic, level \(row.depth + 1)")
+    }
+
+    /// "task, not done, priority High, overdue, 2 of 5 tasks done", as the canvas reads it.
+    private var taskValue: String {
+        var parts: [String] = []
+        if let state = row.node.taskState {
+            parts.append(state.isDone ? String(localized: "task, done") : String(localized: "task, not done"))
+        }
+        if let priority = row.node.priority { parts.append(String(localized: "priority \(priority.title)")) }
+        if CalendarDay.isOverdue(row.node.dueDate, state: row.node.taskState, today: .today()) {
+            parts.append(String(localized: "overdue"))
+        }
+        if let progress = row.progress {
+            parts.append(String(localized: "\(progress.done) of \(progress.total) tasks done"))
+        }
+        return parts.joined(separator: ", ")
     }
 
     private func commit() {

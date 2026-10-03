@@ -20,6 +20,8 @@ final class EditorSession {
         /// The topic's tags, as the outline row shows them.
         var tags: [MindTag] = []
         var topicImage: MindImage?
+        /// Done over total for the leaf tasks below (MM-35), computed per read.
+        var progress: TaskProgress?
         var id: NodeID { node.id }
     }
 
@@ -51,6 +53,9 @@ final class EditorSession {
     var noteFocusRequest: NodeID?
     /// The topic whose link sheet shows (Topic ▸ Add Link…, FR-ORG-26).
     var linkEditorTarget: NodeID?
+    /// The topic whose callout bubble is open for typing on the canvas
+    /// (Topic ▸ Add Callout, FR-ORG-30).
+    var calloutEditorTarget: NodeID?
     var imagePickerTarget: NodeID?
     var imageFailure: String?
     /// Asks the inspector's tag field to take focus (Topic ▸ Add Tag…).
@@ -73,6 +78,12 @@ final class EditorSession {
     @ObservationIgnored var floatingTopicPlacement: (() -> TopicPosition?)?
     /// Floating topic whose new parent is being chosen in the editor sheet.
     var attachTarget: NodeID?
+    /// The topic a new connection starts from while its target is picked
+    /// (Topic ▸ Add Connection…).
+    var connectionSource: NodeID?
+    /// A connection clicked on the canvas; selecting a topic clears it. Read
+    /// `activeConnection`, which also drops one that undo took away.
+    private(set) var selectedConnection: EdgeID?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false
@@ -186,6 +197,11 @@ final class EditorSession {
     /// being typed, or delete a topic while the library list is focused.
     var deleteKeyDeletesTopic: Bool { keyboardFocus == .content && canDeleteSelection }
 
+    var activeConnection: EdgeID? {
+        guard selectedIDs.isEmpty, let selectedConnection, engine.state.edges[selectedConnection] != nil else { return nil }
+        return selectedConnection
+    }
+
     /// The display name of the map, also the editor's window title.
     var displayTitle: String {
         map.title.isEmpty ? String(localized: "Untitled Map") : map.title
@@ -260,10 +276,12 @@ final class EditorSession {
     var rows: [Row] {
         let state = engine.state
         let tags = state.tagsByNode()
+        let progress = state.taskProgressByNode()
         return state.visibleOutline().compactMap { item in
             state.node(item.nodeID).map {
                 Row(node: $0, depth: item.depth, hasChildren: item.hasChildren,
-                    tags: tags[item.nodeID] ?? [], topicImage: state.image(of: item.nodeID))
+                    tags: tags[item.nodeID] ?? [], topicImage: state.image(of: item.nodeID),
+                    progress: progress[item.nodeID])
             }
         }
     }
@@ -336,7 +354,19 @@ final class EditorSession {
     /// Deletes the selected branches as one undo step (FR-EDT-04); the root
     /// stays, the map itself is deleted from the library.
     func deleteSelection() {
+        // Delete on a selected connection removes it, as on a topic.
+        if movableBranchRoots.isEmpty, let connection = activeConnection {
+            removeConnection(connection)
+            selectedConnection = nil
+            return
+        }
         deleteSelection(named: nil)
+    }
+
+    /// Selects one connection and no topic.
+    func selectConnection(_ id: EdgeID?) {
+        if id != nil { setSelection([], primary: nil) }
+        selectedConnection = id
     }
 
     private func deleteSelection(named name: String?) {
@@ -810,6 +840,7 @@ final class EditorSession {
     func setSelection(_ ids: Set<NodeID>, primary: NodeID?) {
         var ids = ids
         if let primary { ids.insert(primary) }
+        if !ids.isEmpty { selectedConnection = nil }
         selectedIDs = ids
         primarySelection = primary ?? inOutlineOrder(ids).first
     }

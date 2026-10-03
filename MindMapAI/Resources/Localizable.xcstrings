@@ -1,6 +1,307 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Add Callout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Callout"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chú thích"
+          }
+        }
+      }
+    },
+    "%@, label: %@" : {
+      "comment" : "VoiceOver: a connection, then its label.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, nhãn: %@"
+          }
+        }
+      }
+    },
+    "Add a label" : {
+      "comment" : "Placeholder of a connection's label field.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm nhãn"
+          }
+        }
+      }
+    },
+    "Add Connection…" : {
+      "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm kết nối…"
+          }
+        }
+      }
+    },
+    "Arrows" : {
+      "comment" : "A connection's arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mũi tên"
+          }
+        }
+      }
+    },
+    "At End" : {
+      "comment" : "Connection arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ở cuối"
+          }
+        }
+      }
+    },
+    "At Start" : {
+      "comment" : "Connection arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ở đầu"
+          }
+        }
+      }
+    },
+    "Both Ends" : {
+      "comment" : "Connection arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hai đầu"
+          }
+        }
+      }
+    },
+    "Callout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Callout"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chú thích"
+          }
+        }
+      }
+    },
+    "Change Connection Style" : {
+      "comment" : "Undo action name: a connection's line, arrows or colour changed.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi kiểu kết nối"
+          }
+        }
+      }
+    },
+    "Connection" : {
+      "comment" : "Format menu: the submenu for the selected connection. Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối"
+          }
+        }
+      }
+    },
+    "Connection from %@" : {
+      "comment" : "VoiceOver: a connection from another topic to this one; %@ is the other topic's title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối từ %@"
+          }
+        }
+      }
+    },
+    "Connection Label" : {
+      "comment" : "VoiceOver: the field that edits a connection's label on the canvas.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhãn kết nối"
+          }
+        }
+      }
+    },
+    "Connection to %@" : {
+      "comment" : "VoiceOver: a connection from this topic to another; %@ is the other topic's title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối tới %@"
+          }
+        }
+      }
+    },
+    "Connections" : {
+      "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối"
+          }
+        }
+      }
+    },
+    "Connections:" : {
+      "comment" : "Markdown export: the title of the list of connections at the end of the file.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối:"
+          }
+        }
+      }
+    },
+    "Dashed" : {
+      "comment" : "Connection line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đứt"
+          }
+        }
+      }
+    },
+    "Default" : {
+      "comment" : "Connection colour: the standard connection colour.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mặc định"
+          }
+        }
+      }
+    },
+    "Dotted" : {
+      "comment" : "Connection line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chấm"
+          }
+        }
+      }
+    },
+    "Edit Callout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Callout"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa chú thích"
+          }
+        }
+      }
+    },
+    "Edit Connection" : {
+      "comment" : "Undo action name: a connection's label changed.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa kết nối"
+          }
+        }
+      }
+    },
+    "Edit Label" : {
+      "comment" : "Format ▸ Connection: edit the selected connection's label on the canvas.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa nhãn"
+          }
+        }
+      }
+    },
+    "Find a topic" : {
+      "comment" : "Search prompt in the Add Connection target picker.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm chủ đề"
+          }
+        }
+      }
+    },
+    "From %@" : {
+      "comment" : "Inspector: a connection from another topic; %@ is its title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Từ %@"
+          }
+        }
+      }
+    },
+    "Label" : {
+      "comment" : "A connection's label.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhãn"
+          }
+        }
+      }
+    },
+    "Line" : {
+      "comment" : "A connection's line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nét"
+          }
+        }
+      }
+    },
     "No description" : {
       "localizations": {
         "en": {
@@ -29,6 +330,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Thêm ảnh…"
+          }
+        }
+      }
+    },
+    "Remove Callout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Callout"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá chú thích"
           }
         }
       }
@@ -93,6 +410,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ảnh"
+          }
+        }
+      }
+    },
+    "Reverse Connection" : {
+      "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đảo chiều kết nối"
           }
         }
       }
@@ -707,6 +1035,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chủ đề trung tâm giữ màu riêng."
+          }
+        }
+      }
+    },
+    "Solid" : {
+      "comment" : "Connection line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liền"
           }
         }
       }
@@ -4250,6 +4589,17 @@
         }
       }
     },
+    "To %@" : {
+      "comment" : "Inspector: a connection to another topic; %@ is its title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tới %@"
+          }
+        }
+      }
+    },
     "⌥-drag a topic to empty canvas" : {
       "localizations" : {
         "vi" : {
@@ -7373,6 +7723,360 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Make Task" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biến thành việc"
+          }
+        }
+      }
+    },
+    "Remove Task" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ việc"
+          }
+        }
+      }
+    },
+    "Mark as Done" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đánh dấu xong"
+          }
+        }
+      }
+    },
+    "Mark as Not Done" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đánh dấu chưa xong"
+          }
+        }
+      }
+    },
+    "Priority" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mức ưu tiên"
+          }
+        }
+      }
+    },
+    "Set Task Dates…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt ngày cho việc…"
+          }
+        }
+      }
+    },
+    "Task" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Việc"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bắt đầu"
+          }
+        }
+      }
+    },
+    "Due" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đến hạn"
+          }
+        }
+      }
+    },
+    "Add Start Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ngày bắt đầu"
+          }
+        }
+      }
+    },
+    "Add Due Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ngày đến hạn"
+          }
+        }
+      }
+    },
+    "Clear" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá"
+          }
+        }
+      }
+    },
+    "Progress" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiến độ"
+          }
+        }
+      }
+    },
+    "%lld of %lld done" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xong %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Overdue" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quá hạn"
+          }
+        }
+      }
+    },
+    "High" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cao"
+          }
+        }
+      }
+    },
+    "Low" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thấp"
+          }
+        }
+      }
+    },
+    "Set Priority" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt mức ưu tiên"
+          }
+        }
+      }
+    },
+    "Remove Priority" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ mức ưu tiên"
+          }
+        }
+      }
+    },
+    "Set Start Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt ngày bắt đầu"
+          }
+        }
+      }
+    },
+    "Clear Start Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá ngày bắt đầu"
+          }
+        }
+      }
+    },
+    "Set Due Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt ngày đến hạn"
+          }
+        }
+      }
+    },
+    "Clear Due Date" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá ngày đến hạn"
+          }
+        }
+      }
+    },
+    "task, done" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "việc, đã xong"
+          }
+        }
+      }
+    },
+    "task, not done" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "việc, chưa xong"
+          }
+        }
+      }
+    },
+    "priority %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ưu tiên %@"
+          }
+        }
+      }
+    },
+    "overdue" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "quá hạn"
+          }
+        }
+      }
+    },
+    "%lld of %lld tasks done" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "xong %1$lld trên %2$lld việc"
+          }
+        }
+      }
+    },
+    "Task of %lld Topics" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Task of %lld Topic"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Task of %lld Topics"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Việc của %lld chủ đề"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "High Priority" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ưu tiên cao"
+          }
+        }
+      }
+    },
+    "Medium Priority" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ưu tiên vừa"
+          }
+        }
+      }
+    },
+    "Low Priority" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ưu tiên thấp"
+          }
+        }
+      }
+    },
+    "Overdue %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quá hạn %@"
           }
         }
       }

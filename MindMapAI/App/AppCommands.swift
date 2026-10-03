@@ -156,6 +156,11 @@ struct MapCommands: Commands {
                 if let editor, let id = editor.selection { editor.removeLink(from: id) }
             }
             .disabled(editor?.selectionHasLink != true)
+            // ⌘L as in MindNode (product owner, 2026-10-02); with two topics
+            // selected it connects them without the picker.
+            Button("Add Connection…") { editor?.beginAddingConnection() }
+                .keyboardShortcut("l")
+                .disabled(editor?.canAddConnection != true)
             Button(editor?.selectedImage == nil ? "Add Image…" : "Replace Image…") {
                 editor?.imagePickerTarget = editor?.selection
             }
@@ -165,6 +170,16 @@ struct MapCommands: Commands {
                 if let editor, let id = editor.selection { Task { await editor.removeImage(from: id) } }
             }
             .disabled(editor?.selectedImage == nil)
+            // ⌥⇧⌘↩ beside the other Add keys (MM-58); free in the standard menus.
+            Button(editor?.selectionHasCallout == true ? "Edit Callout" : "Add Callout") {
+                editor?.beginEditingSelectionCallout()
+            }
+            .keyboardShortcut(.return, modifiers: [.command, .option, .shift])
+            .disabled(editor?.canEditSelectionCallout != true)
+            Button("Remove Callout") {
+                if let editor, let id = editor.selection { editor.removeCallout(from: id) }
+            }
+            .disabled(editor?.selectionHasCallout != true)
             // ⇧⌘T and ⌥⇧⌘T: free in the menus; this app has no Fonts panel (⌘T).
             Button("Add Tag…") { editor?.beginAddingTag() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])
@@ -178,6 +193,24 @@ struct MapCommands: Commands {
             Button("Manage Tags…") { editor?.isManagingTags = true }
                 .keyboardShortcut("t", modifiers: [.command, .option, .shift])
                 .disabled(editor == nil)
+            Divider()
+            // ⇧⌘K, ⌥⌘K, ⌥⌘1–3 and ⌥⇧⌘K (MM-30): free in the standard menus; ⌘K stays Add Link.
+            Button(editor?.areAllTasks() == true ? "Remove Task" : "Make Task") { editor?.toggleTask() }
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+                .disabled(editor?.canEditSelectionTask != true)
+            Button(editor?.areTasksDone() == true ? "Mark as Not Done" : "Mark as Done") { editor?.toggleDone() }
+                .keyboardShortcut("k", modifiers: [.command, .option])
+                .disabled(editor?.hasTask() != true)
+            if let editor {
+                PriorityPicker(session: editor, showsShortcuts: true)
+            } else {
+                Menu("Priority") {}
+                    .disabled(true)
+            }
+            Button("Set Task Dates…") { editor?.beginSettingTaskDates() }
+                .keyboardShortcut("k", modifiers: [.command, .option, .shift])
+                .disabled(editor?.canEditSelectionTask != true)
+            Divider()
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
@@ -236,6 +269,7 @@ struct MapCommands: Commands {
                 }
             }
             .disabled(editor?.selectedImage == nil)
+            ConnectionFormatMenu(editor: editor, canvas: canvas)
         }
 
         // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.

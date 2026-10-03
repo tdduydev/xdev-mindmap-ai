@@ -70,6 +70,17 @@ nonisolated struct TopicMarkSpec: Hashable, Sendable {
     }
 }
 
+/// How a callout bubble above a topic is set (FR-ORG-30), with Dynamic Type applied.
+nonisolated struct TopicCalloutSpec: Hashable, Sendable {
+    let postScriptName: String
+    let pointSize: CGFloat
+    let lineSpacing: CGFloat
+    let horizontalPadding: CGFloat
+    let verticalPadding: CGFloat
+    /// Measured for an empty bubble while it is being typed in.
+    let placeholder: String
+}
+
 /// The text settings for every level, plus the placeholder an untitled topic shows.
 nonisolated struct TopicTextSpecs: Hashable, Sendable {
     /// Central, main, sub, deep: indexed by level, the last one repeating.
@@ -78,6 +89,7 @@ nonisolated struct TopicTextSpecs: Hashable, Sendable {
     let chip: TopicChipSpec
     let image: TopicImageSpec
     let mark: TopicMarkSpec
+    let callout: TopicCalloutSpec
 
     func spec(level: Int) -> TopicTextSpec {
         levels[min(max(level, 0), levels.count - 1)]
@@ -157,6 +169,23 @@ nonisolated final class TopicMeasurer {
         return CGSize(width: size.width, height: size.height)
     }
 
+    /// The bubble for a callout above a topic at this level: the text wraps at
+    /// the topic's maximum width, padding inside. The tail is not part of it.
+    func calloutSize(of text: String, level: Int) -> CGSize {
+        let callout = specs.callout
+        let maximumWidth = specs.spec(level: level).maximumWidth
+        let wrapWidth = maximumWidth - 2 * callout.horizontalPadding - Self.widthSlack
+        let measured = Self.measure(
+            text.isEmpty ? callout.placeholder : text,
+            font: font(postScriptName: callout.postScriptName, size: callout.pointSize),
+            lineSpacing: callout.lineSpacing,
+            wrapWidth: wrapWidth
+        )
+        let width = (measured.width + Self.widthSlack + 2 * callout.horizontalPadding).rounded(.up)
+        let height = (measured.height + 2 * callout.verticalPadding).rounded(.up)
+        return CGSize(width: min(maximumWidth, width), height: height)
+    }
+
     /// Greedy rows, as `ChipFlowLayout` places them.
     private func layOutChips(_ chips: inout [TopicChip], wrapWidth: CGFloat) -> (width: CGFloat, height: CGFloat) {
         let chip = specs.chip
@@ -166,7 +195,7 @@ nonisolated final class TopicMeasurer {
         var rows = 1
         for index in chips.indices {
             let label = Self.measure(chips[index].label, font: font, lineSpacing: 0, wrapWidth: .greatestFiniteMagnitude / 4).width
-            let symbol = chips[index].isSuggestion ? chip.symbolWidth : 0
+            let symbol = chips[index].hasSymbol ? chip.symbolWidth : 0
             let width = min(wrapWidth, (label + Self.widthSlack + symbol + 2 * chip.horizontalPadding).rounded(.up))
             chips[index].width = width
             if rowWidth > 0, rowWidth + chip.spacing + width > wrapWidth {

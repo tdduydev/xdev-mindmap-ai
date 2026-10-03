@@ -15,11 +15,22 @@ import MindMapGraph
 /// branch growing to the right of it by the same rules. Floating branches are
 /// laid out after the main tree in `GraphState.floatingTopicIDs` order and are
 /// not pushed away from it or from each other: they may overlap.
+///
+/// A callout (FR-ORG-30) sits above its card, `calloutSpacing` away, and its
+/// room is part of the topic's slot: the band grows upward by the bubble, and
+/// children start past the wider of card and bubble. The bubble is centred on
+/// the card but never passes the card's edge that faces the parent, so it
+/// cannot reach into the parent's column. Connectors still attach to the card.
 public struct HorizontalTreeLayout: MindMapLayoutEngine {
     public init() {}
 
-    public func layout(_ graph: GraphState, sizes: [NodeID: CGSize], options: LayoutOptions) -> MapLayout {
-        var pass = LayoutPass(graph: graph, sizes: sizes, options: options, previous: nil, dirty: [])
+    public func layout(
+        _ graph: GraphState,
+        sizes: [NodeID: CGSize],
+        callouts: [NodeID: CGSize],
+        options: LayoutOptions
+    ) -> MapLayout {
+        var pass = LayoutPass(graph: graph, sizes: sizes, callouts: callouts, options: options, previous: nil, dirty: [])
         return pass.run()
     }
 
@@ -27,14 +38,17 @@ public struct HorizontalTreeLayout: MindMapLayoutEngine {
         _ previous: MapLayout,
         graph: GraphState,
         sizes: [NodeID: CGSize],
+        callouts: [NodeID: CGSize],
         options: LayoutOptions,
         changed: Set<NodeID>
     ) -> MapLayout {
         guard previous.options == options, previous.rootID != nil, previous.rootID == graph.map.rootNodeID else {
-            return layout(graph, sizes: sizes, options: options)
+            return layout(graph, sizes: sizes, callouts: callouts, options: options)
         }
         let dirty = Self.dirtyBranches(for: changed, in: graph)
-        var pass = LayoutPass(graph: graph, sizes: sizes, options: options, previous: previous, dirty: dirty)
+        var pass = LayoutPass(
+            graph: graph, sizes: sizes, callouts: callouts, options: options, previous: previous, dirty: dirty
+        )
         return pass.run()
     }
 
@@ -63,6 +77,7 @@ public struct HorizontalTreeLayout: MindMapLayoutEngine {
 private struct LayoutPass {
     let graph: GraphState
     let sizes: [NodeID: CGSize]
+    let callouts: [NodeID: CGSize]
     let options: LayoutOptions
     let previous: MapLayout?
     let dirty: Set<NodeID>
@@ -74,9 +89,17 @@ private struct LayoutPass {
     /// are; their old entries go unless they turned up elsewhere.
     private var orphans: [NodeID] = []
 
-    init(graph: GraphState, sizes: [NodeID: CGSize], options: LayoutOptions, previous: MapLayout?, dirty: Set<NodeID>) {
+    init(
+        graph: GraphState,
+        sizes: [NodeID: CGSize],
+        callouts: [NodeID: CGSize],
+        options: LayoutOptions,
+        previous: MapLayout?,
+        dirty: Set<NodeID>
+    ) {
         self.graph = graph
         self.sizes = sizes
+        self.callouts = callouts
         self.options = options
         self.previous = previous
         self.dirty = dirty
@@ -105,7 +128,7 @@ private struct LayoutPass {
             placeFloating(id)
         }
         removeOrphans()
-        result.crossLinks = crossLinks()
+        crossLinks()
         result.bounds = bounds()
         return result
     }
@@ -118,6 +141,18 @@ private struct LayoutPass {
 
     private func size(of id: NodeID) -> CGSize {
         sizes[id] ?? options.defaultNodeSize
+    }
+
+    /// The caller decides which topics have a bubble: the canvas also gives
+    /// one to a topic whose callout is still being typed.
+    private func calloutSize(of id: NodeID) -> CGSize? {
+        guard let size = callouts[id], size.width > 0, size.height > 0 else { return nil }
+        return size
+    }
+
+    /// How far the bubble and its spacing stand above the card.
+    private func calloutRise(of id: NodeID) -> CGFloat {
+        calloutSize(of: id).map { $0.height + options.calloutSpacing } ?? 0
     }
 
     private func visibleChildren(of id: NodeID, rootID: NodeID) -> [NodeID] {
@@ -154,8 +189,13 @@ private struct LayoutPass {
             if index > 0 { block += options.verticalSpacing }
         }
         let isCollapsed = graph.node(id)?.isCollapsed ?? false
+        let half = size(of: id).height / 2
+        // The children's block is centred on the card; the callout adds room above it only.
+        let ascent = max(half + calloutRise(of: id), block / 2)
+        let descent = max(half, block / 2)
         let branch = BranchMeasure(
-            extent: max(size(of: id).height, block),
+            extent: ascent + descent,
+            ascent: ascent,
             weight: weight,
             visibleChildren: children,
             hiddenDescendantCount: isCollapsed ? graph.descendants(of: id).count : 0
@@ -191,13 +231,14 @@ private struct LayoutPass {
         guard write(rootID, frame: rootFrame, side: .center, depth: 0) else { return }
 
         let (right, left) = split(measure(of: rootID).visibleChildren)
-        var stack = placements(for: right, in: rootFrame, side: .right, depth: 1)
+        let rootSlot = slot(of: rootID)
+        var stack = placements(for: right, in: rootFrame, slot: rootSlot, side: .right, depth: 1)
         // With both sides in use, reading goes clockwise around the central topic:
         // down the right side, then up the left, so the first left branch sits at
         // the bottom. A left-only map has no right side to continue from, so it
         // reads top to bottom like a right-only one.
         let leftOrder = options.sides == .balanced ? Array(left.reversed()) : left
-        stack += placements(for: leftOrder, in: rootFrame, side: .left, depth: 1)
+        stack += placements(for: leftOrder, in: rootFrame, slot: rootSlot, side: .left, depth: 1)
         place(stack)
     }
 
@@ -215,7 +256,7 @@ private struct LayoutPass {
         // It may have had one in the previous layout, before it was detached.
         result.connectors[id] = nil
         guard write(id, frame: frame, side: .right, depth: 1) else { return }
-        place(placements(for: measure(of: id).visibleChildren, in: frame, side: .right, depth: 2))
+        place(placements(for: measure(of: id).visibleChildren, in: frame, slot: slot(of: id), side: .right, depth: 2))
     }
 
     private mutating func place(_ start: [Placement]) {
@@ -237,6 +278,7 @@ private struct LayoutPass {
             stack += placements(
                 for: measure(of: next.id).visibleChildren,
                 in: frame,
+                slot: slot(of: next.id),
                 side: next.side,
                 depth: next.depth + 1
             )
@@ -255,11 +297,36 @@ private struct LayoutPass {
         }
         result.nodes[id] = LayoutNode(
             frame: frame,
+            calloutFrame: calloutFrame(of: id, card: frame, side: side),
             side: side,
             depth: depth,
             hiddenDescendantCount: measure(of: id).hiddenDescendantCount
         )
         return true
+    }
+
+    /// Centred above the card, pulled back so it never passes the card's edge
+    /// that faces the parent (the central topic and floating topics have none).
+    private func calloutFrame(of id: NodeID, card: CGRect, side: LayoutSide) -> CGRect? {
+        guard let bubble = calloutSize(of: id) else { return nil }
+        var minX = card.midX - bubble.width / 2
+        switch side {
+        case .right: minX = max(minX, card.minX)
+        case .left: minX = min(minX, card.maxX - bubble.width)
+        case .center: break
+        }
+        return CGRect(
+            x: minX,
+            y: card.minY - options.calloutSpacing - bubble.height,
+            width: bubble.width,
+            height: bubble.height
+        )
+    }
+
+    /// The card and its bubble: what children have to stay clear of.
+    private func slot(of id: NodeID) -> CGRect {
+        guard let node = result.nodes[id] else { preconditionFailure("Slot of a topic that was not placed") }
+        return node.calloutFrame.map { node.frame.union($0) } ?? node.frame
     }
 
     private func measure(of id: NodeID) -> BranchMeasure {
@@ -268,26 +335,32 @@ private struct LayoutPass {
     }
 
     /// Stacks the children's bands top to bottom, centered on the parent.
-    private func placements(for children: [NodeID], in parentFrame: CGRect, side: LayoutSide, depth: Int) -> [Placement] {
+    private func placements(
+        for children: [NodeID],
+        in parentFrame: CGRect,
+        slot parentSlot: CGRect,
+        side: LayoutSide,
+        depth: Int
+    ) -> [Placement] {
         guard !children.isEmpty else { return [] }
-        let extents = children.map { measure(of: $0).extent }
-        let block = extents.reduce(0, +) + options.verticalSpacing * CGFloat(children.count - 1)
+        let measures = children.map { measure(of: $0) }
+        let block = measures.reduce(0) { $0 + $1.extent } + options.verticalSpacing * CGFloat(children.count - 1)
         let anchorX = side == .left
-            ? parentFrame.minX - options.horizontalSpacing
-            : parentFrame.maxX + options.horizontalSpacing
+            ? parentSlot.minX - options.horizontalSpacing
+            : parentSlot.maxX + options.horizontalSpacing
         var top = parentFrame.midY - block / 2
         var list: [Placement] = []
         list.reserveCapacity(children.count)
-        for (child, extent) in zip(children, extents) {
+        for (child, childMeasure) in zip(children, measures) {
             list.append(Placement(
                 id: child,
                 side: side,
                 depth: depth,
                 anchorX: anchorX,
-                centerY: top + extent / 2,
+                centerY: top + childMeasure.ascent,
                 parentFrame: parentFrame
             ))
-            top += extent + options.verticalSpacing
+            top += childMeasure.extent + options.verticalSpacing
         }
         return list
     }
@@ -345,24 +418,52 @@ private struct LayoutPass {
 
     /// Recomputed on every pass: a map has few cross-links, and an edge edit
     /// changes no topic, so it would not show up in `changed`.
-    private func crossLinks() -> [EdgeID: EdgePath] {
+    private mutating func crossLinks() {
         var paths: [EdgeID: EdgePath] = [:]
+        var rerouted: Set<EdgeID> = []
+        var counts: [NodeID: Int] = [:]
         for edge in graph.edges.values where edge.sourceNodeID != edge.targetNodeID {
-            guard let source = result.nodes[edge.sourceNodeID]?.frame,
-                  let target = result.nodes[edge.targetNodeID]?.frame else { continue }
+            // Hiding a connection inside a collapsed branch would lose it from
+            // view entirely; its visible ancestor stands in for it.
+            guard let sourceID = visibleStandIn(for: edge.sourceNodeID),
+                  let targetID = visibleStandIn(for: edge.targetNodeID) else { continue }
+            var badged: Set<NodeID> = []
+            if sourceID != edge.sourceNodeID { badged.insert(sourceID) }
+            if targetID != edge.targetNodeID { badged.insert(targetID) }
+            for id in badged { counts[id, default: 0] += 1 }
+            guard sourceID != targetID,
+                  let source = result.nodes[sourceID]?.frame,
+                  let target = result.nodes[targetID]?.frame else { continue }
+            if sourceID != edge.sourceNodeID || targetID != edge.targetNodeID { rerouted.insert(edge.id) }
             let forward = target.midX >= source.midX
             paths[edge.id] = .horizontal(
                 from: CGPoint(x: forward ? source.maxX : source.minX, y: source.midY),
                 to: CGPoint(x: forward ? target.minX : target.maxX, y: target.midY)
             )
         }
-        return paths
+        result.crossLinks = paths
+        result.reroutedCrossLinks = rerouted
+        result.hiddenCrossLinkCounts = counts
+    }
+
+    /// The topic itself when laid out, else its nearest laid-out ancestor;
+    /// nil for a topic outside the tree (an orphan still syncing).
+    private func visibleStandIn(for id: NodeID) -> NodeID? {
+        var current: NodeID? = id
+        var steps = 0
+        while let nodeID = current, steps <= graph.nodes.count {
+            if result.nodes[nodeID] != nil { return nodeID }
+            current = graph.node(nodeID)?.parentID
+            steps += 1
+        }
+        return nil
     }
 
     private func bounds() -> CGRect {
         var union: CGRect?
         for node in result.nodes.values {
-            union = union?.union(node.frame) ?? node.frame
+            let frame = node.calloutFrame.map { node.frame.union($0) } ?? node.frame
+            union = union?.union(frame) ?? frame
         }
         return union ?? .zero
     }

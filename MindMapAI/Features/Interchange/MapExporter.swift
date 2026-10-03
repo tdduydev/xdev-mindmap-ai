@@ -20,7 +20,10 @@ enum MapExporter {
         imageData: [ImageID: Data] = [:]
     ) async throws -> Data {
         if let format = options.format.interchange {
-            return try await format.exportData(graph, branch: options.branch, includeNotes: options.includeNotes)
+            // A file keeps the connections; copy (EditorSession.markdown) leaves
+            // them out, since paste makes new topics they could not point to.
+            return try await format.exportData(graph, branch: options.branch, includeNotes: options.includeNotes,
+                connectionsTitle: String(localized: "Connections:"))
         }
         // The whole map whatever the sheet's branch says: a backup is the map.
         if options.format == .backup {

@@ -60,8 +60,13 @@ enum Metrics {
     /// Room for a few lines of note in the inspector before it grows.
     static let noteEditorMinHeight: CGFloat = 120
 
+    /// The progress bar in the inspector's Task section, beside its "3 of 5 done".
+    static let taskProgressBarWidth: CGFloat = 80
+
     /// Room for a typical URL in the Add Link sheet.
     static let linkSheetMinWidth: CGFloat = 420
+    /// The Add Connection target picker on the Mac: room for a topic path.
+    static let connectionPickerSize = CGSize(width: 420, height: 480)
 
     /// Topic ▸ Tags ▸ Manage Tags… on the Mac.
     static let tagManagerSize = CGSize(width: 440, height: 480)

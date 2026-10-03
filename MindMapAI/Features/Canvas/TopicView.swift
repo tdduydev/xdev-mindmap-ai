@@ -1,4 +1,5 @@
 import MindMapDomain
+import MindMapGraph
 import MindMapLayout
 import SwiftUI
 import UniformTypeIdentifiers
@@ -63,7 +64,7 @@ struct TopicView: View {
                     }
                 } chip: { chip in
                     if let chipSpec {
-                        TopicChipView(chip: chip, spec: chipSpec, variant: variant, aiStyle: aiStyle, model: model)
+                        TopicChipView(chip: chip, spec: chipSpec, variant: variant, aiStyle: aiStyle, model: model, topicID: topic.id)
                     }
                 }
             }
@@ -166,8 +167,10 @@ struct TopicView: View {
     }
 
     /// Suggestions use the secondary text colour, so they read as not yet part of the map.
+    /// A done task's title too, instead of a strikethrough that would cut
+    /// through Vietnamese diacritics (docs/node-organization.md, *Tasks*).
     private var textColor: Color {
-        (topic.isSuggestion ? style.secondaryTextColor : style.textColor).color
+        (topic.isSuggestion || topic.taskState?.isDone == true ? style.secondaryTextColor : style.textColor).color
     }
 
     private var variant: ColorVariant {
@@ -358,6 +361,8 @@ struct TopicContextMenu: View {
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         TopicLinkMenuItems(topic: topic, model: model)
+        Button("Add Connection…") { model.addConnection(from: topic.id) }
+        TopicCalloutMenuItems(topic: topic, model: model)
         Button(topic.topicImage == nil ? "Add Image…" : "Replace Image…") {
             model.session.imagePickerTarget = topic.id
         }
@@ -372,6 +377,7 @@ struct TopicContextMenu: View {
         TagsMenu(session: model.session, targets: model.contextTargets(for: topic.id), onAddTag: { model.addTag(to: topic.id) })
         TopicColorMenu(title: "Color", session: model.session, targets: model.contextTargets(for: topic.id))
         TopicSymbolMenu(title: "Symbol", session: model.session, targets: model.contextTargets(for: topic.id))
+        TaskMenu(session: model.session, targets: model.contextTargets(for: topic.id))
         #if os(iOS)
         // Touch has no ⌘-click.
         Button(model.session.isSelected(topic.id) ? "Remove from Selection" : "Add to Selection") {
@@ -551,8 +557,11 @@ struct TopicAccessibility: ViewModifier {
             }
             .modifier(TagCustomContent(names: topic.tagNames))
             .modifier(TopicStyleCustomContent(color: topic.ownColor, symbol: topic.marks.symbol))
+            .modifier(TaskDateCustomContent(due: topic.dueDate))
             .modifier(TopicLinkAccessibility(link: topic.isSuggestion ? nil : topic.link))
+            .modifier(ConnectionAccessibility(descriptions: topic.connectionDescriptions))
             .modifier(TopicImageAccessibility(image: topic.topicImage))
+            .modifier(TopicCalloutAccessibility(topicID: topic.id, callout: topic.callout, isSuggestion: topic.isSuggestion, model: model))
     }
 
     /// Accept and Discard for each suggested tag, as the chips offer them.
@@ -587,7 +596,12 @@ struct TopicAccessibility: ViewModifier {
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         Button(topic.link == nil ? "Add Link…" : "Edit Link…") { model.editLink(topic.id) }
+        Button("Add Connection…") { model.addConnection(from: topic.id) }
         Button("Add Tag…") { model.addTag(to: topic.id) }
+        Button(topic.taskState == nil ? "Make Task" : "Remove Task") { model.session.toggleTask(topic.id) }
+        if topic.taskState != nil {
+            Button(topic.taskState?.isDone == true ? "Mark as Not Done" : "Mark as Done") { model.session.toggleDone(topic.id) }
+        }
         if !isRoot {
             Button("Delete Topic") { model.delete(topic.id) }
         }
@@ -601,6 +615,16 @@ struct TopicAccessibility: ViewModifier {
         let subtopics = String(localized: "\(topic.childCount) subtopics")
         var parts = [level, subtopics]
         if topic.hasNote { parts.append(String(localized: "has note")) }
+        if let state = topic.taskState {
+            parts.append(state.isDone ? String(localized: "task, done") : String(localized: "task, not done"))
+        }
+        if let priority = topic.priority {
+            parts.append(String(localized: "priority \(priority.title)"))
+        }
+        if topic.isOverdue { parts.append(String(localized: "overdue")) }
+        if let progress = topic.progress {
+            parts.append(String(localized: "\(progress.done) of \(progress.total) tasks done"))
+        }
         if isFindMatch { parts.append(String(localized: "Find Match")) }
         return parts.joined(separator: ", ")
     }

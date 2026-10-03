@@ -30,8 +30,9 @@ public enum PlainTextOutline {
 
             while let last = open.last, last.column >= column { open.removeLast() }
             let depth = open.last.map { $0.depth + 1 } ?? 0
-            let (text, link) = trailingLink(title(from: content))
-            _ = builder.add(depth: depth, title: text, link: link)
+            let (task, boxed) = taskBox(content)
+            let (text, link) = trailingLink(boxed)
+            _ = builder.add(depth: depth, title: text, link: link, taskState: task)
             open.append((column, depth))
         }
         return builder.finish()
@@ -48,6 +49,8 @@ public enum PlainTextOutline {
         for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
             let indent = String(repeating: "\t", count: depth)
             var title = escapedTitle(TextLines.exportTitle(of: node))
+            // The box goes before any escape, so `[ ] \\[ ] a` reads back as a task named `[ ] a`.
+            if let task = node.taskState { title = TaskBox.write(task) + title }
             if let link = node.link, link.url != nil {
                 title += title.isEmpty ? "<\(link.string)>" : " <\(link.string)>"
             }
@@ -80,6 +83,15 @@ public enum PlainTextOutline {
         return String(content)
     }
 
+    /// `[ ] Title` or `[x] Title` after any bullet (MM-35). The title after a
+    /// box may itself be escaped, as `escapedTitle` writes it.
+    private static func taskBox(_ content: Substring) -> (TaskState?, String) {
+        let title = title(from: content)
+        guard !content.hasPrefix("\\"), let (state, length) = TaskBox.prefix(Substring(title)) else { return (nil, title) }
+        let rest = title.dropFirst(length)
+        return (state, String(rest.hasPrefix("\\") ? rest.dropFirst() : rest))
+    }
+
     /// `Title <https://example.com>`: a trailing `<…>` with an allowed scheme
     /// is the topic's link. Any other `<…>` stays in the title.
     private static func trailingLink(_ title: String) -> (String, TopicLink?) {
@@ -93,6 +105,7 @@ public enum PlainTextOutline {
 
     private static func escapedTitle(_ title: String) -> String {
         let needsEscape = title.hasPrefix("\\") || title.hasPrefix(">")
+            || TaskBox.prefix(Substring(title)) != nil
             || bullets.contains { title.hasPrefix($0) }
             || ["-", "*", "+", "•"].contains(title)
         return needsEscape ? "\\" + title : title

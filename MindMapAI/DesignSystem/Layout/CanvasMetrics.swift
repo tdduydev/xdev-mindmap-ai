@@ -50,7 +50,16 @@ enum CanvasMetrics {
 
     static let crossLinkWidth: CGFloat = 1.5
     static let crossLinkDash: [CGFloat] = [4, 3]
-    /// Arrowhead of a `reference` cross-link: side length and half-angle (radians).
+    static let crossLinkDot: [CGFloat] = [0.1, 3]
+    /// A connection drawn to a visible ancestor because an end is hidden.
+    static let reroutedCrossLinkOpacity: Double = 0.6
+    /// The connection label capsule wraps past this width.
+    static let connectionLabelMaxWidth: CGFloat = 160
+    static let connectionLabelPadding = CGSize(width: 6, height: 2)
+    /// The badge of connections hidden below a topic, on its top-leading corner.
+    static let connectionBadgeSymbol = "point.topleft.down.to.point.bottomright.curvepath"
+    static let connectionBadgePadding = CGSize(width: 5, height: 2)
+    /// Arrowhead of a connection: side length and half-angle (radians).
     static let crossLinkArrowLength: CGFloat = 8
     static let crossLinkArrowAngle: CGFloat = .pi / 7
     static let suggestionEdgeWidth: CGFloat = 1.5
@@ -103,6 +112,9 @@ enum CanvasMetrics {
     /// Tags shown on a topic before "+n". Read off the main actor by the
     /// layout pass, hence `nonisolated`.
     nonisolated static let maximumTopicTagChips = 3
+    /// The progress ring in a task chip (MM-35): stroke, and the unfilled track's opacity.
+    static let taskRingWidth: CGFloat = 1.5
+    static let taskRingTrackOpacity: Double = 0.3
 
     /// A picture on a topic (MM-63), above the title: its widths for Image
     /// Size ▸ Small, Medium (the default, `MindImage.defaultDisplayWidth`)
@@ -116,6 +128,20 @@ enum CanvasMetrics {
     static let imageGap: CGFloat = 8
     static let imageCornerRadius: CGFloat = Radius.sm
     static let imagePlaceholderOpacity: Double = 0.3
+
+    /// A callout bubble above its topic (FR-ORG-30). The layout reserves
+    /// the bubble, its tail and `calloutGap`, so it covers no other topic.
+    static let calloutGap: CGFloat = Spacing.sm
+    static let calloutHorizontalPadding: CGFloat = 8
+    static let calloutVerticalPadding: CGFloat = 6
+    // Read by `CalloutBubbleShape`, which draws off the main actor.
+    nonisolated static let calloutCornerRadius: CGFloat = 8 // Radius.md
+    nonisolated static let calloutTailWidth: CGFloat = 8
+    nonisolated static let calloutTailHeight: CGFloat = 6
+    static let calloutStrokeWidth: CGFloat = 1
+    static let calloutStrokeWidthHighContrast: CGFloat = 2
+    /// From the bubble's bottom edge to the card: what `LayoutOptions.calloutSpacing` gets.
+    static let calloutSpacing: CGFloat = calloutTailHeight + calloutGap
 
     /// The pointer hit area is the visual box, at least this tall.
     static let minimumPointerHeight: CGFloat = 28

@@ -105,6 +105,8 @@ nonisolated enum AccessibilityID {
         static let zoomToFit = "canvas.zoomToFit"
         /// The zoom level; its value is the scale, such as "100%".
         static let actualSize = "canvas.actualSize"
+        /// The field of a callout bubble open for typing (FR-ORG-30).
+        static let calloutField = "canvas.calloutField"
     }
 
     /// A topic's URL link (FR-ORG-26).
@@ -115,6 +117,14 @@ nonisolated enum AccessibilityID {
         static let cancel = "link.cancel"
         static let error = "link.error"
         static let open = "link.open"
+    }
+
+    enum Task {
+        static let isTask = "task.isTask"
+        static let done = "task.done"
+        static let priority = "task.priority"
+        static let overdue = "task.overdue"
+        static let checkbox = "task.checkbox"
     }
 
     enum Chat {
