@@ -56,6 +56,9 @@ struct MapInspectorView: View {
                 Section("Topic") {
                     TopicDetails(session: session, node: node)
                 }
+            } else if let boundary = session.activeBoundary {
+                BoundaryInspectorSection(session: session, groupID: boundary)
+                    .id(boundary)
             } else {
                 Section("Topic") {
                     Text("Select a topic to see its note.")

@@ -60,6 +60,19 @@ extension CanvasScene {
         return (topic, .inside)
     }
 
+    /// The boundary whose title band or outline is within `tolerance` of a
+    /// canvas point; the innermost when several are. Inside a frame, away
+    /// from its edge, the point belongs to the topics and the canvas.
+    nonisolated func boundary(at point: CGPoint, tolerance: CGFloat) -> GroupID? {
+        boundaries.last { boundary in
+            let outer = boundary.frame.insetBy(dx: -tolerance, dy: -tolerance)
+            let inner = boundary.frame.insetBy(dx: tolerance, dy: tolerance)
+            guard outer.contains(point) else { return false }
+            if boundary.title != nil, boundary.titleBand.contains(point) { return true }
+            return inner.isNull || !inner.contains(point)
+        }?.id
+    }
+
     /// The connection whose curve passes within `tolerance` of a canvas point,
     /// the nearest when several do. Sampled: a cubic has no closed-form distance.
     nonisolated func connection(at point: CGPoint, tolerance: CGFloat) -> EdgeID? {

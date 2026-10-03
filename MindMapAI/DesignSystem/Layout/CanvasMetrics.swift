@@ -49,6 +49,17 @@ enum CanvasMetrics {
     static let selectionRingGap: CGFloat = 2
 
     static let crossLinkWidth: CGFloat = 1.5
+
+    /// Boundaries (MM-37): the layout reserves the padding around a run and the
+    /// title's room above a titled one; solid, since dashes mean AI or drop.
+    static let boundaryPadding: CGFloat = 8
+    nonisolated static let boundaryTitleHeight: CGFloat = 20
+    static let boundaryCornerRadius: CGFloat = 12
+    static let boundaryStrokeWidth: CGFloat = 1.5
+    static let boundaryStrokeWidthHighContrast: CGFloat = 2
+    static let boundaryTitlePadding = CGSize(width: 6, height: 2)
+    /// The title capsule wraps past this width.
+    nonisolated static let boundaryTitleMaxWidth: CGFloat = 200
     static let crossLinkDash: [CGFloat] = [4, 3]
     static let crossLinkDot: [CGFloat] = [0.1, 3]
     /// A connection drawn to a visible ancestor because an end is hidden.

@@ -30,12 +30,25 @@ struct CanvasDrawing {
         let isDimmed: Bool
     }
 
+    /// A boundary's frame and title, drawn under every edge and topic.
+    struct Boundary {
+        let frame: CGRect
+        let title: String?
+        let line: SRGBColor
+        let fill: SRGBColor
+        let strokeWidth: CGFloat
+        let isSelected: Bool
+        let isSuggestion: Bool
+    }
+
     struct Badge {
         /// The top-leading corner of the topic it marks.
         let corner: CGPoint
         let count: Int
     }
 
+    /// Outermost first.
+    var boundaries: [Boundary] = []
     var edges: [Stroke: Path] = [:]
     var crossLinks: [LinkStroke: Path] = [:]
     var arrowheads: [LinkFill: Path] = [:]
@@ -65,6 +78,7 @@ struct CanvasDrawing {
             shapes: model.isDetailed ? nil : model.visibleTopics,
             selection: model.session.selection,
             selectedConnection: model.session.activeConnection,
+            selectedBoundary: model.session.activeBoundary,
             variant: ColorVariant(colorScheme: colorScheme, contrast: contrast),
             imageFrame: { topic in
                 guard let image = topic.topicImage, let spec = model.textSpec(for: topic) else { return nil }
@@ -89,11 +103,25 @@ struct CanvasDrawing {
         shapes: [CanvasTopic]?,
         selection selected: NodeID?,
         selectedConnection: EdgeID? = nil,
+        selectedBoundary: GroupID? = nil,
         variant: ColorVariant,
         imageFrame: (CanvasTopic) -> CGRect? = { _ in nil },
         style: (CanvasTopic) -> TopicStyle
     ) -> CanvasDrawing {
         var drawing = CanvasDrawing()
+
+        for boundary in scene.boundaries where boundary.frame.intersects(rect) {
+            let colors = BranchColors(line: (boundary.color ?? .graphite).token, variant: variant)
+            drawing.boundaries.append(Boundary(
+                frame: boundary.frame,
+                title: boundary.title,
+                line: colors.line,
+                fill: colors.subFill,
+                strokeWidth: variant.isHighContrast ? CanvasMetrics.boundaryStrokeWidthHighContrast : CanvasMetrics.boundaryStrokeWidth,
+                isSelected: boundary.id == selectedBoundary,
+                isSuggestion: boundary.isSuggestion
+            ))
+        }
 
         for (child, path) in scene.connectors(in: rect) {
             guard let topic = scene.topic(child) else { continue }
@@ -171,6 +199,10 @@ struct EdgeLayer: View {
             context.translateBy(x: viewport.offset.x, y: viewport.offset.y)
             context.scaleBy(x: viewport.scale, y: viewport.scale)
 
+            for boundary in drawing.boundaries {
+                drawBoundary(boundary, in: &context)
+            }
+
             for (stroke, path) in drawing.edges {
                 context.stroke(path, with: .color(stroke.color.color), style: StrokeStyle(lineWidth: stroke.width, lineCap: .round))
             }
@@ -244,6 +276,45 @@ struct EdgeLayer: View {
         let capsule = Path(roundedRect: box, cornerRadius: box.height / 2, style: .continuous)
         context.fill(capsule, with: .color(Palette.canvasBackground))
         context.stroke(capsule, with: .color(label.color.color), lineWidth: CanvasMetrics.crossLinkWidth)
+        context.draw(text, in: box.insetBy(dx: padding.width, dy: padding.height))
+    }
+
+    private func drawBoundary(_ boundary: CanvasDrawing.Boundary, in context: inout GraphicsContext) {
+        let shape = Path(roundedRect: boundary.frame, cornerRadius: CanvasMetrics.boundaryCornerRadius, style: .continuous)
+        if boundary.isSuggestion {
+            context.fill(shape, with: .color(Palette.canvasBackground))
+            context.stroke(shape, with: .style(aiStyle),
+                style: StrokeStyle(lineWidth: CanvasMetrics.suggestionEdgeWidth, dash: CanvasMetrics.suggestionDash))
+        } else {
+            context.fill(shape, with: .color(boundary.fill.color))
+            context.stroke(shape, with: .color(boundary.line.color), lineWidth: boundary.strokeWidth)
+        }
+        if boundary.isSelected {
+            let outset = CanvasMetrics.selectionRingGap
+            let ring = Path(roundedRect: boundary.frame.insetBy(dx: -outset, dy: -outset),
+                cornerRadius: CanvasMetrics.boundaryCornerRadius + outset, style: .continuous)
+            context.stroke(ring, with: .color(Palette.selectionRing), lineWidth: drawing.selectionWidth)
+        }
+        guard let title = boundary.title else { return }
+        let padding = CanvasMetrics.boundaryTitlePadding
+        let text = context.resolve(Text(title)
+            .font(Typography.Content.badge.font)
+            .foregroundStyle(Palette.topicText))
+        let size = text.measure(in: CGSize(width: CanvasMetrics.boundaryTitleMaxWidth - 2 * padding.width, height: CanvasMetrics.boundaryTitleHeight))
+        let box = CGRect(
+            x: boundary.frame.minX + CanvasMetrics.boundaryPadding,
+            y: boundary.frame.minY + (CanvasMetrics.boundaryTitleHeight - size.height) / 2 - padding.height,
+            width: size.width + 2 * padding.width,
+            height: size.height + 2 * padding.height
+        )
+        let capsule = Path(roundedRect: box, cornerRadius: box.height / 2, style: .continuous)
+        context.fill(capsule, with: .color(Palette.canvasBackground))
+        if boundary.isSuggestion {
+            context.stroke(capsule, with: .style(aiStyle),
+                style: StrokeStyle(lineWidth: CanvasMetrics.suggestionEdgeWidth, dash: CanvasMetrics.suggestionDash))
+        } else {
+            context.stroke(capsule, with: .color(boundary.line.color), lineWidth: boundary.strokeWidth)
+        }
         context.draw(text, in: box.insetBy(dx: padding.width, dy: padding.height))
     }
 
