@@ -1,3 +1,4 @@
+import MindMapAICore
 import MindMapDomain
 import MindMapGraph
 import SwiftUI
@@ -99,5 +100,71 @@ struct BoundaryFormatMenu: View {
             }
         }
         .disabled(group == nil)
+    }
+}
+
+/// Suggested boundaries or a suggested boundary title, each title editable
+/// before Accept, with Discard per group.
+struct AIBoundarySuggestionList: View {
+    @Bindable var assistant: AIAssistant
+
+    var body: some View {
+        if let suggestions = assistant.boundarySuggestions {
+            List {
+                Section {
+                    ForEach(suggestions.groups) { group in
+                        AIBoundarySuggestionRow(
+                            group: group,
+                            members: group.nodeIDs.compactMap { assistant.session.engine.state.node($0)?.title },
+                            onRename: { assistant.renameBoundarySuggestion(group.id, to: $0) },
+                            onDiscard: { assistant.discardBoundarySuggestion(group.id) }
+                        )
+                    }
+                } header: {
+                    Label {
+                        Text(suggestions.kind == .title ? AIFeature.summarizeBoundary.suggestionsTitle : AIFeature.suggestGroups.suggestionsTitle)
+                    } icon: {
+                        AISymbol()
+                    }
+                } footer: {
+                    Text("Suggested by AI on this device. Nothing changes until you accept.")
+                }
+            }
+            .frame(minWidth: Metrics.suggestionListWidth, minHeight: Metrics.suggestionListHeight)
+        }
+    }
+}
+
+private struct AIBoundarySuggestionRow: View {
+    let group: BoundarySuggestionState.Group
+    let members: [String]
+    let onRename: (String) -> Void
+    let onDiscard: () -> Void
+    @State private var draft: String
+
+    init(group: BoundarySuggestionState.Group, members: [String], onRename: @escaping (String) -> Void, onDiscard: @escaping () -> Void) {
+        self.group = group
+        self.members = members
+        self.onRename = onRename
+        self.onDiscard = onDiscard
+        _draft = State(initialValue: group.title)
+    }
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                TextField("Title", text: $draft)
+                    .onSubmit { onRename(draft) }
+                if !members.isEmpty {
+                    Text(verbatim: members.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Button("Discard", systemImage: "xmark", action: onDiscard)
+                .labelStyle(.iconOnly)
+                .frame(minWidth: Metrics.minimumHitTarget, minHeight: Metrics.minimumHitTarget)
+        }
+        .onChange(of: draft) { _, title in onRename(title) }
     }
 }

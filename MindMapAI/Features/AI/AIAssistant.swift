@@ -55,6 +55,9 @@ final class AIAssistant {
     /// Suggested tags (MM-34), shown as AI chips; apart from topic
     /// suggestions, and never both at once.
     private(set) var tagSuggestions: TagSuggestionState?
+    /// Suggested boundaries or a boundary title (MM-37), drawn as an AI
+    /// preview of the map; apart from the other suggestions.
+    var boundarySuggestions: BoundarySuggestionState?
     private(set) var activity: Activity?
     var failure: AIFailure?
     var sheet: Sheet?
@@ -72,7 +75,7 @@ final class AIAssistant {
     /// also names the map when accepted.
     @ObservationIgnored private var namesMapOnAccept = false
     @ObservationIgnored private let defaults: UserDefaults
-    @ObservationIgnored private let locale: Locale
+    @ObservationIgnored let locale: Locale
 
     static let privacyNoticeKey = "ai.privacyNoticeShown"
 
@@ -86,15 +89,16 @@ final class AIAssistant {
     // MARK: Reading
 
     var isWorking: Bool { activity != nil }
-    var hasSuggestions: Bool { suggestions?.isEmpty == false || hasTagSuggestions }
+    var hasSuggestions: Bool { suggestions?.isEmpty == false || hasTagSuggestions || hasBoundarySuggestions }
     var hasTagSuggestions: Bool { tagSuggestions?.isEmpty == false }
+    var hasBoundarySuggestions: Bool { boundarySuggestions?.isEmpty == false }
     var canAcceptSuggestions: Bool {
-        hasTagSuggestions || (suggestions?.isComplete == true && suggestions?.isEmpty == false)
+        hasTagSuggestions || hasBoundarySuggestions || (suggestions?.isComplete == true && suggestions?.isEmpty == false)
     }
 
-    /// How many suggestions the bar counts: topics or tags.
+    /// How many suggestions the bar counts: topics, tags or boundaries.
     var suggestionCount: Int {
-        tagSuggestions?.suggestions.count ?? suggestions?.topics.count ?? 0
+        tagSuggestions?.suggestions.count ?? boundarySuggestions?.groups.count ?? suggestions?.topics.count ?? 0
     }
 
     /// Suggested tag names per topic, for the canvas chips.
@@ -122,7 +126,13 @@ final class AIAssistant {
     var modelAvailability: AIAvailability { service.modelState }
 
     func canRun(_ feature: AIFeature, on nodeID: NodeID? = nil) -> Bool {
-        guard service.isEnabled, !isWorking, availability(for: feature, on: nodeID).isReady else { return false }
+        guard service.isEnabled, !isWorking else { return false }
+        // A boundary is selected without a topic, so it answers for itself.
+        if feature == .summarizeBoundary {
+            guard let id = boundaryTarget(), let parent = session.engine.state.group(id)?.parentNodeID else { return false }
+            return availability(for: feature, on: parent).isReady
+        }
+        guard availability(for: feature, on: nodeID).isReady else { return false }
         if feature == .generateMap { return session.rootID != nil }
         guard let id = target(nodeID), let node = session.engine.state.node(id) else { return false }
         switch feature {
@@ -130,7 +140,9 @@ final class AIAssistant {
             return !node.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .summarize:
             return !session.engine.state.childIDs(of: id).isEmpty
-        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags:
+        case .suggestGroups:
+            return session.engine.state.runSiblingIDs(of: id).count >= SuggestGroupsRequest.minimumChildren
+        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags, .summarizeBoundary:
             return true
         }
     }
@@ -261,6 +273,7 @@ final class AIAssistant {
             ) else { return self.show(.topicGone) }
             let provider = self.service.provider
             self.clearSuggestions()
+            self.clearBoundarySuggestions()
             self.run(.suggestTags) {
                 try await provider.suggestTags(request)
             } done: { [weak self] result in
@@ -281,6 +294,7 @@ final class AIAssistant {
     // MARK: Suggestions
 
     func acceptAll() {
+        if hasBoundarySuggestions { return acceptBoundarySuggestions() }
         if hasTagSuggestions { acceptTags(nil) } else { accept(nil) }
     }
 
@@ -312,6 +326,7 @@ final class AIAssistant {
         if suggestions?.isComplete == false { cancel() }
         clearSuggestions()
         clearTagSuggestions()
+        clearBoundarySuggestions()
     }
 
     func renameSuggestion(_ temporaryID: String, to title: String) {
@@ -389,7 +404,7 @@ final class AIAssistant {
         afterNotice(action)
     }
 
-    private func afterNotice(_ action: @escaping () -> Void) {
+    func afterNotice(_ action: @escaping () -> Void) {
         if defaults.bool(forKey: Self.privacyNoticeKey) {
             action()
         } else {
@@ -401,6 +416,7 @@ final class AIAssistant {
     private func stream(_ request: SuggestionRequest, anchor: NodeID) {
         cancel()
         clearTagSuggestions()
+        clearBoundarySuggestions()
         failure = nil
         selectedSuggestion = nil
         suggestions = SuggestionState(feature: request.feature, anchorID: anchor)
@@ -443,7 +459,7 @@ final class AIAssistant {
         AccessibilityNotification.Announcement(String(localized: "\(suggestions.topics.count) AI suggestions")).post()
     }
 
-    private func run<Result: Sendable>(
+    func run<Result: Sendable>(
         _ feature: AIFeature,
         work: @escaping () async throws -> Result,
         done: @escaping (Result) -> Void
@@ -521,13 +537,13 @@ final class AIAssistant {
         }
     }
 
-    private func clearTagSuggestions() {
+    func clearTagSuggestions() {
         guard tagSuggestions != nil else { return }
         tagSuggestions = nil
         onSuggestionsChange?()
     }
 
-    private func clearSuggestions() {
+    func clearSuggestions() {
         guard suggestions != nil else { return }
         suggestions = nil
         selectedSuggestion = nil
@@ -541,7 +557,7 @@ final class AIAssistant {
         show(AIFailure(error))
     }
 
-    private func show(_ failure: AIFailure) {
+    func show(_ failure: AIFailure) {
         self.failure = failure
         AccessibilityNotification.Announcement(failure.message).post()
     }
@@ -556,13 +572,13 @@ final class AIAssistant {
 
     // MARK: Context
 
-    private func target(_ nodeID: NodeID?) -> NodeID? {
+    func target(_ nodeID: NodeID?) -> NodeID? {
         nodeID ?? session.selection
     }
 
     /// The language of the topic: Vietnamese text gets a Vietnamese answer even
     /// on an English system, and the other way round (FR-AI-13).
-    private func language(for nodeID: NodeID?) -> AILanguage {
+    func language(for nodeID: NodeID?) -> AILanguage {
         let fallback = AILanguage(preferredFor: locale)
         guard let nodeID, let node = session.engine.state.node(nodeID) else { return fallback }
         return AILanguage.dominant(in: [session.map.title, node.title].joined(separator: ". "), fallback: fallback)

@@ -176,11 +176,17 @@ final class CanvasModel {
             // take their place in the tree without being part of the map.
             var graph = session.engine.state
             var suggested: Set<NodeID> = []
+            var suggestedBoundaries: Set<GroupID> = []
             if let suggestions = assistant?.suggestions, !suggestions.isEmpty {
                 graph = suggestions.preview(in: session.engine)
                 suggested = Set(suggestions.drawableTopics(in: graph).keys)
+            } else if let preview = assistant?.boundaryPreview() {
+                // Suggest Groups moves topics, so the preview is the map after Accept.
+                graph = preview.state
+                suggestedBoundaries = preview.boundaries
             }
-            let startOver = needsFullLayout || lastPassHadSuggestions || !suggested.isEmpty
+            let hasPreview = !suggested.isEmpty || !suggestedBoundaries.isEmpty
+            let startOver = needsFullLayout || lastPassHadSuggestions || hasPreview
             let pass = CanvasLayoutPass(
                 graph: graph,
                 previous: startOver ? nil : scene.layout,
@@ -190,11 +196,12 @@ final class CanvasModel {
                 options: layoutOptions,
                 suggestions: suggested,
                 tagSuggestions: assistant?.tagSuggestionChips ?? [:],
+                boundarySuggestions: suggestedBoundaries,
                 calloutDraft: session.calloutEditorTarget
             )
             pendingChanges = []
             needsFullLayout = false
-            lastPassHadSuggestions = !suggested.isEmpty
+            lastPassHadSuggestions = hasPreview
             let output = await pass.runInBackground()
             if generation == specsGeneration { measures = output.measures }
             apply(output.scene)

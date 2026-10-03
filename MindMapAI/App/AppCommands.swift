@@ -336,6 +336,13 @@ struct MapCommands: Commands {
         Button("Suggest Tags") { assistant?.suggestTags() }
             .keyboardShortcut("t", modifiers: [.command, .control])
             .disabled(assistant?.canRun(.suggestTags) != true)
+        // ⌃⌘O and ⌃⌘Y (MM-30), beside the other AI keys.
+        Button("Suggest Groups") { assistant?.suggestGroups() }
+            .keyboardShortcut("o", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.suggestGroups) != true)
+        Button("Summarize Boundary") { assistant?.summarizeBoundary() }
+            .keyboardShortcut("y", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.summarizeBoundary) != true)
         Divider()
         // ⌃⌘A: free beside the other AI keys (⌃⌘G, E, B, U, M, T) and not a
         // standard macOS shortcut; approved 2026-10-02.
