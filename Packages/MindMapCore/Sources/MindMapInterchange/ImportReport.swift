@@ -18,9 +18,19 @@ public struct ImportReport: Hashable, Sendable {
         case image
         /// A file attached to a topic, which maps have no place for.
         case attachment
-        /// A FreeMind or Freeplane icon on a topic (MM-102); topics have
-        /// one symbol of their own, and the two sets do not line up.
+        /// An icon on a topic: a FreeMind or Freeplane icon (MM-102), or an
+        /// XMind marker that is not a priority or task marker (MM-103);
+        /// topics have one symbol of their own, and the sets do not line up.
         case icon
+        /// A relationship whose ends are not both topics of the map, or
+        /// that repeats another (MM-103).
+        case connection
+        /// A summary bracket over topics that cannot be bracketed; its topic
+        /// stays, as the last child (MM-103).
+        case summary
+        /// A boundary over topics that cannot be framed (the central topic,
+        /// or crossing another boundary) (MM-103).
+        case boundary
     }
 
     public struct Entry: Hashable, Sendable {

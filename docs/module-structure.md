@@ -27,7 +27,7 @@ Packages/
 │  ├─ MindMapGraph            ✓
 │  ├─ MindMapPersistence      ✓, plus App Group store and CloudKit config (MM-6)
 │  ├─ MindMapLayout           ✓ (MM-4), see [[layout-engine]]
-│  ├─ MindMapInterchange      ✓ Markdown and text (MM-10a), OPML and the import report for other apps (MM-101), see [[interchange]]
+│  ├─ MindMapInterchange      ✓ Markdown and text (MM-10a), OPML and the import report for other apps (MM-101), XMind (MM-103), see [[interchange]]
 │  ├─ MindMapSearch           ✓ text search (MM-15): folding, library index and ranking, Find; `Embedder` protocol later
 │  ├─ MindMapSharing          ✓ (MM-11): QuickCapture, SharedContent, ShareInbox for the extension and the intents
 │  ├─ MindMapIntents          ✓ (MM-11): entities, queries, intents, AppIntentsPackage, Spotlight index; see [[system-integration]]
@@ -59,7 +59,7 @@ Packages/
 | UI package without SwiftData | Keeps Core free of SwiftUI and lets the extension reuse the design system. |
 | Intents in one package | `MindMapIntents`, a target of `MindMapCore` (one package reference, tested by `swift test`); the app includes it through its own `AppIntentsPackage`. |
 | Local models in their own package | MLX's Metal shaders do not build with the SwiftPM command line, which would break `swift test` for Core. |
-| Share Extension links the minimum | Domain, Graph, Persistence, Interchange, Sharing; no AI, no AppIntents. It uses standard SwiftUI controls, so it does not need the design system yet. Images and PDFs go to an inbox in the App Group container; the app reads them later. Extension memory limits are not verified. |
+| Share Extension links the minimum | Domain, Graph, Persistence, Interchange (and through it Images, since MM-103), Sharing; no AI, no AppIntents. It uses standard SwiftUI controls, so it does not need the design system yet. Images and PDFs go to an inbox in the App Group container; the app reads them later. Extension memory limits are not verified. |
 
 ## Platform code
 

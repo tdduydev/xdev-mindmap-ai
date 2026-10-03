@@ -58,7 +58,8 @@ let package = Package(
                 "MindMapDomain", "MindMapPersistence", "MindMapQuery",
             ]
         ),
-        .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        // Images for pictures inside other apps' files (XMind, MM-103).
+        .target(name: "MindMapInterchange", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapImages"]),
         .testTarget(name: "MindMapInterchangeTests", dependencies: ["MindMapInterchange", "MindMapDomain", "MindMapGraph"]),
         .target(name: "MindMapSearch", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapSearchTests", dependencies: ["MindMapSearch", "MindMapDomain", "MindMapGraph"]),
