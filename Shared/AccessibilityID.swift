@@ -7,7 +7,6 @@
 /// tells them apart by their label, which is the title the person sees.
 nonisolated enum AccessibilityID {
     enum Onboarding {
-        static let sheet = "onboarding.sheet"
         static let skip = "onboarding.skip"
         static let next = "onboarding.next"
         static let progress = "onboarding.progress"

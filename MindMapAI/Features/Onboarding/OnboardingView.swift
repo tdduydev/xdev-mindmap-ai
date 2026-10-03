@@ -55,6 +55,5 @@ struct OnboardingView: View {
         .padding(Spacing.xxl)
         .frame(maxWidth: Metrics.onboardingWidth, minHeight: Metrics.onboardingHeight)
         .interactiveDismissDisabled()
-        .accessibilityIdentifier(AccessibilityID.Onboarding.sheet)
     }
 }

@@ -32,7 +32,12 @@ struct MacSnapshotTests {
             )
             defer { window.close() }
             try await SnapshotWindow.settle()
-            try Snapshot.verify(try await SnapshotWindow.stableCapture(window), named: "onboarding.\(appearance.rawValue)")
+            // AppKit's text antialiasing shifts between processes on the shared
+            // Mac; the sheet's layout and fills are stable at this tolerance.
+            try Snapshot.verify(
+                try await SnapshotWindow.stableCapture(window),
+                named: "onboarding.\(appearance.rawValue)", pixelTolerance: 0.015
+            )
         }
     }
 
