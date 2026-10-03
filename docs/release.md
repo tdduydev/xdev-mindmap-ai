@@ -59,6 +59,8 @@ Every upload adds a row here with the commit it was archived from, so whether a 
 | 202610030030 (iOS, iPhone and iPad) | 0.1.0 | 2026-10-02 17:34 | `a2b8ef3` | V2 (node types) |
 | 202610031203 (macOS) | 1.0.0 | 2026-10-03 05:05 | `a5e2508` | V3 (chat history) |
 | 202610031207 (iOS, iPhone and iPad) | 1.0.0 | 2026-10-03 05:09 | `a5e2508` | V3 (chat history) |
+| 202610031802 (macOS) | 1.1.0 | 2026-10-03 11:09 | `116da74` | V3, first upload with iCloud sync on (MM-100) |
+| 202610031809 (iOS, iPhone and iPad) | 1.1.0 | 2026-10-03 11:16 | `116da74` | V3, iCloud sync on |
 
 The first four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02, and none contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
 
