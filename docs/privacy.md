@@ -23,6 +23,9 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 - **AI apps writing suggestions** (M5 in [mcp.md](mcp.md)): proposals only, labelled with the app's name, accepted in the app; adds an "Allow Suggestions" switch and changes the row above.
 - **Chat** ([chat.md](chat.md), ADR 0009, not built): on the device like the other AI features; conversations are not saved [Đề xuất].
 
+- **Map links and the App Clip** ([app-clip](app-clip.md), ADR 0012): Share Link puts the map in the URL fragment, which browsers do not send to xdev.asia; anyone with the link can read the map, and the sheet says so. The App Clip keeps nothing but the maps it opened, in an App Group only the app can read. Label unchanged.
+- **Apple Watch** ([watch](watch.md), ADR 0012): the same private iCloud database; the Inbox map's ID (no content) in iCloud key-value storage. Label unchanged.
+
 ## Rules for the code
 
 - Never log map titles, node text, notes, drawings, imported documents, AI prompts or chat questions and answers (saved with each map since MM-55, so they are map content). Use `os.Logger` with private interpolation for anything that might hold user content.
