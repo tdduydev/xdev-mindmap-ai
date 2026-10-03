@@ -133,6 +133,16 @@ struct CanvasDrawing {
             drawing.edges[Stroke(color: style.edgeColor, width: style.edgeWidth), default: Path()].addCurve(path)
         }
 
+        // A bracket stands for the connector to its summary topic, so it takes that topic's line.
+        for bracket in scene.summaryBrackets(in: rect) {
+            let stroke = bracket.summaryNodeID.flatMap(scene.topic).map { topic in
+                let style = style(topic)
+                return Stroke(color: style.edgeColor, width: style.edgeWidth)
+            } ?? Stroke(color: BranchColors(line: TopicColor.graphite.token, variant: variant).line,
+                width: CanvasMetrics.boundaryStrokeWidth)
+            drawing.edges[stroke, default: Path()].addSummaryBracket(bracket)
+        }
+
         for (id, path) in scene.crossLinks(in: rect) {
             guard let look = scene.crossLinkLooks[id] else { continue }
             let color = (look.color?.token ?? Palette.Tokens.crossLink)[variant]
@@ -351,6 +361,27 @@ private extension Path {
     mutating func addCurve(_ edge: EdgePath) {
         move(to: edge.start)
         addCurve(to: edge.end, control1: edge.control1, control2: edge.control2)
+    }
+
+    /// A `}` filling the bracket's frame, its back on the run's side and its
+    /// tip, at mid-height, toward the summary topic.
+    mutating func addSummaryBracket(_ bracket: SummaryBracket) {
+        let frame = bracket.frame
+        let back = bracket.side == .left ? frame.maxX : frame.minX
+        let tip = bracket.side == .left ? frame.minX : frame.maxX
+        let spine = (back + tip) / 2
+        // The curls take half the width, or less on a short run so the spine stays straight.
+        let curl = min(frame.width / 2, frame.height / 4)
+        let top = frame.minY
+        let middle = frame.midY
+        let bottom = frame.maxY
+        move(to: CGPoint(x: back, y: top))
+        addQuadCurve(to: CGPoint(x: spine, y: top + curl), control: CGPoint(x: spine, y: top))
+        addLine(to: CGPoint(x: spine, y: middle - curl))
+        addQuadCurve(to: CGPoint(x: tip, y: middle), control: CGPoint(x: spine, y: middle))
+        addQuadCurve(to: CGPoint(x: spine, y: middle + curl), control: CGPoint(x: spine, y: middle))
+        addLine(to: CGPoint(x: spine, y: bottom - curl))
+        addQuadCurve(to: CGPoint(x: back, y: bottom), control: CGPoint(x: spine, y: bottom))
     }
 
     /// A filled triangle pointing along the curve's last tangent.

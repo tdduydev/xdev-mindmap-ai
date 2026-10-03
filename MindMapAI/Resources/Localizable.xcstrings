@@ -6228,16 +6228,6 @@
         }
       }
     },
-    "Summary" : {
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tóm tắt"
-          }
-        }
-      }
-    },
     "Support" : {
       "localizations" : {
         "vi" : {
@@ -8077,6 +8067,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quá hạn %@"
+          }
+        }
+      }
+    },
+    "Add Summary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Summary"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm tổng hợp"
+          }
+        }
+      }
+    },
+    "Remove Summary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Summary"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá tổng hợp"
+          }
+        }
+      }
+    },
+    "Branch Summary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Branch Summary"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tóm tắt nhánh"
+          }
+        }
+      }
+    },
+    "Summary of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary of %@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tổng hợp của %@"
+          }
+        }
+      }
+    },
+    "Summary of %@ to %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary of %1$@ to %2$@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tổng hợp từ %1$@ đến %2$@"
           }
         }
       }

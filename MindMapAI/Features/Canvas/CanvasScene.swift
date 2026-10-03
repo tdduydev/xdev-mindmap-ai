@@ -24,6 +24,9 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     var isSuggestion = false
     /// A topic beside the tree with no parent (FR-ORG-27), drawn as a main topic.
     var isFloating = false
+    /// "Summary of Design to Launch" for a summary topic (FR-ORG-29), read
+    /// by VoiceOver in place of the level.
+    var summaryDescription: String?
     /// Marked on the card and read by VoiceOver (FR-EDT-13).
     var hasNote = false
     /// Only a link this build can open; drawn on the corner, so not measured.
@@ -212,6 +215,14 @@ nonisolated struct CanvasScene: Sendable {
 
     var bounds: CGRect { layout?.bounds ?? .zero }
     var isEmpty: Bool { topics.isEmpty }
+
+    /// Summary brackets (FR-ORG-29) meeting `rect`, in a stable order.
+    func summaryBrackets(in rect: CGRect) -> [SummaryBracket] {
+        (layout?.summaries ?? [:])
+            .sorted { $0.key < $1.key }
+            .map(\.value)
+            .filter { $0.frame.intersects(rect) }
+    }
 
     func topic(_ id: NodeID) -> CanvasTopic? {
         index[id].map { topics[$0] }
@@ -455,6 +466,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 hiddenDescendantCount: placed.hiddenDescendantCount,
                 isSuggestion: suggestions.contains(node.id),
                 isFloating: node.isFloating(rootID: graph.map.rootNodeID),
+                summaryDescription: summaryDescription(of: node, in: graph),
                 hasNote: node.hasNote,
                 link: node.link?.url == nil ? nil : node.link,
                 topicImage: images[node.id],
@@ -483,6 +495,12 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 isSuggestion: boundarySuggestions.contains(id))
         }
         return CanvasScene(layout: layout, topics: topics, crossLinkLooks: looks, boundaries: boundaries)
+    }
+
+    private static func summaryDescription(of node: MindNode, in graph: GraphState) -> String? {
+        guard let group = graph.summaries(naming: node.id).first, group.parentNodeID == node.parentID,
+              let members = graph.members(of: group) else { return nil }
+        return EditorSession.summaryDescription(members: members.compactMap { graph.node($0)?.title })
     }
 
     /// One pass over the edges rather than a scan per topic.

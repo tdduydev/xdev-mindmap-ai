@@ -27,7 +27,11 @@ public struct MapLayout: Equatable, Sendable {
     /// one. Hidden with its parent; members on the far side of the central
     /// topic from the first member are left out.
     public internal(set) var boundaries: [GroupID: CGRect]
-    /// The smallest rectangle holding every topic frame, callout and boundary; `.zero` for an empty map.
+    /// The bracket of each summary with a visible member. Hidden with its
+    /// parent; members on the far side of the central topic from the first
+    /// member are left out, as for boundaries.
+    public internal(set) var summaries: [GroupID: SummaryBracket]
+    /// The smallest rectangle holding every topic frame, callout, boundary and bracket; `.zero` for an empty map.
     public internal(set) var bounds: CGRect
 
     /// Per-topic results kept so `update` can skip untouched branches.
@@ -43,6 +47,7 @@ public struct MapLayout: Equatable, Sendable {
         reroutedCrossLinks = []
         hiddenCrossLinkCounts = [:]
         boundaries = [:]
+        summaries = [:]
         bounds = .zero
         measures = [:]
     }
@@ -59,6 +64,21 @@ public struct LayoutNode: Equatable, Sendable {
     public var depth: Int
     /// How many topics a collapsed branch hides; 0 when expanded.
     public var hiddenDescendantCount: Int
+}
+
+/// A `}` beyond a run of siblings, its back facing the run.
+public struct SummaryBracket: Equatable, Sendable {
+    /// From the back (facing the run) to the tip, spanning the run's branches.
+    public var frame: CGRect
+    /// `.left` when the run grows leftward, so the tip points left.
+    public var side: LayoutSide
+    /// The summary topic beside the tip, nil while it is missing (still syncing).
+    public var summaryNodeID: NodeID?
+
+    /// Where the summary topic meets the bracket.
+    public var tip: CGPoint {
+        CGPoint(x: side == .left ? frame.minX : frame.maxX, y: frame.midY)
+    }
 }
 
 public enum LayoutSide: Hashable, Sendable {
