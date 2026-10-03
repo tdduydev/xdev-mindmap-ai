@@ -188,6 +188,9 @@ struct GeneralSettingsSection: View {
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Settings.appearance)
+            // On one row: on the Section, each row would present its own paywall
+            // on one binding (MM-90, MM-92).
+            .proChoicePaywall($paywall)
             Picker("Theme for New Maps", selection: Binding(get: { newMapTheme }, set: choose)) {
                 ForEach(MindMapTheme.allCases) { theme in
                     ProChoiceLabel(title: theme.title, isLocked: theme.requiresPro && themesLocked)
@@ -202,7 +205,6 @@ struct GeneralSettingsSection: View {
                 Text("Each map keeps its own theme, which you can change while the map is open.")
             }
         }
-        .proChoicePaywall($paywall)
     }
 
     private func choose(_ theme: MindMapTheme) {

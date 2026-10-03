@@ -173,5 +173,7 @@ nonisolated enum AccessibilityID {
         static let aiAppsPort = "settings.aiApps.port"
         static let aiAppsAdd = "settings.aiApps.add"
         static let aiAppsPrivacy = "settings.aiApps.privacy"
+        static let emptyRecentlyDeleted = "settings.data.emptyRecentlyDeleted"
+        static let exportAllMaps = "settings.data.exportAll"
     }
 }
