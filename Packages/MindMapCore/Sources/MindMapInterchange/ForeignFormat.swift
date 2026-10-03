@@ -7,11 +7,14 @@ import MindMapGraph
 /// (MM-102..104) add a case each, with a reader that fills a `ForeignImport`.
 public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
     case opml
+    /// FreeMind and Freeplane (MM-102); both use `.mm`.
+    case freeMind
 
     /// Nil for an extension no importer reads.
     public init?(fileExtension: String) {
         switch fileExtension.lowercased() {
         case "opml": self = .opml
+        case "mm": self = .freeMind
         default: return nil
         }
     }
@@ -19,6 +22,7 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
     public var fileExtension: String {
         switch self {
         case .opml: "opml"
+        case .freeMind: "mm"
         }
     }
 
@@ -36,6 +40,10 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
             guard let map = try? GraphState.imported(from: document.draft, title: title, now: now) else {
                 throw .emptyDocument
             }
+            return ForeignImport(maps: [map], imageData: [:], report: document.report)
+        case .freeMind:
+            let document = try FreeMindMap.parse(data)
+            let map = try FreeMindMap.graph(from: document, title: fileName, now: now)
             return ForeignImport(maps: [map], imageData: [:], report: document.report)
         }
     }
