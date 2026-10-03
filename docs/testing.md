@@ -13,6 +13,7 @@ How the app is tested, from the package up to the UI. The table per layer is in 
 | Core and app tests as x86_64 under Rosetta | `scripts/rosetta-tests.sh` | Before merging a change to the AI gate, build settings or code under `#if arch` ([[architecture]], Platforms) |
 | `MindMapAIUITests` (XCUITest, macOS and iOS Simulator) | `scripts/ui-tests.sh` | Before merging a change to the interface |
 | `MacSnapshotTests` (the Mac interface drawn off screen, compared with reference PNGs) | `scripts/snapshot-tests.sh` | Before merging a change to the Mac interface; runs while the screen is locked |
+| Chat evaluations (`ChatEvaluationRun`, the on-device model on fixture maps, [[chat]]) | `scripts/chat-evaluations.sh` | After a change to the chat's instructions, prompt, tools or budget; needs macOS 27 with Apple Intelligence on |
 | `FeatureTourUITests` (every feature, one screenshot per step) | `scripts/feature-tour.sh [ios\|macos] [en\|vi\|ja]` | When someone wants to see every feature, such as before a release; skipped by `scripts/ui-tests.sh` |
 
 `scripts/ci.sh` stays fast and does not run UI tests (NFR-TEST-03). Warnings are errors in both scripts.
