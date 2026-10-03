@@ -22,6 +22,8 @@ final class EditorSession {
         var topicImage: MindImage?
         /// Done over total for the leaf tasks below (MM-35), computed per read.
         var progress: TaskProgress?
+        /// Faded by the filter, as on the canvas (MM-36).
+        var isDimmed = false
         var id: NodeID { node.id }
     }
 
@@ -97,12 +99,31 @@ final class EditorSession {
     /// Topics matching `findText`, in reading order with every branch open.
     private(set) var findMatches: [NodeID] = []
     private(set) var findMatchSet: Set<NodeID> = []
+    /// Matches the filter or Focus on Branch hides.
+    private(set) var findHiddenCount = 0
     /// The match Find Next and Find Previous last went to.
     private(set) var currentMatch: NodeID?
     /// Asks the find field to take focus, as ⌘F does when the bar is already open.
     var findFocusRequest = false
     /// A topic the outline should scroll into view.
     var scrollRequest: NodeID?
+
+    // Filter bar and Focus on Branch (MM-36): view state of this window only.
+    // Never a command, never in the map, never synced, so a filter on the Mac
+    // cannot hide topics on the iPad (`EditorSession+Filter`).
+    var isFilterBarShown = false
+    var filter = MapFilter() {
+        didSet { if filter != oldValue { viewFilterDidChange() } }
+    }
+    var filterMode: FilterMode = .dim {
+        didSet { if filterMode != oldValue { viewFilterDidChange() } }
+    }
+    /// The topic Focus on Branch draws in the centre.
+    var focusID: NodeID? {
+        didSet { if focusID != oldValue { viewFilterDidChange() } }
+    }
+    /// Called when the filter or focus changes, so the canvas lays out again.
+    @ObservationIgnored var onViewFilterChange: (() -> Void)?
 
     /// The window's undo manager, so the Edit menu, ⌘Z and the iOS undo gestures
     /// drive the engine's history. Set by the view.
@@ -276,15 +297,20 @@ final class EditorSession {
         return SplitNodeCommand.lines(of: node.title).count > 1
     }
 
+    /// The filter and Focus on Branch apply here as on the canvas: hide drops
+    /// rows, dim fades them, focus lists the branch only.
     var rows: [Row] {
-        let state = engine.state
+        let view = isViewFiltered ? filterView : nil
+        let state = view.map { $0.project(engine.state) } ?? engine.state
         let tags = state.tagsByNode()
-        let progress = state.taskProgressByNode()
+        // From the whole map, so a task's progress does not change with the filter.
+        let progress = engine.state.taskProgressByNode()
         return state.visibleOutline().compactMap { item in
-            state.node(item.nodeID).map {
+            // The real topic: the projection gives a focused topic no parent.
+            engine.state.node(item.nodeID).map {
                 Row(node: $0, depth: item.depth, hasChildren: item.hasChildren,
                     tags: tags[item.nodeID] ?? [], topicImage: state.image(of: item.nodeID),
-                    progress: progress[item.nodeID])
+                    progress: progress[item.nodeID], isDimmed: view?.isDimmed(item.nodeID) ?? false)
             }
         }
     }
@@ -710,8 +736,12 @@ final class EditorSession {
 
     /// Typing in the find field selects the first visible match but opens no
     /// branch: each keystroke would otherwise leave an undo step behind.
-    private func updateFind(selectingFirst: Bool) {
-        findMatches = MapFind.matches(SearchQuery(findText), in: engine.state)
+    func updateFind(selectingFirst: Bool) {
+        // Find walks only what the filter and focus show; `findHiddenCount` says how many more there are.
+        let all = MapFind.matches(SearchQuery(findText), in: engine.state)
+        let view = isViewFiltered ? filterView : nil
+        findMatches = view.map { view in all.filter(view.shown.contains) } ?? all
+        findHiddenCount = all.count - findMatches.count
         findMatchSet = Set(findMatches)
         if let currentMatch, !findMatchSet.contains(currentMatch) {
             self.currentMatch = nil
@@ -830,6 +860,7 @@ final class EditorSession {
         let map = engine.state.map
         onMapChange(map)
         onGraphChange?(changes)
+        endFocusIfGone()
         if !findText.isEmpty { updateFind(selectingFirst: false) }
         let previous = lastSave
         lastSave = Task { [repository, weak self] in
@@ -873,11 +904,14 @@ final class EditorSession {
         setSelection(selectedIDs, primary: id)
     }
 
-    /// ⌘A: every topic in view; topics inside collapsed branches go with them anyway.
+    /// ⌘A: every topic in view; topics inside collapsed branches go with them
+    /// anyway. Under a filter or Focus on Branch, only the topics shown and
+    /// matching: a bulk tag or colour change never reaches what is hidden.
     func selectAll() {
-        let visible = engine.state.visibleOutline().map(\.nodeID)
+        let view = isViewFiltered ? filterView : nil
+        let visible = engine.state.visibleOutline().map(\.nodeID).filter { view?.isSelectable($0) ?? true }
         guard !visible.isEmpty else { return }
-        let primary = primarySelection.flatMap { visible.contains($0) ? $0 : nil } ?? rootID
+        let primary = primarySelection.flatMap { visible.contains($0) ? $0 : nil } ?? visible.first
         setSelection(Set(visible), primary: primary)
     }
 
@@ -888,6 +922,7 @@ final class EditorSession {
 
     /// Undo and redo can remove selected topics; keep the ones still there.
     func keepSelectionValid() {
+        endFocusIfGone()
         let state = engine.state
         let remaining = selectedIDs.filter { state.node($0) != nil }
         guard remaining != selectedIDs || primarySelection.map({ state.node($0) == nil }) == true else { return }

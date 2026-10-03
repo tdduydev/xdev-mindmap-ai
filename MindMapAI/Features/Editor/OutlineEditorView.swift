@@ -210,6 +210,7 @@ struct OutlineRow: View {
             }
         }
         .padding(.leading, CGFloat(row.depth) * Spacing.outlineIndent)
+        .opacity(row.isDimmed ? CanvasMetrics.filteredOpacity : 1)
         .modifier(TopicLinkAccessibility(link: row.node.link))
         .modifier(TaskDateCustomContent(due: row.node.dueDate))
         .accessibilityActions {
@@ -275,6 +276,7 @@ struct OutlineRow: View {
         if let progress = row.progress {
             parts.append(String(localized: "\(progress.done) of \(progress.total) tasks done"))
         }
+        if row.isDimmed { parts.append(String(localized: "not matching the filter")) }
         return parts.joined(separator: ", ")
     }
 

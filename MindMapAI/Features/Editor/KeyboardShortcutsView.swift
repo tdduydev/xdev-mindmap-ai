@@ -82,6 +82,9 @@ struct KeyboardShortcutsView: View {
             Shortcut(keys: "⌘−", action: "Zoom Out"),
             Shortcut(keys: "⌘0", action: "Actual Size"),
             Shortcut(keys: "⌥⌘0", action: "Zoom to Fit"),
+            Shortcut(keys: "⌥⌘L", action: "Show Filter Bar"),
+            Shortcut(keys: "⌥⇧⌘L", action: "Clear Filter"),
+            Shortcut(keys: "⇧⌘F", action: "Focus on Branch"),
         ]),
     ]
 
