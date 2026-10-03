@@ -50,6 +50,13 @@ struct EditorPage {
     func selectOutlineTopic(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
         let field = outlineTopic(titled: title).waitToExist(file: file, line: line)
         field.tapOrClick()
+        // The Mac's outline List spends the first click selecting the row and
+        // a busy iPad simulator sometimes drops it; typing then fails with
+        // "no keyboard focus" and ends the test, so click once more.
+        let focused = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hasKeyboardFocus == true"), object: field)
+        if XCTWaiter().wait(for: [focused], timeout: MindMapApp.timeout / 15) != .completed {
+            field.tapOrClick()
+        }
         return field
     }
 

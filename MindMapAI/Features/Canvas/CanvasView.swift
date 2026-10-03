@@ -36,6 +36,7 @@ struct CanvasView: View {
             )
                 .allowsHitTesting(false)
             if model.isDetailed {
+                callouts
                 topics
             } else {
                 topicShapesForAccessibility
@@ -93,6 +94,7 @@ struct CanvasView: View {
         }
         .onChange(of: isFocused) { _, focused in model.hasKeyboardFocus = focused }
         .onChange(of: dynamicTypeSize) { model.setTextSpecs(textSpecs) }
+        .onChange(of: session.calloutEditorTarget) { model.calloutEditingDidChange() }
         .onChange(of: session.focusRequest) { model.takeFocusRequest() }
         .onChange(of: session.selection) {
             if model.editingID == nil { isFocused = true }
@@ -159,6 +161,24 @@ struct CanvasView: View {
                 .position(model.viewport.toView(CGPoint(x: topic.frame.midX, y: topic.frame.midY)))
                 // The + buttons reach past the card; drawn over the neighbours they overlap.
                 .zIndex(addButtons == nil ? 0 : 1)
+            }
+        }
+    }
+
+    /// Callout bubbles above their topics (FR-ORG-30). Their room is reserved
+    /// in the layout, so they cover no topic.
+    private var callouts: some View {
+        let editing = session.calloutEditorTarget
+        return ForEach(model.visibleTopics.filter { $0.calloutFrame != nil }) { topic in
+            if let bubble = topic.calloutFrame, let spec = model.calloutSpec {
+                CanvasCalloutView(topic: topic, bubble: bubble, spec: spec, isEditing: topic.id == editing, model: model)
+                    .id(topic.id == editing)
+                    .scaleEffect(model.viewport.scale)
+                    // The view is the bubble plus its tail below it.
+                    .position(model.viewport.toView(CGPoint(
+                        x: bubble.midX,
+                        y: bubble.midY + CanvasMetrics.calloutTailHeight / 2
+                    )))
             }
         }
     }

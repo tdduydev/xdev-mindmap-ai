@@ -29,11 +29,22 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     /// Only a link this build can open; drawn on the corner, so not measured.
     var link: TopicLink?
     var topicImage: MindImage?
+    /// The callout text (FR-ORG-30); "" while a new bubble is being typed in.
+    var callout: String?
+    /// Where the bubble sits, above the card; nil without a callout.
+    var calloutFrame: CGRect?
     /// Tag chips under the title: up to `maximumTopicTagChips` tags, "+n",
     /// then suggested tags. Part of the measured size.
     var chips: [TopicChip] = []
     /// Every tag name, for VoiceOver, including those past "+n".
     var tagNames: [String] = []
+    /// Task fields (MM-35); drawn as the first chips, read in the VoiceOver value.
+    var taskState: TaskState?
+    var priority: TaskPriority?
+    var dueDate: CalendarDay?
+    var isOverdue = false
+    /// Done over total for the leaf tasks below, computed for this scene only.
+    var progress: TaskProgress?
 }
 
 /// One chip under a topic's title (MM-34).
@@ -44,6 +55,13 @@ nonisolated struct TopicChip: Identifiable, Hashable, Sendable {
         case more(Int)
         /// An AI suggestion, by `TagSuggestionState.Suggestion.id`.
         case suggestion(String)
+        /// The task box; a click toggles done (MM-35).
+        case checkbox(done: Bool)
+        /// `!` marks, by level.
+        case priority(Int)
+        /// "3/5" with a ring.
+        case progress(done: Int, total: Int)
+        case due(overdue: Bool)
     }
 
     let kind: Kind
@@ -57,6 +75,38 @@ nonisolated struct TopicChip: Identifiable, Hashable, Sendable {
     var isSuggestion: Bool {
         if case .suggestion = kind { return true }
         return false
+    }
+
+    /// Chips drawn with a symbol before the label, measured with `symbolWidth`.
+    var hasSymbol: Bool {
+        switch kind {
+        case .suggestion, .checkbox, .progress, .due: true
+        case .tag, .more, .priority: false
+        }
+    }
+
+    /// The task chips, before any tag: box, priority, progress, due date.
+    static func taskChips(
+        state: TaskState?, priority: TaskPriority?, progress: TaskProgress?, due: CalendarDay?, today: CalendarDay
+    ) -> [TopicChip] {
+        var chips: [TopicChip] = []
+        if let state {
+            chips.append(TopicChip(kind: .checkbox(done: state.isDone), label: "", color: nil))
+        }
+        if let priority {
+            chips.append(TopicChip(kind: .priority(priority.level.rawValue), label: priority.marks, color: nil))
+        }
+        if let progress {
+            chips.append(TopicChip(kind: .progress(done: progress.done, total: progress.total), label: "\(progress.done)/\(progress.total)", color: nil))
+        }
+        if let due, state != nil || progress != nil {
+            let overdue = CalendarDay.isOverdue(due, state: state, today: today)
+            // The word as well as the symbol and the colour (WCAG 1.4.1).
+            let date = due.shortText(today: today)
+            let label = overdue ? String(localized: "Overdue \(date)") : date
+            chips.append(TopicChip(kind: .due(overdue: overdue), label: label, color: nil))
+        }
+        return chips
     }
 
     /// The chips for a topic's tags and suggested tag names.
@@ -121,9 +171,9 @@ nonisolated struct CanvasScene: Sendable {
     // inside a frame (see `timingsForAThousandTopics`), so a spatial index
     // would add code without a measurable gain.
 
-    /// Topics whose frame meets `rect`, in reading order.
+    /// Topics whose frame or callout meets `rect`, in reading order.
     func topics(in rect: CGRect) -> [CanvasTopic] {
-        topics.filter { $0.frame.intersects(rect) }
+        topics.filter { $0.frame.intersects(rect) || $0.calloutFrame?.intersects(rect) == true }
     }
 
     /// Connectors into visible topics whose curve may cross `rect`. A cubic
@@ -164,6 +214,9 @@ nonisolated struct TopicMeasure: Equatable, Sendable {
     /// The picture's frame, nil without one; a resize measures the topic again.
     var imageSize: CGSize?
     let size: CGSize
+    /// The callout text the bubble was measured for, and the bubble.
+    var callout: String?
+    var calloutSize: CGSize?
     /// The chips with their measured widths.
     var chips: [TopicChip] = []
 }
@@ -184,6 +237,9 @@ nonisolated struct CanvasLayoutPass: Sendable {
     var suggestions: Set<NodeID> = []
     /// Suggested tag names per topic, drawn as AI chips.
     var tagSuggestions: [NodeID: [(id: String, name: String)]] = [:]
+    /// A topic whose bubble is open for typing: it gets a bubble even before
+    /// it has callout text, so the room is there while the person types.
+    var calloutDraft: NodeID?
 
     struct Output: Sendable {
         let scene: CanvasScene
@@ -205,15 +261,38 @@ nonisolated struct CanvasLayoutPass: Sendable {
 
         let tags = graph.tagsByNode()
         let images = graph.imagesByNode()
+        let progress = graph.taskProgressByNode()
+        let today = CalendarDay.today()
         var chips: [NodeID: [TopicChip]] = [:]
+        var callouts: [NodeID: CGSize] = [:]
+        var calloutTexts: [NodeID: String] = [:]
         for item in outline {
             guard let node = graph.node(item.nodeID) else { continue }
-            var topicChips = TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
+            let callout = node.callout ?? (item.nodeID == calloutDraft ? "" : nil)
+            if let callout {
+                calloutTexts[item.nodeID] = callout
+                if let known = measures[item.nodeID], known.callout == callout, known.level == item.depth,
+                   let measured = known.calloutSize {
+                    callouts[item.nodeID] = measured
+                } else {
+                    callouts[item.nodeID] = measurer.calloutSize(of: callout, level: item.depth)
+                }
+            }
+            // A draft bubble opening or closing is no graph change, so the
+            // layout learns of it here.
+            if measures[item.nodeID].map({ $0.calloutSize != callouts[item.nodeID] }) ?? false {
+                changed.insert(item.nodeID)
+            }
+            var topicChips = TopicChip.taskChips(
+                state: node.taskState, priority: node.priority, progress: progress[item.nodeID], due: node.dueDate, today: today
+            ) + TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
             let labels = topicChips.map(\.label)
             let imageSize = images[item.nodeID].map { measurer.imageSize(of: $0, level: item.depth) }
             if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth, known.chipLabels == labels,
                known.imageSize == imageSize {
                 sizes[item.nodeID] = known.size
+                measures[item.nodeID]?.callout = callout
+                measures[item.nodeID]?.calloutSize = callouts[item.nodeID]
                 // The kinds can change under the same labels (a tag renamed to another's name).
                 chips[item.nodeID] = zip(topicChips, known.chips).map { chip, measured in
                     var chip = chip
@@ -227,7 +306,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
             let size = measurer.size(of: node.title, level: item.depth, chips: &topicChips, image: imageSize)
             if measures[item.nodeID]?.size != size { changed.insert(item.nodeID) }
             measures[item.nodeID] = TopicMeasure(
-                title: node.title, level: item.depth, chipLabels: labels, imageSize: imageSize, size: size, chips: topicChips
+                title: node.title, level: item.depth, chipLabels: labels, imageSize: imageSize, size: size,
+                callout: callout, calloutSize: callouts[item.nodeID], chips: topicChips
             )
             sizes[item.nodeID] = size
             chips[item.nodeID] = topicChips
@@ -239,11 +319,14 @@ nonisolated struct CanvasLayoutPass: Sendable {
 
         let engine = graph.map.layoutConfiguration.style.engine
         let layout = if let previous {
-            engine.update(previous, graph: graph, sizes: sizes, options: options, changed: changed)
+            engine.update(previous, graph: graph, sizes: sizes, callouts: callouts, options: options, changed: changed)
         } else {
-            engine.layout(graph, sizes: sizes, options: options)
+            engine.layout(graph, sizes: sizes, callouts: callouts, options: options)
         }
-        let scene = Self.scene(outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags)
+        let scene = Self.scene(
+            outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags,
+            callouts: calloutTexts, progress: progress, today: today
+        )
         return Output(scene: scene, measures: measures)
     }
 
@@ -253,7 +336,10 @@ nonisolated struct CanvasLayoutPass: Sendable {
         layout: MapLayout,
         suggestions: Set<NodeID>,
         chips: [NodeID: [TopicChip]],
-        tags: [NodeID: [MindTag]]
+        tags: [NodeID: [MindTag]],
+        callouts: [NodeID: String],
+        progress: [NodeID: TaskProgress],
+        today: CalendarDay
     ) -> CanvasScene {
         var topics: [CanvasTopic] = []
         let images = graph.imagesByNode()
@@ -278,8 +364,15 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 hasNote: node.hasNote,
                 link: node.link?.url == nil ? nil : node.link,
                 topicImage: images[node.id],
+                callout: callouts[node.id],
+                calloutFrame: placed.calloutFrame,
                 chips: chips[node.id] ?? [],
-                tagNames: tags[node.id]?.map(\.name) ?? []
+                tagNames: tags[node.id]?.map(\.name) ?? [],
+                taskState: node.taskState,
+                priority: node.priority,
+                dueDate: node.dueDate,
+                isOverdue: CalendarDay.isOverdue(node.dueDate, state: node.taskState, today: today),
+                progress: progress[node.id]
             ))
         }
         let types = layout.crossLinks.keys.reduce(into: [EdgeID: EdgeType]()) { types, id in

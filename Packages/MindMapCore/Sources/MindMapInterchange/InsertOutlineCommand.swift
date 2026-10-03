@@ -54,6 +54,9 @@ public struct InsertOutlineCommand: GraphCommand {
             if let link = item.link {
                 try transaction.updateNode(id) { $0.link = link }
             }
+            if let taskState = item.taskState {
+                try transaction.updateNode(id) { $0.taskState = taskState }
+            }
             path.append(id)
         }
     }
@@ -99,6 +102,7 @@ extension GraphState {
         try engine.execute(BatchCommand([
             AddNodeCommand(nodeID: rootID, .root, title: rootTitle, note: rootNote, metadata: NodeMetadata(origin: .imported)),
             SetNodeLinkCommand(nodeIDs: [rootID], link: draft.topLevelCount == 1 ? first.link : nil),
+            SetTaskCommand(nodeIDs: [rootID], state: .set(draft.topLevelCount == 1 ? first.taskState : nil)),
             InsertOutlineCommand(children, under: rootID),
         ]))
         return engine.state
