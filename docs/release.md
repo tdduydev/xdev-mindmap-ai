@@ -63,7 +63,8 @@ Every upload adds a row here with the commit it was archived from, so whether a 
 | 202610031802 (macOS) | 1.1.0 | 2026-10-03 11:09 | `116da74` | V3, first upload with iCloud sync on (MM-100) |
 | 202610031809 (iOS, iPhone and iPad) | 1.1.0 | 2026-10-03 11:16 | `116da74` | V3, iCloud sync on. Hangs at launch on iPhone once the library has maps (library chat inspector, fixed in `bdd33bd`); expired in TestFlight |
 | 202610032345 (iOS, iPhone and iPad) | 1.1.0 | 2026-10-03 17:06 | `579438d` | V3, iCloud on, the hang fixed, first upload after the iOS Simulator smoke test |
-| 202610040006 (macOS) | 1.1.0 | 2026-10-03 17:21 | `579438d` | V3, iCloud on |
+| 202610040006 (macOS) | 1.1.0 | 2026-10-03 17:21 | `579438d` | Refused in processing, ITMS-90284: the Swift package resource bundles of MLX kept the development signature (fixed in `7dbbf33`) |
+| 202610040024 (macOS) | 1.1.0 | 2026-10-03 17:39 | `7dbbf33` | V3, iCloud on, package bundles signed for distribution |
 
 The first four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02, and none contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
 
