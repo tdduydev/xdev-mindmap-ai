@@ -74,6 +74,16 @@ extension UTType {
     /// FreeMind and Freeplane maps (`.mm`), imported for the same reason as OPML.
     /// The identifier is ours: neither app's declaration is one the system ships.
     nonisolated static let freeMindMap = UTType(importedAs: "asia.xdev.mindmapai.freemind-map", conformingTo: .xml)
+
+    /// XMind maps (`.xmind`), imported for the same reason as OPML. The
+    /// identifier is ours; when XMind is installed its own declaration wins
+    /// for the extension, so `xmindTypes` also offers whatever the system maps it to.
+    nonisolated static let xmind = UTType(importedAs: "asia.xdev.mindmapai.xmind", conformingTo: .zip)
+
+    nonisolated static var xmindTypes: [UTType] {
+        let declared = UTType(filenameExtension: "xmind")
+        return [.xmind] + (declared.map { $0 == .xmind ? [] : [$0] } ?? [])
+    }
 }
 
 /// Behind an exported picture: the canvas colour of the current appearance,

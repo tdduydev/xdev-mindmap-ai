@@ -1,6 +1,7 @@
 import MindMapDomain
 import MindMapSearch
 import SwiftUI
+import TipKit
 
 /// One open map, as a canvas or an outline. Both show the same session, so
 /// switching keeps the selection (FR-CNV-12); the outline stays as the path
@@ -13,6 +14,7 @@ struct MapEditorView: View {
     @Bindable var voice: VoiceInput
     let dictation: ChatDictation
     @Environment(\.undoManager) private var undoManager
+    @AppStorage("onboarding.introductionFinished", store: AppDefaults.store) private var introductionFinished = false
     @State private var showsKeyboardShortcuts = false
     @Environment(FileTransfer.self) private var transfer: FileTransfer?
 
@@ -191,20 +193,28 @@ struct MapEditorView: View {
             .disabled(!session.canRedo)
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            Button(action: session.showFind) {
+            Button {
+                EditorTips.find.invalidate(reason: .actionPerformed)
+                session.showFind()
+            } label: {
                 Label("Find", systemImage: "magnifyingglass")
             }
             .accessibilityIdentifier(AccessibilityID.Editor.find)
+            .popoverTip(introductionFinished && !UITestMode.isActive ? EditorTips.find : nil)
             // The only way to the filter on iPhone, which has no menu bar.
             Button(action: session.toggleFilterBar) {
                 Label("Filter", systemImage: session.filter.isActive
                     ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
             }
             .help(session.isFilterBarShown ? Text("Hide Filter Bar") : Text("Show Filter Bar"))
-            Button(action: session.addChild) {
+            Button {
+                EditorTips.addTopic.invalidate(reason: .actionPerformed)
+                session.addChild()
+            } label: {
                 Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }
             .accessibilityIdentifier(AccessibilityID.Editor.addChild)
+            .popoverTip(introductionFinished && !UITestMode.isActive ? EditorTips.addTopic : nil)
             Button(action: session.addSibling) {
                 Label("Add Sibling Topic", systemImage: "plus")
             }
@@ -224,17 +234,20 @@ struct MapEditorView: View {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
                     .accessibilityIdentifier(AccessibilityID.Editor.ai)
+                    .popoverTip(introductionFinished && !UITestMode.isActive ? EditorTips.ai : nil)
             }
         }
         if chat.showsEntryPoints {
             ToolbarItem(placement: .primaryAction) {
                 Button {
+                    EditorTips.chat.invalidate(reason: .actionPerformed)
                     if chat.isPresented { chat.isPresented = false } else { chat.present() }
                 } label: {
                     Label("Ask About This Map", systemImage: "bubble.left.and.text.bubble.right")
                 }
                 .help(chat.isPresented ? Text("Hide Chat") : Text("Ask About This Map"))
                 .accessibilityIdentifier(AccessibilityID.Chat.toolbar)
+                .popoverTip(introductionFinished && !UITestMode.isActive ? EditorTips.chat : nil)
             }
         }
         if let transfer {

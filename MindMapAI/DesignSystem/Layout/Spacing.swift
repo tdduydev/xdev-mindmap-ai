@@ -24,6 +24,8 @@ enum Radius {
 
 /// Fixed control sizes.
 enum Metrics {
+    static let onboardingWidth: CGFloat = 440
+    static let onboardingHeight: CGFloat = 360
     /// Square frame of the outline's expand/collapse control.
     static let disclosureSize: CGFloat = 20
 

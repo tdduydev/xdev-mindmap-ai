@@ -9,12 +9,15 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
     case opml
     /// FreeMind and Freeplane (MM-102); both use `.mm`.
     case freeMind
+    /// XMind 8 and XMind 2020 and later (MM-103): a ZIP with one map per sheet.
+    case xmind
 
     /// Nil for an extension no importer reads.
     public init?(fileExtension: String) {
         switch fileExtension.lowercased() {
         case "opml": self = .opml
         case "mm": self = .freeMind
+        case "xmind": self = .xmind
         default: return nil
         }
     }
@@ -23,6 +26,7 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
         switch self {
         case .opml: "opml"
         case .freeMind: "mm"
+        case .xmind: "xmind"
         }
     }
 
@@ -45,6 +49,8 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
             let document = try FreeMindMap.parse(data)
             let map = try FreeMindMap.graph(from: document, title: fileName, now: now)
             return ForeignImport(maps: [map], imageData: [:], report: document.report)
+        case .xmind:
+            return try XMindMap.read(data, fileName: fileName, now: now)
         }
     }
 }
@@ -74,4 +80,7 @@ public enum ForeignImportError: Error, Hashable, Sendable {
     case damaged
     /// The file holds no topics.
     case emptyDocument
+    /// An archive (XMind) whose contents would expand beyond what the app
+    /// reads into memory, such as a zip bomb.
+    case tooLarge
 }
