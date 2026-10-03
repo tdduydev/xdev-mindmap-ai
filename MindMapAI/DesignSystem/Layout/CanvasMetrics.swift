@@ -50,7 +50,16 @@ enum CanvasMetrics {
 
     static let crossLinkWidth: CGFloat = 1.5
     static let crossLinkDash: [CGFloat] = [4, 3]
-    /// Arrowhead of a `reference` cross-link: side length and half-angle (radians).
+    static let crossLinkDot: [CGFloat] = [0.1, 3]
+    /// A connection drawn to a visible ancestor because an end is hidden.
+    static let reroutedCrossLinkOpacity: Double = 0.6
+    /// The connection label capsule wraps past this width.
+    static let connectionLabelMaxWidth: CGFloat = 160
+    static let connectionLabelPadding = CGSize(width: 6, height: 2)
+    /// The badge of connections hidden below a topic, on its top-leading corner.
+    static let connectionBadgeSymbol = "point.topleft.down.to.point.bottomright.curvepath"
+    static let connectionBadgePadding = CGSize(width: 5, height: 2)
+    /// Arrowhead of a connection: side length and half-angle (radians).
     static let crossLinkArrowLength: CGFloat = 8
     static let crossLinkArrowAngle: CGFloat = .pi / 7
     static let suggestionEdgeWidth: CGFloat = 1.5

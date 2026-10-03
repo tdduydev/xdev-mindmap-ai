@@ -156,6 +156,11 @@ struct MapCommands: Commands {
                 if let editor, let id = editor.selection { editor.removeLink(from: id) }
             }
             .disabled(editor?.selectionHasLink != true)
+            // ⌘L as in MindNode (product owner, 2026-10-02); with two topics
+            // selected it connects them without the picker.
+            Button("Add Connection…") { editor?.beginAddingConnection() }
+                .keyboardShortcut("l")
+                .disabled(editor?.canAddConnection != true)
             Button(editor?.selectedImage == nil ? "Add Image…" : "Replace Image…") {
                 editor?.imagePickerTarget = editor?.selection
             }
@@ -254,6 +259,7 @@ struct MapCommands: Commands {
                 }
             }
             .disabled(editor?.selectedImage == nil)
+            ConnectionFormatMenu(editor: editor, canvas: canvas)
         }
 
         // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.

@@ -38,19 +38,31 @@ public enum InterchangeFormat: String, Hashable, Sendable, CaseIterable {
     }
 
     /// The map, or one branch, in this format. Notes are left out when
-    /// `includeNotes` is false.
-    public func export(_ state: GraphState, branch branchID: NodeID? = nil, includeNotes: Bool = true) throws -> String {
+    /// `includeNotes` is false. Markdown ends with the connections under
+    /// `connectionsTitle` when it is set; plain text has no place for them.
+    public func export(
+        _ state: GraphState,
+        branch branchID: NodeID? = nil,
+        includeNotes: Bool = true,
+        connectionsTitle: String? = nil
+    ) throws -> String {
         switch self {
         case .markdown:
-            try MarkdownOutline.export(state, branch: branchID, options: .init(includeNotes: includeNotes))
+            try MarkdownOutline.export(state, branch: branchID, options: .init(
+                includeNotes: includeNotes, connectionsTitle: connectionsTitle))
         case .plainText:
             try PlainTextOutline.export(state, branch: branchID, includeNotes: includeNotes)
         }
     }
 
     @concurrent
-    public func exportData(_ state: GraphState, branch branchID: NodeID? = nil, includeNotes: Bool = true) async throws -> Data {
-        Data(try export(state, branch: branchID, includeNotes: includeNotes).utf8)
+    public func exportData(
+        _ state: GraphState,
+        branch branchID: NodeID? = nil,
+        includeNotes: Bool = true,
+        connectionsTitle: String? = nil
+    ) async throws -> Data {
+        Data(try export(state, branch: branchID, includeNotes: includeNotes, connectionsTitle: connectionsTitle).utf8)
     }
 }
 

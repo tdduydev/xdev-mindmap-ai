@@ -33,6 +33,8 @@ final class CanvasModel {
     private(set) var editingID: NodeID? {
         didSet { reportKeyboardFocus() }
     }
+    /// The connection whose label is being edited in place (double-click).
+    var editingConnectionLabel: EdgeID?
     /// Whether the canvas itself holds keyboard focus. Set by the view.
     var hasKeyboardFocus = false {
         didSet { reportKeyboardFocus() }
@@ -350,6 +352,10 @@ final class CanvasModel {
     func tap(at viewPoint: CGPoint) {
         if let topic = topic(at: viewPoint) {
             select(topic.id)
+        } else if let connection = connection(at: viewPoint) {
+            commitEditing()
+            session.selectConnection(connection)
+            assistant?.selectedSuggestion = nil
         } else {
             commitEditing()
             session.selection = nil
@@ -361,6 +367,12 @@ final class CanvasModel {
     /// topic centred there and opens its title (FR-ORG-27).
     func doubleTap(at viewPoint: CGPoint) {
         if let topic = topic(at: viewPoint) { return beginEditing(topic.id) }
+        if let connection = connection(at: viewPoint) {
+            commitEditing()
+            session.selectConnection(connection)
+            editingConnectionLabel = connection
+            return
+        }
         guard session.canAddFloatingTopic, let position = position(at: viewport.toCanvas(viewPoint)) else { return }
         commitEditing()
         session.addFloatingTopic(at: position)
@@ -403,6 +415,17 @@ final class CanvasModel {
     }
 
     /// The topic drawn under a view point; the last drawn wins, as on screen.
+    /// Hit width `Metrics.minimumHitTarget` on screen, whatever the zoom.
+    func connection(at viewPoint: CGPoint) -> EdgeID? {
+        let tolerance = Metrics.minimumHitTarget / 2 / max(viewport.scale, .ulpOfOne)
+        return scene.connection(at: viewport.toCanvas(viewPoint), tolerance: tolerance)
+    }
+
+    /// Where a connection's label field goes, in view points.
+    func connectionLabelAnchor(_ id: EdgeID) -> CGPoint? {
+        scene.crossLinkPath(id).map { viewport.toView($0.midpoint) }
+    }
+
     func topic(at viewPoint: CGPoint) -> CanvasTopic? {
         let point = viewport.toCanvas(viewPoint)
         return scene.topics(in: CGRect(origin: point, size: .zero).insetBy(dx: -1, dy: -1)).last { $0.frame.contains(point) }
@@ -588,6 +611,14 @@ final class CanvasModel {
     func editNote(_ id: NodeID) {
         select(id)
         session.editSelectionNote()
+    }
+
+    /// Always the picker: the context menu and VoiceOver name one topic, so a
+    /// second selected topic must not become the target unasked.
+    func addConnection(from id: NodeID) {
+        commitEditing()
+        session.selection = id
+        session.beginAddingConnection()
     }
 
     func editLink(_ id: NodeID) {

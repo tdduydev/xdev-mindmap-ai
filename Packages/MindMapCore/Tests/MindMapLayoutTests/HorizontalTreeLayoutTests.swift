@@ -202,25 +202,74 @@ struct HorizontalTreeLayoutTests {
         #expect(engine.layout(shuffled, sizes: sizes, options: options) == first)
     }
 
-    @Test func crossLinksJoinVisibleTopicsOnly() throws {
+    @Test func crossLinksBetweenVisibleTopicsAreNotRerouted() throws {
         var fixture = LayoutFixture("""
         Root
           A
-            A1
           B
         """)
         fixture.link("A", "B")
-        fixture.link("A1", "B")
-        fixture.collapse("A")
         let layout = engine.layout(fixture.state, sizes: [:], options: options)
 
-        #expect(layout.crossLinks.count == 1)
         let path = try #require(layout.crossLinks[fixture.edges[0].id])
         let a = layout.frame(fixture["A"])
         let b = layout.frame(fixture["B"])
         // A is on the right and B on the left, so the link leaves A's left edge.
         #expect(path.start == CGPoint(x: a.minX, y: a.midY))
         #expect(path.end == CGPoint(x: b.maxX, y: b.midY))
+        #expect(layout.reroutedCrossLinks.isEmpty)
+        #expect(layout.hiddenCrossLinkCounts.isEmpty)
+    }
+
+    @Test func aHiddenEndIsDrawnToItsVisibleAncestorWithABadge() throws {
+        var fixture = LayoutFixture("""
+        Root
+          A
+            A1
+              A11
+          B
+        """)
+        fixture.link("A11", "B")
+        fixture.link("B", "A1")
+        fixture.collapse("A")
+        let layout = engine.layout(fixture.state, sizes: [:], options: options)
+
+        #expect(layout.crossLinks.count == 2)
+        let path = try #require(layout.crossLinks[fixture.edges[0].id])
+        let a = layout.frame(fixture["A"])
+        #expect(path.start == CGPoint(x: a.minX, y: a.midY))
+        #expect(layout.reroutedCrossLinks == Set(fixture.edges.map(\.id)))
+        #expect(layout.hiddenCrossLinkCounts == [fixture["A"]: 2])
+    }
+
+    @Test func bothEndsUnderOneTopicAreCountedOnceAndNotDrawn() throws {
+        var fixture = LayoutFixture("""
+        Root
+          A
+            A1
+            A2
+          B
+        """)
+        fixture.link("A1", "A2")
+        fixture.collapse("A")
+        let layout = engine.layout(fixture.state, sizes: [:], options: options)
+
+        #expect(layout.crossLinks.isEmpty)
+        #expect(layout.hiddenCrossLinkCounts == [fixture["A"]: 1])
+    }
+
+    @Test func aLinkFromACollapsedTopicIntoItsOwnBranchIsCounted() throws {
+        var fixture = LayoutFixture("""
+        Root
+          A
+            A1
+        """)
+        fixture.link("A", "A1")
+        fixture.collapse("A")
+        let layout = engine.layout(fixture.state, sizes: [:], options: options)
+
+        #expect(layout.crossLinks.isEmpty)
+        #expect(layout.hiddenCrossLinkCounts == [fixture["A"]: 1])
     }
 
     @Test func styleNamesItsEngine() {

@@ -45,6 +45,8 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     var isOverdue = false
     /// Done over total for the leaf tasks below, computed for this scene only.
     var progress: TaskProgress?
+    /// "Connection to Budget, label: depends on", for VoiceOver.
+    var connectionDescriptions: [String] = []
 }
 
 /// One chip under a topic's title (MM-34).
@@ -122,6 +124,29 @@ nonisolated struct TopicChip: Identifiable, Hashable, Sendable {
     }
 }
 
+/// How one connection is drawn, with the V1 look filled in for unset fields.
+nonisolated struct ConnectionLook: Hashable, Sendable {
+    let lineStyle: EdgeLineStyle
+    let arrowHeads: EdgeArrowHeads
+    /// Nil is `Palette.crossLink`.
+    let color: TopicColor?
+    let label: String?
+    /// Drawn to a visible ancestor because an end is hidden; dimmed.
+    let isRerouted: Bool
+
+    init(_ edge: MindEdge, isRerouted: Bool = false) {
+        // V1 drew every link dashed, with an arrow only for a reference.
+        lineStyle = edge.lineStyle ?? .dashed
+        arrowHeads = edge.arrowHeads ?? (edge.edgeType == .reference ? .end : .none)
+        color = edge.color
+        label = edge.label
+        self.isRerouted = isRerouted
+    }
+
+    var hasEndArrow: Bool { arrowHeads == .end || arrowHeads == .both }
+    var hasStartArrow: Bool { arrowHeads == .start || arrowHeads == .both }
+}
+
 /// Everything the canvas draws for one state of the map: the layout and the
 /// visible topics in reading order. Built off the main actor; culling queries
 /// it every frame.
@@ -139,17 +164,17 @@ nonisolated struct CanvasScene: Sendable {
     /// VoiceOver and rotor order.
     private(set) var topics: [CanvasTopic]
     private var index: [NodeID: Int]
-    private(set) var crossLinkTypes: [EdgeID: EdgeType]
+    private(set) var crossLinkLooks: [EdgeID: ConnectionLook]
     /// Hierarchy connectors, keyed by the child they lead to.
     private let connectorCurves: [Curve<NodeID>]
     private let crossLinkCurves: [Curve<EdgeID>]
 
-    static let empty = CanvasScene(layout: nil, topics: [], crossLinkTypes: [:])
+    static let empty = CanvasScene(layout: nil, topics: [], crossLinkLooks: [:])
 
-    init(layout: MapLayout?, topics: [CanvasTopic], crossLinkTypes: [EdgeID: EdgeType]) {
+    init(layout: MapLayout?, topics: [CanvasTopic], crossLinkLooks: [EdgeID: ConnectionLook]) {
         self.layout = layout
         self.topics = topics
-        self.crossLinkTypes = crossLinkTypes
+        self.crossLinkLooks = crossLinkLooks
         var index: [NodeID: Int] = [:]
         index.reserveCapacity(topics.count)
         for (position, topic) in topics.enumerated() { index[topic.id] = position }
@@ -182,9 +207,16 @@ nonisolated struct CanvasScene: Sendable {
         connectorCurves.compactMap { $0.bounds.intersects(rect) ? ($0.id, $0.path) : nil }
     }
 
+    func crossLinkPath(_ id: EdgeID) -> EdgePath? {
+        layout?.crossLinks[id]
+    }
+
     func crossLinks(in rect: CGRect) -> [(id: EdgeID, path: EdgePath)] {
         crossLinkCurves.compactMap { $0.bounds.intersects(rect) ? ($0.id, $0.path) : nil }
     }
+
+    /// Visible topics standing in for connections whose ends they hide, with the count.
+    var connectionBadges: [NodeID: Int] { layout?.hiddenCrossLinkCounts ?? [:] }
 
     /// The central topic and its children, which the iPhone fits to the width at first.
     var firstLevelBounds: CGRect {
@@ -343,6 +375,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
     ) -> CanvasScene {
         var topics: [CanvasTopic] = []
         let images = graph.imagesByNode()
+        let connections = connectionDescriptions(in: graph)
         topics.reserveCapacity(outline.count)
         var branch = -1
         for item in outline {
@@ -372,12 +405,28 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 priority: node.priority,
                 dueDate: node.dueDate,
                 isOverdue: CalendarDay.isOverdue(node.dueDate, state: node.taskState, today: today),
-                progress: progress[node.id]
+                progress: progress[node.id],
+                connectionDescriptions: connections[node.id] ?? []
             ))
         }
-        let types = layout.crossLinks.keys.reduce(into: [EdgeID: EdgeType]()) { types, id in
-            types[id] = graph.edges[id]?.edgeType
+        let looks = layout.crossLinks.keys.reduce(into: [EdgeID: ConnectionLook]()) { looks, id in
+            guard let edge = graph.edges[id] else { return }
+            looks[id] = ConnectionLook(edge, isRerouted: layout.reroutedCrossLinks.contains(id))
         }
-        return CanvasScene(layout: layout, topics: topics, crossLinkTypes: types)
+        return CanvasScene(layout: layout, topics: topics, crossLinkLooks: looks)
+    }
+
+    /// One pass over the edges rather than a scan per topic.
+    private static func connectionDescriptions(in graph: GraphState) -> [NodeID: [String]] {
+        var result: [NodeID: [String]] = [:]
+        let edges = graph.edges.values.sorted { $0.createdAt < $1.createdAt }
+        for edge in edges {
+            guard let source = graph.node(edge.sourceNodeID), let target = graph.node(edge.targetNodeID) else { continue }
+            result[source.id, default: []].append(ConnectionSummary.spokenDescription(
+                isOutgoing: true, otherTitle: target.title, label: edge.label))
+            result[target.id, default: []].append(ConnectionSummary.spokenDescription(
+                isOutgoing: false, otherTitle: source.title, label: edge.label))
+        }
+        return result
     }
 }

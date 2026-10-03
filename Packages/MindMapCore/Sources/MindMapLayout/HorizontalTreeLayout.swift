@@ -128,7 +128,7 @@ private struct LayoutPass {
             placeFloating(id)
         }
         removeOrphans()
-        result.crossLinks = crossLinks()
+        crossLinks()
         result.bounds = bounds()
         return result
     }
@@ -418,18 +418,45 @@ private struct LayoutPass {
 
     /// Recomputed on every pass: a map has few cross-links, and an edge edit
     /// changes no topic, so it would not show up in `changed`.
-    private func crossLinks() -> [EdgeID: EdgePath] {
+    private mutating func crossLinks() {
         var paths: [EdgeID: EdgePath] = [:]
+        var rerouted: Set<EdgeID> = []
+        var counts: [NodeID: Int] = [:]
         for edge in graph.edges.values where edge.sourceNodeID != edge.targetNodeID {
-            guard let source = result.nodes[edge.sourceNodeID]?.frame,
-                  let target = result.nodes[edge.targetNodeID]?.frame else { continue }
+            // Hiding a connection inside a collapsed branch would lose it from
+            // view entirely; its visible ancestor stands in for it.
+            guard let sourceID = visibleStandIn(for: edge.sourceNodeID),
+                  let targetID = visibleStandIn(for: edge.targetNodeID) else { continue }
+            var badged: Set<NodeID> = []
+            if sourceID != edge.sourceNodeID { badged.insert(sourceID) }
+            if targetID != edge.targetNodeID { badged.insert(targetID) }
+            for id in badged { counts[id, default: 0] += 1 }
+            guard sourceID != targetID,
+                  let source = result.nodes[sourceID]?.frame,
+                  let target = result.nodes[targetID]?.frame else { continue }
+            if sourceID != edge.sourceNodeID || targetID != edge.targetNodeID { rerouted.insert(edge.id) }
             let forward = target.midX >= source.midX
             paths[edge.id] = .horizontal(
                 from: CGPoint(x: forward ? source.maxX : source.minX, y: source.midY),
                 to: CGPoint(x: forward ? target.minX : target.maxX, y: target.midY)
             )
         }
-        return paths
+        result.crossLinks = paths
+        result.reroutedCrossLinks = rerouted
+        result.hiddenCrossLinkCounts = counts
+    }
+
+    /// The topic itself when laid out, else its nearest laid-out ancestor;
+    /// nil for a topic outside the tree (an orphan still syncing).
+    private func visibleStandIn(for id: NodeID) -> NodeID? {
+        var current: NodeID? = id
+        var steps = 0
+        while let nodeID = current, steps <= graph.nodes.count {
+            if result.nodes[nodeID] != nil { return nodeID }
+            current = graph.node(nodeID)?.parentID
+            steps += 1
+        }
+        return nil
     }
 
     private func bounds() -> CGRect {

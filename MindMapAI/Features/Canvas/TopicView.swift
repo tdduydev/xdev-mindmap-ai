@@ -353,6 +353,7 @@ struct TopicContextMenu: View {
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         TopicLinkMenuItems(topic: topic, model: model)
+        Button("Add Connection…") { model.addConnection(from: topic.id) }
         TopicCalloutMenuItems(topic: topic, model: model)
         Button(topic.topicImage == nil ? "Add Image…" : "Replace Image…") {
             model.session.imagePickerTarget = topic.id
@@ -544,6 +545,7 @@ struct TopicAccessibility: ViewModifier {
             .modifier(TagCustomContent(names: topic.tagNames))
             .modifier(TaskDateCustomContent(due: topic.dueDate))
             .modifier(TopicLinkAccessibility(link: topic.isSuggestion ? nil : topic.link))
+            .modifier(ConnectionAccessibility(descriptions: topic.connectionDescriptions))
             .modifier(TopicImageAccessibility(image: topic.topicImage))
             .modifier(TopicCalloutAccessibility(topicID: topic.id, callout: topic.callout, isSuggestion: topic.isSuggestion, model: model))
     }
@@ -580,6 +582,7 @@ struct TopicAccessibility: ViewModifier {
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         Button(topic.link == nil ? "Add Link…" : "Edit Link…") { model.editLink(topic.id) }
+        Button("Add Connection…") { model.addConnection(from: topic.id) }
         Button("Add Tag…") { model.addTag(to: topic.id) }
         Button(topic.taskState == nil ? "Make Task" : "Remove Task") { model.session.toggleTask(topic.id) }
         if topic.taskState != nil {
