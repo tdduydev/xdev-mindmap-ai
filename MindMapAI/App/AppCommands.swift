@@ -208,6 +208,16 @@ struct MapCommands: Commands {
         }
 
         CommandMenu("Format") {
+            if let editor {
+                TopicColorMenu(title: "Topic Color", session: editor)
+                TopicSymbolMenu(title: "Topic Symbol", session: editor)
+            } else {
+                Menu("Topic Color") {}
+                    .disabled(true)
+                Menu("Topic Symbol") {}
+                    .disabled(true)
+            }
+            Divider()
             Menu("Image Size") {
                 Button("Small") {
                     if let editor, let image = editor.selectedImage {

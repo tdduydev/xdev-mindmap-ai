@@ -32,6 +32,9 @@ struct MapInspectorView: View {
                         }
                     }
                 }
+                Section("Style") {
+                    TopicStyleInspector(session: session)
+                }
                 Section {
                     TagField(session: session)
                 } header: {

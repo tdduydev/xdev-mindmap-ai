@@ -34,6 +34,13 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     var chips: [TopicChip] = []
     /// Every tag name, for VoiceOver, including those past "+n".
     var tagNames: [String] = []
+    /// The colour the card is drawn in: the topic's own, else the nearest
+    /// ancestor's (FR-ORG-01); nil follows the theme's branch colour.
+    var color: TopicColor?
+    /// The topic's own colour, for VoiceOver and the outline.
+    var ownColor: TopicColor?
+    /// The colour shape and symbol before the title, measured with it.
+    var marks: TopicMark = .none
 }
 
 /// One chip under a topic's title (MM-34).
@@ -163,6 +170,8 @@ nonisolated struct TopicMeasure: Equatable, Sendable {
     var chipLabels: [String] = []
     /// The picture's frame, nil without one; a resize measures the topic again.
     var imageSize: CGSize?
+    /// The shape and symbol before the title.
+    var marks: TopicMark = .none
     let size: CGSize
     /// The chips with their measured widths.
     var chips: [TopicChip] = []
@@ -205,14 +214,18 @@ nonisolated struct CanvasLayoutPass: Sendable {
 
         let tags = graph.tagsByNode()
         let images = graph.imagesByNode()
+        let colors = Self.colors(outline: outline, graph: graph)
         var chips: [NodeID: [TopicChip]] = [:]
+        var marks: [NodeID: TopicMark] = [:]
         for item in outline {
             guard let node = graph.node(item.nodeID) else { continue }
             var topicChips = TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
             let labels = topicChips.map(\.label)
             let imageSize = images[item.nodeID].map { measurer.imageSize(of: $0, level: item.depth) }
+            let topicMarks = specs.mark(color: colors[item.nodeID]?.own, symbol: node.symbol)
+            marks[item.nodeID] = topicMarks
             if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth, known.chipLabels == labels,
-               known.imageSize == imageSize {
+               known.imageSize == imageSize, known.marks == topicMarks {
                 sizes[item.nodeID] = known.size
                 // The kinds can change under the same labels (a tag renamed to another's name).
                 chips[item.nodeID] = zip(topicChips, known.chips).map { chip, measured in
@@ -224,10 +237,11 @@ nonisolated struct CanvasLayoutPass: Sendable {
             }
             // A move changes the level of a whole branch, and the level picks the
             // font, so a topic the change set never named can still change size.
-            let size = measurer.size(of: node.title, level: item.depth, chips: &topicChips, image: imageSize)
+            let size = measurer.size(of: node.title, level: item.depth, chips: &topicChips, image: imageSize, marks: topicMarks)
             if measures[item.nodeID]?.size != size { changed.insert(item.nodeID) }
             measures[item.nodeID] = TopicMeasure(
-                title: node.title, level: item.depth, chipLabels: labels, imageSize: imageSize, size: size, chips: topicChips
+                title: node.title, level: item.depth, chipLabels: labels, imageSize: imageSize, marks: topicMarks,
+                size: size, chips: topicChips
             )
             sizes[item.nodeID] = size
             chips[item.nodeID] = topicChips
@@ -243,8 +257,33 @@ nonisolated struct CanvasLayoutPass: Sendable {
         } else {
             engine.layout(graph, sizes: sizes, options: options)
         }
-        let scene = Self.scene(outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags)
+        let scene = Self.scene(
+            outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags,
+            colors: colors, marks: marks
+        )
         return Output(scene: scene, measures: measures)
+    }
+
+    /// Each visible topic's own colour and the one it is drawn in. A colour
+    /// flows down the branch until a topic sets its own, as the level-1
+    /// branch colour does. The central topic keeps its navy card and passes
+    /// nothing down, and a token this build does not know counts as none.
+    static func colors(outline: [OutlineItem], graph: GraphState) -> [NodeID: (own: TopicColor?, drawn: TopicColor?)] {
+        var result: [NodeID: (own: TopicColor?, drawn: TopicColor?)] = [:]
+        result.reserveCapacity(outline.count)
+        // Pre-order, so the last colour seen at each depth is the one of the
+        // current topic's ancestor there.
+        var inherited: [TopicColor?] = []
+        for item in outline {
+            guard let node = graph.node(item.nodeID) else { continue }
+            let own = item.depth > 0 ? node.color.flatMap { $0.isKnown ? $0 : nil } : nil
+            let parent = item.depth > 0 && item.depth <= inherited.count ? inherited[item.depth - 1] : nil
+            let drawn = own ?? parent
+            if inherited.count > item.depth { inherited.removeSubrange(item.depth...) }
+            inherited.append(drawn)
+            result[item.nodeID] = (own, drawn)
+        }
+        return result
     }
 
     private static func scene(
@@ -253,7 +292,9 @@ nonisolated struct CanvasLayoutPass: Sendable {
         layout: MapLayout,
         suggestions: Set<NodeID>,
         chips: [NodeID: [TopicChip]],
-        tags: [NodeID: [MindTag]]
+        tags: [NodeID: [MindTag]],
+        colors: [NodeID: (own: TopicColor?, drawn: TopicColor?)],
+        marks: [NodeID: TopicMark]
     ) -> CanvasScene {
         var topics: [CanvasTopic] = []
         let images = graph.imagesByNode()
@@ -279,7 +320,10 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 link: node.link?.url == nil ? nil : node.link,
                 topicImage: images[node.id],
                 chips: chips[node.id] ?? [],
-                tagNames: tags[node.id]?.map(\.name) ?? []
+                tagNames: tags[node.id]?.map(\.name) ?? [],
+                color: colors[node.id]?.drawn,
+                ownColor: colors[node.id]?.own,
+                marks: marks[node.id] ?? .none
             ))
         }
         let types = layout.crossLinks.keys.reduce(into: [EdgeID: EdgeType]()) { types, id in

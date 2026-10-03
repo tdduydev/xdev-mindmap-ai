@@ -29,8 +29,11 @@ struct MapPicture {
     var size: CGSize { frame.size }
 
     /// Measures and lays out off the main actor, like a canvas pass.
+    ///
+    /// Coloured topics always carry their colour's shape: the file is for
+    /// other people, who may need it whatever this device's settings are.
     static func make(_ graph: GraphState, imageData: [ImageID: Data] = [:]) async -> MapPicture {
-        let specs = TopicTextSpecs.designSizes()
+        let specs = TopicTextSpecs.designSizes(showsColorShapes: true)
         let pass = CanvasLayoutPass(
             graph: graph,
             previous: nil,
@@ -140,6 +143,7 @@ struct MapPictureView: View {
                     style: styles.style(for: topic),
                     spec: picture.specs.spec(level: topic.level),
                     chipSpec: picture.specs.chip,
+                    markSpec: picture.specs.mark,
                     imageData: topic.topicImage.flatMap { picture.imageData[$0.id] },
                     variant: ColorVariant(colorScheme: colorScheme, contrast: .standard)
                 )
@@ -157,6 +161,7 @@ private struct StaticTopicCard: View {
     let style: TopicStyle
     let spec: TopicTextSpec
     let chipSpec: TopicChipSpec
+    let markSpec: TopicMarkSpec
     let imageData: Data?
     let variant: ColorVariant
 
@@ -172,13 +177,20 @@ private struct StaticTopicCard: View {
                     TopicImageView(image: image, level: topic.level, spec: spec, data: imageData)
                 }
                 TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
-                    TopicTitleText(
-                        title: topic.title,
-                        spec: spec,
-                        color: style.textColor.color,
-                        placeholderColor: style.secondaryTextColor.color,
-                        width: max(topic.frame.width - 2 * spec.horizontalPadding, 0)
-                    )
+                    TopicTitleRow(
+                        marks: topic.marks, markSpec: markSpec, spec: spec,
+                        width: max(topic.frame.width - 2 * spec.horizontalPadding, 0),
+                        textColor: style.textColor.color, shapeColor: style.edgeColor.color
+                    ) { width, hugsText in
+                        TopicTitleText(
+                            title: topic.title,
+                            spec: spec,
+                            color: style.textColor.color,
+                            placeholderColor: style.secondaryTextColor.color,
+                            width: width,
+                            hugsText: hugsText
+                        )
+                    }
                 } chip: { chip in
                     TopicChipLabel(chip: chip, spec: chipSpec, variant: variant)
                 }
@@ -214,6 +226,7 @@ private final class TopicStyleCache {
     private struct Key: Hashable {
         let level: Int
         let branch: Int
+        let color: TopicColor?
     }
 
     init(theme: MapTheme, colorScheme: ColorScheme) {
@@ -223,9 +236,11 @@ private final class TopicStyleCache {
 
     func style(for topic: CanvasTopic) -> TopicStyle {
         // Levels past 3 look like level 3, as on the canvas.
-        let key = Key(level: min(topic.level, 3), branch: topic.branch)
+        let key = Key(level: min(topic.level, 3), branch: topic.branch, color: topic.color)
         if let style = styles[key] { return style }
-        let style = TopicStyle.resolve(level: key.level, branch: key.branch, theme: theme, colorScheme: colorScheme, contrast: .standard)
+        let style = TopicStyle.resolve(
+            level: key.level, branch: key.branch, color: key.color, theme: theme, colorScheme: colorScheme, contrast: .standard
+        )
         styles[key] = style
         return style
     }

@@ -72,6 +72,7 @@ struct MapEditorView: View {
         }
         .modifier(AttachFloatingTopicSheetPresenter(session: session))
         .modifier(TopicImagePicker(session: session))
+        .modifier(TopicSymbolPickerPresenter(session: session))
         .sheet(isPresented: $session.isManagingTags) {
             TagManagerView(session: session)
         }
