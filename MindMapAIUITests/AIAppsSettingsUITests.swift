@@ -31,9 +31,8 @@ final class AIAppsSettingsUITests: XCTestCase {
         waitForStatus("Off", of: status, "the port did not close")
     }
 
-    /// On macOS 27, once the status changes, the element with the identifier
-    /// keeps its first value and the new text is a static text inside it, so
-    /// the innermost text is what the window shows.
+    /// The identified element itself must say the current status: VoiceOver
+    /// reads it, not a text inside it (MM-89).
     @MainActor
     private func waitForStatus(
         _ text: String,
@@ -42,10 +41,7 @@ final class AIAppsSettingsUITests: XCTestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        let shown = NSPredicate { _, _ in
-            let inner = status.staticTexts.firstMatch
-            return (inner.exists ? inner.shownText : status.shownText) == text
-        }
+        let shown = NSPredicate { _, _ in status.exists && status.shownText == text }
         let result = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: nil)], timeout: MindMapApp.timeout)
         XCTAssertEqual(result, .completed, "status is not \(text). \(message)", file: file, line: line)
     }

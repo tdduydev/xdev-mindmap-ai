@@ -37,6 +37,16 @@ struct OutlineEditorView: View {
             }
         }
         .focused($isListFocused)
+        #if os(macOS)
+        // The table takes Return first; with a row selected and no field
+        // editing, it opens that row's title, as Finder does (MM-89).
+        .onKeyPress(.return) {
+            guard focusedNode == nil, let selection = session.selection,
+                  session.rows.contains(where: { $0.id == selection }) else { return .ignored }
+            focusedNode = selection
+            return .handled
+        }
+        #endif
         .accessibilityIdentifier(AccessibilityID.Outline.list)
         .overlay {
             if session.rows.isEmpty {
@@ -54,6 +64,15 @@ struct OutlineEditorView: View {
             focusedNode = request
             session.focusRequest = nil
         }
+        #if os(macOS)
+        // The table spends the first click on a row selecting it and never
+        // hands it to the field, so the title had no keyboard focus until a
+        // second click (MM-89). A click edits at once; arrow keys only select.
+        .onChange(of: session.selection) { _, selection in
+            guard let selection, focusedNode != selection, NSApp.currentEvent?.isMouseClick == true else { return }
+            focusedNode = selection
+        }
+        #endif
         .onChange(of: focusedNode) { _, node in
             if let node { session.selection = node }
             reportKeyboardFocus()
@@ -88,6 +107,12 @@ struct OutlineEditorView: View {
         session.reportKeyboardFocus(focus, from: .outline)
     }
 }
+
+#if os(macOS)
+private extension NSEvent {
+    var isMouseClick: Bool { type == .leftMouseDown || type == .leftMouseUp }
+}
+#endif
 
 struct OutlineRow: View {
     let row: EditorSession.Row
