@@ -189,6 +189,8 @@ struct ImportSummary: Identifiable, Equatable {
             String(localized: "\(entry.count) images couldn’t be imported.")
         case .attachment:
             String(localized: "\(entry.count) attached files couldn’t be imported.")
+        case .icon:
+            String(localized: "\(entry.count) icons couldn’t be imported.")
         }
     }
 }
