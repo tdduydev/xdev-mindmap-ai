@@ -133,6 +133,10 @@ ImportReport.Loss                                      // includedOutline, image
 - **Built through the engine.** `XMindMap.graph` plans every step on a scratch `GraphTransaction` and keeps only those that hold, so one odd bracket costs that bracket, not the map; the kept steps then run through `GraphEngine` as one `BatchCommand`, and the validator checks the result like any edit. Every topic has `origin = .imported`. Tags are put on in one command per tag, since one per topic would scan every tag link each time.
 - **In the app.** `.xmind` gets an imported type `asia.xdev.mindmapai.xmind` conforming to `public.zip-archive` (both Info.plists, `UTType.xmind`). When XMind is installed its own declaration owns the extension, so `UTType.xmindTypes` also offers whatever type the system maps `.xmind` to, or the open panel would grey the file out. Import is free; there is no XMind export.
 
+## Map links (MM-113)
+
+`MapLinkCodec` writes a map, or one branch, into `https://xdev.asia/mindmap/m#1.<data>` and reads it back as a new `GraphState` (format, limits and safety checks in [app-clip](app-clip.md#link-format), ADR 0012). Encoding and reading run off the main actor (`share`, `map(from:)` are `@concurrent`). A link keeps the tree, titles, notes, URL links (`TopicLink.normalized`, others dropped) and the AI label; floating topics, images, tags, connections and styles stay out. A reader refuses with `MapLinkError`: `notAMapLink`, `damaged` (cut short), `newerVersion`, `tooLarge` (over 1 MB inflated, 2,000 topics or 100 levels; the encoder refuses the same so it never makes a link the reader rejects). Tests read a golden link written by Python's zlib, and `docs/web/mindmap/m/decode.test.mjs` (`node --test`) checks the web page's reader against the same link.
+
 ## Not here
 
 - Clipboard paste of several lines (MM-5) can reuse `PlainTextOutline.parse` and `InsertOutlineCommand`.

@@ -9,6 +9,7 @@ Every sentence must describe the app as shipped. Change this page, [privacy](../
 - iCloud sync: on from version 1.1 (MM-100). The iCloud section says sync is on while you are signed in to iCloud and how to turn it off; check it again after the account-change test in [cloudkit-sync](../cloudkit-sync.md), *Testing on real devices*, before 1.1 is released.
 - Voice input ships (MM-20): same for the voice section; it must stay on the device.
 - AI Apps (MCP, MM-46): the "AI apps you connect" section must match Settings ▸ AI Apps; change it when AI apps can write (M5) or when anything but loopback is served.
+- Map links (MM-113): the "Map links" paragraph must match what Share Link puts in a link and what the page at xdev.asia/mindmap/m does (docs/web/mindmap/m).
 - Analytics, crash reporting, cloud AI or any network call to xDev is added: rewrite the page before the build ships.
 
 Do not add claims the app does not make good on. Dates are the publish date of the wording.
@@ -32,6 +33,8 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 **Voice input.** When voice input is available, speech is turned into text on your device and is not sent to xDev. The app asks for microphone and speech recognition access the first time you use it.
 
 **AI apps you connect (Mac).** You can let AI apps on your Mac, such as Claude Code or ChatGPT, read your maps in MindMap AI ▸ Settings ▸ AI Apps. It is off until you turn it on, and each app needs a token you add there. A connected app can read the titles, notes and structure of your maps while MindMap AI is open, and may send what it reads to its own AI provider under that app's terms and privacy policy; check those before you connect it. MindMap AI does not send this data to xDev. Turn the switch off to stop every app, or revoke one app in the same place.
+
+**Map links.** Share Link turns a map, or one branch of it, into a link with the map inside it. The map is in the part of the link after `#`, which browsers do not send to any server, so xDev never receives it, not even when the link opens our web page; the page draws the map in your browser. The link goes only where you send it, and anyone who has it can read the map, as the app says before you share. Opening a link in the app adds a new map and changes nothing else.
 
 **Purchases.** Payments are handled by Apple through the App Store. xDev does not receive your payment details.
 
@@ -64,6 +67,8 @@ MindMap AI được làm để sơ đồ của bạn luôn là của bạn. Chí
 **Nhập bằng giọng nói.** Khi ứng dụng có nhập bằng giọng nói, lời nói được chuyển thành chữ trên thiết bị và không gửi tới xDev. Ứng dụng xin quyền micro và nhận dạng giọng nói ở lần đầu bạn dùng.
 
 **Ứng dụng AI bạn kết nối (Mac).** Bạn có thể cho các ứng dụng AI trên Mac, như Claude Code hay ChatGPT, đọc sơ đồ trong MindMap AI ▸ Cài đặt ▸ Ứng dụng AI. Tính năng tắt cho tới khi bạn bật, và mỗi ứng dụng cần một mã truy cập bạn thêm ở đó. Ứng dụng đã kết nối đọc được tiêu đề, ghi chú và cấu trúc sơ đồ khi MindMap AI đang mở, và có thể gửi nội dung đó tới nhà cung cấp AI của họ theo điều khoản và chính sách quyền riêng tư của ứng dụng đó; hãy xem các điều đó trước khi kết nối. MindMap AI không gửi dữ liệu này tới xDev. Tắt công tắc để dừng mọi ứng dụng, hoặc thu hồi từng ứng dụng ở cùng chỗ.
+
+**Liên kết sơ đồ.** Chia sẻ liên kết biến một sơ đồ, hoặc một nhánh của nó, thành một liên kết chứa chính sơ đồ đó. Sơ đồ nằm ở phần sau dấu `#` của liên kết, phần mà trình duyệt không gửi tới máy chủ nào, nên xDev không bao giờ nhận được sơ đồ, kể cả khi liên kết mở trang web của chúng tôi; trang đó vẽ sơ đồ ngay trong trình duyệt của bạn. Liên kết chỉ đi tới nơi bạn gửi, và ai có liên kết đều đọc được sơ đồ, như ứng dụng nói trước khi bạn chia sẻ. Mở liên kết trong ứng dụng sẽ thêm một sơ đồ mới và không thay đổi gì khác.
 
 **Mua hàng.** Việc thanh toán do Apple xử lý qua App Store. xDev không nhận thông tin thanh toán của bạn.
 

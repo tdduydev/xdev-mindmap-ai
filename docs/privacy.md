@@ -14,7 +14,8 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 | Analytics | None in V1 |
 | Share Extension | Writes shared text and links into the store in the App Group container on the device; images and PDFs are copied there to wait for the app |
 | Spotlight | Map titles only, in the device's own index; maps moved to Recently Deleted or deleted are removed |
-| Clipboard | Read only when the user runs Map from Clipboard |
+| Clipboard | Read only when the user runs Map from Clipboard. Share Link's Copy Link writes the link; Open Map Link… never reads the clipboard, the person pastes |
+| Map links (MM-113) | Share Link puts the map or a branch in the URL fragment ([app-clip](app-clip.md), ADR 0012), which browsers do not send to xdev.asia; the link goes only where the person sends it. Anyone with the link can read the map, and the sheet says so. Opening a link makes a new map on the device. Logs hold the failure kind and topic counts only, never the link |
 | Sync status | Reads the iCloud account status, the network status and the mirroring's events on the device, to show them; nothing about them leaves the device. CloudKit errors are logged by code only |
 | AI apps over MCP (Mac) | Off by default (Settings ▸ AI Apps, MM-46; [mcp](mcp.md), ADR 0008). While on, the app listens on 127.0.0.1 only, and only while it runs. An AI app the person added (one token each, in the Keychain, device-only, never synced) can list, read and search map titles, notes and structure, and may send what it reads to its own provider (Anthropic, OpenAI…) under its own terms; xDev receives nothing. The footer under the switch says so before it is turned on, and Settings ▸ Privacy shows whether it is on. Revoke stops a token at once; turning the switch off closes the port and keeps the apps. Last read times are kept in memory only. Logs hold tool names and sizes; app names are `.private`; arguments and map text are never logged |
 
@@ -23,7 +24,7 @@ Mind maps can hold personal notes, research, company plans and confidential idea
 - **AI apps writing suggestions** (M5 in [mcp.md](mcp.md)): proposals only, labelled with the app's name, accepted in the app; adds an "Allow Suggestions" switch and changes the row above.
 - **Chat** ([chat.md](chat.md), ADR 0009, not built): on the device like the other AI features; conversations are not saved [Đề xuất].
 
-- **Map links and the App Clip** ([app-clip](app-clip.md), ADR 0012): Share Link puts the map in the URL fragment, which browsers do not send to xdev.asia; anyone with the link can read the map, and the sheet says so. The App Clip keeps nothing but the maps it opened, in an App Group only the app can read. Label unchanged.
+- **App Clip** ([app-clip](app-clip.md), ADR 0012, MM-114): the App Clip keeps nothing but the maps it opened, in an App Group only the app can read. Label unchanged.
 - **Apple Watch** ([watch](watch.md), ADR 0012): the same private iCloud database; the Inbox map's ID (no content) in iCloud key-value storage. Label unchanged.
 
 ## Rules for the code
