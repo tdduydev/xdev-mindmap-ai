@@ -13,8 +13,15 @@ public struct MapLayout: Equatable, Sendable {
     public internal(set) var floatingTopicIDs: [NodeID]
     /// The line from each visible topic's parent to it, keyed by the child.
     public internal(set) var connectors: [NodeID: EdgePath]
-    /// Cross-links whose two ends are both visible.
+    /// Every cross-link with at least one visible end. An end hidden in a
+    /// collapsed branch is drawn to its nearest visible ancestor.
     public internal(set) var crossLinks: [EdgeID: EdgePath]
+    /// Cross-links drawn to an ancestor instead of an end, which the canvas dims.
+    public internal(set) var reroutedCrossLinks: Set<EdgeID>
+    /// Per visible topic, how many cross-links reach topics hidden below it;
+    /// the canvas shows it as a badge. A link with both ends below one topic
+    /// is counted but not drawn.
+    public internal(set) var hiddenCrossLinkCounts: [NodeID: Int]
     /// The smallest rectangle holding every topic frame; `.zero` for an empty map.
     public internal(set) var bounds: CGRect
 
@@ -28,6 +35,8 @@ public struct MapLayout: Equatable, Sendable {
         floatingTopicIDs = []
         connectors = [:]
         crossLinks = [:]
+        reroutedCrossLinks = []
+        hiddenCrossLinkCounts = [:]
         bounds = .zero
         measures = [:]
     }
