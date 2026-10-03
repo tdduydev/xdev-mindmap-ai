@@ -8,6 +8,9 @@ let package = Package(
         // macOS ships too (ADR 0006), and lets `swift test` run the core tests on
         // the Mac in seconds, without a simulator.
         .macOS(.v26),
+        // The watch app links Domain, Graph, Persistence, Interchange and
+        // Sharing only (ADR 0012); the other targets need not build there.
+        .watchOS(.v26),
     ],
     products: [
         .library(name: "MindMapDomain", targets: ["MindMapDomain"]),
