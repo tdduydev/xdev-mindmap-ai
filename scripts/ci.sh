@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The check every change must pass before merging. There is no hosted CI, so
 # this runs locally: core tests on the Mac, app tests on macOS, a universal
-# macOS Release build (Apple silicon and Intel), then an iOS Simulator build.
+# macOS Release build (Apple silicon and Intel), then an iOS Simulator build
+# (which embeds the watch app) and a watchOS Simulator build.
 # scripts/rosetta-tests.sh runs the tests as x86_64; it is slower and optional.
 # Warnings fail the build through the project and Package.swift settings, which
 # leave the remote packages (MLX, ADR 0011) to their own warning flags.
@@ -111,5 +112,24 @@ xcodebuild build -quiet \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$derived" 2>&1 | tee "$logs/ios-simulator.log"
 fail_on_missing_dependency "$logs/ios-simulator.log"
+
+# The watch app and its complication (MM-116), on their own so a watch-only
+# error names the watch scheme. The iOS build above embeds the same app.
+step "watchOS Simulator build"
+xcodebuild build -quiet \
+  -project MindMapAI.xcodeproj -scheme MindMapWatch \
+  -destination 'generic/platform=watchOS Simulator' \
+  -derivedDataPath "$derived" 2>&1 | tee "$logs/watchos-simulator.log"
+fail_on_missing_dependency "$logs/watchos-simulator.log"
+watch_app="$derived/Build/Products/Debug-watchsimulator/MindMapWatch.app"
+if [[ ! -d "$watch_app/PlugIns/MindMapWatchWidgets.appex" ]]; then
+  echo "error: the watch app does not embed MindMapWatchWidgets.appex" >&2
+  exit 1
+fi
+ios_app="$derived/Build/Products/Debug-iphonesimulator/MindMap AI.app"
+if [[ ! -d "$ios_app/Watch/MindMapWatch.app" ]]; then
+  echo "error: the iOS app does not embed MindMapWatch.app" >&2
+  exit 1
+fi
 
 printf '\nAll checks passed.\n'
