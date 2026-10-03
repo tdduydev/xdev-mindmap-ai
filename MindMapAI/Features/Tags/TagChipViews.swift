@@ -223,8 +223,11 @@ struct TopicChipView: View {
     var body: some View {
         let label = TopicChipLabel(chip: chip, spec: spec, variant: variant, aiStyle: aiStyle)
         if case .checkbox(let done) = chip.kind, let topicID {
-            Button { model.session.toggleDone(topicID) } label: { label.contentShape(Capsule()) }
+            // The chip is shorter than a finger; the tap area grows to the minimum around it.
+            let outset = max(0, (Metrics.minimumHitTarget - spec.height) / 2)
+            Button { model.session.toggleDone(topicID) } label: { label }
                 .buttonStyle(.plain)
+                .contentShape(.interaction, Capsule().inset(by: -outset))
                 .help(done ? Text("Mark as Not Done") : Text("Mark as Done"))
                 // The topic element has Mark as Done and reads the state in its value.
                 .accessibilityHidden(true)
