@@ -13,7 +13,7 @@ enum CanvasAddButtonPlacement {
         ))
         let badgeClearance = topic.hiddenDescendantCount > 0
             ? CanvasMetrics.addButtonBadgeClearance * viewport.scale : 0
-        let distance = Metrics.minimumHitTarget / 2 + CanvasMetrics.addButtonGap + badgeClearance
+        let distance = Metrics.minimumHitTarget / 2 + clearance(viewport) + badgeClearance
         return square(around: CGPoint(x: cardEdge.x + (isTrailing ? distance : -distance), y: cardEdge.y))
     }
 
@@ -26,7 +26,7 @@ enum CanvasAddButtonPlacement {
     static func siblingFrame(for topic: CanvasTopic, among topics: [CanvasTopic], viewport: CanvasViewport) -> CGRect? {
         let card = viewFrame(topic.frame, viewport: viewport)
         let size = Metrics.minimumHitTarget
-        let frame = CGRect(x: card.midX - size / 2, y: card.maxY + CanvasMetrics.addButtonGap, width: size, height: size)
+        let frame = CGRect(x: card.midX - size / 2, y: card.maxY + clearance(viewport), width: size, height: size)
         let isBlocked = topics.contains { other in
             guard other.id != topic.id else { return false }
             if viewFrame(other.frame, viewport: viewport).intersects(frame) { return true }
@@ -38,6 +38,13 @@ enum CanvasAddButtonPlacement {
     static func viewFrame(_ rect: CGRect, viewport: CanvasViewport) -> CGRect {
         let origin = viewport.toView(rect.origin)
         return CGRect(x: origin.x, y: origin.y, width: rect.width * viewport.scale, height: rect.height * viewport.scale)
+    }
+
+    /// The selection ring is drawn outside the card and grows with the zoom;
+    /// the circle starts beyond it so the ring stays whole.
+    private static func clearance(_ viewport: CanvasViewport) -> CGFloat {
+        CanvasMetrics.addButtonGap
+            + (CanvasMetrics.selectionRingGap + CanvasMetrics.selectionRingWidthHighContrast) * viewport.scale
     }
 
     private static func square(around point: CGPoint) -> CGRect {

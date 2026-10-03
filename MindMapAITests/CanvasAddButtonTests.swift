@@ -198,20 +198,22 @@ struct CanvasAddButtonTests {
         #expect(shown > 0)
     }
 
-    /// The last topic of a column has room below at every zoom; one with a
-    /// sibling 10–20 pt below has none at 100%, so it shows no sibling +.
+    /// The last topic of a column has room below at every detail zoom; one
+    /// with a sibling 10 pt (scaled) below never does once the selection ring
+    /// is cleared, so it shows no sibling +.
     @Test func siblingButtonShowsOnlyWhereItFits() async throws {
         let canvas = try await open()
         let column = try await rightColumn(in: canvas)
         let first = try #require(column.first)
         let last = try #require(column.last)
-        let actual = zoomed(canvas, to: 1)
-
-        #expect(CanvasAddButtonPlacement.siblingFrame(for: first, among: canvas.scene.topics, viewport: actual) == nil)
-        #expect(CanvasAddButtonPlacement.siblingFrame(for: last, among: canvas.scene.topics, viewport: actual) != nil)
-        // Zoomed in, the gap to the next topic grows past the tap area.
-        let close = zoomed(canvas, to: CanvasMetrics.zoomLimits.upperBound)
-        #expect(CanvasAddButtonPlacement.siblingFrame(for: first, among: canvas.scene.topics, viewport: close) != nil)
+        for scale in [CanvasMetrics.detailZoomThreshold, 1, CanvasMetrics.zoomLimits.upperBound] {
+            let viewport = zoomed(canvas, to: scale)
+            #expect(CanvasAddButtonPlacement.siblingFrame(for: first, among: canvas.scene.topics, viewport: viewport) == nil)
+            let hit = try #require(CanvasAddButtonPlacement.siblingFrame(for: last, among: canvas.scene.topics, viewport: viewport))
+            let card = CanvasAddButtonPlacement.viewFrame(last.frame, viewport: viewport)
+            let ring = (CanvasMetrics.selectionRingGap + CanvasMetrics.selectionRingWidthHighContrast) * scale
+            #expect(hit.minY >= card.maxY + ring)
+        }
     }
 
     /// The add-child tap area keeps its size and stays off the card through zoom.
