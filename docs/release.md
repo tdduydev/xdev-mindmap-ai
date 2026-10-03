@@ -28,14 +28,16 @@ The API key has the App Manager role, which cannot use Xcode's cloud-managed dis
 
 The certificates and the profile expire on 2027-10-02.
 
-## iCloud before it can ship
+## iCloud
 
 The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). MM-45 added the iCloud key-value store identifier to the app's iCloud entitlements for theme and export preferences; confirm the app profile permits it before an iCloud-signed archive. The product owner chose on 2026-10-03 to turn sync on in 1.1 (MM-100).
 
 1. Done on 2026-10-03: the development schema was created from a SchemaV3 build with `scripts/init-cloudkit-schema.sh` on the Mac mini (signed in to iCloud), and **Deploy Schema Changes** sent it to production: record types `CD_ChatTurnRecord`, `CD_EdgeRecord`, `CD_GroupRecord`, `CD_ImageRecord`, `CD_MapRecord`, `CD_NodeRecord`, `CD_NodeTagRecord`, `CD_TagRecord` with their indexes. Production only grows: a SchemaV4 runs the script again from a V4 build and deploys before the first upload that has it.
-2. Test two devices as in docs/cloudkit-sync.md *Testing* (the product owner, on a TestFlight build from MM-100).
+2. From MM-100 (1.1), `scripts/upload-testflight.sh` archives with `MINDMAP_ICLOUD=YES` on both platforms. The project default stays `NO`, so `scripts/ci.sh` and any build without the signing keychain have no iCloud entitlement and never open CloudKit.
+3. Before each upload the script exports locally and runs `scripts/check-icloud-entitlements.sh` on the export (`codesign -d --entitlements`): the container `iCloud.asia.xdev.mindmapai`, CloudKit, `aps-environment` `production` (`com.apple.developer.aps-environment` on the Mac), the key-value store `M6C7NX9MUZ.asia.xdev.mindmapai` and the App Group. A missing one stops the upload. `UPLOAD=NO scripts/upload-testflight.sh [ios]` stops after the check.
+4. Test two devices as in docs/cloudkit-sync.md *Testing on real devices* (the product owner, on the first 1.1 TestFlight build), including step 0, maps from 1.0.
 
-Until MM-100 lands, uploads keep iCloud off; the App Group is on.
+1.0.0 (builds 202610031203 and 202610031207) shipped with iCloud off.
 
 ## Upload a build
 
