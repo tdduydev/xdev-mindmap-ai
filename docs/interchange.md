@@ -87,7 +87,7 @@ archive.imported(sharedTags:)                   // (graph, imageData) for MapRep
 FR-IO-13: a file made by another app is imported free, off the main actor, as new maps, and nothing it had is dropped without a word.
 
 ```swift
-ForeignFormat(fileExtension:)                          // .opml, .freeMind (.mm), .xmind; MM-104 adds .mindNode
+ForeignFormat(fileExtension:)                          // .opml, .freeMind (.mm), .xmind, .mindNode, .simpleMind (.smmx), .iThoughts (.itmz)
 try await format.read(data, fileName:)                 // @concurrent → ForeignImport, throws ForeignImportError
 ForeignImport { maps: [GraphState], imageData, report: ImportReport }
 ImportReport.Loss                                      // includedOutline, image, attachment, icon, connection, summary, boundary
@@ -132,6 +132,27 @@ ImportReport.Loss                                      // includedOutline, image
 - **What is counted** (`ImportReport.Loss`): other markers (`icon`), attachments, pictures that are missing or do not decode (`image`), relationships whose ends are not both topics or repeat one (`connection`), summaries whose range does not fit (their topic stays, as the last child: `summary`), boundaries the app cannot draw (around the central topic, crossing another: `boundary`). Skipped without a line: styles and themes, structure classes (the app lays out its own way), comments, audio notes, numbering, the HTML note, `extensions`.
 - **Built through the engine.** `XMindMap.graph` plans every step on a scratch `GraphTransaction` and keeps only those that hold, so one odd bracket costs that bracket, not the map; the kept steps then run through `GraphEngine` as one `BatchCommand`, and the validator checks the result like any edit. Every topic has `origin = .imported`. Tags are put on in one command per tag, since one per topic would scan every tag link each time.
 - **In the app.** `.xmind` gets an imported type `asia.xdev.mindmapai.xmind` conforming to `public.zip-archive` (both Info.plists, `UTType.xmind`). When XMind is installed its own declaration owns the extension, so `UTType.xmindTypes` also offers whatever type the system maps `.xmind` to, or the open panel would grey the file out. Import is free; there is no XMind export.
+
+### MindNode, SimpleMind and iThoughts (FR-IO-12, spike MM-104)
+
+**Spike result.** None of the three vendors publishes its format, so FR-IO-12 allowed import only if real files could be read. Each format was read from documents the app itself saved, public on GitHub, and all three are built: every topic and every link in those samples comes through (counts checked by hand in MM-104: MindNode 141, 208, 169, 57 + 39 connections, 27, 98 topics; SimpleMind 358 + 6 relations, 8 + 2; iThoughts 383). The samples are not in the repo, since none came with a licence; the test fixtures are written in their shape. What a sample did not show is not guessed: it is counted in the report or left out, and written below as not confirmed.
+
+| | MindNode `.mindnode` | SimpleMind `.smmx` | iThoughts `.itmz` |
+| --- | --- | --- | --- |
+| Container | A package (folder); the map is `contents.xml`, a property list (binary in every sample) | ZIP with `document/mindmap.xml` | ZIP with `mapdata.xml` (and `style.xml`) |
+| Samples read | `version` 6 and 7: `spatial-computing/mintcast`, `servicemesher/istio-knowledge-map`, `servicemesher/istio-handbook`, `wardseptember/notes`, `MuYunyun/blog`, `ducafecat/flutter_ducafecat_news_getx` | SimpleMind for Windows 1.25 and 1.28, `doc-version="3"`: `hervegirod/jSimpleMind` (`samples/`), `bsp2/tks` (`tks-projects/tools/org/tests/`) | iThoughts 7.4 for iPad, `version="4.0"`: `michalradacz/Czech_EG_objects_and_tools`; attribute list from Brett Terpstra's converter gist `ttscoff/58a3f7d69fff63caa11766f23647f888` |
+| Tree | `canvas.mindMaps[].mainNode`, `subnodes` nested. Several maps on one canvas go under a central topic named by the file | Flat `topic id parent`; `parent="-1"` is the central theme (`meta/main-centraltheme`) or a floating topic. A parent cycle is cut, its topics join the central topic | `topic` nested in `topics`; the first top-level topic is the central one |
+| Title, note | `title.text`, `note.text`: HTML fragments read as plain lines (tags dropped, `</p>` and `<br>` break lines, entities decoded) | `text` (`\N` is a line break), `<note>` | `text`, `note` attributes |
+| Link | Not in any sample | `<link urllink>`: web or mail → link; `cloud://` and paths → note; `topic:` skipped | `link`: web or mail → link, else note |
+| Connections | `canvas.crossConnections` (`endPoints.startNodeID/endNodeID`, `title.text`, `arrowStyle`) | `relations/relation source target`, label from its text child | `relationships`: present, but no sample had one, so each child is counted (`Loss.connection`) |
+| Folding, colour | `hasFoldedSubnodes`; `pathStyle.strokeStyle.color` `{r, g, b, a}` by hue | `collapsed="True"`; the topic's `strokecolor` by hue | `color` `RRGGBB` by hue |
+| Tasks | `task` present → open task. One sample, `state: 1`; what the states mean is not confirmed, so none is read as done | `checkbox="True"`, `checked="True"` → done | Not in the sample |
+| Counted | `canvas.boundaries` (`Loss.boundary`) | Pictures (`Loss.image`) | `summary1`/`summary2` (`Loss.summary`), relationships |
+| Skipped | Styles, shapes, positions, `viewState.plist`, `QuickLook/`, pictures (none in the samples) | Styles, palettes, positions, label positions | Styles (`style.xml`), positions, dates |
+
+- **How.** Each reader produces FreeMind's styled draft (`FreeMindMap.Document`) and builds through `FreeMindMap.graph`: the tree via `GraphState.imported`, then one `BatchCommand` for colours (only where they differ from the parent), folding and connections, every topic `origin = .imported`. ZIP formats go through `ZipArchive` with the XMind limits (`tooLarge`). XML is streamed with `XMLParser`; MindNode's tree is walked with a stack. A floating topic goes under the central topic: the files' canvas coordinates do not say where it sits relative to the layout the app draws.
+- **In the app.** Imported types `asia.xdev.mindmapai.simplemind-map` and `asia.xdev.mindmapai.ithoughts-map` (conform to `public.zip-archive`) and `asia.xdev.mindmapai.mindnode` (conforms to `com.apple.package`, so the open panel picks the folder as one file) in both Info.plists; `UTType.otherMindMapTypes` also offers the system's type for each extension when the other app is installed, as for XMind. `MapImporter.readForeign` reads `contents.xml` out of a `.mindnode` folder.
+- **Not confirmed.** MindNode documents saved by MindNode 2023 and later (the "MindNode – Mind Map & Outline" app) and any flat (zipped) `.mindnode` were not in the samples; such a file fails as not a MindNode document. SimpleMind for macOS and iOS files were not in the samples (Windows only). Opening a `.mindnode` package from the Files app on iPad and iPhone was not tried on a device.
 
 ## Not here
 

@@ -84,6 +84,23 @@ extension UTType {
         let declared = UTType(filenameExtension: "xmind")
         return [.xmind] + (declared.map { $0 == .xmind ? [] : [$0] } ?? [])
     }
+
+    /// SimpleMind (`.smmx`) and iThoughts (`.itmz`) maps, ZIP files like XMind's (MM-104).
+    nonisolated static let simpleMindMap = UTType(importedAs: "asia.xdev.mindmapai.simplemind-map", conformingTo: .zip)
+    nonisolated static let iThoughtsMap = UTType(importedAs: "asia.xdev.mindmapai.ithoughts-map", conformingTo: .zip)
+
+    /// MindNode documents (`.mindnode`) are folders; conforming to `com.apple.package`
+    /// lets the open panel pick one as a file instead of opening it as a folder.
+    nonisolated static let mindNodeDocument = UTType(importedAs: "asia.xdev.mindmapai.mindnode", conformingTo: .package)
+
+    /// Each of the three, plus whatever the system maps the extension to when
+    /// the other app is installed and its declaration owns it (as for XMind).
+    nonisolated static var otherMindMapTypes: [UTType] {
+        [(UTType.simpleMindMap, "smmx"), (.iThoughtsMap, "itmz"), (.mindNodeDocument, "mindnode")].flatMap { type, fileExtension in
+            let declared = UTType(filenameExtension: fileExtension)
+            return [type] + (declared.map { $0 == type ? [] : [$0] } ?? [])
+        }
+    }
 }
 
 /// Behind an exported picture: the canvas colour of the current appearance,

@@ -55,7 +55,7 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
     var message: String {
         switch self {
         case .unsupportedType:
-            String(localized: "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json).")
+            String(localized: "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm), XMind (.xmind), MindNode (.mindnode), SimpleMind (.smmx) and iThoughts (.itmz) files, and its own backups (.json).")
         case .unreadableText:
             String(localized: "The file isn’t UTF-8 or UTF-16 text. Save it as UTF-8 Markdown or plain text, then try again.")
         case .emptyDocument:
@@ -76,8 +76,14 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
             String(localized: "The file isn’t a FreeMind or Freeplane map. MindMap AI imports .mm files saved by FreeMind and Freeplane, OPML (.opml), Markdown (.md) and plain text (.txt).")
         case .wrongFormat(_, .xmind):
             String(localized: "The file isn’t an XMind map. MindMap AI imports .xmind files saved by XMind 8 and later, OPML (.opml), Markdown (.md) and plain text (.txt).")
+        case .wrongFormat(_, .mindNode):
+            String(localized: "The file isn’t a MindNode document. MindMap AI imports .mindnode documents saved by MindNode, OPML (.opml), Markdown (.md) and plain text (.txt).")
+        case .wrongFormat(_, .simpleMind):
+            String(localized: "The file isn’t a SimpleMind map. MindMap AI imports .smmx files saved by SimpleMind, OPML (.opml), Markdown (.md) and plain text (.txt).")
+        case .wrongFormat(_, .iThoughts):
+            String(localized: "The file isn’t an iThoughts map. MindMap AI imports .itmz files saved by iThoughts, OPML (.opml), Markdown (.md) and plain text (.txt).")
         case .fileTooLarge:
-            String(localized: "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again.")
+            String(localized: "The file expands to more than MindMap AI can read at once. Split the map into smaller files in the app that made it, then try again.")
         case .damagedFile:
             String(localized: "The file is damaged and can’t be read. Check that it opens in the app that made it, then try again.")
         case .noTopics:
@@ -97,7 +103,7 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
 nonisolated enum MapImporter {
     /// What the open panel offers. Rich text and other text files stay
     /// pickable so the user gets the message of FR-IO-09 rather than a greyed-out file.
-    static let contentTypes: [UTType] = [.markdownText, .plainText, .text, .json, .opml, .freeMindMap] + UTType.xmindTypes
+    static let contentTypes: [UTType] = [.markdownText, .plainText, .text, .json, .opml, .freeMindMap] + UTType.xmindTypes + UTType.otherMindMapTypes
 
     /// Decoding and parsing run off the main actor, so a large file does not stall the window.
     @concurrent
@@ -140,7 +146,9 @@ nonisolated enum MapImporter {
 
         let data: Data
         do {
-            data = try Data(contentsOf: url)
+            // A MindNode document is a folder; its map is the property list `contents.xml`.
+            let isFolder = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+            data = try Data(contentsOf: format == .mindNode && isFolder ? url.appending(path: "contents.xml") : url)
         } catch {
             throw .couldNotRead(fileName: fileName)
         }

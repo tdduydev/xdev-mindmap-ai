@@ -14542,24 +14542,24 @@
         }
       }
     },
-    "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json)." : {
+    "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm), XMind (.xmind), MindNode (.mindnode), SimpleMind (.smmx) and iThoughts (.itmz) files, and its own backups (.json)." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json)."
+            "value" : "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm), XMind (.xmind), MindNode (.mindnode), SimpleMind (.smmx) and iThoughts (.itmz) files, and its own backups (.json)."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、OPML (.opml) ファイル、FreeMindまたはFreeplane (.mm) ファイル、XMind (.xmind) ファイル、およびMindMap AIのバックアップ (.json) です。"
+            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、OPML (.opml) ファイル、FreeMindまたはFreeplane (.mm) ファイル、XMind (.xmind) ファイル、MindNode (.mindnode) ファイル、SimpleMind (.smmx) ファイル、iThoughts (.itmz) ファイル、およびMindMap AIのバックアップ (.json) です。"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt), OPML (.opml), FreeMind hoặc Freeplane (.mm), XMind (.xmind) và bản sao lưu của chính ứng dụng (.json)."
+            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt), OPML (.opml), FreeMind hoặc Freeplane (.mm), XMind (.xmind), MindNode (.mindnode), SimpleMind (.smmx), iThoughts (.itmz) và bản sao lưu của chính ứng dụng (.json)."
           }
         }
       }
@@ -15040,6 +15040,72 @@
         }
       }
     },
+    "The file isn’t a MindNode document. MindMap AI imports .mindnode documents saved by MindNode, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t a MindNode document. MindMap AI imports .mindnode documents saved by MindNode, OPML (.opml), Markdown (.md) and plain text (.txt)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルはMindNodeの書類ではありません。MindMap AIで読み込めるのは、MindNodeで保存した .mindnode 書類、OPML (.opml)、Markdown (.md)、プレーンテキスト (.txt) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải tài liệu MindNode. MindMap AI nhập tài liệu .mindnode lưu bằng MindNode, OPML (.opml), Markdown (.md) và văn bản thuần (.txt)."
+          }
+        }
+      }
+    },
+    "The file isn’t a SimpleMind map. MindMap AI imports .smmx files saved by SimpleMind, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t a SimpleMind map. MindMap AI imports .smmx files saved by SimpleMind, OPML (.opml), Markdown (.md) and plain text (.txt)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルはSimpleMindのマップではありません。MindMap AIで読み込めるのは、SimpleMindで保存した .smmx ファイル、OPML (.opml)、Markdown (.md)、プレーンテキスト (.txt) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải sơ đồ SimpleMind. MindMap AI nhập tệp .smmx lưu bằng SimpleMind, OPML (.opml), Markdown (.md) và văn bản thuần (.txt)."
+          }
+        }
+      }
+    },
+    "The file isn’t an iThoughts map. MindMap AI imports .itmz files saved by iThoughts, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t an iThoughts map. MindMap AI imports .itmz files saved by iThoughts, OPML (.opml), Markdown (.md) and plain text (.txt)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルはiThoughtsのマップではありません。MindMap AIで読み込めるのは、iThoughtsで保存した .itmz ファイル、OPML (.opml)、Markdown (.md)、プレーンテキスト (.txt) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải sơ đồ iThoughts. MindMap AI nhập tệp .itmz lưu bằng iThoughts, OPML (.opml), Markdown (.md) và văn bản thuần (.txt)."
+          }
+        }
+      }
+    },
     "The file isn’t an XMind map. MindMap AI imports .xmind files saved by XMind 8 and later, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
       "localizations" : {
         "en" : {
@@ -15062,24 +15128,24 @@
         }
       }
     },
-    "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again." : {
+    "The file expands to more than MindMap AI can read at once. Split the map into smaller files in the app that made it, then try again." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again."
+            "value" : "The file expands to more than MindMap AI can read at once. Split the map into smaller files in the app that made it, then try again."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このファイルは展開するとMindMap AIが一度に読み込める大きさを超えます。XMindでマップを小さなファイルに分けてから、もう一度お試しください。"
+            "value" : "このファイルは展開するとMindMap AIが一度に読み込める大きさを超えます。マップを作成したアプリで小さなファイルに分けてから、もう一度お試しください。"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tệp khi giải nén lớn hơn mức MindMap AI đọc được một lần. Hãy tách sơ đồ thành các tệp nhỏ hơn trong XMind rồi thử lại."
+            "value" : "Tệp khi giải nén lớn hơn mức MindMap AI đọc được một lần. Hãy tách sơ đồ thành các tệp nhỏ hơn trong ứng dụng đã tạo ra nó rồi thử lại."
           }
         }
       }
