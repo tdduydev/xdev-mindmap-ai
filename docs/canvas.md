@@ -112,5 +112,5 @@ Each topic in view is one element: label the title, value "Level n, m subtopics"
 - Camera and relayout animation (`Motion.camera`, `Motion.relayout`): the edge layer is not animatable yet, so topics would move while their edges jump. Everything moves at once for now; only the selection ring animates (`Motion.selection`).
 - A frame-rate measurement with Instruments on a Mac and an iPad at 1,000 topics, including the empty VoiceOver frames kept below the detail zoom.
 - Per-level gaps: `LayoutOptions` takes one horizontal and one vertical gap, so the canvas uses the sub-topic gaps (40, 10) for every level.
-- Cross-link labels and cross-links in each topic's accessibility custom content, and links whose end is collapsed (not drawn today): designed in [[node-organization]] for MM-33.
+- Connections (MM-33, [[node-organization]] *Connections*): built except the connect mode (pointer crosshair), Space on a selected connection and a Connections rotor.
 - Auto-scrolling while a drag nears the edge of the view, and moving topics with the keyboard (no shortcut for Move Up/Down yet).

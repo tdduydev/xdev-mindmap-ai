@@ -143,6 +143,17 @@
         }
       }
     },
+    "Connection" : {
+      "comment" : "Format menu: the submenu for the selected connection. Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối"
+          }
+        }
+      }
+    },
     "Connection Label" : {
       "comment" : "VoiceOver: the field that edits a connection's label on the canvas.",
       "localizations" : {
@@ -205,6 +216,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chấm"
+          }
+        }
+      }
+    },
+    "Edit Label" : {
+      "comment" : "Format ▸ Connection: edit the selected connection's label on the canvas.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa nhãn"
           }
         }
       }

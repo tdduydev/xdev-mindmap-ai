@@ -206,3 +206,53 @@ struct ConnectionLabelField: View {
         model.session.setConnectionLabel(draft, for: edgeID)
     }
 }
+
+/// Format ▸ Connection for the connection selected on the canvas; disabled,
+/// not hidden, when none is (docs/node-organization.md *Menus*).
+struct ConnectionFormatMenu: View {
+    let editor: EditorSession?
+    let canvas: CanvasModel?
+
+    var body: some View {
+        let id = editor?.activeConnection
+        let edge = id.flatMap { editor?.engine.state.edges[$0] }
+        Menu("Connection") {
+            Button("Edit Label") { canvas?.editingConnectionLabel = id }
+                .disabled(canvas == nil)
+            Menu("Line") {
+                ForEach(EdgeLineStyle.choices, id: \.self) { style in
+                    Toggle(style.title, isOn: Binding(
+                        get: { edge?.resolvedLineStyle == style },
+                        set: { _ in if let id { editor?.setConnectionLineStyle(style, for: id) } }
+                    ))
+                }
+            }
+            Menu("Arrows") {
+                ForEach(EdgeArrowHeads.choices, id: \.self) { arrows in
+                    Toggle(arrows.title, isOn: Binding(
+                        get: { edge?.resolvedArrowHeads == arrows },
+                        set: { _ in if let id { editor?.setConnectionArrowHeads(arrows, for: id) } }
+                    ))
+                }
+            }
+            Menu("Color") {
+                Toggle("Default", isOn: Binding(
+                    get: { edge != nil && edge?.color == nil },
+                    set: { _ in if let id { editor?.setConnectionColor(nil, for: id) } }
+                ))
+                ForEach(TopicColor.all, id: \.self) { color in
+                    Toggle(isOn: Binding(
+                        get: { edge?.color == color },
+                        set: { _ in if let id { editor?.setConnectionColor(color, for: id) } }
+                    )) {
+                        Label(color.title, systemImage: color.shapeSymbol)
+                    }
+                }
+            }
+            Divider()
+            Button("Reverse Connection") { if let id { editor?.reverseConnection(id) } }
+            Button("Remove Connection") { if let id { editor?.removeConnection(id) } }
+        }
+        .disabled(edge == nil)
+    }
+}

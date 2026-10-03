@@ -231,6 +231,7 @@ struct MapCommands: Commands {
                 }
             }
             .disabled(editor?.selectedImage == nil)
+            ConnectionFormatMenu(editor: editor, canvas: canvas)
         }
 
         // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.
