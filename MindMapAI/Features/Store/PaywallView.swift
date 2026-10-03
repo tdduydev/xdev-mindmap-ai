@@ -43,6 +43,7 @@ struct PaywallView: View {
                             Image(systemName: item.systemImage)
                                 .foregroundStyle(Palette.accent)
                         }
+                        .accessibilityIdentifier(AccessibilityID.Paywall.feature)
                     }
                 }
 
@@ -52,6 +53,7 @@ struct PaywallView: View {
                         Task { await store.restorePurchases() }
                     }
                     .disabled(store.restoreState == .restoring)
+                    .accessibilityIdentifier(AccessibilityID.Paywall.restore)
                     if !store.isUnlocked {
                         Button("Redeem Code…") { isRedeeming = true }
                     }
@@ -96,6 +98,7 @@ struct PaywallView: View {
     private var purchaseRow: some View {
         if store.isUnlocked {
             Label("Pro is unlocked. Thank you for supporting MindMap AI.", systemImage: "checkmark.seal")
+                .accessibilityIdentifier(AccessibilityID.Paywall.unlocked)
         } else {
             switch store.productState {
             case .loading:
@@ -123,9 +126,11 @@ struct PaywallView: View {
                 case .pending:
                     Text("Your purchase is waiting for approval. Pro unlocks as soon as it’s approved.")
                         .foregroundStyle(.secondary)
+                        .accessibilityIdentifier(AccessibilityID.Paywall.purchaseStatus)
                 case .failed:
                     Text("The purchase didn’t go through. Try again.")
                         .foregroundStyle(.secondary)
+                        .accessibilityIdentifier(AccessibilityID.Paywall.purchaseStatus)
                 case .idle, .purchasing:
                     EmptyView()
                 }
@@ -143,7 +148,10 @@ struct ProSettingsSection: View {
 
     var body: some View {
         Section {
-            LabeledContent("Status", value: store.isUnlocked ? String(localized: "Unlocked") : String(localized: "Not unlocked"))
+            LabeledContent("Status") {
+                Text(store.isUnlocked ? String(localized: "Unlocked") : String(localized: "Not unlocked"))
+                    .accessibilityIdentifier(AccessibilityID.Settings.proStatus)
+            }
                 // On the one row that is always there: a modifier on a Section
                 // goes to each of its rows, and one paywall sheet per row on one
                 // binding made iOS close Settings instead of showing it (MM-90).
@@ -161,6 +169,7 @@ struct ProSettingsSection: View {
                 Task { await store.restorePurchases() }
             }
             .disabled(store.restoreState == .restoring)
+            .accessibilityIdentifier(AccessibilityID.Settings.restorePurchases)
             if !store.isUnlocked {
                 Button("Redeem Code…") { isRedeeming = true }
             }

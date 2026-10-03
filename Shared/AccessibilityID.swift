@@ -110,6 +110,13 @@ nonisolated enum AccessibilityID {
     enum Paywall {
         static let purchase = "paywall.purchase"
         static let close = "paywall.close"
+        /// One row per `ProFeature` in "Included in Pro".
+        static let feature = "paywall.feature"
+        /// The thank-you row that replaces the purchase button once Pro is unlocked.
+        static let unlocked = "paywall.unlocked"
+        /// Why the last purchase did not unlock Pro: pending approval or failed.
+        static let purchaseStatus = "paywall.purchaseStatus"
+        static let restore = "paywall.restore"
     }
 
     /// Find in the open map (the bar above the canvas or the outline).
@@ -216,6 +223,9 @@ nonisolated enum AccessibilityID {
         static func pane(_ name: String) -> String { "settings.pane.\(name)" }
         static let done = "settings.done"
         static let showPaywall = "settings.showPaywall"
+        /// The Pro pane's Status row: "Unlocked" or "Not unlocked".
+        static let proStatus = "settings.pro.status"
+        static let restorePurchases = "settings.pro.restore"
         static let iCloudSync = "settings.iCloudSync"
         static let iCloudStatus = "settings.iCloudStatus"
         static let aiStatus = "settings.aiStatus"

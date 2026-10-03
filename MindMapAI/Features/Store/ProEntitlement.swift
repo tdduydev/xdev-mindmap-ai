@@ -135,6 +135,9 @@ final class ProEntitlement {
             @unknown default:
                 purchaseState = .idle
             }
+        } catch StoreKitError.userCancelled {
+            // Some paths report a cancel as an error, not a result; it is still not a failure.
+            purchaseState = .idle
         } catch {
             Log.store.error("The Pro purchase failed: \(error.localizedDescription, privacy: .public)")
             purchaseState = .failed
