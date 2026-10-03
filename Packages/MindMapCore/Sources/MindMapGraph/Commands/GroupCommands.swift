@@ -33,7 +33,30 @@ public struct AddGroupCommand: GraphCommand {
     }
 
     public func execute(in transaction: inout GraphTransaction) throws {
-        let state = transaction.state
+        let run = try Self.validRun(from: firstNodeID, to: lastNodeID, kind: .boundary, in: transaction.state)
+        try transaction.insertGroup(MindGroup(
+            id: groupID,
+            mapID: transaction.state.map.id,
+            parentNodeID: run.parentID,
+            firstNodeID: run.firstID,
+            lastNodeID: run.lastID,
+            title: Self.cleaned(title),
+            color: color,
+            origin: origin,
+            createdAt: transaction.now
+        ))
+    }
+
+    /// The run between two siblings, in display order, checked against the
+    /// other groups of the same kind under that parent. A boundary and a
+    /// summary over the same or crossing runs are fine: one frames, the other
+    /// brackets, and they never share a line.
+    static func validRun(
+        from firstNodeID: NodeID,
+        to lastNodeID: NodeID,
+        kind: GroupKind,
+        in state: GraphState
+    ) throws -> (parentID: NodeID, firstID: NodeID, lastID: NodeID) {
         guard let first = state.node(firstNodeID) else { throw GraphError.nodeNotFound(firstNodeID) }
         guard let last = state.node(lastNodeID) else { throw GraphError.nodeNotFound(lastNodeID) }
         guard let parentID = first.parentID, last.parentID != nil else { throw GraphError.cannotGroupRoot }
@@ -46,7 +69,7 @@ public struct AddGroupCommand: GraphCommand {
         }
         let run = min(a, b)...max(a, b)
 
-        for other in state.groups(under: parentID) {
+        for other in state.groups(under: parentID) where other.kind == kind {
             guard let members = state.members(of: other),
                   let start = members.first.flatMap(siblings.firstIndex), let end = members.last.flatMap(siblings.firstIndex)
             else { continue }
@@ -54,18 +77,7 @@ public struct AddGroupCommand: GraphCommand {
             let nested = (run.contains(start) && run.contains(end)) || ((start...end).contains(run.lowerBound) && (start...end).contains(run.upperBound))
             if run.overlaps(start...end), !nested { throw GraphError.groupsWouldCross(other.id) }
         }
-
-        try transaction.insertGroup(MindGroup(
-            id: groupID,
-            mapID: state.map.id,
-            parentNodeID: parentID,
-            firstNodeID: siblings[run.lowerBound],
-            lastNodeID: siblings[run.upperBound],
-            title: Self.cleaned(title),
-            color: color,
-            origin: origin,
-            createdAt: transaction.now
-        ))
+        return (parentID, siblings[run.lowerBound], siblings[run.upperBound])
     }
 
     /// Trimmed; blank is no title.
