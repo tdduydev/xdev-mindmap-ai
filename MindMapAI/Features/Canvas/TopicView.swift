@@ -52,10 +52,15 @@ struct TopicView: View {
                     LoadedTopicImage(image: image, level: topic.level, spec: spec, session: model.session)
                 }
                 TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
-                    if isEditing {
-                        TopicTitleEditor(model: model, spec: spec, color: textColor, width: textWidth)
-                    } else {
-                        title
+                    TopicTitleRow(
+                        marks: topic.marks, markSpec: model.markSpec, spec: spec, width: textWidth,
+                        textColor: textColor, shapeColor: style.edgeColor.color
+                    ) { width, hugsText in
+                        if isEditing {
+                            TopicTitleEditor(model: model, spec: spec, color: textColor, width: width)
+                        } else {
+                            title(width: width, hugsText: hugsText)
+                        }
                     }
                 } chip: { chip in
                     if let chipSpec {
@@ -251,8 +256,11 @@ struct TopicView: View {
         max(topic.frame.width - 2 * spec.horizontalPadding, 0)
     }
 
-    private var title: some View {
-        TopicTitleText(title: topic.title, spec: spec, color: textColor, placeholderColor: style.secondaryTextColor.color, width: textWidth)
+    private func title(width: CGFloat, hugsText: Bool) -> some View {
+        TopicTitleText(
+            title: topic.title, spec: spec, color: textColor, placeholderColor: style.secondaryTextColor.color,
+            width: width, hugsText: hugsText
+        )
             .background {
                 // Outside the text's frame, so marking a match never changes the measure.
                 if isFindMatch {
@@ -367,6 +375,8 @@ struct TopicContextMenu: View {
             Button("Remove Image") { Task { await model.session.removeImage(from: topic.id) } }
         }
         TagsMenu(session: model.session, targets: model.contextTargets(for: topic.id), onAddTag: { model.addTag(to: topic.id) })
+        TopicColorMenu(title: "Color", session: model.session, targets: model.contextTargets(for: topic.id))
+        TopicSymbolMenu(title: "Symbol", session: model.session, targets: model.contextTargets(for: topic.id))
         TaskMenu(session: model.session, targets: model.contextTargets(for: topic.id))
         #if os(iOS)
         // Touch has no ⌘-click.
@@ -408,6 +418,8 @@ struct TopicTitleText: View {
     let color: Color
     let placeholderColor: Color
     let width: CGFloat
+    /// Only as wide as the text, up to `width`: beside a topic's marks.
+    var hugsText = false
 
     var body: some View {
         Group {
@@ -420,7 +432,8 @@ struct TopicTitleText: View {
         .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
         .lineSpacing(spec.lineSpacing)
         .multilineTextAlignment(.center)
-        .frame(width: width)
+        .frame(width: hugsText ? nil : width)
+        .frame(maxWidth: hugsText ? width : nil)
         .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -543,6 +556,7 @@ struct TopicAccessibility: ViewModifier {
                 }
             }
             .modifier(TagCustomContent(names: topic.tagNames))
+            .modifier(TopicStyleCustomContent(color: topic.ownColor, symbol: topic.marks.symbol))
             .modifier(TaskDateCustomContent(due: topic.dueDate))
             .modifier(TopicLinkAccessibility(link: topic.isSuggestion ? nil : topic.link))
             .modifier(ConnectionAccessibility(descriptions: topic.connectionDescriptions))

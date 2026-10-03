@@ -162,7 +162,13 @@ struct EditorPage {
         // sometimes dropped (seen on the first test of a cold simulator); more
         // are harmless, since the segment only selects.
         for _ in 0..<2 where !content.waitForExistence(timeout: MindMapApp.timeout / 3) {
+            #if os(iOS)
+            // On iOS 27 the glass segment can highlight on a tap yet keep its
+            // selection (MM-87, iPhone App Store capture); a short press selects.
+            segment.press(forDuration: 0.2)
+            #else
             segment.tapOrClick()
+            #endif
         }
         content.waitToExist(file: file, line: line)
         return self

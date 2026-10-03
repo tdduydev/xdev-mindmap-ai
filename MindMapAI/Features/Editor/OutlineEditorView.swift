@@ -23,6 +23,12 @@ struct OutlineEditorView: View {
                     }
                 }
             }
+            // The outline's way to colour and symbol, on the rows the menu opened on.
+            .contextMenu(forSelectionType: NodeID.self) { ids in
+                let targets = session.inOutlineOrder(ids)
+                TopicColorMenu(title: "Color", session: session, targets: targets)
+                TopicSymbolMenu(title: "Symbol", session: session, targets: targets)
+            }
             .onChange(of: session.scrollRequest) { _, request in
                 guard let request else { return }
                 withAnimation(Motion.standard(reduceMotion: reduceMotion)) {
@@ -153,6 +159,16 @@ struct OutlineRow: View {
             if let state = row.node.taskState, let onToggleDone {
                 OutlineTaskBox(isDone: state.isDone, action: onToggleDone)
             }
+            if let color = ownColor {
+                // The shape with the colour, so it never shows by colour alone.
+                OutlineColorShape(color: color)
+            }
+            if let symbol = TopicSymbolCatalog.drawable(row.node.symbol) {
+                TopicSymbolImage(symbol: symbol)
+                    .font(isRoot ? Typography.Content.outlineRoot.font : Typography.Content.outlineTopic.font)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
             TextField("Topic", text: $draft, prompt: Text("Untitled Topic"))
                 .textFieldStyle(.plain)
                 .font(isRoot ? Typography.Content.outlineRoot.font : Typography.Content.outlineTopic.font)
@@ -162,6 +178,7 @@ struct OutlineRow: View {
                 .accessibilityLabel(accessibilityLabel)
                 .accessibilityValue(Text(verbatim: taskValue))
                 .modifier(TopicImageAccessibility(image: row.topicImage))
+                .modifier(TopicStyleCustomContent(color: ownColor, symbol: TopicSymbolCatalog.drawable(row.node.symbol)))
                 .accessibilityIdentifier(AccessibilityID.Outline.topic)
             if row.node.priority != nil || row.progress != nil || row.node.dueDate != nil {
                 OutlineTaskDetails(node: row.node, progress: row.progress, today: .today())
@@ -232,14 +249,22 @@ struct OutlineRow: View {
         .accessibilityIdentifier(AccessibilityID.Outline.disclosure)
     }
 
+    /// The central topic's colour is not drawn (`EditorSession.colorTargets`).
+    private var ownColor: TopicColor? {
+        guard !isRoot, let color = row.node.color, color.isKnown else { return nil }
+        return color
+    }
+
     private var accessibilityLabel: Text {
         if isRoot { return Text("Central Topic") }
         return isFloating ? Text("Floating topic") : Text("Topic, level \(row.depth + 1)")
     }
 
     /// "task, not done, priority High, overdue, 2 of 5 tasks done", as the canvas reads it.
+    /// Starts with the title: a value set on a TextField replaces its text,
+    /// so without it VoiceOver and UI tests saw an empty field (MM-87).
     private var taskValue: String {
-        var parts: [String] = []
+        var parts: [String] = [draft]
         if let state = row.node.taskState {
             parts.append(state.isDone ? String(localized: "task, done") : String(localized: "task, not done"))
         }
@@ -256,6 +281,20 @@ struct OutlineRow: View {
     private func commit() {
         guard draft != row.node.title else { return }
         onRename(draft)
+    }
+}
+
+/// A topic colour's shape in that colour, as the outline row's first mark.
+private struct OutlineColorShape: View {
+    let color: TopicColor
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        Image(systemName: color.shapeSymbol)
+            .font(.system(size: CanvasMetrics.topicColorShapeSize))
+            .foregroundStyle(color.token[ColorVariant(colorScheme: colorScheme, contrast: contrast)].color)
+            .accessibilityHidden(true)
     }
 }
 

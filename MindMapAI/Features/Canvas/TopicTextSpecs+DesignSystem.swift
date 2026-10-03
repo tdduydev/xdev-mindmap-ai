@@ -7,7 +7,9 @@ extension TopicTextSpecs {
     /// - Parameter scaledSize: The point size of a content style at the current
     ///   Dynamic Type setting. The view supplies it, because only iOS and
     ///   iPadOS scale; macOS draws the design size.
-    static func make(scaledSize: (ContentStyle) -> CGFloat) -> TopicTextSpecs {
+    ///   - showsColorShapes: Differentiate Without Color, which adds the
+    ///     colour's shape before a coloured topic's title (FR-ORG-02).
+    static func make(showsColorShapes: Bool = false, scaledSize: (ContentStyle) -> CGFloat) -> TopicTextSpecs {
         let levels = (0...3).map { level in
             let style = Typography.Content.topic(level: level)
             let box = CanvasMetrics.box(level: level)
@@ -39,6 +41,12 @@ extension TopicTextSpecs {
             symbolWidth: (CanvasMetrics.tagChipSymbolWidth * chipSize / badge.size).rounded(.up)
         )
         let image = TopicImageSpec(maximumAspect: CanvasMetrics.imageMaxAspect, gap: CanvasMetrics.imageGap)
+        let mark = TopicMarkSpec(
+            shapeSize: CanvasMetrics.topicColorShapeSize,
+            gap: CanvasMetrics.topicMarkGap,
+            symbolWidthFactor: CanvasMetrics.topicSymbolWidthFactor,
+            showsColorShapes: showsColorShapes
+        )
         // The sub-topic content font, whatever the topic's level (docs/design-system.md "Node types").
         let calloutStyle = Typography.Content.sub
         let calloutSize = scaledSize(calloutStyle)
@@ -54,12 +62,12 @@ extension TopicTextSpecs {
             placeholder: String(localized: "Callout")
         )
         return TopicTextSpecs(
-            levels: levels, placeholder: String(localized: "Untitled Topic"), chip: chip, image: image, callout: callout
+            levels: levels, placeholder: String(localized: "Untitled Topic"), chip: chip, image: image, mark: mark, callout: callout
         )
     }
 
     /// Design sizes, without Dynamic Type: the Mac, and tests.
-    static func designSizes() -> TopicTextSpecs {
-        make { $0.size }
+    static func designSizes(showsColorShapes: Bool = false) -> TopicTextSpecs {
+        make(showsColorShapes: showsColorShapes) { $0.size }
     }
 }

@@ -22,6 +22,14 @@ nonisolated enum UITestAI: String, CaseIterable {
 
     /// What Suggest Subtopics proposes in the `ready` mode, in this order.
     static let subtopics = ["Budget", "Timeline", "Risks"]
+    static let subtopicsVi = ["Ngân sách", "Lịch trình", "Rủi ro"]
+
+    /// Follows the app language (`-AppleLanguages`), not the topic's, so a test
+    /// knows the titles from how it launched: the Vietnamese screenshots show
+    /// Vietnamese suggestions while the counts stay the same in both.
+    static func subtopics(languageCode: String) -> [String] {
+        languageCode.hasPrefix("vi") ? subtopicsVi : subtopics
+    }
 }
 
 /// What voice input hears in the UI test mode, where the Simulator has no

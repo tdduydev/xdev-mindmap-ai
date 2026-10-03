@@ -46,6 +46,15 @@ enum TextLines {
     }
 
     /// Titles are one line in every format, so line breaks inside one become spaces.
+    /// The title on one line, after the topic's emoji (MM-32): the emoji is
+    /// part of how the topic reads, and other apps show it as text. SF Symbol
+    /// names and colours have no text form and are left out (FR-ORG-10).
+    static func exportTitle(of node: MindNode) -> String {
+        let title = singleLine(node.title)
+        guard let emoji = TopicSymbol.emoji(node.symbol) else { return title }
+        return title.isEmpty ? emoji : emoji + " " + title
+    }
+
     static func singleLine(_ title: String) -> String {
         title.split(omittingEmptySubsequences: true) { $0.isNewline }.joined(separator: " ")
     }
