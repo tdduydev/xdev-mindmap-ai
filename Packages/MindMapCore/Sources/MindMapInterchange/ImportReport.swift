@@ -18,6 +18,9 @@ public struct ImportReport: Hashable, Sendable {
         case image
         /// A file attached to a topic, which maps have no place for.
         case attachment
+        /// A FreeMind or Freeplane icon on a topic (MM-102); topics have
+        /// one symbol of their own, and the two sets do not line up.
+        case icon
     }
 
     public struct Entry: Hashable, Sendable {

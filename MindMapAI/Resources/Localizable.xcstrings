@@ -14542,24 +14542,24 @@
         }
       }
     },
-    "MindMap AI imports Markdown (.md), plain text (.txt) and OPML (.opml) files, and its own backups (.json)." : {
+    "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml) and FreeMind or Freeplane (.mm) files, and its own backups (.json)." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MindMap AI imports Markdown (.md), plain text (.txt) and OPML (.opml) files, and its own backups (.json)."
+            "value" : "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml) and FreeMind or Freeplane (.mm) files, and its own backups (.json)."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、OPML (.opml) ファイル、およびMindMap AIのバックアップ (.json) です。"
+            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、OPML (.opml) ファイル、FreeMindまたはFreeplane (.mm) ファイル、およびMindMap AIのバックアップ (.json) です。"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt), OPML (.opml) và bản sao lưu của chính ứng dụng (.json)."
+            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt), OPML (.opml), FreeMind hoặc Freeplane (.mm) và bản sao lưu của chính ứng dụng (.json)."
           }
         }
       }
@@ -14830,6 +14830,74 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld icons couldn’t be imported." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld icon couldn’t be imported."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld icons couldn’t be imported."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld個のアイコンを読み込めませんでした。"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld biểu tượng không nhập được."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "The file isn’t a FreeMind or Freeplane map. MindMap AI imports .mm files saved by FreeMind and Freeplane, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t a FreeMind or Freeplane map. MindMap AI imports .mm files saved by FreeMind and Freeplane, OPML (.opml), Markdown (.md) and plain text (.txt)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルはFreeMindやFreeplaneのマップではありません。MindMap AIで読み込めるのは、FreeMindとFreeplaneで保存した.mmファイル、OPML (.opml)、Markdown (.md)、プレーンテキスト (.txt) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải sơ đồ FreeMind hay Freeplane. MindMap AI nhập tệp .mm do FreeMind và Freeplane lưu, OPML (.opml), Markdown (.md) và văn bản thuần (.txt)."
           }
         }
       }
