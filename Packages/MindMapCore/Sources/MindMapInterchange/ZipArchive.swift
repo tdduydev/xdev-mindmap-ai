@@ -109,10 +109,13 @@ struct ZipArchive {
         guard let end else { throw .notAnArchive }
 
         let count = Int(uint16(at: end + 10))
-        let directorySize = Int(uint32(at: end + 12))
-        let directoryOffset = Int(uint32(at: end + 16))
         // 0xFFFF and 0xFFFFFFFF mean the real values are in a ZIP64 record.
-        guard count != 0xFFFF, directoryOffset != 0xFFFF_FFFF else { throw .damaged }
+        // Compared and converted as UInt32: Int has 32 bits on Apple Watch
+        // (arm64_32), where 0xFFFFFFFF does not fit and Int(_:) would trap.
+        let rawOffset = uint32(at: end + 16)
+        guard count != 0xFFFF, rawOffset != 0xFFFF_FFFF,
+              let directorySize = Int(exactly: uint32(at: end + 12)),
+              let directoryOffset = Int(exactly: rawOffset) else { throw .damaged }
         guard count <= limits.maximumEntryCount else { throw .tooLarge }
         guard directoryOffset + directorySize <= end else { throw .damaged }
 
@@ -127,7 +130,9 @@ struct ZipArchive {
             let compressedSize = uint32(at: position + 20)
             let size = uint32(at: position + 24)
             let localOffset = uint32(at: position + 42)
-            guard compressedSize != 0xFFFF_FFFF, size != 0xFFFF_FFFF, localOffset != 0xFFFF_FFFF else { throw .damaged }
+            guard compressedSize != 0xFFFF_FFFF, size != 0xFFFF_FFFF, localOffset != 0xFFFF_FFFF,
+                  let compressedLength = Int(exactly: compressedSize), let length = Int(exactly: size),
+                  let localHeaderOffset = Int(exactly: localOffset) else { throw .damaged }
 
             // XMind writes ASCII paths; bit 11 says UTF-8 and most tools use it anyway.
             let path = String(decoding: data[nameStart ..< nameStart + nameLength], as: UTF8.self)
@@ -137,9 +142,9 @@ struct ZipArchive {
                     method: uint16(at: position + 10),
                     flags: uint16(at: position + 8),
                     crc: uint32(at: position + 16),
-                    compressedSize: Int(compressedSize),
-                    size: Int(size),
-                    localHeaderOffset: Int(localOffset)
+                    compressedSize: compressedLength,
+                    size: length,
+                    localHeaderOffset: localHeaderOffset
                 )
             }
             position = nameStart + nameLength + extraLength + commentLength

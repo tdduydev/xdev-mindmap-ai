@@ -2,7 +2,8 @@
 # The check every change must pass before merging. There is no hosted CI, so
 # this runs locally: core tests on the Mac, app tests on macOS, a universal
 # macOS Release build (Apple silicon and Intel), then an iOS Simulator build
-# (which embeds the watch app) and a watchOS Simulator build.
+# (which embeds the watch app), a watchOS Simulator build and an unsigned
+# watchOS device build (arm64_32, 32-bit Int).
 # scripts/rosetta-tests.sh runs the tests as x86_64; it is slower and optional.
 # Warnings fail the build through the project and Package.swift settings, which
 # leave the remote packages (MLX, ADR 0011) to their own warning flags.
@@ -143,5 +144,17 @@ if [[ ! -d "$ios_app/Watch/MindMapWatch.app" ]]; then
   echo "error: the iOS app does not embed MindMapWatch.app" >&2
   exit 1
 fi
+
+# A real watch is arm64_32, where Int has 32 bits: a constant or conversion that
+# fits the Simulator's 64 bits can fail there (ZipArchive, 2026-10-04, found only
+# when archiving for TestFlight). Unsigned, so no certificate is needed.
+step "watchOS device build (arm64_32, unsigned)"
+xcodebuild build -quiet \
+  -project MindMapAI.xcodeproj -scheme MindMapWatch \
+  -destination 'generic/platform=watchOS' \
+  -derivedDataPath "$derived" \
+  CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$logs/watchos-device.log"
+fail_on_missing_dependency "$logs/watchos-device.log"
+fail_on_hidden_error "$logs/watchos-device.log"
 
 printf '\nAll checks passed.\n'
