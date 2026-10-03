@@ -10,7 +10,21 @@ enum LocalAnswer {
         var topics: [Topic]
     }
     struct TopicList: Decodable {
-        struct Topic: Decodable { var title: String }
+        /// Qwen3 and Llama 3.2 sometimes answer a list of plain strings
+        /// (MM-77 benchmark); without constrained decoding both forms come back.
+        struct Topic: Decodable {
+            var title: String
+
+            init(from decoder: any Decoder) throws {
+                if let title = try? decoder.singleValueContainer().decode(String.self) {
+                    self.title = title
+                } else {
+                    title = try decoder.container(keyedBy: CodingKeys.self).decode(String.self, forKey: .title)
+                }
+            }
+
+            private enum CodingKeys: String, CodingKey { case title }
+        }
         var topics: [Topic]
     }
     struct Rewrites: Decodable { var titles: [String] }

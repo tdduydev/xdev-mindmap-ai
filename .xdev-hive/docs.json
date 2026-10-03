@@ -35,6 +35,8 @@
     {"file": "docs/adr/0007-visual-language.md", "key": "adr-0007", "title": "0007 Visual language and brand fonts", "parent": "adr"},
     {"file": "docs/adr/0008-mcp-server.md", "key": "adr-0008", "title": "0008 MCP server in the Mac app", "parent": "adr"},
     {"file": "docs/adr/0009-local-chat.md", "key": "adr-0009", "title": "0009 Chat on the device", "parent": "adr"},
-    {"file": "docs/adr/0010-floating-topic-positions.md", "key": "adr-0010", "title": "0010 Floating topics store their position", "parent": "adr"}
+    {"file": "docs/adr/0010-floating-topic-positions.md", "key": "adr-0010", "title": "0010 Floating topics store their position", "parent": "adr"},
+    {"file": "docs/adr/0011-local-llm-fallback.md", "key": "adr-0011", "title": "0011 Downloadable open model as fallback (draft)", "parent": "adr"},
+    {"file": "docs/research/local-llm.md", "key": "research-local-llm", "title": "Research: local open models"}
   ]
 }

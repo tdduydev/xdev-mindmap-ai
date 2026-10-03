@@ -122,6 +122,13 @@ func context(_ title: String = "Sleep", language: AILanguage = .english) -> AICo
         }
     }
 
+    @Test func brainstormAcceptsPlainStrings() async throws {
+        let (store, model) = try await installedStore(for: Data("w".utf8))
+        let provider = LocalLLMProvider(model: model, store: store) { ScriptedEngine(answer: #"{"topics": ["Escape room", "Cooking class"]}"#) }
+        let proposal = try await provider.brainstorm(BrainstormRequest(context: context()))
+        #expect(proposal.topics.map(\.title) == ["Escape room", "Cooking class"])
+    }
+
     @Test func jsonObjectIgnoresBracesInStrings() {
         #expect(LocalAnswer.jsonObject(in: #"x {"summary": "a } b"} y"#) == #"{"summary": "a } b"}"#)
     }

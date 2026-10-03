@@ -3,7 +3,7 @@
 #   uv run --python 3.12 --with mlx-lm scripts/research/local-llm-bench.py OUT.jsonl MODEL...
 # Prompts mirror PromptCatalog (common rules + feature rules + rendered context);
 # the JSON shape stands in for @Generable, which open runtimes do not have.
-import json, sys, time, re
+import json, os, sys, time, re
 import mlx.core as mx
 from mlx_lm import load, stream_generate
 from mlx_lm.sample_utils import make_sampler
@@ -67,7 +67,10 @@ def run(model_id, out):
     model, tok = load(model_id)
     load_s = time.time() - t0
     sampler = make_sampler(temp=0.3)
+    only = os.environ.get("ONLY")  # e.g. ONLY=generateMap MAX_TOKENS=1500 to rerun the long answers
     for feature, lang, prompt in CASES:
+        if only and feature != only:
+            continue
         kwargs = {"add_generation_prompt": True, "tokenize": False}
         if "Qwen3" in model_id:
             kwargs["enable_thinking"] = False  # thinking doubles latency for no gain on short JSON
@@ -79,7 +82,7 @@ def run(model_id, out):
         mx.reset_peak_memory()
         text, last, first_at = "", None, None
         start = time.time()
-        for r in stream_generate(model, tok, text_in, max_tokens=700, sampler=sampler):
+        for r in stream_generate(model, tok, text_in, max_tokens=int(os.environ.get("MAX_TOKENS", "700")), sampler=sampler):
             if first_at is None:
                 first_at = time.time() - start
             text += r.text
