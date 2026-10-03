@@ -189,6 +189,14 @@ struct ImportSummary: Identifiable, Equatable {
             String(localized: "\(entry.count) images couldn’t be imported.")
         case .attachment:
             String(localized: "\(entry.count) attached files couldn’t be imported.")
+        case .icon:
+            String(localized: "\(entry.count) icons couldn’t be imported.")
+        case .connection:
+            String(localized: "\(entry.count) relationships couldn’t be imported as connections.")
+        case .summary:
+            String(localized: "\(entry.count) summaries couldn’t be imported. Their topics are kept as subtopics.")
+        case .boundary:
+            String(localized: "\(entry.count) boundaries couldn’t be imported.")
         }
     }
 }

@@ -44,7 +44,7 @@ flowchart LR
 | `MindMapLayout` | Domain, Graph, Foundation geometry types | SwiftUI, SwiftData ([[layout-engine]]) |
 | `MindMapAICore` | Domain, Graph, NaturalLanguage | FoundationModels, SwiftUI, SwiftData |
 | `MindMapAIApple` | AICore, FoundationModels (on-device model only); Query for the chat's tools ([[chat]]) | Private Cloud Compute, SwiftUI, SwiftData records (it reads maps only through `MapQueries`) |
-| `MindMapInterchange` | Domain, Graph | SwiftUI, SwiftData, AI ([[interchange]]) |
+| `MindMapInterchange` | Domain, Graph, Images (pictures in XMind files, MM-103), Compression | SwiftUI, SwiftData, AI ([[interchange]]) |
 | `MindMapSearch` | Domain, Graph: folding (case, Vietnamese marks, đ, full/half width; Japanese voiced marks kept), library index and ranking, Find in a map | SwiftUI, SwiftData, AI |
 | `MindMapSharing` | Domain, Graph, Persistence, Interchange | SwiftUI, AI ([[system-integration]]) |
 | `MindMapIntents` | Sharing, Persistence, AppIntents, CoreSpotlight | SwiftUI, AI |

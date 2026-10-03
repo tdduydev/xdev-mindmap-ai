@@ -70,6 +70,16 @@ extension UTType {
     /// The system declares no OPML type, so the app imports one (Info.plist,
     /// `UTImportedTypeDeclarations`); without it `.opml` files would be greyed out in the open panel.
     nonisolated static let opml = UTType(importedAs: "org.opml.opml", conformingTo: .xml)
+
+    /// XMind maps (`.xmind`), imported for the same reason as OPML. The
+    /// identifier is ours; when XMind is installed its own declaration wins
+    /// for the extension, so `xmindTypes` also offers whatever the system maps it to.
+    nonisolated static let xmind = UTType(importedAs: "asia.xdev.mindmapai.xmind", conformingTo: .zip)
+
+    nonisolated static var xmindTypes: [UTType] {
+        let declared = UTType(filenameExtension: "xmind")
+        return [.xmind] + (declared.map { $0 == .xmind ? [] : [$0] } ?? [])
+    }
 }
 
 /// Behind an exported picture: the canvas colour of the current appearance,
