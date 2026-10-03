@@ -36,7 +36,7 @@ final class AIService {
 
     /// `chatProvider` is nil where there is no library to read, so no chat.
     init(
-        provider: @escaping () -> any AIProvider = { AppleFoundationModelProvider() },
+        provider: @escaping () -> any AIProvider = { AIProviders.standard() },
         chatProvider: (() -> any ChatProvider)? = nil,
         entitlements: any ProEntitlements,
         defaults: UserDefaults = AppDefaults.store

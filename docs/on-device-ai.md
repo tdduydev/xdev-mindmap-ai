@@ -70,16 +70,11 @@ Check again each time the app becomes active, since people can turn Apple Intell
 - Keep requests small: bounded context (`AIContextBuilder`), arrays capped with `@Guide(.maximumCount)`, long branches summarized in chunks.
 - Version prompts per model generation (26.0–26.3, 26.4, 27.0) in a prompts string catalog, as Apple's [prompt update guide](https://developer.apple.com/documentation/foundationmodels/updating-prompts-for-new-model-versions) suggests.
 
-## Optional local models (later)
+## Local model fallback (1.1)
 
-If the product later wants AI where Apple Intelligence is unavailable, open models can run on 27 behind the same session API. The 4-bit weight sizes below come from the research, and the Vietnamese quality of structured output is untested:
+ADR 0011 (accepted 2026-10-03) adds a downloadable open model where Apple Intelligence cannot run: Qwen3 1.7B by default and Qwen3 4B on 8 GB devices, both Apache-2.0, running on MLX Swift. It applies on iPhone 15 and later, recognised by model identifier, and on Apple silicon iPad and Mac with 8 GB [Đề xuất]. Foundation Models stays first wherever it is ready. Without a download the app behaves as described above.
 
-| Model | License | Vietnamese | 4-bit weights |
-| --- | --- | --- | --- |
-| Qwen3 1.7B / 4B | Apache-2.0 | Listed among its languages | about 1.0 / 2.3 GB |
-| Gemma 3 4B | Gemma Terms | 140+ languages | about 3.0 GB |
-| Qwen2.5 3B | Research license, non-commercial | — | not usable commercially |
-
-This would be its own package (MLX shaders do not build with the SwiftPM command line), downloaded on demand, and needs an App Review check on downloaded model weights (guideline 2.5.2) first.
-
-MM-77 measured these models and a prototype provider: see [research/local-llm.md](research/local-llm.md) and the draft [ADR 0011](adr/0011-local-llm-fallback.md).
+- Provider, choice, device rules, JSON repair: [ai-architecture.md](ai-architecture.md#local-model-fallback) (MM-105).
+- Evaluations in en, vi and ja against Foundation Models: [research/ai-evaluations.md](research/ai-evaluations.md) (MM-105).
+- Download in Settings ▸ AI: MM-106. Measurements on iPhone and iPad: MM-107.
+- Background: [research/local-llm.md](research/local-llm.md) (MM-77).
