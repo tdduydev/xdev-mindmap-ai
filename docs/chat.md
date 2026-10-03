@@ -256,9 +256,47 @@ Differences from the design above:
 
 - `MindMapAICoreTests`: citation table (unknown handles dropped, deleted topics), budget cutting, scope rules (no edit tool in the library).
 - App tests with `MockChatProvider`: a suggestion reaches `SuggestionState`, Accept is one undo step and redo works, a citation opens and reveals the topic.
-- `MindMapAIAppleTests`, only where the model is ready: tools are called for a fixture map in en and vi; Evaluations for answer quality and citation accuracy.
+- `MindMapAIAppleTests`, only where the model is ready: tools are called for a fixture map in en and vi; Evaluations for answer quality and citation accuracy ([Chat evaluations](#chat-evaluations-mm-53)).
 - UI tests with the mock (as MM-25): open the panel by menu and shortcut, ask, click a citation, unavailable states, Vietnamese.
 - Measure time to first token and per-tool latency on the M1 Mac for a 1,000-topic map.
+
+## Chat evaluations (MM-53)
+
+C4, built on Apple's Evaluations framework (Xcode 27, macOS 27; a developer framework like Swift Testing, so only test targets import it). Run `scripts/chat-evaluations.sh` after any change to the chat instructions, prompt, tools or budget, as ADR 0009 asks. It takes about two minutes on the development Mac and writes one JSON report per prompt generation to `scripts/out/evaluations/` (`chat-26.4.json`, `chat-27.0.json`), with each answer as the rationale of its metrics.
+
+- **Opt-in:** the suite `ChatEvaluationRun` (`Tests/MindMapAIAppleTests/ChatEvaluationTests.swift`) runs only when `MINDMAP_CHAT_EVALUATIONS` names the report folder and the model is ready, so `ci.sh` skips it. The grading has its own unit tests (`ChatAnswerGradeTests`), which run on every `swift test`.
+- **Prompt generations:** `ChatEvaluation.make(version:)` builds `AppleChatProvider` with `PromptCatalog(version: .v26_4)` and `.v27_0`. Both run on the model of the OS the tests run on: a Mac on 27 cannot load the 26.4 model, so a 26.4 run checks the 26.4 prompts on the 27 model. A real 26.4 model needs a Mac or device on 26.4 *[Inference]*.
+- **Fixtures:** two maps in an in-memory store (`ChatEvaluationSamples.swift`): "Product launch" in English and "Du lịch Đà Nẵng" in Vietnamese, with facts in notes so the model has to read topics, not only search titles.
+- **Samples:** 14, seven per answer language: answers found (facts in titles and notes, a list, one question asked in the other language than its map) and two per language the maps do not answer. Each names its facts (each in any of its spellings), the topic titles it may cite, and words only an invented answer would hold.
+- **Each sample is a fresh conversation** through the public `ChatProvider` API, as the app asks it; an `AIError` (refusal, full context) counts as a failed answer, not a broken run.
+- **Metrics,** graded by string checks, not by a model, so the same answer always scores the same (case and accents folded, so "muong thanh" matches "Mường Thanh"):
+
+| Metric | Passes when | Samples |
+| --- | --- | --- |
+| `answerFound` | every fact is in the answer | answer found |
+| `citationsCorrect` | at least one cited topic is a source | answer found |
+| `citationPrecision` | score: cited sources over all cited topics | answer found |
+| `saysNotFound` | the answer says so in its language (en "not", "no", "n't"…; vi "không", "chưa") and holds no forbidden word | not found |
+| `inQuestionLanguage` | `NLLanguageRecognizer` reads the answer, without handles and the map's own words, in the question's language | all |
+
+- **Floors [Đề xuất]:** the run fails below a mean of 0.6 for `answerFound` and `citationsCorrect`, 0.5 for `saysNotFound`, 0.85 for `inQuestionLanguage`. The model is not deterministic, so they sit under the lowest run seen and catch a change that loses a kind of question, not one unlucky sample.
+- **Not used:** `ToolCallEvaluator` needs the session's transcript, which `ChatConversation` does not expose; `ModelJudgeEvaluator` would grade with the same small model it grades. Either can be added if the string checks prove too narrow.
+
+### First results (2026-10-03, macOS 27.0.1, Mac mini)
+
+Three runs of each prompt generation. The 26.4 and 27 chat prompts are the same text today, so their differences are the model's variance. Run 1 had 12 samples (before the two cross-language ones); run 2 graded language before the map's own words were left out, so its 0.93 language score was the grader's mistake on "We stay at Mường Thanh".
+
+| Run | Prompts | `answerFound` | `citationsCorrect` | `saysNotFound` | `inQuestionLanguage` |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 26.4 / 27 | 1.0 / 1.0 | 1.0 / 1.0 | 0.75 / 0.75 | 1.0 / 1.0 |
+| 2 | 26.4 / 27 | 0.8 / 0.7 | 0.8 / 0.7 | 0.75 / 0.75 | 0.93 / 0.93 |
+| 3 | 26.4 / 27 | 0.7 / 0.9 | 0.8 / 0.9 | 0.75 / 0.75 | 1.0 / 1.0 |
+
+What the runs show, for the prompt and tool work that follows:
+
+- **Invented answer, every run:** "Who is the lead designer?" gets "The lead designer is Mai Tran [T3]", citing the Press release topic whose note names Mai Tran as its writer. The instruction "Never invent topics, facts or handles" does not stop it.
+- **"Not found" for an answer the map holds, Vietnamese questions only:** "Bản beta mở vào ngày nào?" on the English map failed in runs 2 and 3 with both prompts; "Tổng chi phí chuyến đi là bao nhiêu?", "Ngày thứ hai đi đâu?" and "Có những món ăn nào trong kế hoạch?" failed in some runs and passed in others. The answers quote the question back ("Không tìm thấy thông tin nào về “Tổng chi phí chuyến đi”"), so *[Inference]* the model searched with the whole phrase, which matches no title, and answered without reading the outline.
+- **Citations hold when there is an answer:** every topic cited by a correct answer was a source (`citationPrecision` equals `citationsCorrect`), so bracket handles hold up and guided generation of `{ text, citations }` is not needed for now.
 
 ## Proposed tasks
 
