@@ -8,6 +8,9 @@ import MindMapDomain
 public enum ChatScope: Hashable, Sendable, Codable {
     /// Ask in one map (C1): its live graph, from the editor.
     case map(MapID)
+    /// Ask across the library (C3, Pro): every live map, never Recently
+    /// Deleted. Read-only, with no edit tool, and not saved with any map.
+    case library
 }
 
 /// The branch a question is limited to (MM-78): the topic it starts from,
@@ -95,6 +98,9 @@ public struct ChatUpdate: Hashable, Sendable {
     public var isReadingMap: Bool
     /// Earlier turns were left out of what the model sees to make room.
     public var leftOutEarlierTurns: Bool
+    /// Topics the model suggested with `suggestTopics` (MM-51), the latest
+    /// call's. The app shows them on the map; nothing is added yet.
+    public var suggestion: ChatSuggestion?
     public var isComplete: Bool
 
     public init(
@@ -102,12 +108,14 @@ public struct ChatUpdate: Hashable, Sendable {
         citations: [ChatCitation] = [],
         isReadingMap: Bool = false,
         leftOutEarlierTurns: Bool = false,
+        suggestion: ChatSuggestion? = nil,
         isComplete: Bool = false
     ) {
         self.text = text
         self.citations = citations
         self.isReadingMap = isReadingMap
         self.leftOutEarlierTurns = leftOutEarlierTurns
+        self.suggestion = suggestion
         self.isComplete = isComplete
     }
 }

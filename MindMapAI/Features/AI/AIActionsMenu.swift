@@ -30,6 +30,7 @@ struct AIActionsMenu: View {
         if let note = assistant.service.unavailableReason {
             // One line on why AI is not ready, in place of an alert (FR-AI-02).
             Text(note)
+                .accessibilityIdentifier(AccessibilityID.AIMenu.unavailableReason)
         }
         if includesGenerateMap {
             Button("Generate Map…", systemImage: "sparkles") { assistant.requestGenerateMap() }
@@ -106,6 +107,7 @@ extension AIFeature {
         case .suggestTags: String(localized: "Suggesting tags…")
         case .suggestGroups: String(localized: "Suggesting groups…")
         case .summarizeBoundary: String(localized: "Summarizing the boundary…")
+        case .chat: String(localized: "Answering…")
         }
     }
 
@@ -120,6 +122,7 @@ extension AIFeature {
         case .suggestTags: String(localized: "Suggested tags")
         case .suggestGroups: String(localized: "Suggested groups")
         case .summarizeBoundary: String(localized: "Suggested boundary title")
+        case .chat: String(localized: "Suggested from the chat")
         case .rewrite, .summarize: String(localized: "Suggestions")
         }
     }

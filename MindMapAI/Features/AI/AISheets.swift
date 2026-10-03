@@ -54,8 +54,9 @@ struct AISheet: View {
     }
 }
 
-/// FR-AI-19: shown before the first AI request.
-private struct AIPrivacyNotice: View {
+/// FR-AI-19: shown before the first AI request, from a map or from the
+/// library's chat (MM-52).
+struct AIPrivacyNotice: View {
     let onContinue: () -> Void
     let onCancel: () -> Void
 
@@ -131,6 +132,7 @@ private struct AIPromptForm: View {
                     TextField(placeholder, text: $text, axis: .vertical)
                         .lineLimit(3...8)
                         .focused($isFocused)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.promptField)
                 } footer: {
                     Text(message)
                 }
@@ -140,10 +142,12 @@ private struct AIPromptForm: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel", action: onCancel)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.cancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(actionTitle) { onSubmit(text) }
                         .disabled(!canSubmit)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.submit)
                 }
             }
             .onAppear { isFocused = true }
@@ -190,6 +194,7 @@ private struct AIRewriteForm: View {
                     }
                     .pickerStyle(.inline)
                     TextField("New Title", text: $title, axis: .vertical)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.newTitle)
                 } footer: {
                     Text("Edit the title before using it if you like.")
                 }
@@ -200,9 +205,11 @@ private struct AIRewriteForm: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel", action: onCancel)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.cancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Use Title") { onApply(title) }
+                        .accessibilityIdentifier(AccessibilityID.AISheet.useTitle)
                         .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -223,6 +230,7 @@ private struct AISummaryForm: View {
                 Section {
                     Text(verbatim: summary.text)
                         .textSelection(.enabled)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.summary)
                 } header: {
                     Label {
                         Text("Suggested by AI")
@@ -240,9 +248,11 @@ private struct AISummaryForm: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close", action: onClose)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.cancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add to Note", action: onAddToNote)
+                        .accessibilityIdentifier(AccessibilityID.AISheet.addToNote)
                 }
             }
         }

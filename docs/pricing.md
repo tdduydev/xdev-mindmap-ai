@@ -8,7 +8,7 @@ Decided 2026-10-02: MindMap AI is free, with one **Pro** unlock at **USD 14.99**
 | --- | --- |
 | Advanced export: multi-page vector PDF, high-resolution PNG (OPML joins once it is built, FR-IO-06; not offered until then) | Markdown and plain text import and export |
 | Themes beyond Standard (xDev Blue, Graphite and later ones) | The Standard theme |
-| Advanced AI: generate a map from a long description, summarize a whole map, find missing topics | Expand a topic, brainstorm, rewrite, summarize a branch |
+| Advanced AI: generate a map from a long description, summarize a whole map, find missing topics, Ask About Library (MM-52) | Expand a topic, brainstorm, rewrite, summarize a branch, Ask About This Map |
 | Voice input | Everything else: maps, topics, canvas, outline, search, iCloud sync, Recently Deleted |
 
 The list lives in one place in code, so it can change without touching the features themselves.

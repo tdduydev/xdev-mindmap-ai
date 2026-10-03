@@ -45,6 +45,11 @@ final class FileTransfer {
 
     func beginImport(_ destination: ImportDestination) {
         pendingDestination = destination
+        if let files = UITestFiles.shared {
+            // The UI test mode's stand-in for the open panel picks its fixture.
+            Task { await finishImport(Result { try files.fixtureURL() }) }
+            return
+        }
         isImporting = true
     }
 

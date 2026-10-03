@@ -49,6 +49,7 @@ struct LibraryView: View {
                             } label: {
                                 Label("Restore", systemImage: "arrow.uturn.backward")
                             }
+                            .accessibilityIdentifier(AccessibilityID.Library.restore)
                         }
                     }
             }
@@ -115,6 +116,7 @@ struct LibraryView: View {
             Button("Delete Permanently", role: .destructive) {
                 deletePermanently(map)
             }
+            .accessibilityIdentifier(AccessibilityID.Library.confirmPermanentDeletion)
         } message: { map in
             Text("“\(map.title)” and all its topics will be deleted. This can’t be undone.")
         }

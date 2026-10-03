@@ -10,6 +10,13 @@ nonisolated enum UITestLaunch {
     static let ai = "-uitest-ai"
     /// Seeds the app's pasteboard in its own process for image-paste UI tests.
     static let imageClipboard = "-uitest-image-clipboard"
+    /// Stands in for the system's open and save panels: Import… reads
+    /// `UITestFile.markdown`, Export… writes into the app's temporary folder
+    /// and reports the file on screen (`AccessibilityID.UITest.exportedFile`).
+    static let files = "-uitest-files"
+    /// Pro starts unlocked, without StoreKit: a purchase on a fresh simulator
+    /// can stop at an Apple Account sign-in the test cannot answer.
+    static let pro = "-uitest-pro"
 }
 
 /// How the scripted model of the UI test mode behaves.
@@ -19,11 +26,28 @@ nonisolated enum UITestAI: String, CaseIterable {
     case ready
     /// A device that can never run Apple Intelligence: every AI entry point is hidden.
     case ineligible
+    /// Ready, and Suggest Subtopics proposes `fiveSubtopics`, so a test can
+    /// accept some and discard the rest (AT-04).
+    case fiveSuggestions
+    /// Ready, but the model's guardrails block every request.
+    case guardrail
+    /// Apple Intelligence is turned off: entry points stay, with one line on
+    /// how to turn it on.
+    case appleIntelligenceOff
 
     /// What Suggest Subtopics proposes in the `ready` mode, in this order.
     static let subtopics = ["Budget", "Timeline", "Risks"]
     static let subtopicsVi = ["Ngân sách", "Lịch trình", "Rủi ro"]
     static let subtopicsJa = ["予算", "スケジュール", "リスク"]
+
+    /// What Suggest Subtopics proposes in the `fiveSuggestions` mode, in this order.
+    static let fiveSubtopics = ["Budget", "Timeline", "Risks", "Team", "Launch Date"]
+    /// The rewritten titles every ready mode offers, in this order.
+    static let rewrites = ["Visual Design", "Design Work"]
+    /// The branch summary every ready mode offers.
+    static let summary = "The branch covers the visual design of the launch."
+    /// The topics Generate Map proposes under the central topic.
+    static let generatedTopics = ["Goals", "Channels"]
 
     /// Follows the app language (`-AppleLanguages`), not the topic's, so a test
     /// knows the titles from how it launched: the Vietnamese and Japanese
@@ -40,6 +64,35 @@ nonisolated enum UITestAI: String, CaseIterable {
 nonisolated enum UITestVoice {
     static let heard = "Call the venue. Book the flights."
     static let topics = ["Call the venue", "Book the flights"]
+}
+
+/// The file Import… opens when `UITestLaunch.files` stands in for the open
+/// panel. Written the way people write Markdown (`*` and `-` items, no blank
+/// lines), so exporting it again shows the structure survived, not the text.
+nonisolated enum UITestFile {
+    static let name = "Trip Plan.md"
+    static let markdown = """
+        # Trip Plan
+        ## Travel
+        * Book the flights
+          * Window seat
+        - Rent a car
+        ## Packing
+        - Passport
+        """
+    /// The same outline as the Markdown export writes it (docs/interchange.md),
+    /// blank lines left out.
+    static let exportedLines = [
+        "# Trip Plan",
+        "## Travel",
+        "- Book the flights",
+        "  - Window seat",
+        "- Rent a car",
+        "## Packing",
+        "- Passport",
+    ]
+    /// The map the import makes: its single top-level heading names it.
+    static let mapTitle = "Trip Plan"
 }
 
 /// The maps a UI test can start with. Titles are data, not interface text,

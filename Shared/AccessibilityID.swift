@@ -23,6 +23,10 @@ nonisolated enum AccessibilityID {
         static let importMap = "library.importMap"
         /// The swipe action that moves a map to Recently Deleted.
         static let delete = "library.delete"
+        /// The swipe action that brings a map back from Recently Deleted.
+        static let restore = "library.restore"
+        /// The button of the dialog that asks before deleting a map permanently.
+        static let confirmPermanentDeletion = "library.confirmPermanentDeletion"
     }
 
     enum Editor {
@@ -63,12 +67,38 @@ nonisolated enum AccessibilityID {
         /// One per suggested topic in the Review list.
         static let accept = "suggestions.accept"
         static let discard = "suggestions.discard"
+        /// Why the last request ended without suggestions, and what to do.
+        static let failure = "suggestions.failure"
+        static let editRequest = "suggestions.editRequest"
+    }
+
+    /// The AI sheets: a request to type, or a result to review first.
+    enum AISheet {
+        static let promptField = "aiSheet.promptField"
+        static let submit = "aiSheet.submit"
+        static let newTitle = "aiSheet.newTitle"
+        static let useTitle = "aiSheet.useTitle"
+        static let summary = "aiSheet.summary"
+        static let addToNote = "aiSheet.addToNote"
+        static let cancel = "aiSheet.cancel"
+    }
+
+    enum AIMenu {
+        /// The one line on why AI cannot run, at the top of the AI menus.
+        static let unavailableReason = "aiMenu.unavailableReason"
     }
 
     enum Export {
         static let format = "export.format"
         static let export = "export.export"
         static let cancel = "export.cancel"
+    }
+
+    /// Elements only the UI test mode shows.
+    enum UITest {
+        /// The file the stand-in for the save panel wrote: its name in the
+        /// label, what it holds in the value (`UITestFiles.Report`).
+        static let exportedFile = "uitest.exportedFile"
     }
 
     enum Voice {
@@ -96,6 +126,19 @@ nonisolated enum AccessibilityID {
         static let previous = "find.previous"
         static let next = "find.next"
         static let done = "find.done"
+    }
+
+    /// The filter bar, its toolbar chip and the Focus on Branch breadcrumb (MM-36).
+    enum Filter {
+        static let bar = "filter.bar"
+        static let text = "filter.text"
+        /// "3 of 12 topics".
+        static let count = "filter.count"
+        static let chip = "filter.chip"
+        static let clear = "filter.clear"
+        static let mode = "filter.mode"
+        static let breadcrumb = "filter.breadcrumb"
+        static let exitFocus = "filter.exitFocus"
     }
 
     enum Outline {
@@ -150,8 +193,17 @@ nonisolated enum AccessibilityID {
         static let copy = "chat.copy"
         static let addToNote = "chat.addToNote"
         static let askAgain = "chat.askAgain"
+        static let createTopics = "chat.createTopics"
+        static let suggestedTopics = "chat.suggestedTopics"
         static let microphone = "chat.microphone"
         static let cancelVoice = "chat.cancelVoice"
+    }
+
+    /// Ask across the library (MM-52). Inside the panel the controls keep
+    /// the `Chat` identifiers, so one page object reads both panels.
+    enum LibraryChat {
+        static let panel = "libraryChat.panel"
+        static let toolbar = "libraryChat.toolbar"
     }
 
     enum ScreenshotAI {

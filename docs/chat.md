@@ -157,7 +157,7 @@ Errors map through `AIFailure`. Logs carry the scope, tool names, token counts a
 
 ## What C1 built
 
-MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51) and the library scope (C3, MM-52) are not built. Saving came with MM-55 ([Saving the conversation](#saving-the-conversation)).
+MM-41, 2026-10-02. Ask in a map, read-only; suggestions came with C2, MM-51 ([Topics from the chat](#topics-from-the-chat-mm-51)); the library scope (C3, MM-52) is not built. Saving came with MM-55 ([Saving the conversation](#saving-the-conversation)).
 
 | Type | Where | Role |
 | --- | --- | --- |
@@ -180,7 +180,7 @@ Differences from the design above:
 - **Errors** map to `ChatFailure` (its own messages: no "suggestions" wording), not `AIFailure`. `LanguageModelError` (27) is read beside `GenerationError`.
 - **Menu:** AI ▸ Ask About This Map… (⌃⌘A, approved 2026-10-02) and Clear Chat; Cancel AI Request (⌘.) stops a chat answer too, so the chat has no Stop item of its own. Toolbar: Ask About This Map, beside the AI menu.
 - **Use AI Features** (MM-44): the chat is hidden exactly where the other AI controls are (`AIService.showsControls`: an ineligible device, or the switch off in Settings), and when the app has no store. A panel already open when the switch goes off keeps its answers but cannot ask again.
-- **UI test mode:** `-uitest-ai ready|ineligible` puts a scripted model in place of Apple Intelligence (Debug only, `UITestAIService.swift`): the chat cites the first topic whose title matches a word of the question.
+- **UI test mode:** `-uitest-ai <mode>` (see [[testing]]) puts a scripted model in place of Apple Intelligence (Debug only, `UITestAIService.swift`): the chat cites the first topic whose title matches a word of the question.
 
 ## Suggested questions and scope (MM-78)
 
@@ -203,7 +203,20 @@ Chosen by the product owner on 2026-10-03 (FR-AI-10, FR-EDT-13). Under each answ
 - **Add to Note** (finished answers): appends the answer to a topic's note, after a blank line when the note has text, as one `UpdateNodeCommand(.note)` named "Add Answer to Note": one undo step, redo restores it. The topic is the selected one; with nothing selected, the first cited topic still in the map [Đề xuất]; with several topics selected, or no selection and no citation, the button is disabled (its help says "Select one topic to add the answer to its note"). The help names the topic that will get it. The text is the plain answer, without handles.
 - **Ask Again** (the last question only, once its answer is finished, stopped or failed; disabled while the model is not ready): asks the same question with the same scope (`branch`) in place of that answer. The conversation is rebuilt from the turns before it, so the model does not see the answer it replaces. The old saved turn is deleted at once (`ChatHistoryStore.deleteChatTurn`, no schema change) and the new answer is saved as a new turn when it finishes, so a retry that stops or fails leaves no stale answer in the store. An earlier question has later turns built on it, so it has no Ask Again.
 - **Menu bar:** AI ▸ Copy Answer, Add Answer to Note, Ask Again act on the last answer and are disabled when it does not allow them. No shortcuts: none is approved yet, and ⌘C must stay Copy for the canvas and text.
-- **Not here:** Create Topics from Answer belongs to MM-51 (suggestions from the chat).
+- **Not here:** Create Topics from Answer came with MM-51 ([Topics from the chat](#topics-from-the-chat-mm-51)).
+
+## Topics from the chat (MM-51)
+
+C2, FR-AI-26. The product owner chose on 2026-10-03 a "Create Topics from Answer" button on each answer, besides the model's `suggestTopics` tool. Both end in the same place: AI suggestions on the canvas (`SuggestionState`, feature `.chat`), editable and discardable, and Accept is one `BatchCommand` named "Add AI Topics", one undo step, topics with `origin = .ai`.
+
+- **`ChatSuggestion`** (`MindMapAICore`): a parent topic and up to 8 topics [Đề xuất], temporary IDs `c1`, `c2`… Built from the model's titles (trimmed, one line, repeats and titles already under the parent left out) or read from an answer.
+- **`suggestTopics(handle, titles)`**, the fourth tool (`ChatTools.swift`, `ChatMapReader.suggestTopics`): the handle must be one a tool returned and, for a branch question, inside the branch; an empty handle means the branch topic, else the central topic. It records the suggestion and changes nothing; its result tells the model "Nothing was added yet … Say you suggested them". The latest call of an answer wins; the reader clears it before each question. `ChatUpdate.suggestion` carries it to the app.
+- **Instructions** gained one line ("To add topics, call suggestTopics … never say they were added") and lost the old "You cannot change the map"; they were shortened to stay under half of `ChatBudget.instructionsReserve` (the test guards it).
+- **Honest answer:** the panel adds its own line under the answer, "Suggested 3 topics under “Plan”. Review them on the map." (AI symbol), so what it says never depends on the model's wording. `MapChat.Entry.suggestion`; not saved with the turn, so the line is gone when the map opens again (the answer text stays) [Đề xuất].
+- **Create Topics from Answer** (`MapChat.createTopics(from:)`): finished answers, beside Copy and Add to Note, shown where the chat's AI controls are. The app reads the answer itself, no second model request: each list item (`-`, `*`, `+`, `•`, `1.`, `1)`) becomes a topic and an indented item a subtopic of the item above it; an answer without a list gives one topic per sentence (`NLTokenizer`). Handles, `**`, `` ` `` and heading marks are left out; the first 8 are kept. The parent is the one selected topic, else the branch the question was about, else the central topic [Đề xuất]; with several topics selected it is disabled. Its help names the parent.
+- **Either way** the suggestions take the place of others on the canvas, as a new AI request does (`AIAssistant.showChatSuggestion`); a parent deleted meanwhile shows "topic gone".
+- **Menu bar:** AI ▸ Create Topics from Answer acts on the last answer, no shortcut (none approved), disabled when it does not apply. Accept All Suggestions (⌃⌘Return) and Discard Suggestions (⌃⌘Delete) work as for every suggestion.
+- **Tests:** `ChatSuggestionTests` (titles, lists, nesting, sentences, cap, Accept through `SuggestionState`), `ChatMapReaderTests` (suggestTopics records, refuses, says nothing was added), `MapChatTests` (tool suggestion reaches `SuggestionState` with the map unchanged; Accept is one "Add AI Topics" step with undo and redo, for the tool and for Create Topics from Answer; targets).
 
 ## Ask by voice (MM-80)
 
@@ -215,6 +228,29 @@ Chosen by the product owner on 2026-10-03 (FR-AI-27; speech as FR-AI-21; Pro as 
 - **States:** "Getting ready…" and "Listening…" with Cancel in one footnote line above the field; download prompt and progress; a failure (permission denied, no microphone, unsupported language) as one line, announced to VoiceOver. The mic button's VoiceOver hint says the words go into the question field.
 - **Menu bar:** AI ▸ Ask by Voice (Stop Asking by Voice while listening) opens the panel and toggles the microphone; disabled where the chat is hidden or a step is under way. No shortcut: none is approved yet.
 - **Tests:** `ChatDictationTests` with `FakeVoiceTranscriber` (draft, appended to typed text, Cancel, edit while listening, paywall, Settings language, denied permission, download). UI test mode uses `UITestVoiceTranscriber`.
+
+## What C3 built (MM-52)
+
+Ask across the library, 2026-10-03. Pro, as decided on 2026-10-02.
+
+| Type | Where | Role |
+| --- | --- | --- |
+| `ChatScope.library` | `MindMapAICore/Chat.swift` | Every live map, never Recently Deleted |
+| `CitationTable` | `MindMapAICore` | Handles keyed by map and topic, so the same node ID in two maps (a duplicated map) gets two handles. Display text also strips map handles (`[M2]`); they never become citations |
+| `ChatMapReader(mapID: nil)` | `MindMapAIApple` | `listMaps(query)` gives `M1`, `M2`… with title and topic count (20 at most, then the budget). `searchTopics` searches every map and names the map of each hit. `readTopic` reads in the cited topic's own map. `readBranch` takes a map handle for the whole map or a topic handle; an empty handle asks for one |
+| `ListMapsTool`, `ReadMapBranchTool` | `MindMapAIApple/ChatTools.swift` | Four tools for the library: `listMaps`, `searchTopics`, `readTopic`, `readBranch`. No edit tool |
+| `PromptCatalog.libraryChatInstructions`, `libraryChatPrompt` | `MindMapAIApple` | Own fixed instructions (under half the instructions reserve, as for a map); the prompt says "Scope: every map in the library." instead of a map title |
+| `ProFeature.askLibrary` | `MindMapAI/Features/Store` | "Ask About Library" in the paywall; an AI feature, so not offered where AI cannot run |
+| `LibraryChat` | `MindMapAI/Features/Chat` | One per library window (`RootView`). Asks `allows(.askLibrary)` before the panel opens and before each question; without Pro it opens the paywall (`PendingProChoice`), which carries on if Pro is unlocked there. Shows the on-device notice itself (same `ai.privacyNoticeKey`, `AIPrivacyNotice`) |
+| `LibraryChatPanel` | `MindMapAI/Features/Chat` | `.inspector` on the library list column (a sheet on iPhone): suggested questions, Copy and Ask Again, citation chips. No scope picker, microphone or Add to Note |
+| `OpenMaps.showTopic(_:in:)` | `MindMapAI/Features/Editor` | A citation opens its map in the window (or brings forward the window that shows it) and selects the topic, revealing it as Find does; if the map is still loading, the topic is shown when it opens |
+
+Differences from the design above:
+
+- **Not saved.** The library conversation belongs to no map (MM-55 saves per map), so it lives as long as the window; Clear Chat clears it without asking first, since nothing stored is lost [Đề xuất].
+- **Menu:** AI ▸ Ask About Library… with no shortcut: ⌃⌘A stays Ask About This Map, since a library window also shows a map and one key cannot mean both [Đề xuất]. Without Pro it stays enabled and opens the paywall. Clear Chat, Copy Answer and Ask Again act on the map's chat when a map shows, else on the library's; Cancel AI Request (⌘.) also stops a library answer.
+- **Citations** do not check renames: a chip shows the title the tool returned. A topic or map gone since is found when clicked; the chip is then struck through and says "Topic no longer exists".
+- **Suggested questions** [Đề xuất]: "What are my maps about?", "Which maps have topics in common?", "What should I work on next?" in en, vi and ja.
 
 ## Testing
 
@@ -232,5 +268,5 @@ Q1 (the query layer) is in [mcp.md](mcp.md#proposed-tasks).
 | --- | --- | --- | --- |
 | C1 | Ask in a map | `ChatProvider`, Apple provider with the read tools, citations that open topics, the panel on Mac, iPad and iPhone, AI menu items and ⌃⌘A, availability states, en and vi, unit, app and UI tests | Q1, MM-8 (done) |
 | C2 | Suggestions from the chat | `suggestTopics` into `SuggestionState`, Accept as one command with undo and redo tests, honest answer text | C1 |
-| C3 | Ask across the library | Library window panel, `listMaps`, Pro gate if the product owner agrees, tests | C1, MM-13 (done) |
+| C3 | Ask across the library (MM-52, built: [What C3 built](#what-c3-built-mm-52)) | Library window panel, `listMaps`, Pro gate, tests | C1, MM-13 (done) |
 | C4 | Chat evaluations | Evaluations suite of en and vi questions on fixture maps (answer found, citations correct, says "not found"), run on 26.4 and 27 prompts | C1 |

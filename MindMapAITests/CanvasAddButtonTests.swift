@@ -154,6 +154,85 @@ struct CanvasAddButtonTests {
 
     // MARK: Where
 
+    /// Four level-1 topics, sorted top to bottom on the right of the central topic.
+    private func rightColumn(in canvas: CanvasModel) async throws -> [CanvasTopic] {
+        let rootID = try #require(canvas.session.rootID)
+        for title in ["Short", "A much longer topic title that wraps to multiple lines", "Third", "Fourth"] {
+            try await addChild(title, to: rootID, in: canvas)
+        }
+        let column = canvas.scene.topics
+            .filter { $0.parentID == rootID && $0.side == .right }
+            .sorted { $0.frame.minY < $1.frame.minY }
+        try #require(column.count >= 2)
+        return column
+    }
+
+    private func zoomed(_ canvas: CanvasModel, to scale: CGFloat) -> CanvasViewport {
+        var viewport = canvas.viewport
+        viewport.scale = scale
+        return viewport
+    }
+
+    /// MM-68: the sibling + goes under the card with a whole tap area, and
+    /// never into another topic, its title or the next topic, at any detail zoom.
+    @Test func siblingTapAreaIsWholeAndClearOfEveryTopic() async throws {
+        let canvas = try await open()
+        let column = try await rightColumn(in: canvas)
+        let zooms: [CGFloat] = [CanvasMetrics.detailZoomThreshold, 0.5, 1, 2, CanvasMetrics.zoomLimits.upperBound]
+        var shown = 0
+        for scale in zooms {
+            let viewport = zoomed(canvas, to: scale)
+            for topic in column {
+                guard let hit = CanvasAddButtonPlacement.siblingFrame(for: topic, among: canvas.scene.topics, viewport: viewport) else { continue }
+                shown += 1
+                let card = CanvasAddButtonPlacement.viewFrame(topic.frame, viewport: viewport)
+                #expect(hit.width >= Metrics.minimumHitTarget)
+                #expect(hit.height >= Metrics.minimumHitTarget)
+                #expect(hit.minY > card.maxY)
+                #expect(abs(hit.midX - card.midX) < 0.5)
+                for other in canvas.scene.topics {
+                    #expect(!hit.intersects(CanvasAddButtonPlacement.viewFrame(other.frame, viewport: viewport)))
+                }
+            }
+        }
+        #expect(shown > 0)
+    }
+
+    /// The last topic of a column has room below at every detail zoom; one
+    /// with a sibling 10 pt (scaled) below never does once the selection ring
+    /// is cleared, so it shows no sibling +.
+    @Test func siblingButtonShowsOnlyWhereItFits() async throws {
+        let canvas = try await open()
+        let column = try await rightColumn(in: canvas)
+        let first = try #require(column.first)
+        let last = try #require(column.last)
+        for scale in [CanvasMetrics.detailZoomThreshold, 1, CanvasMetrics.zoomLimits.upperBound] {
+            let viewport = zoomed(canvas, to: scale)
+            #expect(CanvasAddButtonPlacement.siblingFrame(for: first, among: canvas.scene.topics, viewport: viewport) == nil)
+            let hit = try #require(CanvasAddButtonPlacement.siblingFrame(for: last, among: canvas.scene.topics, viewport: viewport))
+            let card = CanvasAddButtonPlacement.viewFrame(last.frame, viewport: viewport)
+            let ring = (CanvasMetrics.selectionRingGap + CanvasMetrics.selectionRingWidthHighContrast) * scale
+            #expect(hit.minY >= card.maxY + ring)
+        }
+    }
+
+    /// The add-child tap area keeps its size and stays off the card through zoom.
+    @Test func childTapAreaIsWholeAndOutsideTheCard() async throws {
+        let canvas = try await open()
+        let column = try await rightColumn(in: canvas)
+        for scale in [CanvasMetrics.detailZoomThreshold, 1, CanvasMetrics.zoomLimits.upperBound] {
+            let viewport = zoomed(canvas, to: scale)
+            for topic in column {
+                let hit = CanvasAddButtonPlacement.childFrame(for: topic, viewport: viewport)
+                let card = CanvasAddButtonPlacement.viewFrame(topic.frame, viewport: viewport)
+                #expect(hit.width >= Metrics.minimumHitTarget)
+                #expect(hit.height >= Metrics.minimumHitTarget)
+                #expect(!hit.intersects(card))
+                #expect(hit.minX > card.maxX)
+            }
+        }
+    }
+
     /// The add-child button goes on the side away from the parent.
     @Test func aLeftBranchHasItsChildButtonOnTheLeft() async throws {
         let canvas = try await open()

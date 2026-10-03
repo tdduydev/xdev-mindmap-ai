@@ -306,6 +306,17 @@ private struct ChatEntryView: View {
                     .accessibilityIdentifier(AccessibilityID.Chat.answer)
             }
             status
+            if let suggestion = entry.suggestion {
+                // Said by the app, not the model: the topics are only suggested.
+                Label {
+                    Text("Suggested \(suggestion.topics.count) topics under “\(suggestion.parentTitle)”. Review them on the map.")
+                } icon: {
+                    AISymbol()
+                }
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier(AccessibilityID.Chat.suggestedTopics)
+            }
             if !entry.citations.isEmpty {
                 ChipFlowLayout(spacing: Spacing.xs) {
                     ForEach(entry.citations) { citation in
@@ -347,6 +358,13 @@ private struct ChatEntryView: View {
                     }
                     .disabled(!chat.canAddToNote(entry))
                     .help(addToNoteHelp)
+                    if chat.showsEntryPoints {
+                        actionButton("Create Topics from Answer", systemImage: "plus.rectangle.on.rectangle", id: AccessibilityID.Chat.createTopics) {
+                            chat.createTopics(from: entry)
+                        }
+                        .disabled(!chat.canCreateTopics(entry))
+                        .help(createTopicsHelp)
+                    }
                 }
                 if isLast {
                     actionButton("Ask Again", systemImage: "arrow.clockwise", id: AccessibilityID.Chat.askAgain) {
@@ -365,6 +383,13 @@ private struct ChatEntryView: View {
             return Text("Select one topic to add the answer to its note")
         }
         return Text("Add the answer to the note of “\(title)”")
+    }
+
+    private var createTopicsHelp: Text {
+        guard let title = chat.topicsTargetTitle(for: entry) else {
+            return Text("Select one topic to suggest the answer’s topics under it")
+        }
+        return Text("Suggest the answer’s points as topics under “\(title)”")
     }
 
     private func actionButton(_ title: LocalizedStringKey, systemImage: String, id: String, action: @escaping () -> Void) -> some View {

@@ -41,7 +41,7 @@ final class ProEntitlement {
         case failed
     }
 
-    private(set) var isUnlocked = false
+    private(set) var isUnlocked = unlockedForUITests
     private(set) var productState = ProductState.loading
     private(set) var purchaseState = PurchaseState.idle
     private(set) var restoreState = RestoreState.idle
@@ -97,8 +97,11 @@ final class ProEntitlement {
                 unlocked = true
             }
         }
-        isUnlocked = unlocked
+        isUnlocked = unlocked || Self.unlockedForUITests
     }
+
+    /// `-uitest-pro` in the UI test mode; always false in a release build.
+    private static var unlockedForUITests: Bool { UITestMode.current?.unlocksPro == true }
 
     func loadProduct() async {
         productState = .loading

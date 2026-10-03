@@ -23,8 +23,6 @@ struct TopicView: View {
     var isFindMatch = false
     /// Drawn faded in place while a copy follows the pointer.
     var isDragSource = false
-    /// The + buttons to show, on a hovered or selected topic (MM-57).
-    var addButtons: CanvasModel.AddButtons?
     let model: CanvasModel
     let rotorNamespace: Namespace.ID
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -88,12 +86,11 @@ struct TopicView: View {
             if topic.isSuggestion, isSelected || isHovering, !isEditing { suggestionActions }
         }
         .animation(Motion.selection(reduceMotion: reduceMotion), value: isSelected)
-        .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : 1)
+        .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : topic.isDimmed ? CanvasMetrics.filteredOpacity : 1)
         .contentShape(.interaction, Rectangle().inset(by: -hitOutset))
         // After the content shape, which would otherwise keep taps off the
         // badge and buttons outside the card.
-        .overlay(alignment: outerEdge == .leading ? .leading : .trailing) { outerControls }
-        .overlay(alignment: .bottom) { addSiblingButton }
+        .overlay(alignment: topic.side == .left ? .leading : .trailing) { badgeControl }
         // The double tap is listed first so it can see both taps; the single tap
         // runs alongside it, so selection does not wait for the double-tap timeout.
         .onTapGesture(count: 2) { model.beginEditing(topic.id) }
@@ -245,6 +242,8 @@ struct TopicView: View {
             Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
         } else {
             TopicContextMenu(topic: topic, isRoot: isRoot, model: model)
+            Divider()
+            Button("Focus on Branch") { model.session.focus(on: topic.id) }
             if let assistant = model.assistant, assistant.service.showsControls {
                 Divider()
                 AIActionsMenu(assistant: assistant, nodeID: topic.id)
@@ -282,20 +281,10 @@ struct TopicView: View {
             .allowsHitTesting(false)
     }
 
-    /// The side away from the parent, where the badge and the add-child button go.
-    private var outerEdge: HorizontalEdge {
-        addButtons?.childEdge ?? (topic.side == .left ? .leading : .trailing)
-    }
-
-    /// The collapse badge, and the add-child button beyond it, so the button
-    /// never covers the count.
-    private var outerControls: some View {
-        HStack(spacing: CanvasMetrics.collapseBadgeGap) {
-            if outerEdge == .leading, addButtons != nil { addChildButton }
+    private var badgeControl: some View {
+        Group {
             if topic.hiddenDescendantCount > 0 { badge }
-            if outerEdge == .trailing, addButtons != nil { addChildButton }
         }
-        .animation(Motion.addButtons(reduceMotion: reduceMotion), value: addButtons)
         .modifier(CollapseBadgePlacement())
     }
 
@@ -311,30 +300,6 @@ struct TopicView: View {
         .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : 1)
         // The topic element already offers Expand Topic.
         .accessibilityHidden(true)
-    }
-
-    private var addChildButton: some View {
-        TopicAddButton(label: "Add Child Topic") {
-            model.addFromButton(topic.id, sibling: false)
-        }
-        .onHover { model.setHovering(topic.id, part: .addChild, $0) }
-        .transition(.opacity)
-    }
-
-    /// On the middle of the bottom edge, half over the card: the gap to the
-    /// next sibling is too small for a whole button below it.
-    private var addSiblingButton: some View {
-        Group {
-            if addButtons?.showsSibling == true {
-                TopicAddButton(label: "Add Sibling Topic") {
-                    model.addFromButton(topic.id, sibling: true)
-                }
-                .onHover { model.setHovering(topic.id, part: .addSibling, $0) }
-                .offset(y: CanvasMetrics.addButtonDiameter / 2)
-                .transition(.opacity)
-            }
-        }
-        .animation(Motion.addButtons(reduceMotion: reduceMotion), value: addButtons)
     }
 
     /// Touch needs a 44 pt target around small topics; a pointer uses the box.
@@ -465,11 +430,12 @@ struct CollapseBadgeLabel: View {
 /// the topic element already has Add Child Topic and Add Sibling Topic.
 struct TopicAddButton: View {
     let label: LocalizedStringKey
+    /// Where the circle sits in its larger tap area.
+    var alignment: Alignment = .center
     let action: () -> Void
 
     var body: some View {
         let diameter = CanvasMetrics.addButtonDiameter
-        let outset = max(0, (Metrics.minimumHitTarget - diameter) / 2)
         Button(action: action) {
             Image(systemName: "plus")
                 .font(.system(size: CanvasMetrics.addButtonSymbolSize, weight: .bold))
@@ -478,9 +444,10 @@ struct TopicAddButton: View {
                 .background(Palette.accent, in: Circle())
                 // Keeps the circle apart from a card or edge of the same hue.
                 .overlay(Circle().strokeBorder(Palette.canvasBackground, lineWidth: CanvasMetrics.addButtonRingWidth))
+                .frame(width: Metrics.minimumHitTarget, height: Metrics.minimumHitTarget, alignment: alignment)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .contentShape(.interaction, Circle().inset(by: -outset))
         .help(Text(label))
         .accessibilityLabel(Text(label))
         .accessibilityHidden(true)
@@ -618,6 +585,7 @@ struct TopicAccessibility: ViewModifier {
         if topic.taskState != nil {
             Button(topic.taskState?.isDone == true ? "Mark as Not Done" : "Mark as Done") { model.session.toggleDone(topic.id) }
         }
+        Button("Focus on Branch") { model.session.focus(on: topic.id) }
         if !isRoot {
             Button("Delete Topic") { model.delete(topic.id) }
         }
@@ -643,6 +611,8 @@ struct TopicAccessibility: ViewModifier {
             parts.append(String(localized: "\(progress.done) of \(progress.total) tasks done"))
         }
         if isFindMatch { parts.append(String(localized: "Find Match")) }
+        // The fade is the only sign on screen, so VoiceOver hears it too.
+        if topic.isDimmed { parts.append(String(localized: "not matching the filter")) }
         return parts.joined(separator: ", ")
     }
 }

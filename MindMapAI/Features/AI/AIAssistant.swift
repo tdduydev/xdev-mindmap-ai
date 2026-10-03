@@ -142,7 +142,7 @@ final class AIAssistant {
             return !session.engine.state.childIDs(of: id).isEmpty
         case .suggestGroups:
             return session.engine.state.runSiblingIDs(of: id).count >= SuggestGroupsRequest.minimumChildren
-        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags, .summarizeBoundary:
+        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags, .summarizeBoundary, .chat:
             return true
         }
     }
@@ -332,6 +332,28 @@ final class AIAssistant {
     func renameSuggestion(_ temporaryID: String, to title: String) {
         suggestions?.rename(temporaryID, to: title)
         onSuggestionsChange?()
+    }
+
+    /// Topics from the chat (MM-51): the model's `suggestTopics` or Create
+    /// Topics from Answer. They take the place of other suggestions, as a new
+    /// request does, and wait for Accept like any AI suggestion.
+    @discardableResult
+    func showChatSuggestion(_ suggestion: ChatSuggestion) -> Bool {
+        guard session.engine.state.node(suggestion.parentID) != nil else {
+            show(.topicGone)
+            return false
+        }
+        cancel()
+        clearTagSuggestions()
+        clearBoundarySuggestions()
+        failure = nil
+        selectedSuggestion = nil
+        var state = SuggestionState(feature: .chat, anchorID: suggestion.parentID)
+        state.update(with: ProposalSnapshot(proposal: suggestion.proposal, isComplete: true))
+        suggestions = state
+        onSuggestionsChange?()
+        AccessibilityNotification.Announcement(String(localized: "\(state.topics.count) AI suggestions")).post()
+        return true
     }
 
     /// The suggestion drawn with `previewID` on the canvas, if any.

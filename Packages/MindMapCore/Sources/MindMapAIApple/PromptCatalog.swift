@@ -84,6 +84,10 @@ public struct PromptCatalog: Hashable, Sendable {
             """
         case .summarizeBoundary:
             "Give the listed group of topics one short title that names what they have in common. Do not add facts that are not in the map."
+        case .chat:
+            // The chat has its own instructions (chatInstructions); its
+            // suggestions never go through a request of their own.
+            "Suggest short topics for the person to review."
         }
     }
 
@@ -104,14 +108,48 @@ public struct PromptCatalog: Hashable, Sendable {
         case .v26_0, .v26_4, .v27_0:
             """
             You answer questions about the person's mind map, a tree of topics, using only what your tools return.
-            Call searchTopics to find topics by words, readTopic to read one topic's note and subtopics, and readBranch to read the outline under a topic. Read the map before you answer.
-            Tool results name topics with handles such as T1. After each fact, cite the topic it came from with its handle in brackets, for example [T1]. Only cite handles a tool returned.
-            If the tools find nothing that answers the question, say so in the answer language. Never invent topics, facts or handles.
-            Keep names, technical terms and mixed Vietnamese and English wording exactly as the person wrote them.
-            Answer in a few sentences or a short list. You cannot change the map; say so if asked to.
+            Read the map with searchTopics, readTopic and readBranch before you answer.
+            Tools name topics with handles such as T1. After each fact, cite its topic in brackets, for example [T1]. Only cite handles a tool returned.
+            If the tools find nothing that answers the question, say so. Never invent topics, facts or handles.
+            Keep names and mixed Vietnamese and English wording as the person wrote them.
+            Answer in a few sentences or a short list.
+            To add topics, call suggestTopics: the person reviews them on the map. Say you suggested them; never say they were added. You cannot rename, move or delete topics.
             Stay on the person's maps: no persona, no small talk.
             """
         }
+    }
+
+    /// Ask across the library (C3): the same rules as one map, with listMaps
+    /// and the map handles it returns. Fixed, English, no map content.
+    public func libraryChatInstructions(userLocaleIdentifier: String) -> String {
+        [
+            Self.libraryChatRules(for: version),
+            "The person's locale is \(userLocaleIdentifier).",
+        ].joined(separator: "\n")
+    }
+
+    private static func libraryChatRules(for version: PromptVersion) -> String {
+        switch version {
+        case .v26_0, .v26_4, .v27_0:
+            """
+            You answer questions about the person's library of mind maps, using only what your tools return.
+            Call listMaps to see the maps, searchTopics to find topics in every map by words, readTopic to read one topic, and readBranch to read the outline of a map (M1) or under a topic (T1). Read before you answer.
+            After each fact, cite the topic it came from with its handle in brackets, for example [T1]. Only cite topic handles a tool returned; name maps by title.
+            If the tools find nothing that answers the question, say so in the answer language. Never invent maps, topics, facts or handles.
+            Keep names and mixed Vietnamese and English wording exactly as the person wrote them.
+            Answer in a few sentences or a short list. You cannot change the maps; say so if asked to.
+            Stay on the person's maps: no persona, no small talk.
+            """
+        }
+    }
+
+    /// A question across the library: no map title, since the tools read every map.
+    public func libraryChatPrompt(question: String, language: AILanguage) -> String {
+        [
+            "Scope: every map in the library.",
+            "Question: \(question)",
+            "You MUST respond in \(language.englishName).",
+        ].joined(separator: "\n")
     }
 
     /// The question as the model sees it. The map title tells it what the

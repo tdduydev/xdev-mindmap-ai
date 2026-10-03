@@ -11,8 +11,9 @@ import Synchronization
 /// every question.
 public final class MockChatProvider: ChatProvider {
     public enum Answer: Sendable {
-        /// Streamed in `chunks` growing pieces, after one "reading the map" update.
-        case text(String, citations: [ChatCitation], chunks: Int = 2)
+        /// Streamed in `chunks` growing pieces, after one "reading the map"
+        /// update, which carries `suggestion` as if the model called suggestTopics.
+        case text(String, citations: [ChatCitation], chunks: Int = 2, suggestion: ChatSuggestion? = nil)
         case failure(AIError)
         /// Never answers; the question ends only when its task is cancelled.
         case hang
@@ -91,18 +92,18 @@ public final class MockChatProvider: ChatProvider {
                     do {
                         let question = Question(scope: scope, message: message, history: history.withLock { $0 })
                         switch try provider.next(for: question) {
-                        case .text(let text, let citations, let chunks):
-                            continuation.yield(ChatUpdate(isReadingMap: true))
+                        case .text(let text, let citations, let chunks, let suggestion):
+                            continuation.yield(ChatUpdate(isReadingMap: true, suggestion: suggestion))
                             let pieces = max(1, chunks)
                             for piece in 1..<pieces {
                                 try Task.checkCancellation()
                                 let partial = String(text.prefix(text.count * piece / pieces))
-                                continuation.yield(ChatUpdate(text: partial, citations: citations.filter { partial.contains("[\($0.handle)]") }))
+                                continuation.yield(ChatUpdate(text: partial, citations: citations.filter { partial.contains("[\($0.handle)]") }, suggestion: suggestion))
                                 await Task.yield()
                             }
                             try Task.checkCancellation()
                             history.withLock { $0.append(ChatTurn(question: message.text, answer: text, citations: citations, branch: message.branch)) }
-                            continuation.yield(ChatUpdate(text: text, citations: citations, isComplete: true))
+                            continuation.yield(ChatUpdate(text: text, citations: citations, suggestion: suggestion, isComplete: true))
                             continuation.finish()
                         case .failure(let error):
                             continuation.finish(throwing: error)

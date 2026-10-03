@@ -85,6 +85,9 @@ enum CanvasMetrics {
     static let dropInsertionBarWidth: CGFloat = 3
     static let dropTargetDash: [CGFloat] = [5, 3]
     static let dragSourceOpacity: Double = 0.6
+    /// Topics the filter fades in Dim Others, and ancestors shown for context
+    /// in Hide Others (MM-36, 35% [Đề xuất] in node-organization).
+    static let filteredOpacity: Double = 0.35
     /// How far a pointer or finger moves on a topic before it drags (MM-5).
     static let dragStartDistance: CGFloat = 4
     /// The top and bottom quarter of a topic drop beside it, the middle inside.
@@ -175,6 +178,10 @@ enum CanvasMetrics {
     /// the collapse badge; the tap area is `Metrics.minimumHitTarget`.
     static let addButtonDiameter: CGFloat = collapseBadgeHeight
     static let addButtonRingWidth: CGFloat = 1.5
+    /// Screen-space clearance from the card (and its unscaled hit area).
+    static let addButtonGap: CGFloat = 4
+    /// Leaves room for a collapsed-count badge before the child button.
+    static let addButtonBadgeClearance: CGFloat = 48
     #if os(iOS)
     static let addButtonSymbolSize: CGFloat = 12
     #else
