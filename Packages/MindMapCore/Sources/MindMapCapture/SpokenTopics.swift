@@ -6,10 +6,13 @@ import MindMapGraph
 public enum SpokenTopics {
     /// Sentence ends: the punctuation transcribers write, Latin and CJK.
     private static let terminators: Set<Character> = [".", "!", "?", "…", "。", "！", "？"]
+    /// Japanese writes no space after a sentence, so these end one wherever they are.
+    private static let fullWidthTerminators: Set<Character> = ["。", "！", "？"]
 
     /// Splits at a sentence end followed by a space or the end of the text, so
-    /// "3.5" and "v2.0" stay whole. A closing period is dropped, since a topic
-    /// is a heading rather than a sentence; "?" and "!" carry meaning and stay.
+    /// "3.5" and "v2.0" stay whole; a full-width end splits even with no space.
+    /// A closing period is dropped, since a topic is a heading rather than a
+    /// sentence; "?" and "!" carry meaning and stay.
     public static func titles(from text: String) -> [String] {
         var titles: [String] = []
         var current = ""
@@ -22,7 +25,8 @@ public enum SpokenTopics {
                 current = ""
             } else {
                 current.append(character)
-                if terminators.contains(character), next == text.endIndex || text[next].isWhitespace {
+                if fullWidthTerminators.contains(character)
+                    || terminators.contains(character) && (next == text.endIndex || text[next].isWhitespace) {
                     append(current, to: &titles)
                     current = ""
                 }

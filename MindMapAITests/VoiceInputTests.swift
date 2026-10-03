@@ -81,6 +81,16 @@ struct VoiceInputTests {
         #expect(AppStorage<VoiceLanguage?>(VoiceInput.languageKey, store: defaults).wrappedValue == .vietnamese)
     }
 
+    @Test func japaneseIsHeardAndStored() async throws {
+        let voice = try await open(preferredLanguages: ["ja-JP", "en-US"])
+        #expect(voice.language == .japanese, "a Japanese Mac starts in Japanese")
+        #expect(VoiceLanguage.allCases.contains(.japanese), "Settings ▸ Voice Input Language lists it")
+
+        voice.language = .english
+        voice.language = .japanese
+        #expect(AppStorage<VoiceLanguage?>(VoiceInput.languageKey, store: defaults).wrappedValue == .japanese)
+    }
+
     @Test func spokenSentencesBecomeTopicsOnlyWhenAdded() async throws {
         let voice = try await open()
         transcriber.script(heard: [.volatile("Book fli"), .final("Book flights. Find a hotel.")], onFinish: [.final("Pack bags.")])

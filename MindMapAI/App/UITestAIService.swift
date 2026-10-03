@@ -78,12 +78,17 @@ private struct UITestChatProvider: ChatProvider {
                     var table = CitationTable()
                     var hit: TopicHit?
                     // Longest words first, so "Design" wins over "is", which "Discover" also holds.
-                    let words = message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
-                        .map(String.init).sorted { $0.count > $1.count }
+                    // Japanese has no spaces; its particles are hiragana, so the
+                    // katakana and kanji runs between them are the words.
+                    let isHiragana: (Character) -> Bool = { $0.unicodeScalars.allSatisfy { (0x3041...0x309F).contains($0.value) } }
+                    let spaced = message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init)
+                    let runs = message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber || isHiragana($0) })
+                        .map(String.init).filter { !spaced.contains($0) }
+                    let words = (spaced + runs).sorted { $0.count > $1.count }
                     for word in words where hit == nil {
                         hit = try? await queries.search(word, in: mapID, under: message.branch?.nodeID, limit: 1).first
                     }
-                    let vietnamese = message.language == .vietnamese
+                    let language = message.language
                     let text: String
                     if let hit {
                         let handle = table.handle(for: hit.ref.nodeID, in: mapID, title: hit.title)
@@ -93,8 +98,15 @@ private struct UITestChatProvider: ChatProvider {
                         }
                         // The screenshots show this answer, so it reads like one about the topic's branch.
                         if cited.isEmpty {
-                            text = vietnamese ? "\(hit.title) có trong sơ đồ [\(handle)]." : "\(hit.title) is in the map [\(handle)]."
+                            text = switch language {
+                            case .vietnamese: "\(hit.title) có trong sơ đồ [\(handle)]."
+                            case .japanese: "\(hit.title)はマップにあります [\(handle)]。"
+                            case .english: "\(hit.title) is in the map [\(handle)]."
+                            }
+                        } else if language == .japanese {
+                            text = "\(hit.title) [\(handle)] には\(cited.joined(separator: "、"))があります。"
                         } else {
+                            let vietnamese = language == .vietnamese
                             let last = cited.count > 1 ? (vietnamese ? " và " : " and ") + cited[cited.count - 1] : ""
                             let list = cited.dropLast(cited.count > 1 ? 1 : 0).joined(separator: ", ") + last
                             text = vietnamese
@@ -102,7 +114,11 @@ private struct UITestChatProvider: ChatProvider {
                                 : "\(hit.title) is in the map [\(handle)]. It covers \(list)."
                         }
                     } else {
-                        text = vietnamese ? "Sơ đồ có vẻ không nói tới điều này." : "The map does not seem to cover that."
+                        text = switch language {
+                        case .vietnamese: "Sơ đồ có vẻ không nói tới điều này."
+                        case .japanese: "マップにはこの内容が見つかりません。"
+                        case .english: "The map does not seem to cover that."
+                        }
                     }
                     continuation.yield(ChatUpdate(text: text, citations: table.citations(in: text), isComplete: true))
                     continuation.finish()

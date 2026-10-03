@@ -5,8 +5,9 @@ import Synchronization
 
 /// Voice input with `SpeechAnalyzer`, entirely on the device (FR-AI-21).
 ///
-/// Vietnamese uses `DictationTranscriber`; English uses `SpeechTranscriber`,
-/// falling back to `DictationTranscriber` on devices without it. Never
+/// Vietnamese uses `DictationTranscriber`; English and Japanese use
+/// `SpeechTranscriber`, falling back to `DictationTranscriber` on devices
+/// without it or without the language. Never
 /// `SFSpeechRecognizer` for recognition: it sends Vietnamese to a server
 /// (docs/on-device-ai.md); it is only asked for the permission.
 public struct AppleSpeechTranscriber: VoiceTranscribing {
@@ -47,39 +48,49 @@ public struct AppleSpeechTranscriber: VoiceTranscribing {
     }
 
     public func start(_ language: VoiceLanguage) async throws -> any VoiceTranscriptionSession {
-        guard let locale = await Self.supportedLocale(for: language) else { throw VoiceInputError.unsupportedLanguage }
-        if language == .english, SpeechTranscriber.isAvailable {
+        switch await Self.engine(for: language) {
+        case nil:
+            throw VoiceInputError.unsupportedLanguage
+        case .speech(let locale):
             return try await AppleTranscriptionSession.start(
                 SpeechTranscriber(locale: locale, transcriptionOptions: [], reportingOptions: [.volatileResults], attributeOptions: [])
             )
-        }
-        return try await AppleTranscriptionSession.start(
-            DictationTranscriber(
-                locale: locale,
-                contentHints: [],
-                transcriptionOptions: [.punctuation],
-                reportingOptions: [.volatileResults],
-                attributeOptions: []
+        case .dictation(let locale):
+            return try await AppleTranscriptionSession.start(
+                DictationTranscriber(
+                    locale: locale,
+                    contentHints: [],
+                    transcriptionOptions: [.punctuation],
+                    reportingOptions: [.volatileResults],
+                    attributeOptions: []
+                )
             )
-        )
+        }
     }
 
     // MARK: Modules
 
-    private static func supportedLocale(for language: VoiceLanguage) async -> Locale? {
-        if language == .english, SpeechTranscriber.isAvailable {
-            return await SpeechTranscriber.supportedLocale(equivalentTo: language.locale)
+    private enum Engine {
+        case speech(Locale)
+        case dictation(Locale)
+    }
+
+    /// Asked fresh each time, so availability, assets and the session agree on one transcriber.
+    private static func engine(for language: VoiceLanguage) async -> Engine? {
+        if language.prefersSpeechTranscriber, SpeechTranscriber.isAvailable,
+           let locale = await SpeechTranscriber.supportedLocale(equivalentTo: language.locale) {
+            return .speech(locale)
         }
-        return await DictationTranscriber.supportedLocale(equivalentTo: language.locale)
+        return await DictationTranscriber.supportedLocale(equivalentTo: language.locale).map(Engine.dictation)
     }
 
     /// A module only for asking about assets; each session makes its own.
     private static func module(for language: VoiceLanguage) async -> (any SpeechModule)? {
-        guard let locale = await supportedLocale(for: language) else { return nil }
-        if language == .english, SpeechTranscriber.isAvailable {
-            return SpeechTranscriber(locale: locale, preset: .transcription)
+        switch await engine(for: language) {
+        case nil: nil
+        case .speech(let locale): SpeechTranscriber(locale: locale, preset: .transcription)
+        case .dictation(let locale): DictationTranscriber(locale: locale, preset: .longDictation)
         }
-        return DictationTranscriber(locale: locale, preset: .longDictation)
     }
 }
 

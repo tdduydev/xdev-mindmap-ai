@@ -1,15 +1,23 @@
 import Foundation
 
-/// The two languages voice input supports (FR-AI-21).
+/// The languages voice input supports (FR-AI-21): those of the app's interface.
 public enum VoiceLanguage: String, CaseIterable, Hashable, Sendable {
     case english
     case vietnamese
+    case japanese
 
     public var locale: Locale {
         switch self {
         case .english: Locale(identifier: "en_US")
         case .vietnamese: Locale(identifier: "vi_VN")
+        case .japanese: Locale(identifier: "ja_JP")
         }
+    }
+
+    /// Whether `SpeechTranscriber` is tried before `DictationTranscriber`. It
+    /// does not hear Vietnamese; for the others it is the newer, better model.
+    public var prefersSpeechTranscriber: Bool {
+        self != .vietnamese
     }
 
     /// The first preferred language voice input can hear, else English.
@@ -17,6 +25,7 @@ public enum VoiceLanguage: String, CaseIterable, Hashable, Sendable {
         for identifier in identifiers {
             switch Locale(identifier: identifier).language.languageCode?.identifier {
             case "vi": return .vietnamese
+            case "ja": return .japanese
             case "en": return .english
             default: continue
             }

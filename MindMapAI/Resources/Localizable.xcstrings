@@ -5919,6 +5919,22 @@
         }
       }
     },
+    "In Japanese" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日本語で"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sang tiếng Nhật"
+          }
+        }
+      }
+    },
     "In Vietnamese" : {
       "localizations" : {
         "ja" : {
@@ -6027,6 +6043,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Các câu hỏi và câu trả lời sẽ bị xoá. Không thể hoàn tác."
+          }
+        }
+      }
+    },
+    "Japanese" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日本語"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiếng Nhật"
           }
         }
       }

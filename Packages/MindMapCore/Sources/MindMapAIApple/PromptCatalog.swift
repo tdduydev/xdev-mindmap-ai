@@ -162,6 +162,7 @@ public struct PromptCatalog: Hashable, Sendable {
         case .technical: "Use precise technical wording."
         case .vietnamese: "Translate it into Vietnamese."
         case .english: "Translate it into English."
+        case .japanese: "Translate it into Japanese."
         }
         return render(request.context)
             + "\nGive up to \(AIProposalLimits.maximumRewriteSuggestions) alternative titles for the focus topic. \(task)"

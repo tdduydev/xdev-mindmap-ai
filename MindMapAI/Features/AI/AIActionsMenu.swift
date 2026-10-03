@@ -88,6 +88,7 @@ extension RewriteStyle {
         case .technical: String(localized: "More Technical")
         case .vietnamese: String(localized: "In Vietnamese")
         case .english: String(localized: "In English")
+        case .japanese: String(localized: "In Japanese")
         }
     }
 }

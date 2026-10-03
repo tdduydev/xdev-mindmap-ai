@@ -11,6 +11,10 @@ struct OrganizationValuesTests {
         ("việc", "viec", false),
         ("đi", "di", false),
         ("Đi", "đi", true),
+        // Japanese: voiced marks are part of the letter, and stay.
+        ("タグ", "タク", false),
+        ("タグ", "タ\u{30AF}\u{3099}", true), // decomposed ガ-row mark
+        ("しごと", "シゴト", false),
     ])
     func tagKeyFoldsCaseButKeepsMarks(lhs: String, rhs: String, same: Bool) {
         #expect((MindTag.key(for: lhs) == MindTag.key(for: rhs)) == same)

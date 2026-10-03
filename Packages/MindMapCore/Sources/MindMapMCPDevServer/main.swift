@@ -1,4 +1,4 @@
-// Serves two sample maps from an in-memory store so the MCP Inspector or a
+// Serves three sample maps from an in-memory store so the MCP Inspector or a
 // real client can talk to MindMapMCP before the app hosts it (M2). Not shipped.
 //
 //   swift run --package-path Packages/MindMapCore mindmap-mcp-dev [port]
@@ -47,6 +47,10 @@ try await repository.create(sampleMap("Trip to Hanoi", [
 try await repository.create(sampleMap("Kế hoạch dự án", [
     ("Thiết kế", "Phác thảo giao diện đầu tiên", ["Màn hình đăng nhập", "Đặt lịch"]),
     ("Ngân sách", "Chi phí đi lại và thiết kế bao bì", []),
+]))
+try await repository.create(sampleMap("新製品の発売", [
+    ("デザイン", "最初の画面案をまとめる", ["ログイン画面", "予約"]),
+    ("予算", "出張費とパッケージデザイン費", []),
 ]))
 
 let queries = MapQueries(repository: repository, graphs: RepositoryGraphSource(repository: repository))

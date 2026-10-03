@@ -280,6 +280,7 @@ extension VoiceLanguage {
         switch self {
         case .english: "English"
         case .vietnamese: "Vietnamese"
+        case .japanese: "Japanese"
         }
     }
 }

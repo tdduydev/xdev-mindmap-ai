@@ -39,7 +39,28 @@ struct SpokenTopicsTests {
     @Test func languagePreferenceFollowsTheFirstSupportedLanguage() {
         #expect(VoiceLanguage.preferred(from: ["fr-FR", "vi-VN", "en-US"]) == .vietnamese)
         #expect(VoiceLanguage.preferred(from: ["en-GB", "vi"]) == .english)
-        #expect(VoiceLanguage.preferred(from: ["ja-JP"]) == .english)
+        #expect(VoiceLanguage.preferred(from: ["ja-JP"]) == .japanese)
+        #expect(VoiceLanguage.preferred(from: ["fr-FR", "ja", "en-US"]) == .japanese)
+        #expect(VoiceLanguage.preferred(from: ["fr-FR"]) == .english)
+    }
+
+    @Test func japaneseUsesSpeechTranscriberFirst() {
+        #expect(VoiceLanguage.japanese.locale.identifier == "ja_JP")
+        #expect(VoiceLanguage.japanese.prefersSpeechTranscriber)
+        #expect(VoiceLanguage.english.prefersSpeechTranscriber)
+        #expect(!VoiceLanguage.vietnamese.prefersSpeechTranscriber)
+    }
+
+    @Test func japaneseSentencesSplitWithoutSpaces() {
+        #expect(SpokenTopics.titles(from: "会場に電話する。航空券を予約する！ビザは必要？ホテルを探す") == [
+            "会場に電話する", "航空券を予約する！", "ビザは必要？", "ホテルを探す",
+        ])
+    }
+
+    @Test func mixedJapaneseAndEnglishStaysAsSaid() {
+        #expect(SpokenTopics.titles(from: "Q4のlaunch計画。TikTokでマーケティング。") == [
+            "Q4のlaunch計画", "TikTokでマーケティング",
+        ])
     }
 }
 
