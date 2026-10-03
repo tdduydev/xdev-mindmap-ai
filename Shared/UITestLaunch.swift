@@ -17,6 +17,9 @@ nonisolated enum UITestLaunch {
     /// Pro starts unlocked, without StoreKit: a purchase on a fresh simulator
     /// can stop at an Apple Account sign-in the test cannot answer.
     static let pro = "-uitest-pro"
+    /// Draws the app as with Increase Contrast on (iOS): the setting belongs to
+    /// the device, and a UI test runner cannot turn it on.
+    static let increaseContrast = "-uitest-increase-contrast"
     /// Keep the throwaway preference suite for a second launch in a first-run test.
     static let preserveDefaults = "-uitest-preserve-defaults"
 }

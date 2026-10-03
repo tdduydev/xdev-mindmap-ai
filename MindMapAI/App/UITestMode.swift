@@ -15,6 +15,8 @@ struct UITestMode {
     var files = false
     /// Pro is unlocked whatever StoreKit says.
     var unlocksPro = false
+    /// The window scenes draw with high contrast traits (`UITestLaunch.increaseContrast`).
+    var increasesContrast = false
 
     static let current: UITestMode? = {
         #if DEBUG
@@ -26,7 +28,8 @@ struct UITestMode {
             .flatMap { arguments.indices.contains($0 + 1) ? UITestAI(rawValue: arguments[$0 + 1]) : nil }
         return UITestMode(
             fixture: fixture ?? .empty, ai: ai, files: arguments.contains(UITestLaunch.files),
-            unlocksPro: arguments.contains(UITestLaunch.pro)
+            unlocksPro: arguments.contains(UITestLaunch.pro),
+            increasesContrast: arguments.contains(UITestLaunch.increaseContrast)
         )
         #else
         return nil
