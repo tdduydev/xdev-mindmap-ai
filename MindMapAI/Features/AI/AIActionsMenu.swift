@@ -107,6 +107,7 @@ extension AIFeature {
         case .suggestTags: String(localized: "Suggesting tags…")
         case .suggestGroups: String(localized: "Suggesting groups…")
         case .summarizeBoundary: String(localized: "Summarizing the boundary…")
+        case .chat: String(localized: "Answering…")
         }
     }
 
@@ -121,6 +122,7 @@ extension AIFeature {
         case .suggestTags: String(localized: "Suggested tags")
         case .suggestGroups: String(localized: "Suggested groups")
         case .summarizeBoundary: String(localized: "Suggested boundary title")
+        case .chat: String(localized: "Suggested from the chat")
         case .rewrite, .summarize: String(localized: "Suggestions")
         }
     }

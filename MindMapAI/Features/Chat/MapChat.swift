@@ -35,6 +35,10 @@ final class MapChat {
         /// The branch the question was limited to; nil for the whole map.
         var branch: ChatBranch? = nil
         var state: State
+        /// Topics the model suggested with suggestTopics (MM-51), shown on the
+        /// map. The panel says so itself, so it never depends on the model's
+        /// wording to be honest. Not saved: the suggestion lasts one session.
+        var suggestion: ChatSuggestion? = nil
 
         var displayAnswer: String { CitationTable.displayText(answer) }
         var isAnswering: Bool {
@@ -260,7 +264,47 @@ final class MapChat {
         }
     }
 
+    /// The topic Create Topics from Answer suggests under: the selected one,
+    /// else the branch the question was about, else the central topic
+    /// [Đề xuất]. With several topics selected the topics go under none of
+    /// them rather than under a guess, as with Add to Note.
+    func topicsTarget(for entry: Entry) -> NodeID? {
+        let state = session.engine.state
+        if !session.selectedIDs.isEmpty {
+            guard session.selectedIDs.count == 1, let id = session.selection, state.node(id) != nil else { return nil }
+            return id
+        }
+        if let branch = entry.branch?.nodeID, state.node(branch) != nil { return branch }
+        return session.rootID
+    }
+
+    /// The topics the answer would give, read from its list or its sentences.
+    func topicsSuggestion(for entry: Entry) -> ChatSuggestion? {
+        guard let id = topicsTarget(for: entry), let node = session.engine.state.node(id) else { return nil }
+        return ChatSuggestion(answer: entry.answer, under: id, parentTitle: node.title)
+    }
+
+    /// The target's current title, for the button's help.
+    func topicsTargetTitle(for entry: Entry) -> String? {
+        topicsTarget(for: entry).flatMap { session.engine.state.node($0)?.title }
+    }
+
+    func canCreateTopics(_ entry: Entry) -> Bool {
+        canCopy(entry) && showsEntryPoints && topicsSuggestion(for: entry) != nil
+    }
+
+    /// Create Topics from Answer (FR-AI-26): the answer's list items, or its
+    /// sentences, as AI suggestions under the target topic. Nothing is added
+    /// until the person accepts them, which is one "Add AI Topics" undo step.
+    /// The app reads the answer itself, so no second request and no model.
+    @discardableResult
+    func createTopics(from entry: Entry) -> Bool {
+        guard canCreateTopics(entry), let suggestion = topicsSuggestion(for: entry) else { return false }
+        return assistant.showChatSuggestion(suggestion)
+    }
+
     var canCopyLastAnswer: Bool { lastAnswer.map(canCopy) ?? false }
+    var canCreateTopicsFromLastAnswer: Bool { lastAnswer.map(canCreateTopics) ?? false }
     var canAddLastAnswerToNote: Bool { lastAnswer.map(canAddToNote) ?? false }
     var canAskLastQuestionAgain: Bool { entries.last.map(canAskAgain) ?? false }
 
@@ -268,6 +312,10 @@ final class MapChat {
 
     func addLastAnswerToNote() {
         if let lastAnswer { addToNote(lastAnswer) }
+    }
+
+    func createTopicsFromLastAnswer() {
+        if let lastAnswer { createTopics(from: lastAnswer) }
     }
 
     func askLastQuestionAgain() { entries.last.map(askAgain) }
@@ -380,6 +428,12 @@ final class MapChat {
         entries[index].answer = update.text
         entries[index].citations = update.citations
         entries[index].state = update.isComplete ? .complete : .answering(isReadingMap: update.isReadingMap)
+        // The model's suggestTopics: shown on the map as soon as it is made,
+        // once per call, so a later update does not undo the person's edits.
+        if let suggestion = update.suggestion, suggestion != entries[index].suggestion {
+            entries[index].suggestion = suggestion
+            if !assistant.showChatSuggestion(suggestion) { entries[index].suggestion = nil }
+        }
         if update.leftOutEarlierTurns, !hasNoticedLeftOut {
             hasNoticedLeftOut = true
             showsLeftOutNotice = true

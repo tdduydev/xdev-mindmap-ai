@@ -586,6 +586,128 @@ struct MapChatTests {
         #expect(chat.canAskLastQuestionAgain, "a failed retry can be asked again")
     }
 
+    // MARK: Topics from the chat (MM-51)
+
+    private func titles(under id: NodeID, in chat: MapChat) -> [String] {
+        chat.session.engine.state.childIDs(of: id).compactMap { chat.session.engine.state.node($0)?.title }
+    }
+
+    @Test func suggestTopicsGoesIntoSuggestionsAndTheMapIsUnchanged() async throws {
+        let chat = try await open()
+        let planID = try node("Plan", in: chat)
+        let suggestion = try #require(ChatSuggestion(titles: ["Risks", "Press"], under: planID, parentTitle: "Plan"))
+        chatProvider.enqueue(.text("I suggested two topics under Plan.", citations: [], suggestion: suggestion))
+
+        await ask("Add risks and press under Plan", in: chat)
+
+        let entry = try #require(chat.entries.last)
+        #expect(entry.suggestion == suggestion, "the panel says what was suggested")
+        let suggestions = try #require(chat.assistant.suggestions)
+        #expect(suggestions.feature == .chat)
+        #expect(suggestions.anchorID == planID)
+        #expect(suggestions.topics.map(\.title) == ["Risks", "Press"])
+        #expect(chat.assistant.canAcceptSuggestions)
+        #expect(titles(under: planID, in: chat) == ["Beta"], "nothing is added before Accept")
+        #expect(!chat.session.canUndo)
+    }
+
+    @Test func acceptingChatSuggestionsIsOneUndoStepThatRedoes() async throws {
+        let chat = try await open()
+        let session = chat.session
+        let planID = try node("Plan", in: chat)
+        let undoManager = undoManager(for: session)
+        let suggestion = try #require(ChatSuggestion(titles: ["Risks", "Press"], under: planID, parentTitle: "Plan"))
+        chatProvider.enqueue(.text("Suggested.", citations: [], suggestion: suggestion))
+        await ask("Add topics", in: chat)
+        chat.assistant.renameSuggestion("c2", to: "Press kit")
+
+        undoManager.beginUndoGrouping()
+        chat.assistant.acceptAll()
+        undoManager.endUndoGrouping()
+
+        #expect(titles(under: planID, in: chat) == ["Beta", "Risks", "Press kit"])
+        let risks = try node("Risks", in: chat)
+        #expect(session.engine.state.node(risks)?.metadata.origin == .ai)
+        #expect(chat.assistant.suggestions == nil)
+        #expect(undoManager.undoActionName == String(localized: "Add AI Topics"))
+
+        undoManager.undo()
+        #expect(titles(under: planID, in: chat) == ["Beta"])
+        #expect(undoManager.redoActionName == String(localized: "Add AI Topics"))
+
+        undoManager.redo()
+        #expect(titles(under: planID, in: chat) == ["Beta", "Risks", "Press kit"])
+    }
+
+    @Test func createTopicsFromAnswerSuggestsItsListUnderTheSelectedTopic() async throws {
+        let chat = try await open()
+        let session = chat.session
+        let budgetID = try node("Budget", in: chat)
+        let undoManager = undoManager(for: session)
+        session.selection = budgetID
+        chatProvider.enqueue(.text("Three costs [T3]:\n- Ads\n  - Search ads\n- Travel", citations: [try citation("T3", "Budget", in: chat)]))
+        await ask("What costs?", in: chat)
+        let entry = try #require(chat.entries.last)
+        #expect(chat.topicsTarget(for: entry) == budgetID)
+        #expect(chat.canCreateTopicsFromLastAnswer)
+
+        #expect(chat.createTopics(from: entry))
+        #expect(titles(under: budgetID, in: chat).isEmpty, "only suggested")
+        #expect(chat.assistant.suggestions?.topics.map(\.title) == ["Ads", "Search ads", "Travel"])
+
+        undoManager.beginUndoGrouping()
+        chat.assistant.acceptAll()
+        undoManager.endUndoGrouping()
+        #expect(titles(under: budgetID, in: chat) == ["Ads", "Travel"])
+        let ads = try node("Ads", in: chat)
+        #expect(titles(under: ads, in: chat) == ["Search ads"])
+
+        undoManager.undo()
+        #expect(titles(under: budgetID, in: chat).isEmpty)
+        undoManager.redo()
+        #expect(titles(under: budgetID, in: chat) == ["Ads", "Travel"])
+    }
+
+    @Test func withNothingSelectedTopicsGoUnderTheQuestionsBranchElseTheCentralTopic() async throws {
+        let chat = try await open()
+        let session = chat.session
+        let planID = try node("Plan", in: chat)
+        session.selection = planID
+        chat.asksAboutSelectedBranch = true
+        chatProvider.enqueue(.text("Test early. Ship late.", citations: []))
+        chatProvider.enqueue(.text("Hire. Train.", citations: []))
+        await ask("Plan?", in: chat)
+        session.selection = nil
+        await ask("Team?", in: chat)
+
+        #expect(chat.topicsTarget(for: chat.entries[0]) == planID)
+        #expect(chat.topicsTarget(for: chat.entries[1]) == session.rootID)
+        #expect(chat.createTopics(from: chat.entries[1]))
+        #expect(chat.assistant.suggestions?.anchorID == session.rootID)
+        #expect(chat.assistant.suggestions?.topics.map(\.title) == ["Hire", "Train"])
+    }
+
+    @Test func createTopicsNeedsAFinishedAnswerAndOneTopic() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("Ads. Travel.", citations: []))
+        await ask("Costs?", in: chat)
+        let entry = try #require(chat.entries.last)
+
+        chat.session.selectAll()
+        #expect(chat.topicsTarget(for: entry) == nil)
+        #expect(!chat.canCreateTopics(entry))
+        #expect(!chat.createTopics(from: entry))
+        #expect(chat.assistant.suggestions == nil)
+
+        chatProvider.enqueue(.hang)
+        chat.session.selection = nil
+        chat.draft = "More?"
+        chat.ask()
+        let answering = try #require(chat.entries.last)
+        #expect(!chat.canCreateTopics(answering))
+        chat.stop()
+    }
+
     private struct OpenFailed: Error {}
 }
 

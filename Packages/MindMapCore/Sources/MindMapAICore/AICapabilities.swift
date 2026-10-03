@@ -12,6 +12,9 @@ public enum AIFeature: String, Hashable, Sendable, CaseIterable, Codable {
     case suggestTags
     case suggestGroups
     case summarizeBoundary
+    /// Topics suggested from the chat (MM-51): by the model's `suggestTopics`
+    /// tool or Create Topics from Answer. Never a request of its own.
+    case chat
 }
 
 /// Whether an AI feature can run right now, and if not, why. The UI maps each

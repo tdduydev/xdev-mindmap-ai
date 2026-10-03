@@ -95,6 +95,9 @@ public struct ChatUpdate: Hashable, Sendable {
     public var isReadingMap: Bool
     /// Earlier turns were left out of what the model sees to make room.
     public var leftOutEarlierTurns: Bool
+    /// Topics the model suggested with `suggestTopics` (MM-51), the latest
+    /// call's. The app shows them on the map; nothing is added yet.
+    public var suggestion: ChatSuggestion?
     public var isComplete: Bool
 
     public init(
@@ -102,12 +105,14 @@ public struct ChatUpdate: Hashable, Sendable {
         citations: [ChatCitation] = [],
         isReadingMap: Bool = false,
         leftOutEarlierTurns: Bool = false,
+        suggestion: ChatSuggestion? = nil,
         isComplete: Bool = false
     ) {
         self.text = text
         self.citations = citations
         self.isReadingMap = isReadingMap
         self.leftOutEarlierTurns = leftOutEarlierTurns
+        self.suggestion = suggestion
         self.isComplete = isComplete
     }
 }

@@ -3,8 +3,8 @@ import FoundationModels
 import MindMapAICore
 import Synchronization
 
-// The chat's tools for one map (docs/chat.md, Tools). Three, within the three
-// to five Apple advises per request; `suggestTopics` joins them in MM-51.
+// The chat's tools for one map (docs/chat.md, Tools). Four, within the three
+// to five Apple advises per request; `suggestTopics` came with MM-51.
 // Each forwards to `ChatMapReader`, which holds the logic tests check.
 
 /// Tells the conversation a tool ran: its name and the tokens its result costs.
@@ -40,6 +40,15 @@ struct ReadBranchArguments {
 
     @Guide(description: "How many levels of subtopics to read", .range(1...3))
     var depth: Int
+}
+
+@Generable
+struct SuggestTopicsArguments {
+    @Guide(description: "The handle of the topic to suggest subtopics under, such as T3, or an empty string for the central topic")
+    var handle: String
+
+    @Guide(description: "Short titles for the new topics", .maximumCount(ChatSuggestion.maximumTopics))
+    var titles: [String]
 }
 
 struct SearchTopicsTool: Tool {
@@ -79,6 +88,20 @@ struct ReadBranchTool: Tool {
     @concurrent
     func call(arguments: ReadBranchArguments) async throws -> String {
         let output = await reader.readBranch(arguments.handle, depth: arguments.depth)
+        events.report(name, output: output)
+        return output
+    }
+}
+
+struct SuggestTopicsTool: Tool {
+    let name = "suggestTopics"
+    let description = "Suggests new subtopics under a topic for the person to review on the map. It does not add them."
+    let reader: ChatMapReader
+    let events: ChatToolEvents
+
+    @concurrent
+    func call(arguments: SuggestTopicsArguments) async throws -> String {
+        let output = await reader.suggestTopics(under: arguments.handle, titles: arguments.titles)
         events.report(name, output: output)
         return output
     }

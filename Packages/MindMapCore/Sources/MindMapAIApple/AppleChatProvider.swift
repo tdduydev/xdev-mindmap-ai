@@ -90,6 +90,7 @@ final class AppleChatConversation: ChatConversation {
         let budget = ChatBudget(contextSize: capabilities.contextSize)
         reader.setToolOutput(budget.toolOutput)
         reader.setBranch(message.branch?.nodeID)
+        reader.clearSuggestion()
 
         let mapTitle = await reader.mapTitle()
         let prompt = catalog.chatPrompt(question: message.text, mapTitle: mapTitle, language: message.language, branchTitle: message.branch?.title)
@@ -105,15 +106,16 @@ final class AppleChatConversation: ChatConversation {
         let latest = Mutex(ChatUpdate(leftOutEarlierTurns: leftOut))
         state.withLock { $0.toolCost = 0 }
         // Cleared when the answer ends, so this holds the conversation only meanwhile.
+        let reader = self.reader
         events.observe { name, cost in
             self.state.withLock { $0.toolCost += cost }
             Self.logger.info("Chat tool \(name, privacy: .public), about \(cost, privacy: .public) tokens")
             yield(latest.withLock { update in
                 update.isReadingMap = true
+                update.suggestion = reader.currentSuggestion
                 return update
             })
         }
-        let reader = self.reader
         let onPartial = { (partial: String) in
             yield(latest.withLock { update in
                 update.text = partial
@@ -131,7 +133,7 @@ final class AppleChatConversation: ChatConversation {
             session = rebuiltSession(keepingLast: 1, tools: tools, locale: message.userLocaleIdentifier)
             state.withLock { $0.toolCost = 0 }
             yield(latest.withLock { update in
-                update = ChatUpdate(leftOutEarlierTurns: true)
+                update = ChatUpdate(leftOutEarlierTurns: true, suggestion: reader.currentSuggestion)
                 return update
             })
             text = try await stream(prompt, in: session, started: started, partial: onPartial)
@@ -144,7 +146,7 @@ final class AppleChatConversation: ChatConversation {
             current.used += questionCost + current.toolCost + TokenEstimator.estimate(text)
         }
         Self.logger.info("Chat answer, \(citations.count, privacy: .public) citations, about \(questionCost, privacy: .public) prompt tokens")
-        yield(ChatUpdate(text: text, citations: citations, leftOutEarlierTurns: leftOut, isComplete: true))
+        yield(ChatUpdate(text: text, citations: citations, leftOutEarlierTurns: leftOut, suggestion: reader.currentSuggestion, isComplete: true))
     }
 
     /// Streams the answer's text and returns it whole.
@@ -225,6 +227,7 @@ final class AppleChatConversation: ChatConversation {
             SearchTopicsTool(reader: reader, events: events),
             ReadTopicTool(reader: reader, events: events),
             ReadBranchTool(reader: reader, events: events),
+            SuggestTopicsTool(reader: reader, events: events),
         ]
     }
 

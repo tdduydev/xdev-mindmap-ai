@@ -396,6 +396,8 @@ struct MapCommands: Commands {
             .disabled(chat?.canCopyLastAnswer != true)
         Button("Add Answer to Note") { chat?.addLastAnswerToNote() }
             .disabled(chat?.canAddLastAnswerToNote != true)
+        Button("Create Topics from Answer") { chat?.createTopicsFromLastAnswer() }
+            .disabled(chat?.canCreateTopicsFromLastAnswer != true)
         Button("Ask Again") { chat?.askLastQuestionAgain() }
             .disabled(chat?.canAskLastQuestionAgain != true)
         Divider()

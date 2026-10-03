@@ -139,6 +139,57 @@ struct ChatMapReaderTests {
         #expect(TokenEstimator.estimate(output) <= 200)
         #expect(output.contains("more topics not shown"))
     }
+
+    // MARK: suggestTopics (MM-51)
+
+    @Test func suggestingTopicsRecordsThemAndSaysNothingWasAdded() async throws {
+        _ = await reader.searchTopics("kế hoạch")
+        let output = await reader.suggestTopics(under: "T1", titles: ["Rủi ro", " Beta ", "Đối tác", "rủi ro", ""])
+
+        let suggestion = try #require(reader.currentSuggestion)
+        #expect(suggestion.parentID == fixture["Kế hoạch"])
+        #expect(suggestion.parentTitle == "Kế hoạch")
+        // Beta is already a subtopic; the repeat and the empty title are dropped.
+        #expect(suggestion.topics.map(\.title) == ["Rủi ro", "Đối tác"])
+        #expect(output.hasPrefix("Suggested 2 topics under T1 \u{201C}Kế hoạch\u{201D}: Rủi ro; Đối tác."))
+        #expect(output.contains("Nothing was added yet"))
+        // The map is untouched: only the person's Accept adds topics.
+        let saved = try #require(try await repository.loadGraph(for: fixture.state.map.id))
+        #expect(saved.childIDs(of: fixture["Kế hoạch"]).count == 2)
+    }
+
+    @Test func anEmptyHandleSuggestsUnderTheCentralTopicOrTheBranch() async throws {
+        _ = await reader.suggestTopics(under: "", titles: ["Đội ngũ"])
+        #expect(reader.currentSuggestion?.parentID == fixture["Ra mắt sản phẩm"])
+
+        reader.setBranch(fixture["Kế hoạch"])
+        _ = await reader.suggestTopics(under: "", titles: ["Rủi ro"])
+        #expect(reader.currentSuggestion?.parentID == fixture["Kế hoạch"])
+    }
+
+    @Test func suggestionsOutsideTheBranchOrUnderUnknownHandlesAreRefused() async {
+        _ = await reader.searchTopics("ngân sách")
+        reader.setBranch(fixture["Kế hoạch"])
+
+        #expect(await reader.suggestTopics(under: "T1", titles: ["Quỹ"]) == ChatMapReader.outsideBranch("T1"))
+        #expect(await reader.suggestTopics(under: "T7", titles: ["Quỹ"]) == ChatMapReader.unknownHandle("T7"))
+        #expect(reader.currentSuggestion == nil)
+    }
+
+    @Test func titlesThatAreAllPresentSuggestNothing() async {
+        _ = await reader.searchTopics("kế hoạch")
+        let output = await reader.suggestTopics(under: "T1", titles: ["Beta", "BÁO CHÍ"])
+
+        #expect(output.hasPrefix("No topic was suggested"))
+        #expect(reader.currentSuggestion == nil)
+    }
+
+    @Test func clearingForTheNextQuestionDropsTheSuggestion() async {
+        _ = await reader.suggestTopics(under: "", titles: ["Đội ngũ"])
+        reader.clearSuggestion()
+
+        #expect(reader.currentSuggestion == nil)
+    }
 }
 
 @Suite("Chat prompts")
@@ -152,6 +203,13 @@ struct ChatPromptTests {
         #expect(instructions.contains("Only cite handles a tool returned."))
         #expect(instructions.hasSuffix("The person's locale is vi_VN."))
         #expect(TokenEstimator.estimate(instructions) < ChatBudget.instructionsReserve / 2)
+    }
+
+    @Test func instructionsSaySuggestedTopicsAreOnlySuggested() {
+        let instructions = catalog.chatInstructions(userLocaleIdentifier: "en_US")
+
+        #expect(instructions.contains("call suggestTopics"))
+        #expect(instructions.contains("never say they were added"))
     }
 
     @Test func thePromptCarriesTheQuestionAndItsLanguage() {

@@ -25,6 +25,8 @@ final class ChatMapReader: Sendable {
     private let toolOutput: Mutex<Int>
     /// The branch this question is limited to (MM-78), nil for the whole map.
     private let branch = Mutex<NodeID?>(nil)
+    /// What `suggestTopics` recorded during the current answer (MM-51).
+    private let suggestion = Mutex<ChatSuggestion?>(nil)
 
     init(queries: MapQueries, mapID: MapID, toolOutput: Int, table: CitationTable = CitationTable()) {
         self.queries = queries
@@ -51,6 +53,16 @@ final class ChatMapReader: Sendable {
 
     var currentBranch: NodeID? {
         branch.withLock { $0 }
+    }
+
+    /// The topics the model suggested in this answer; the latest call wins.
+    var currentSuggestion: ChatSuggestion? {
+        suggestion.withLock { $0 }
+    }
+
+    /// Set before each question, so one answer's suggestion never shows again.
+    func clearSuggestion() {
+        suggestion.withLock { $0 = nil }
     }
 
     /// The map's title for the prompt, or an empty string when it is gone.
@@ -184,6 +196,52 @@ final class ChatMapReader: Sendable {
                 lines.append("(\(outline.deeperTopicCount) topics deeper down; read a subtopic to see them.)")
             }
             return lines.joined(separator: "\n")
+        } catch MapQueryError.topicNotFound {
+            return "Topic \(trimmed) no longer exists."
+        } catch {
+            return Self.failure(error)
+        }
+    }
+
+    /// Records topics for the person to review (docs/chat.md, Editing). The
+    /// map is not changed: the app shows them as AI suggestions, and the
+    /// result says so, so the answer never claims they were added. An empty
+    /// handle suggests under the branch the question is about, else the
+    /// central topic.
+    func suggestTopics(under handle: String, titles: [String]) async -> String {
+        let trimmed = handle.trimmingCharacters(in: .whitespacesAndNewlines)
+        do {
+            let parent: TopicDetail
+            if trimmed.isEmpty {
+                let start = try await queries.outline(of: mapID, branch: currentBranch, depth: 0, includeNotes: false, limit: .characters(1))
+                guard let first = start.topics.first,
+                      let topic = try await queries.topic(TopicRef(mapID: mapID, nodeID: first.nodeID)) else {
+                    return "This map is no longer available."
+                }
+                parent = topic
+            } else {
+                guard let citation = citationTable.citation(for: trimmed) else { return Self.unknownHandle(trimmed) }
+                guard let topic = try await queries.topic(TopicRef(mapID: citation.mapID, nodeID: citation.nodeID)) else {
+                    return "Topic \(citation.handle) no longer exists."
+                }
+                if let branch = currentBranch, !Self.topic(topic, isIn: branch) { return Self.outsideBranch(citation.handle) }
+                parent = topic
+            }
+            let parentTitle = MapQueries.oneLine(parent.title)
+            guard let suggested = ChatSuggestion(
+                titles: titles,
+                under: parent.ref.nodeID,
+                parentTitle: parentTitle,
+                existingTitles: parent.children.map(\.title)
+            ) else {
+                return "No topic was suggested: give short titles that are not already under \(Self.quoted(parentTitle))."
+            }
+            suggestion.withLock { $0 = suggested }
+            let handle = self.handle(for: parent.ref.nodeID, title: parentTitle)
+            let count = suggested.topics.count
+            return "Suggested \(count) \(count == 1 ? "topic" : "topics") under \(handle) \(Self.quoted(parentTitle)): "
+                + suggested.topics.map(\.title).joined(separator: "; ")
+                + ". Nothing was added yet: the person reviews them on the map and accepts or discards them. Say you suggested them and ask the person to review them on the map."
         } catch MapQueryError.topicNotFound {
             return "Topic \(trimmed) no longer exists."
         } catch {
