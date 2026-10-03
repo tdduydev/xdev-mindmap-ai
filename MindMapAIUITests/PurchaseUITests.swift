@@ -48,13 +48,15 @@ final class PurchaseUITests: XCTestCase {
         XCTAssertTrue(settings.proStatus.waitToExist().label.hasSuffix(Status.locked), settings.proStatus.label)
 
         // Already on the Pro pane: on iPhone the sidebar's Settings button is behind it.
-        let paywall = app.openPaywall(from: settings)
-        XCTAssertTrue(paywall.purchase.label.contains(Self.price), paywall.purchase.label)
+        settings.showPaywall.waitToExist().tapOrClick()
+        let paywall = app.paywall
+        paywall.close.waitToExist()
         // Every Pro feature is listed before the button; AI tools only on a device that can run them.
+        // Counted before scrolling, while the first rows are still on screen.
         XCTAssertGreaterThanOrEqual(paywall.features.count, ProFeatureCount.withoutAI)
-        // The form is a lazy list: on an iPhone the row below the fold exists only once scrolled to.
-        if !paywall.restore.exists { app.app.swipeUp() }
-        XCTAssertTrue(paywall.restore.waitForExistence(timeout: MindMapApp.timeout))
+        XCTAssertTrue(paywall.reveal(paywall.purchase), "no purchase button")
+        XCTAssertTrue(paywall.purchase.label.contains(Self.price), paywall.purchase.label)
+        XCTAssertTrue(paywall.reveal(paywall.restore), "no Restore Purchases on the paywall")
     }
 
     // MARK: Free core
@@ -141,16 +143,34 @@ struct PaywallPage {
     let app: XCUIApplication
 
     var purchase: XCUIElement { app.buttons[AccessibilityID.Paywall.purchase].firstMatch }
+    var close: XCUIElement { app.buttons[AccessibilityID.Paywall.close].firstMatch }
     var restore: XCUIElement { app.buttons[AccessibilityID.Paywall.restore].firstMatch }
     var unlocked: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Paywall.unlocked].firstMatch }
     var purchaseStatus: XCUIElement { app.staticTexts[AccessibilityID.Paywall.purchaseStatus].firstMatch }
     var features: XCUIElementQuery { app.descendants(matching: .any).matching(identifier: AccessibilityID.Paywall.feature) }
+
+    /// Scrolls the paywall until `element` appears. The form is a lazy list, so
+    /// on an iPhone a row below the fold (the purchase button, under the Pro
+    /// list) does not exist until scrolled to; the price may also still be loading.
+    @discardableResult
+    func reveal(_ element: XCUIElement) -> Bool {
+        for _ in 0..<Self.scrollAttempts {
+            if element.waitForExistence(timeout: MindMapApp.timeout / 6) { return true }
+            #if os(iOS)
+            app.swipeUp()
+            #endif
+        }
+        return element.waitForExistence(timeout: MindMapApp.timeout)
+    }
+
+    private static let scrollAttempts = 4
 }
 
 @MainActor
 extension SettingsPage {
     var proStatus: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Settings.proStatus].firstMatch }
     var restorePurchases: XCUIElement { app.buttons[AccessibilityID.Settings.restorePurchases].firstMatch }
+    var showPaywall: XCUIElement { app.buttons[AccessibilityID.Settings.showPaywall].firstMatch }
 }
 
 @MainActor
@@ -164,8 +184,9 @@ extension MindMapApp {
 
     /// See What’s in Pro… on a Settings page already showing the Pro pane.
     func openPaywall(from settings: SettingsPage, file: StaticString = #filePath, line: UInt = #line) -> PaywallPage {
-        app.buttons[AccessibilityID.Settings.showPaywall].firstMatch.waitToExist(file: file, line: line).tapOrClick()
-        paywall.purchase.waitToExist(file: file, line: line)
+        settings.showPaywall.waitToExist(file: file, line: line).tapOrClick()
+        paywall.close.waitToExist(file: file, line: line)
+        XCTAssertTrue(paywall.reveal(paywall.purchase), "no purchase button", file: file, line: line)
         return paywall
     }
 }
