@@ -47,24 +47,30 @@ final class PurchaseUITests: XCTestCase {
         let settings = app.openSettings().show(.pro)
         XCTAssertTrue(settings.proStatus.waitToExist().label.hasSuffix(Status.locked), settings.proStatus.label)
 
-        let paywall = app.openPaywallFromSettings()
+        // Already on the Pro pane: on iPhone the sidebar's Settings button is behind it.
+        let paywall = app.openPaywall(from: settings)
         XCTAssertTrue(paywall.purchase.label.contains(Self.price), paywall.purchase.label)
         // Every Pro feature is listed before the button; AI tools only on a device that can run them.
         XCTAssertGreaterThanOrEqual(paywall.features.count, ProFeatureCount.withoutAI)
-        XCTAssertTrue(paywall.restore.exists)
+        // The form is a lazy list: on an iPhone the row below the fold exists only once scrolled to.
+        if !paywall.restore.exists { app.app.swipeUp() }
+        XCTAssertTrue(paywall.restore.waitForExistence(timeout: MindMapApp.timeout))
     }
 
     // MARK: Free core
 
     @MainActor
-    func testCoreMindMappingNeedsNoPro() {
+    func testOpeningAMapNeedsNoPro() {
         let app = MindMapApp.launch(fixture: .sample)
-        // Open a map and make a new one: neither asks for Pro.
         app.library.show().open(UITestFixture.Title.plan).canvas.waitToExist()
         XCTAssertFalse(app.paywall.purchase.exists, "opening a map showed the paywall")
-        let fresh = MindMapApp.launch(fixture: .empty)
-        fresh.library.show().createMap().canvas.waitToExist()
-        XCTAssertFalse(fresh.paywall.purchase.exists, "a new map showed the paywall")
+    }
+
+    @MainActor
+    func testCreatingAMapNeedsNoPro() {
+        let app = MindMapApp.launch(fixture: .empty)
+        app.library.show().createMap().canvas.waitToExist()
+        XCTAssertFalse(app.paywall.purchase.exists, "a new map showed the paywall")
     }
 
     // MARK: Purchase
@@ -153,7 +159,11 @@ extension MindMapApp {
 
     /// Settings ▸ MindMap AI Pro ▸ See What’s in Pro…, waiting for the price.
     func openPaywallFromSettings(file: StaticString = #filePath, line: UInt = #line) -> PaywallPage {
-        openSettings(file: file, line: line).show(.pro, file: file, line: line)
+        openPaywall(from: openSettings(file: file, line: line).show(.pro, file: file, line: line), file: file, line: line)
+    }
+
+    /// See What’s in Pro… on a Settings page already showing the Pro pane.
+    func openPaywall(from settings: SettingsPage, file: StaticString = #filePath, line: UInt = #line) -> PaywallPage {
         app.buttons[AccessibilityID.Settings.showPaywall].firstMatch.waitToExist(file: file, line: line).tapOrClick()
         paywall.purchase.waitToExist(file: file, line: line)
         return paywall
