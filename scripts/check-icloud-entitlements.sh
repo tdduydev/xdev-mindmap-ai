@@ -52,3 +52,19 @@ for name, ok in checks.items():
     print(('ok      ' if ok else 'MISSING ') + name)
 sys.exit(0 if all(checks.values()) else 1)
 PY
+
+# Every signed resource bundle inside the app must carry the distribution
+# signature, or App Store Connect refuses the build (ITMS-90284, build
+# 202610040006: the Swift package bundles of MLX kept the development one).
+bad=0
+while IFS= read -r -d '' bundle; do
+  authority=$(codesign -dvv "$bundle" 2>&1 | sed -n 's/^Authority=//p' | head -n 1) || true
+  [[ -z $authority ]] && continue
+  if [[ $authority == "Apple Distribution:"* ]]; then
+    printf 'ok      signed for distribution: %s\n' "${bundle#"$app"/}"
+  else
+    printf 'WRONG   %s is signed by %s\n' "${bundle#"$app"/}" "$authority"
+    bad=1
+  fi
+done < <(find "$app" -name '*.bundle' -type d -print0)
+exit $bad

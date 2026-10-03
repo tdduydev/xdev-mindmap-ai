@@ -85,6 +85,19 @@ xcodebuild archive -quiet \
   ${platform_settings[@]+"${platform_settings[@]}"} \
   "${auth[@]}"
 
+# Resource bundles of Swift packages (MLX, swift-crypto, swift-transformers;
+# MM-119) are signed at archive time with the development identity, and the
+# export re-signs only the app, its frameworks and its extensions. App Store
+# Connect refused build 202610040006 for that (ITMS-90284), so they are signed
+# here with the distribution identity the export uses for the app.
+distribution=$(security find-identity -v -p codesigning "$keychain" | sed -n 's/.*"\(Apple Distribution: [^"]*\)".*/\1/p' | head -n 1)
+[[ -n $distribution ]] || { echo "No Apple Distribution identity in $keychain" >&2; exit 1; }
+while IFS= read -r -d '' bundle; do
+  codesign -d "$bundle" >/dev/null 2>&1 || continue
+  codesign --force --sign "$distribution" --timestamp=none --preserve-metadata=identifier "$bundle"
+  printf 'Signed for distribution: %s\n' "${bundle#"$archive"/Products/Applications/}"
+done < <(find "$archive/Products/Applications" -depth -name '*.bundle' -type d -print0)
+
 # One options file per destination: a local export to check the signed
 # entitlements, then the upload.
 export_options() {
