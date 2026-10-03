@@ -53,7 +53,9 @@ struct ChipFlowLayout: Layout {
 
 /// One chip as the canvas and export draw it: the tag's badge colours, or
 /// the AI style for a suggested tag (dashed outline and `sparkles`, as a
-/// suggested topic has).
+/// suggested topic has). Task chips (MM-35) use the graphite badge with a
+/// symbol: the box, a progress ring, or `calendar`, which turns into
+/// `exclamationmark.circle` with the date in `danger` when overdue.
 struct TopicChipLabel: View {
     let chip: TopicChip
     let spec: TopicChipSpec
@@ -65,16 +67,17 @@ struct TopicChipLabel: View {
     var body: some View {
         let colors = TopicColor.chipColors(for: chip.color, in: variant)
         HStack(spacing: 0) {
-            if chip.isSuggestion {
-                Image(systemName: "sparkles")
-                    .foregroundStyle(aiStyle ?? AnyShapeStyle(secondaryText))
-                    .frame(width: spec.symbolWidth, alignment: .leading)
+            if chip.hasSymbol {
+                symbol(colors: colors)
+                    .frame(width: spec.symbolWidth, alignment: chip.label.isEmpty ? .center : .leading)
                     .accessibilityHidden(true)
             }
-            Text(verbatim: chip.label)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .foregroundStyle(chip.isSuggestion ? secondaryText : colors.badgeText.color)
+            if !chip.label.isEmpty {
+                Text(verbatim: chip.label)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .foregroundStyle(labelColor(colors: colors))
+            }
         }
         .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
         .padding(.horizontal, spec.horizontalPadding)
@@ -90,6 +93,49 @@ struct TopicChipLabel: View {
                 Capsule().fill(colors.badgeFill.color)
             }
         }
+    }
+
+    private func labelColor(colors: BranchColors) -> Color {
+        switch chip.kind {
+        case .suggestion: secondaryText
+        case .due(overdue: true): Palette.danger
+        default: colors.badgeText.color
+        }
+    }
+
+    @ViewBuilder
+    private func symbol(colors: BranchColors) -> some View {
+        switch chip.kind {
+        case .suggestion:
+            Image(systemName: "sparkles").foregroundStyle(aiStyle ?? AnyShapeStyle(secondaryText))
+        case .checkbox(let done):
+            Image(systemName: done ? "checkmark.square.fill" : "square").foregroundStyle(colors.badgeText.color)
+        case .progress(let done, let total):
+            TaskProgressRing(fraction: total == 0 ? 0 : Double(done) / Double(total), color: colors.badgeText.color)
+                .frame(width: spec.pointSize, height: spec.pointSize)
+        case .due(let overdue):
+            Image(systemName: overdue ? "exclamationmark.circle" : "calendar")
+                .foregroundStyle(overdue ? Palette.danger : colors.badgeText.color)
+        case .tag, .more, .priority:
+            EmptyView()
+        }
+    }
+}
+
+/// A small ring filled to the share of done tasks.
+struct TaskProgressRing: View {
+    let fraction: Double
+    let color: Color
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(color.opacity(CanvasMetrics.taskRingTrackOpacity), lineWidth: CanvasMetrics.taskRingWidth)
+            Circle()
+                .trim(from: 0, to: fraction)
+                .stroke(color, style: StrokeStyle(lineWidth: CanvasMetrics.taskRingWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+        .padding(CanvasMetrics.taskRingWidth / 2)
     }
 }
 
@@ -170,11 +216,19 @@ struct TopicChipView: View {
     let variant: ColorVariant
     let aiStyle: AnyShapeStyle
     let model: CanvasModel
+    /// The topic the chip belongs to, for the task box.
+    var topicID: NodeID?
     @State private var isReviewing = false
 
     var body: some View {
         let label = TopicChipLabel(chip: chip, spec: spec, variant: variant, aiStyle: aiStyle)
-        if case .suggestion(let id) = chip.kind {
+        if case .checkbox(let done) = chip.kind, let topicID {
+            Button { model.session.toggleDone(topicID) } label: { label.contentShape(Capsule()) }
+                .buttonStyle(.plain)
+                .help(done ? Text("Mark as Not Done") : Text("Mark as Done"))
+                // The topic element has Mark as Done and reads the state in its value.
+                .accessibilityHidden(true)
+        } else if case .suggestion(let id) = chip.kind {
             Button { isReviewing = true } label: { label }
                 .buttonStyle(.plain)
                 .help(Text("AI suggested tag"))

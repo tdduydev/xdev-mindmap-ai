@@ -34,6 +34,13 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     var chips: [TopicChip] = []
     /// Every tag name, for VoiceOver, including those past "+n".
     var tagNames: [String] = []
+    /// Task fields (MM-35); drawn as the first chips, read in the VoiceOver value.
+    var taskState: TaskState?
+    var priority: TaskPriority?
+    var dueDate: CalendarDay?
+    var isOverdue = false
+    /// Done over total for the leaf tasks below, computed for this scene only.
+    var progress: TaskProgress?
 }
 
 /// One chip under a topic's title (MM-34).
@@ -44,6 +51,13 @@ nonisolated struct TopicChip: Identifiable, Hashable, Sendable {
         case more(Int)
         /// An AI suggestion, by `TagSuggestionState.Suggestion.id`.
         case suggestion(String)
+        /// The task box; a click toggles done (MM-35).
+        case checkbox(done: Bool)
+        /// `!` marks, by level.
+        case priority(Int)
+        /// "3/5" with a ring.
+        case progress(done: Int, total: Int)
+        case due(overdue: Bool)
     }
 
     let kind: Kind
@@ -57,6 +71,35 @@ nonisolated struct TopicChip: Identifiable, Hashable, Sendable {
     var isSuggestion: Bool {
         if case .suggestion = kind { return true }
         return false
+    }
+
+    /// Chips drawn with a symbol before the label, measured with `symbolWidth`.
+    var hasSymbol: Bool {
+        switch kind {
+        case .suggestion, .checkbox, .progress, .due: true
+        case .tag, .more, .priority: false
+        }
+    }
+
+    /// The task chips, before any tag: box, priority, progress, due date.
+    static func taskChips(
+        state: TaskState?, priority: TaskPriority?, progress: TaskProgress?, due: CalendarDay?, today: CalendarDay
+    ) -> [TopicChip] {
+        var chips: [TopicChip] = []
+        if let state {
+            chips.append(TopicChip(kind: .checkbox(done: state.isDone), label: "", color: nil))
+        }
+        if let priority {
+            chips.append(TopicChip(kind: .priority(priority.level.rawValue), label: priority.marks, color: nil))
+        }
+        if let progress {
+            chips.append(TopicChip(kind: .progress(done: progress.done, total: progress.total), label: "\(progress.done)/\(progress.total)", color: nil))
+        }
+        if let due, state != nil || progress != nil {
+            let overdue = CalendarDay.isOverdue(due, state: state, today: today)
+            chips.append(TopicChip(kind: .due(overdue: overdue), label: due.shortText(today: today), color: nil))
+        }
+        return chips
     }
 
     /// The chips for a topic's tags and suggested tag names.
@@ -205,10 +248,14 @@ nonisolated struct CanvasLayoutPass: Sendable {
 
         let tags = graph.tagsByNode()
         let images = graph.imagesByNode()
+        let progress = graph.taskProgressByNode()
+        let today = CalendarDay.today()
         var chips: [NodeID: [TopicChip]] = [:]
         for item in outline {
             guard let node = graph.node(item.nodeID) else { continue }
-            var topicChips = TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
+            var topicChips = TopicChip.taskChips(
+                state: node.taskState, priority: node.priority, progress: progress[item.nodeID], due: node.dueDate, today: today
+            ) + TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
             let labels = topicChips.map(\.label)
             let imageSize = images[item.nodeID].map { measurer.imageSize(of: $0, level: item.depth) }
             if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth, known.chipLabels == labels,
@@ -243,7 +290,10 @@ nonisolated struct CanvasLayoutPass: Sendable {
         } else {
             engine.layout(graph, sizes: sizes, options: options)
         }
-        let scene = Self.scene(outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags)
+        let scene = Self.scene(
+            outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags,
+            progress: progress, today: today
+        )
         return Output(scene: scene, measures: measures)
     }
 
@@ -253,7 +303,9 @@ nonisolated struct CanvasLayoutPass: Sendable {
         layout: MapLayout,
         suggestions: Set<NodeID>,
         chips: [NodeID: [TopicChip]],
-        tags: [NodeID: [MindTag]]
+        tags: [NodeID: [MindTag]],
+        progress: [NodeID: TaskProgress],
+        today: CalendarDay
     ) -> CanvasScene {
         var topics: [CanvasTopic] = []
         let images = graph.imagesByNode()
@@ -279,7 +331,12 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 link: node.link?.url == nil ? nil : node.link,
                 topicImage: images[node.id],
                 chips: chips[node.id] ?? [],
-                tagNames: tags[node.id]?.map(\.name) ?? []
+                tagNames: tags[node.id]?.map(\.name) ?? [],
+                taskState: node.taskState,
+                priority: node.priority,
+                dueDate: node.dueDate,
+                isOverdue: CalendarDay.isOverdue(node.dueDate, state: node.taskState, today: today),
+                progress: progress[node.id]
             ))
         }
         let types = layout.crossLinks.keys.reduce(into: [EdgeID: EdgeType]()) { types, id in

@@ -60,6 +60,9 @@ enum Metrics {
     /// Room for a few lines of note in the inspector before it grows.
     static let noteEditorMinHeight: CGFloat = 120
 
+    /// The progress bar in the inspector's Task section, beside its "3 of 5 done".
+    static let taskProgressBarWidth: CGFloat = 80
+
     /// Room for a typical URL in the Add Link sheet.
     static let linkSheetMinWidth: CGFloat = 420
 
