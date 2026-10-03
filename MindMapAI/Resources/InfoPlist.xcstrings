@@ -11,6 +11,12 @@
             "value" : "MindMap AI listens while you add topics by voice. Speech is turned into text on this device."
           }
         },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AIは、音声でトピックを追加するときに音声を聞き取ります。音声はこのデバイス上でテキストに変換されます。"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27,6 +33,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "MindMap AI turns what you say into topics. Speech recognition runs on this device and nothing is sent to xDev."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AIは、話した内容をトピックに変換します。音声認識はこのデバイス上で実行され、xDevには何も送信されません。"
           }
         },
         "vi" : {
