@@ -436,7 +436,7 @@ struct TopicTitleText: View {
                 Text(verbatim: title).foregroundStyle(color)
             }
         }
-        .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
+        .font(ContentFont.font(postScriptName: spec.postScriptName, size: spec.pointSize))
         .lineSpacing(spec.lineSpacing)
         .multilineTextAlignment(.center)
         .frame(width: hugsText ? nil : width)
@@ -513,7 +513,7 @@ struct TopicTitleEditor: View {
     var body: some View {
         TextField("Topic", text: $model.editingDraft, prompt: Text("Untitled Topic"))
             .textFieldStyle(.plain)
-            .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
+            .font(ContentFont.font(postScriptName: spec.postScriptName, size: spec.pointSize))
             .multilineTextAlignment(.center)
             .foregroundStyle(color)
             .frame(width: width)

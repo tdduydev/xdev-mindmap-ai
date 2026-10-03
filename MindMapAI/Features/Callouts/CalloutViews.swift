@@ -60,7 +60,7 @@ struct CalloutText: View {
 
     var body: some View {
         Text(verbatim: text)
-            .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
+            .font(ContentFont.font(postScriptName: spec.postScriptName, size: spec.pointSize))
             .lineSpacing(spec.lineSpacing)
             .multilineTextAlignment(.center)
             .foregroundStyle(Palette.topicText)
@@ -120,7 +120,7 @@ struct CalloutEditor: View {
     var body: some View {
         TextField("Callout", text: $draft, prompt: Text("Callout"), axis: .vertical)
             .textFieldStyle(.plain)
-            .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
+            .font(ContentFont.font(postScriptName: spec.postScriptName, size: spec.pointSize))
             .multilineTextAlignment(.center)
             .foregroundStyle(Palette.topicText)
             .focused($isFocused)
