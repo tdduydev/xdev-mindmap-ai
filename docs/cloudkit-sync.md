@@ -42,7 +42,7 @@ On a second device or after a reinstall the store starts empty while CloudKit is
 
 Every device with its store in iCloud writes the key-value flag once it has had the first run, including one that finished it before 1.1. A device with sync off does not, so it cannot stop another device's sample for maps it never sent up. The library list keeps following the store during the wait. A failed import (offline) does not end the wait early.
 
-*[Chưa kiểm chứng]* Whether the first `.import` event of a fresh install already holds every map, or CloudKit brings a large library in several imports. If only part arrives, step 1 still sees a map; only an import that ends with no map at all, on an account whose devices never wrote the flag, could still lead to a sample. Checked by step 0b of *Testing on real devices*.
+*[Chưa kiểm chứng]* Whether the first `.import` event of a fresh install already holds every map, or CloudKit brings a large library in several imports. If only part arrives, step 1 still sees a map; an import that ends with no map at all on an account whose devices never wrote the flag, or a first launch offline (nothing arrives within 20 seconds), still leads to a sample. Checked by step 0b of *Testing on real devices*.
 
 ## Undo after a change from another device (FR-UND-05)
 
@@ -109,7 +109,7 @@ The `aps-environment` value in the entitlements files is `development`; the App 
 With two devices on the same Apple Account and a TestFlight build of 1.1:
 
 0. **Maps from 1.0.** On one device, install 1.0.0 (App Store) or a 1.0 TestFlight build, make two maps (one with a chat, one in Recently Deleted), then update to 1.1 signed in to iCloud → the maps are still there once each, and appear on the second device with their topics, tags, images and chat. Repeat with the 1.0 library on both devices (a restored backup): each map is listed once on both.
-0b. **No second sample map.** With 1.1 installed and a map on the first device (signed in to iCloud), install 1.1 on the second device signed in to the same account (or delete and reinstall it) → no sample map appears there, only the first device's maps once they arrive, and the first device does not get a second "sample". Repeat with the second device offline for the first launch: after 20 seconds it may show the sample only if the first device never ran 1.1 (no key-value flag).
+0b. **No second sample map.** With 1.1 installed and a map on the first device (signed in to iCloud), install 1.1 on the second device signed in to the same account (or delete and reinstall it) → no sample map appears there, only the first device's maps once they arrive, and the first device does not get a second "sample". Known limit: if the second device is offline at its first launch, neither the import nor the key-value flag can arrive, so after 20 seconds it makes the sample, which then syncs up as one extra map.
 1. Mac (or iPad) creates a map → the other device shows it without relaunching; the other edits a topic → the first shows the edit, and its undo menu no longer offers the step that touched that topic.
 2. Airplane mode on one device, edit on both, reconnect → both edits survive (different topics), last writer wins (same topic); the status line says Waiting for Network while offline, never an alert.
 3. Signed out of iCloud: the app opens and edits normally; Settings says Not Using iCloud.
