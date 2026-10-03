@@ -70,6 +70,10 @@ extension UTType {
     /// The system declares no OPML type, so the app imports one (Info.plist,
     /// `UTImportedTypeDeclarations`); without it `.opml` files would be greyed out in the open panel.
     nonisolated static let opml = UTType(importedAs: "org.opml.opml", conformingTo: .xml)
+
+    /// FreeMind and Freeplane maps (`.mm`), imported for the same reason as OPML.
+    /// The identifier is ours: neither app's declaration is one the system ships.
+    nonisolated static let freeMindMap = UTType(importedAs: "asia.xdev.mindmapai.freemind-map", conformingTo: .xml)
 }
 
 /// Behind an exported picture: the canvas colour of the current appearance,

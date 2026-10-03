@@ -87,10 +87,10 @@ archive.imported(sharedTags:)                   // (graph, imageData) for MapRep
 FR-IO-13: a file made by another app is imported free, off the main actor, as new maps, and nothing it had is dropped without a word.
 
 ```swift
-ForeignFormat(fileExtension:)                          // .opml today; MM-102..104 add .freeMind, .xmind, .mindNode
+ForeignFormat(fileExtension:)                          // .opml, .freeMind (.mm); MM-103..104 add .xmind, .mindNode
 try await format.read(data, fileName:)                 // @concurrent → ForeignImport, throws ForeignImportError
 ForeignImport { maps: [GraphState], imageData, report: ImportReport }
-ImportReport.Loss                                      // includedOutline, image, attachment; add a case per new kind
+ImportReport.Loss                                      // includedOutline, image, attachment, icon; add a case per new kind
 ```
 
 - **The shape every importer fills.** `ForeignImport` holds one map per file, or one per sheet for formats that have several (XMind), the images' bytes for `MapRepository.create(_:imageData:)`, and an `ImportReport`. A reader builds maps through `GraphEngine` commands like `GraphState.imported(from:title:)` does, so a map from a file is as valid as one made by hand, every topic with `origin = .imported`. Errors are `wrongFormat` (the extension lies), `damaged` and `emptyDocument`.
@@ -107,6 +107,19 @@ ImportReport.Loss                                      // includedOutline, image
 - **Round trip.** Map → OPML → map keeps titles, notes, links and the tree. OPML with one top-level outline → map → OPML gives the same file back (test); with several top-level outlines the map gains a central topic, so the file comes back with one more level.
 - **Files from other apps.** The fixtures in `OPMLOutlineTests` are written from the spec with the attributes outliners add; no file from another app is in the repo, since none came with a licence to ship it.
 - **In the app.** File ▸ Import… offers `.opml` through an imported type `org.opml.opml` conforming to `public.xml` (`UTImportedTypeDeclarations` in `Config/MindMapAI-macOS-Info.plist` and `Config/MindMapAI-iOS-Info.plist`; the system declares none, so without it the open panel greys `.opml` out). Export… has the format OPML (`.opml`, whole map or branch, Include Notes), Pro. Import is free.
+
+### FreeMind and Freeplane (FR-IO-10)
+
+`FreeMindMap` reads `.mm` files from FreeMind 1.0 and Freeplane 1.x. Format sources: FreeMind's schema `freemind.xsd` (in the FreeMind sources, freemind.sourceforge.net) and the Freeplane file format page (Freeplane wiki, docs.freeplane.org). Both write `<map version="…">` with one root `node`; nodes nest. Import only: there is no `.mm` export.
+
+- **Topics.** Each `node` directly in `map` or in another `node` is a topic, in file order. Title: `TEXT`, else Freeplane's `LOCALIZED_TEXT`, else the text of `richcontent TYPE="NODE"`. Note: `richcontent TYPE="DETAILS"` (Freeplane) then `TYPE="NOTE"`, blank line between. Rich content is HTML: whitespace collapses, `p`/`div`/`li`/`h1`…/`br` break lines, `head`/`style`/`script` are skipped; Freeplane's `CONTENT-TYPE="plain/…"` keeps its text as is. Everything is plain text (no bold, no Markdown).
+- **Links.** `LINK` with a web or mail URL becomes the topic's link; `LINK="#ID_…"` (a link to another node) becomes a Connection; anything else (`file:` paths) goes into the note.
+- **Connections.** `arrowlink DESTINATION` becomes a Connection (`ConnectNodesCommand`); label from `MIDDLE_LABEL`, else `SOURCE_LABEL`, else `TARGET_LABEL`; arrow heads from `STARTARROW`/`ENDARROW` (`None` = no head; absent = FreeMind's defaults, end only); colour as below. A destination that is not in the file, a link to itself, or a second link between the same two topics in the same direction is skipped.
+- **Colour.** The branch's `edge COLOR`, else `BACKGROUND_COLOR`, else `COLOR`, mapped to the nearest `TopicColor` by hue (rose, amber, green, teal, blue, violet); greys, white and near-black map to none so black text does not colour every topic. Set only where it differs from the parent's, since a topic colour applies to the branch.
+- **Folded.** `FOLDED="true"` on a topic with children collapses it (never the central topic).
+- **Lost, in the report.** Each `icon` (`Loss.icon`), each picture (`img` in rich content, Freeplane's `hook NAME="ExternalObject"`, `Loss.image`). Skipped without a count: fonts, clouds, attributes, styles and other hooks.
+- **How.** `parse` streams with `XMLParser` (2,000 levels read) into an `OutlineDraft` plus a `Style` per item; `graph(from:title:)` builds the tree with `GraphState.imported`, then one `BatchCommand` for colours, folding and connections. If that batch failed the map keeps its topics unstyled. Several top-level nodes (FreeMind never writes them) go under a central topic named by the file.
+- **In the app.** Imported type `asia.xdev.mindmapai.freemind-map` (`.mm`, conforms to `public.xml`) in both Info.plists, like OPML. Fixtures in `FreeMindMapTests` are written from the format sources; no file from either app is in the repo.
 
 ## Not here
 
