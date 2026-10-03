@@ -154,6 +154,17 @@
         }
       }
     },
+    "Connections:" : {
+      "comment" : "Markdown export: the title of the list of connections at the end of the file.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối:"
+          }
+        }
+      }
+    },
     "Dashed" : {
       "comment" : "Connection line style.",
       "localizations" : {

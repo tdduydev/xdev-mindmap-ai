@@ -13,12 +13,14 @@ import MindMapGraph
 ///   line), otherwise the heading of their section. Text before the first
 ///   topic goes into the first topic's note.
 /// - Inline markup is kept as written, so a title or note comes back unchanged.
-/// - Front matter and thematic breaks are skipped.
+/// - Front matter and thematic breaks are skipped, and so is the list of
+///   connections an export may end with (`ExportOptions.connectionsTitle`):
+///   an outline has no place for them, and they must not come back as topics.
 /// - A file with no headings or lists is read as plain text, one topic per line.
 public enum MarkdownOutline {
     public static func parse(_ text: String) -> OutlineDraft {
         var parser = Parser()
-        for line in withoutFrontMatter(TextLines.split(text)) {
+        for line in withoutConnections(withoutFrontMatter(TextLines.split(text))) {
             parser.read(line)
         }
         let draft = parser.builder.finish()
@@ -31,9 +33,15 @@ public enum MarkdownOutline {
         /// deeper topics are a nested list. Clamped to 0...6.
         public var headingLevels: Int
 
-        public init(includeNotes: Bool = true, headingLevels: Int = 2) {
+        /// Set to end the file with the map's connections under this title
+        /// (the caller localises it), one item each: `- Source → Target: label`.
+        /// Nil leaves them out, as copy does.
+        public var connectionsTitle: String?
+
+        public init(includeNotes: Bool = true, headingLevels: Int = 2, connectionsTitle: String? = nil) {
             self.includeNotes = includeNotes
             self.headingLevels = min(max(0, headingLevels), 6)
+            self.connectionsTitle = connectionsTitle
         }
     }
 
@@ -45,6 +53,7 @@ public enum MarkdownOutline {
         options: ExportOptions = ExportOptions()
     ) throws -> String {
         var writer = Writer()
+        var exported: Set<NodeID> = []
         for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
             var title = TextLines.singleLine(node.title)
             // Only a link this build opens: anything else would not read back as one.
@@ -58,8 +67,38 @@ public enum MarkdownOutline {
             } else {
                 writer.listItem(indent: (depth - options.headingLevels) * 2, title: title, note: note, escapingLink: looksLinked)
             }
+            exported.insert(node.id)
+        }
+        if let heading = options.connectionsTitle {
+            let lines = connectionLines(state, among: exported)
+            if !lines.isEmpty { writer.connections(title: heading, lines: lines) }
         }
         return writer.text
+    }
+
+    static let connectionArrow = " → "
+
+    /// Connections with both ends in the export, in a stable order.
+    private static func connectionLines(_ state: GraphState, among exported: Set<NodeID>) -> [String] {
+        state.edges.values
+            .filter { exported.contains($0.sourceNodeID) && exported.contains($0.targetNodeID) }
+            .sorted { ($0.createdAt, $0.id.rawValue.uuidString) < ($1.createdAt, $1.id.rawValue.uuidString) }
+            .compactMap { edge in
+                guard let source = state.node(edge.sourceNodeID), let target = state.node(edge.targetNodeID) else { return nil }
+                var line = TextLines.singleLine(source.title) + connectionArrow + TextLines.singleLine(target.title)
+                if let label = edge.label { line += ": " + TextLines.singleLine(label) }
+                return line
+            }
+    }
+
+    /// Drops a trailing connections block: a thematic break, one line ending
+    /// in ":", then only list items with the connection arrow.
+    private static func withoutConnections(_ lines: ArraySlice<Substring>) -> ArraySlice<Substring> {
+        guard let rule = lines.lastIndex(where: { $0.trimmingTrailingWhitespace() == "---" }) else { return lines }
+        let rest = lines[(rule + 1)...].map { $0.trimmingTrailingWhitespace() }.filter { !$0.isEmpty }
+        guard let title = rest.first, title.hasSuffix(":"), rest.count > 1,
+              rest.dropFirst().allSatisfy({ $0.hasPrefix("- ") && $0.contains(connectionArrow) }) else { return lines }
+        return lines[..<rule]
     }
 
     private static func withoutFrontMatter(_ lines: [Substring]) -> ArraySlice<Substring> {
@@ -298,6 +337,13 @@ private struct Writer {
         lines.append("")
         lines.append(contentsOf: Self.escapedNote(note, indent: ""))
         last = .headingNote
+    }
+
+    /// After a thematic break, so no reader takes the list for more topics.
+    mutating func connections(title: String, lines connections: [String]) {
+        lines.append(contentsOf: ["", "---", "", title, ""])
+        lines.append(contentsOf: connections.map { "- " + Self.escapedLine($0) })
+        last = .item
     }
 
     mutating func listItem(indent: Int, title: String, note: [Substring]?, escapingLink: Bool = false) {
