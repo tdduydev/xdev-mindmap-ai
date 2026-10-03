@@ -67,6 +67,14 @@ struct MindMapAIApp: App {
         #if os(iOS)
         // Transitions and keyboard animations too, which SwiftUI's Motion does not drive.
         if UITestMode.isActive { UIView.setAnimationsEnabled(false) }
+        if UITestMode.current?.increasesContrast == true {
+            // Scene traits reach every window, sheet and asset colour the way the
+            // system setting does, so the accessibility audit sees the high-contrast colours.
+            NotificationCenter.default.addObserver(forName: UIScene.willConnectNotification, object: nil, queue: .main) { notification in
+                let scene = notification.object as? UIWindowScene
+                MainActor.assumeIsolated { scene?.traitOverrides.accessibilityContrast = .high }
+            }
+        }
         #endif
         // Intents can run as soon as the app launches for them, before any window exists.
         if case .ready(let environment) = launch {
