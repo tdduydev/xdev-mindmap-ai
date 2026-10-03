@@ -7,16 +7,16 @@ import Testing
 
 /// The MM-105 evaluations through the app's own MLX engine, guided decoding
 /// included, instead of `mlx_lm.server`. Opt-in and slow (minutes): run by
-/// scripts/evaluations/run-mlx-swift.sh, which sets the variables; skipped in ci.sh.
+/// scripts/evaluations/run-mlx-swift.sh, which sets the variables and exports the
+/// JSONL attachment (the sandboxed test host cannot write to the repo); skipped in ci.sh.
 @Suite("MLX evaluations", .serialized)
 struct MLXEvaluationRun {
-    /// MINDMAP_MLX_MODEL: a model folder in MLX format; MINDMAP_MLX_EVALUATIONS: the JSONL to write.
+    /// MINDMAP_MLX_MODEL: a model folder in MLX format.
     nonisolated static let environment = ProcessInfo.processInfo.environment
 
     @Test(.enabled(if: environment["MINDMAP_MLX_MODEL"] != nil), .timeLimit(.minutes(30)))
     func allCases() async throws {
         let folder = URL(filePath: try #require(Self.environment["MINDMAP_MLX_MODEL"]))
-        let output = URL(filePath: try #require(Self.environment["MINDMAP_MLX_EVALUATIONS"]))
         let name = Self.environment["MINDMAP_MLX_MODEL_NAME"] ?? folder.lastPathComponent
         let engine = try await MLXInferenceEngine.load(from: folder)
         let provider = LocalLLMProvider(model: .qwen3_1_7B, isDeviceEligible: true, isInstalled: { true }, engine: { engine })
@@ -28,16 +28,16 @@ struct MLXEvaluationRun {
             return Self.withoutThinking(text)
         }
 
-        var lines = Data()
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        var lines = Data()
         var passed = 0
         for evaluation in AIEvaluationSuite.cases {
             let outcome = await AIEvaluationRunner.run(evaluation, provider: provider, chat: chat)
             lines += try encoder.encode(Line(provider: "mlx-swift/" + name, outcome: outcome)) + Data("\n".utf8)
             if outcome.passed { passed += 1 }
         }
-        try lines.write(to: output)
+        Attachment.record(lines, named: "mlx-swift-\(name).jsonl")
         print("MLX EVAL DONE \(passed)/\(AIEvaluationSuite.cases.count)")
     }
 
