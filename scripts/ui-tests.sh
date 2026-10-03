@@ -50,7 +50,11 @@ run() {
   shift 2
   step "UI tests on $label ($destination)"
   rm -rf "$results/$label.xcresult"
-  xcodebuild test \
+  # PurchaseUITests clears StoreKit's transactions from the runner; on the Mac that
+  # store is the one every other test run of the app uses (scripts/storekit-lock.sh).
+  local lock=()
+  if [[ $label == macOS ]]; then lock=(scripts/storekit-lock.sh); fi
+  ${lock[@]+"${lock[@]}"} xcodebuild test \
     -project MindMapAI.xcodeproj -scheme MindMapAIUITests \
     -destination "$destination" \
     -derivedDataPath "$derived" \
