@@ -3,7 +3,9 @@ import MindMapAIApple
 import MindMapAICore
 import MindMapDomain
 import MindMapPersistence
+import OSLog
 import SwiftUI
+import TipKit
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
@@ -55,6 +57,13 @@ struct MindMapAIApp: App {
         #endif
         // Before any view resolves a brand font by name.
         BrandFont.registerAll()
+        if !UITestMode.isActive {
+            do {
+                try Tips.configure([.displayFrequency(.immediate)])
+            } catch {
+                Log.designSystem.error("Configuring tips failed: \(error.localizedDescription, privacy: .private)")
+            }
+        }
         #if os(iOS)
         // Transitions and keyboard animations too, which SwiftUI's Motion does not drive.
         if UITestMode.isActive { UIView.setAnimationsEnabled(false) }

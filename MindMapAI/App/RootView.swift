@@ -1,6 +1,7 @@
 import MindMapAICore
 import MindMapDomain
 import MindMapQuery
+import OSLog
 import SwiftUI
 
 /// Sidebar, library and editor. On a narrow iPhone the split view collapses
@@ -17,6 +18,9 @@ struct RootView: View {
     @State private var transfer: FileTransfer
     @State private var window = WindowToken()
     @State private var windowHandle = WindowHandle()
+    @AppStorage("onboarding.completed", store: AppDefaults.store) private var onboardingCompleted = false
+    @AppStorage("onboarding.introductionFinished", store: AppDefaults.store) private var introductionFinished = false
+    @State private var showsOnboarding = false
     /// Ask About Library (MM-52): one conversation per library window.
     @State private var libraryChat: LibraryChat?
     /// What the window showed, brought back at relaunch (FR-PER-09).
@@ -69,7 +73,13 @@ struct RootView: View {
         .windowHandle(windowHandle)
         .onAppear(perform: restoreWindow)
         .onAppear(perform: makeLibraryChat)
-        .onDisappear { environment.openMaps.unregister(window) }
+        .onDisappear {
+            environment.openMaps.unregister(window)
+            if showsOnboarding {
+                environment.isPreparingOnboarding = false
+                introductionFinished = true
+            }
+        }
         .onChange(of: router.section) { _, section in savedSection = section ?? .all }
         .onReceive(NotificationCenter.default.publisher(for: .showRecentlyDeleted)) { _ in
             router.section = .recentlyDeleted
@@ -77,7 +87,16 @@ struct RootView: View {
         .onChange(of: router.selectedMapID) { _, id in savedMapID = id?.description }
         .task {
             await environment.prepare()
+            await library.load()
+            await startOnboardingIfNeeded()
             await library.observeChanges()
+        }
+        .sheet(isPresented: $showsOnboarding) {
+            OnboardingView {
+                showsOnboarding = false
+                introductionFinished = true
+                environment.isPreparingOnboarding = false
+            }
         }
         // FR-AI-01: Apple Intelligence can be turned on or off while the app is away.
         .task { await ai.refresh() }
@@ -174,6 +193,39 @@ struct RootView: View {
             guard let id = await library.createMap(theme: NewMapPreferences.theme(entitlements: ai.entitlements)) else { return }
             router.pendingMapGeneration = id
             show(id)
+        }
+    }
+
+    /// An existing library is also the upgrade marker: a person with maps
+    /// must reach those maps without a first-run sheet or a duplicate sample.
+    private func startOnboardingIfNeeded() async {
+        guard library.failure == nil else { return }
+        if environment.isPreparingOnboarding { return }
+        if onboardingCompleted {
+            // A previous launch may have closed while the introduction was up.
+            introductionFinished = true
+            return
+        }
+        guard library.maps.isEmpty, library.deletedMaps.isEmpty else {
+            onboardingCompleted = true
+            introductionFinished = true
+            return
+        }
+        // Claim first launch before the repository await, since two fresh
+        // windows can otherwise create two samples from the same empty store.
+        environment.isPreparingOnboarding = true
+        do {
+            let sample = try SampleMap.make(languageCode: Locale.preferredLanguages.first ?? "en")
+            guard let id = await library.createMap(sample) else {
+                environment.isPreparingOnboarding = false
+                return
+            }
+            onboardingCompleted = true
+            show(id)
+            showsOnboarding = true
+        } catch {
+            environment.isPreparingOnboarding = false
+            Log.persistence.error("Creating the sample map failed: \(error.localizedDescription, privacy: .private)")
         }
     }
 }

@@ -37,7 +37,11 @@ enum Snapshot {
     }
 
     /// Compares `image` with the reference named `name`, or records it as the new reference.
-    static func verify(_ image: CGImage, named name: String, sourceLocation: SourceLocation = #_sourceLocation) throws {
+    static func verify(
+        _ image: CGImage, named name: String,
+        pixelTolerance: Double = Snapshot.pixelTolerance,
+        sourceLocation: SourceLocation = #_sourceLocation
+    ) throws {
         let fileName = "\(name).\(language)"
         let actual = try Bitmap(image)
         let png = try actual.png()
@@ -54,7 +58,7 @@ enum Snapshot {
                 return
             }
             let expected = try Bitmap(reference)
-            let comparison = actual.compared(with: expected)
+            let comparison = actual.compared(with: expected, pixelTolerance: pixelTolerance)
             if comparison.differs {
                 Attachment.record(png, named: "actual.\(fileName).png", sourceLocation: sourceLocation)
                 if let diff = comparison.diff {
@@ -208,7 +212,7 @@ struct Bitmap {
         let diff: Bitmap?
     }
 
-    func compared(with reference: Bitmap) -> Comparison {
+    func compared(with reference: Bitmap, pixelTolerance: Double = Snapshot.pixelTolerance) -> Comparison {
         guard width == reference.width, height == reference.height else {
             return Comparison(differs: true, summary: "size \(width)×\(height), reference \(reference.width)×\(reference.height)", diff: nil)
         }
@@ -230,7 +234,7 @@ struct Bitmap {
         let share = Double(changed) / Double(width * height)
         let percent = (share * 100).formatted(.number.precision(.fractionLength(3)))
         return Comparison(
-            differs: share > Snapshot.pixelTolerance,
+            differs: share > pixelTolerance,
             summary: "\(changed) pixels differ (\(percent)%)",
             diff: Bitmap(width: width, height: height, pixels: diff)
         )
