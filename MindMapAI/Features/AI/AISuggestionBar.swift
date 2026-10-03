@@ -61,8 +61,10 @@ struct AISuggestionBar: View {
                     if feature == .summarizeBoundary, let title = assistant.boundarySuggestions?.groups.first?.title {
                         Text(verbatim: title)
                     } else if feature == .suggestGroups, assistant.boundarySuggestionMoves > 0 {
-                        Text("\(assistant.suggestionCount) suggestions") + Text(verbatim: " · ")
-                            + Text("\(assistant.boundarySuggestionMoves) topics move")
+                        HStack(spacing: Spacing.xs) {
+                            Text("\(assistant.suggestionCount) suggestions")
+                            Text("\(assistant.boundarySuggestionMoves) topics move")
+                        }
                     } else {
                         Text("\(assistant.suggestionCount) suggestions")
                     }
