@@ -311,6 +311,7 @@ final class CanvasModel {
 
     /// The canvas's chip settings, once it has its text settings.
     var chipSpec: TopicChipSpec? { specs?.chip }
+    var markSpec: TopicMarkSpec? { specs?.mark }
     /// The callout bubble's text settings, once the canvas has them.
     var calloutSpec: TopicCalloutSpec? { specs?.callout }
 
@@ -889,17 +890,22 @@ final class CanvasModel {
     private struct StyleKey: Hashable {
         let level: Int
         let branch: Int
+        let color: TopicColor?
         let variant: ColorVariant
     }
 
     /// Resolved once per level, branch and appearance rather than per topic per frame.
     func style(for topic: CanvasTopic, colorScheme: ColorScheme, contrast: ColorSchemeContrast) -> TopicStyle {
         // Levels past 3 look like level 3.
-        let key = StyleKey(level: min(topic.level, 3), branch: topic.branch, variant: ColorVariant(colorScheme: colorScheme, contrast: contrast))
+        let key = StyleKey(
+            level: min(topic.level, 3), branch: topic.branch, color: topic.color,
+            variant: ColorVariant(colorScheme: colorScheme, contrast: contrast)
+        )
         if let style = styles[key] { return style }
         let style = TopicStyle.resolve(
             level: key.level,
             branch: key.branch,
+            color: key.color,
             theme: MapTheme(session.map.theme),
             colorScheme: colorScheme,
             contrast: contrast

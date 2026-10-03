@@ -45,6 +45,31 @@ nonisolated struct TopicImageSpec: Hashable, Sendable {
     let gap: CGFloat
 }
 
+/// How the colour shape and symbol before a title are sized (MM-32).
+nonisolated struct TopicMarkSpec: Hashable, Sendable {
+    /// The colour's shape, drawn only with Differentiate Without Color.
+    let shapeSize: CGFloat
+    /// After each mark, before the next mark or the title.
+    let gap: CGFloat
+    /// A symbol's box is this many title point sizes wide, whatever the
+    /// glyph, so the measure needs no font lookup for SF Symbols or emoji.
+    let symbolWidthFactor: CGFloat
+    /// Differentiate Without Color is on (or the picture is an export).
+    let showsColorShapes: Bool
+
+    /// Width of the marks with their gaps, before a title of this point size.
+    func width(of marks: TopicMark, pointSize: CGFloat) -> CGFloat {
+        var width: CGFloat = 0
+        if marks.shape != nil { width += shapeSize + gap }
+        if marks.symbol != nil { width += symbolWidth(pointSize: pointSize) + gap }
+        return width
+    }
+
+    func symbolWidth(pointSize: CGFloat) -> CGFloat {
+        (pointSize * symbolWidthFactor).rounded(.up)
+    }
+}
+
 /// How a callout bubble above a topic is set (FR-ORG-30), with Dynamic Type applied.
 nonisolated struct TopicCalloutSpec: Hashable, Sendable {
     let postScriptName: String
@@ -63,10 +88,21 @@ nonisolated struct TopicTextSpecs: Hashable, Sendable {
     let placeholder: String
     let chip: TopicChipSpec
     let image: TopicImageSpec
+    let mark: TopicMarkSpec
     let callout: TopicCalloutSpec
 
     func spec(level: Int) -> TopicTextSpec {
         levels[min(max(level, 0), levels.count - 1)]
+    }
+
+    /// The marks a topic draws: its own colour's shape only when the setting
+    /// asks for it, so turning the setting on or off measures every topic again.
+    func mark(color: TopicColor?, symbol: String?) -> TopicMark {
+        TopicMark(shape: mark.showsColorShapes ? color : nil, symbol: TopicSymbolCatalog.drawable(symbol))
+    }
+
+    func markWidth(_ marks: TopicMark, level: Int) -> CGFloat {
+        mark.width(of: marks, pointSize: spec(level: level).pointSize)
     }
 }
 
@@ -97,11 +133,13 @@ nonisolated final class TopicMeasurer {
     /// which the view draws it at, so chips wrap into the same rows here and
     /// on screen: rows that fit the widest wrap also fit any narrower box
     /// that is at least as wide as the widest row.
-    func size(of title: String, level: Int, chips: inout [TopicChip], image: CGSize? = nil) -> CGSize {
+    func size(of title: String, level: Int, chips: inout [TopicChip], image: CGSize? = nil, marks: TopicMark = .none) -> CGSize {
         let spec = specs.spec(level: level)
         let text = title.isEmpty ? specs.placeholder : title
-        let measured = Self.measure(text, font: font(postScriptName: spec.postScriptName, size: spec.pointSize), lineSpacing: spec.lineSpacing, wrapWidth: spec.wrapWidth)
-        var contentWidth = measured.width + Self.widthSlack
+        // The marks sit beside the title, so the title wraps in what is left.
+        let markWidth = specs.markWidth(marks, level: level)
+        let measured = Self.measure(text, font: font(postScriptName: spec.postScriptName, size: spec.pointSize), lineSpacing: spec.lineSpacing, wrapWidth: spec.wrapWidth - markWidth)
+        var contentWidth = markWidth + measured.width + Self.widthSlack
         var contentHeight = measured.height
         if !chips.isEmpty {
             let rows = layOutChips(&chips, wrapWidth: spec.wrapWidth + Self.widthSlack)

@@ -93,6 +93,13 @@ enum CanvasMetrics {
     /// The link symbol on a topic (FR-ORG-26), the size of the note mark.
     static let linkSymbolSize: CGFloat = noteSymbolSize
 
+    /// Before a coloured topic's title with Differentiate Without Color (FR-ORG-02).
+    static let topicColorShapeSize: CGFloat = 9
+    /// After the colour shape and after the symbol, before the title (MM-32).
+    static let topicMarkGap: CGFloat = 4
+    /// A topic's symbol box, in title point sizes: an emoji is about 1.2 em wide.
+    static let topicSymbolWidthFactor: CGFloat = 1.25
+
     /// Tag chips in a row under the title (MM-34), measured with it.
     static let tagChipHeight: CGFloat = 16
     static let tagChipHorizontalPadding: CGFloat = 6

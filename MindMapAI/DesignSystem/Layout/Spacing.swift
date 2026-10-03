@@ -70,4 +70,8 @@ enum Metrics {
 
     /// Topic ▸ Tags ▸ Manage Tags… on the Mac.
     static let tagManagerSize = CGSize(width: 440, height: 480)
+
+    /// Format ▸ Topic Symbol ▸ Choose Symbol… on the Mac: eight symbols a row.
+    static let symbolPickerWidth: CGFloat = 460
+    static let symbolPickerHeight: CGFloat = 520
 }

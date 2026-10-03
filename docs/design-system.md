@@ -160,6 +160,9 @@ Edges are drawn under topics and never cross a topic's box; the layout engine (M
 | Drop target | Accent dashed outline (2 pt) on the new parent, or a 3 pt accent bar where it will be inserted |
 | Collapsed | Badge with the number of hidden topics (`badgeFill`, `badge` text) |
 | Has note | `note.text` symbol, 11 pt, `topicTextSecondary`, after the title |
+| Topic colour (MM-32) | The token's `BranchColors` replace the branch colour for the topic and its descendants without their own; the central topic keeps its card |
+| Topic symbol (MM-32) | Before the title on its first baseline, in the title's font and `topicText`; box 1.25 × title size (`CanvasMetrics.topicSymbolWidthFactor`), 4 pt gap (`topicMarkGap`) |
+| Colour shape (MM-32) | With Differentiate Without Color, and always in export: the colour's shape (`TopicColor.shapeSymbol`), 9 pt (`topicColorShapeSize`), in the line colour, before the symbol |
 | Search match | `searchMatchFill` behind the title, `searchMatchBorder` outline; the current match also gets the selection ring |
 | AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient on the top-leading corner, title in `topicTextSecondary`; Accept and Discard buttons under the topic on hover or selection. MM-8 put the symbol on the corner rather than before the title so the title keeps the measured width of a plain topic |
 | Accepted AI topic | Looks like any topic (its origin is kept in `metadata.origin`) |

@@ -48,7 +48,7 @@ public enum PlainTextOutline {
         var lines: [String] = []
         for (node, depth) in try OutlineWalk.nodes(of: state, from: branchID) {
             let indent = String(repeating: "\t", count: depth)
-            var title = escapedTitle(TextLines.singleLine(node.title))
+            var title = escapedTitle(TextLines.exportTitle(of: node))
             // The box goes before any escape, so `[ ] \\[ ] a` reads back as a task named `[ ] a`.
             if let task = node.taskState { title = TaskBox.write(task) + title }
             if let link = node.link, link.url != nil {
