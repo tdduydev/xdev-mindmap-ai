@@ -491,6 +491,10 @@ struct CommandCostTests {
     /// NFR-PERF-02 sets 16 ms per command in a release build at 1,000 topics.
     /// Tests run in debug, which is slower, so this bound only catches a
     /// command that has gone quadratic; the real numbers go in the task note.
+    /// A single timing against 100 ms failed when the Mac ran several builds at
+    /// once (MM-88), so each command takes the median of a few runs, and every
+    /// test run only fails ten times over the budget. The 100 ms budget is
+    /// checked with MINDMAP_BENCHMARKS=1 on a quiet machine (docs/testing.md).
     @Test func structureCommandsStayFastAtAThousandTopics() throws {
         var engine = try GraphEngine(state: GraphState.newMap(title: "Large"))
         let rootID = try #require(engine.state.map.rootNodeID)
@@ -515,10 +519,21 @@ struct CommandCostTests {
             ("demote", DemoteNodeCommand(nodeID: branches[5])),
             ("promote", PromoteNodeCommand(nodeID: branches[5])),
         ]
+        let budget = Duration.milliseconds(100)
+        let limit = ProcessInfo.processInfo.environment["MINDMAP_BENCHMARKS"] == "1" ? budget : budget * 10
         let clock = ContinuousClock()
         for (name, command) in commands {
-            let elapsed = try clock.measure { _ = try engine.execute(command) }
-            #expect(elapsed < .milliseconds(100), "\(name) took \(elapsed)")
+            // Each run starts from the same state: a command such as merge cannot
+            // run twice on one engine.
+            var times: [Duration] = []
+            for _ in 0..<5 {
+                var copy = engine
+                times.append(try clock.measure { _ = try copy.execute(command) })
+            }
+            let median = times.sorted()[times.count / 2]
+            print("\(name): median \(median) of \(times.count) runs (budget \(budget))")
+            #expect(median < limit, "\(name) took \(median), median of \(times.count) runs")
+            try engine.execute(command)
         }
     }
 }
