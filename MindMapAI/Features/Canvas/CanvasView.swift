@@ -40,6 +40,7 @@ struct CanvasView: View {
             if model.isDetailed {
                 callouts
                 topics
+                addButtons
             } else {
                 topicShapesForAccessibility
             }
@@ -153,7 +154,6 @@ struct CanvasView: View {
         let dragged = model.drag.map { Set($0.ids) } ?? []
         return ForEach(model.visibleTopics) { topic in
             if let spec = model.textSpec(for: topic) {
-                let addButtons = model.addButtons(for: topic)
                 TopicView(
                     topic: topic,
                     style: model.style(for: topic, colorScheme: colorScheme, contrast: contrast),
@@ -164,14 +164,35 @@ struct CanvasView: View {
                     isEditing: topic.id == model.editingID,
                     isFindMatch: session.findMatchSet.contains(topic.id),
                     isDragSource: dragged.contains(topic.id),
-                    addButtons: addButtons,
                     model: model,
                     rotorNamespace: rotorNamespace
                 )
                 .scaleEffect(model.viewport.scale)
                 .position(model.viewport.toView(CGPoint(x: topic.frame.midX, y: topic.frame.midY)))
-                // The + buttons reach past the card; drawn over the neighbours they overlap.
-                .zIndex(addButtons == nil ? 0 : 1)
+            }
+        }
+    }
+
+    /// These controls live in view coordinates so zoom never shrinks the hit area.
+    private var addButtons: some View {
+        let topics = model.visibleTopics
+        return ForEach(topics) { topic in
+            if let buttons = model.addButtons(for: topic) {
+                let child = CanvasAddButtonPlacement.childFrame(for: topic, viewport: model.viewport)
+                TopicAddButton(label: "Add Child Topic") {
+                    model.addFromButton(topic.id, sibling: false)
+                }
+                .onHover { model.setHovering(topic.id, part: .addChild, $0) }
+                .position(x: child.midX, y: child.midY)
+                if buttons.showsSibling,
+                   let sibling = CanvasAddButtonPlacement.siblingFrame(for: topic, among: topics, viewport: model.viewport) {
+                    // The circle hugs the card; the rest of the tap area hangs below it.
+                    TopicAddButton(label: "Add Sibling Topic", alignment: .top) {
+                        model.addFromButton(topic.id, sibling: true)
+                    }
+                    .onHover { model.setHovering(topic.id, part: .addSibling, $0) }
+                    .position(x: sibling.midX, y: sibling.midY)
+                }
             }
         }
     }
