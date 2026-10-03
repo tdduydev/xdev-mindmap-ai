@@ -282,7 +282,7 @@ final class FeatureTourUITests: XCTestCase {
         }
         tour.step("37-ai-accept") { app in
             app.app.buttons[AccessibilityID.Suggestions.acceptAll].firstMatch.waitToExist().tap()
-            editor.canvasTopic(UITestAI.subtopics[1]).waitToExist()
+            editor.canvasTopic(UITestAI.subtopics(languageCode: tour.language.rawValue)[1]).waitToExist()
             XCTAssertFalse(app.app.buttons[AccessibilityID.Suggestions.acceptAll].firstMatch.exists)
         }
         tour.step("38-ai-undo") { _ in

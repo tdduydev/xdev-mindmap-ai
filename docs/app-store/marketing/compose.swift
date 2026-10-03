@@ -98,10 +98,7 @@ let landscapeImage = load(landscape)
 for platform in ["iphone", "ipad"] {
     let size = platform == "iphone" ? CGSize(width: 1320, height: 2868) : CGSize(width: 2064, height: 2752)
     for language in ["en", "vi"] {
-        let rawFolder = shots.appendingPathComponent("raw/\(platform)/\(language)")
-        // MM-29 has no Vietnamese iPad capture yet. Use its real English capture without altering the UI.
-        let sourceFolder = platform == "ipad" && language == "vi"
-            ? shots.appendingPathComponent("raw/ipad/en") : rawFolder
+        let sourceFolder = shots.appendingPathComponent("raw/\(platform)/\(language)")
         for (index, name) in ["01-canvas", "02-ai-suggestions", "03-outline", "04-ask-map", "05-privacy"].enumerated() {
             let screenshot = load(sourceFolder.appendingPathComponent("\(name).png"))
             let context = canvas(Int(size.width), Int(size.height))
@@ -121,7 +118,6 @@ for platform in ["iphone", "ipad"] {
     }
 }
 
-// Mac frames are emitted only after MM-29 supplies actual Mac captures.
 for language in ["en", "vi"] {
     let folder = shots.appendingPathComponent("raw/mac/\(language)")
     for (index, name) in ["01-canvas", "02-ai-suggestions", "03-outline", "04-ask-map", "05-privacy"].enumerated() {
