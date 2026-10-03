@@ -29,7 +29,7 @@ GraphState.imported(from: draft, title: fileName)                               
 
 ## Markdown (FR-IO-02, FR-IO-03)
 
-- **Topics:** ATX headings (`#` to `######`) nest by level, and a skipped level still nests only one deep. List items (`-`, `*`, `+`, `1.`, `1)`) nest under the heading above them and under each other by indentation, as in CommonMark: an item indented to its parent's text is its child. A task box (`[ ]`, `[x]`) is dropped.
+- **Topics:** ATX headings (`#` to `######`) nest by level, and a skipped level still nests only one deep. List items (`-`, `*`, `+`, `1.`, `1)`) nest under the heading above them and under each other by indentation, as in CommonMark: an item indented to its parent's text is its child. A task box (`[ ]`, `[x]`, `[X]`) on a list item or at the start of a heading sets the topic's task state (open or done, MM-35); export writes `- [ ] Title`, `- [x] Title` and `## [ ] Title`, and escapes a title that starts with a box.
 - **Notes:** paragraphs, quotes, tables and code fences go to the nearest topic: the list item they are indented under or continue without a blank line, otherwise the heading of their section. Text before the first topic goes into the first topic's note, so nothing in the file is lost. This rule is still marked [Đề xuất] in the SRS.
 - **Topic links (MM-60):** a heading or list item whose whole text is one inline link with an `http`, `https` or `mailto` URL is read as the title plus the topic's link, and a topic's link is written that way (`- [Title](url)`); brackets in the title and parentheses in the URL get a backslash. Plain text uses a trailing `<url>`. Rules in [[node-organization]] "Links".
 - **Kept as written:** other inline markup (`**bold**`, links inside a longer title) stays in the title or note. Code fences are copied line for line.
@@ -53,7 +53,7 @@ GraphState.imported(from: draft, title: fileName)                               
 
 ## Map archive: the backup format (MM-54)
 
-Markdown keeps titles, notes and the tree only; tags, colours, symbols, tasks, connections, boundaries and the theme are lost (FR-ORG-10), so it is not a backup. `MapArchive` (`MindMapInterchange/MapArchive.swift`) is: one JSON file per map, holding every record of the map as the Codable domain values store it.
+Markdown keeps titles, notes and the tree only; tags, colours, symbols, task priority and dates, connections, boundaries and the theme are lost (FR-ORG-10), so it is not a backup. `MapArchive` (`MindMapInterchange/MapArchive.swift`) is: one JSON file per map, holding every record of the map as the Codable domain values store it.
 
 ```swift
 MapArchive(graph)                               // every record, sorted by ID
