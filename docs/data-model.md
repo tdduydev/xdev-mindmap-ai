@@ -64,7 +64,7 @@ records ─▶ GraphState(map:nodes:edges:tags:nodeTags:groups:)
 - `migratedStoreKeepsNewEdits` saves a command into the opened store and reads it back from a second container.
 - `planEndsAtTheSchemaTheAppOpens` checks that the plan's versions increase, that there is one stage per step, and that the container the app opens uses the plan's last schema.
 
-Since SchemaV2 (MM-31) these tests run through the V1 → V2 stage unchanged, beside `v1StoreOpensAsV2WithEmptyNewFields` and `migratedStoreKeepsOrganization` (see *Migration test* below). Once V2 ships, a `V2.store` fixture is made the same way. The test target copies the whole `Fixtures` folder, so a new fixture needs no change to `Package.swift`.
+Since SchemaV2 (MM-31) these tests run through the V1 → V2 stage unchanged, beside `v1StoreOpensAsV2WithEmptyNewFields` and `migratedStoreKeepsOrganization` (see *Migration test* below). Each shipped schema has a fixture made the same way: `V1.store`, `V2.store` (*Schema V3*, *Migration test*) and `V3.store` (*Schema V3*, *V3 fixture*). The test target copies the whole `Fixtures` folder, so a new fixture needs no change to `Package.swift`. Check in only the `.store` file, after `PRAGMA wal_checkpoint(TRUNCATE)`: `FixtureStore` copies that file alone, so data left in a `-wal` file would not reach the test.
 
 The V1 fixture is 76 KB: one map (favorite, Graphite theme), a root, a child with a note that is collapsed and came from AI, a sibling, and a reference link between them, with fixed IDs and dates and non-default values where possible, so a stage that resets a field fails the test. `V1Fixture.write(to:)` writes it with the `SchemaV1` types and raw values only, never the current typealiases or mapping, so it still writes V1 after V2 ships. To regenerate it (only if the fixture is lost; a changed V1 fixture would test nothing that shipped):
 
@@ -251,6 +251,23 @@ V2 shipped to TestFlight before the chat was saved, so the chat is a new schema 
 ### Migration test
 
 `V2MigrationTests` opens `Fixtures/V2.store`, written by `V2Fixture.write` with `SchemaV2` types and raw values only (run `MINDMAP_WRITE_V2_FIXTURE=<path> swift test --filter writeV2Fixture` only if the fixture is lost). It holds a favorite map with the Graphite theme, a topic with every V2 node field (colour, symbol, task, priority, dates, link, callout), a floating topic, a styled relationship, a map tag and a shared tag with a link, a boundary and an image with its bytes. The test expects every value after the V2 → V3 stage, no chat turns, a graph `GraphRepair` leaves alone, and that the migrated store takes a chat turn and an edit and keeps both. `MigrationHarnessTests` still opens `V1.store`, now through both stages.
+
+### V3 fixture (MM-99)
+
+V3 shipped in 1.0.0, so `SchemaV4` will be tested against real V3 data. `V3MigrationTests` opens `Fixtures/V3.store` (110 KB), written by `V3Fixture.write` with `SchemaV3` types and raw values only; the citation JSON is spelled out as 1.0.0 wrote it rather than encoded from today's types. It holds:
+
+- a favorite map with the Graphite theme: a topic with every V2 node field (values differ from the V2 fixture's), a sibling with an image and its bytes, a floating topic, a styled relationship, a map tag and a shared tag with a link, and a boundary;
+- three chat turns inserted out of order: one citing a topic as MM-55's plain array, one limited to a branch (MM-78's object with `branch`), one with no citations;
+- a second map in Recently Deleted (`deletedAt` set) with a root and its own chat turn.
+
+`v3StoreOpensWithEveryValue` checks every record field, the graph `loadGraph` builds (which `GraphRepair` leaves alone), Recently Deleted and both chats as `chatTurns` returns them. `v3StoreKeepsChatAndEdits` appends a turn and saves a command, then reopens. While V3 is the current schema the test opens the store without a stage; `SchemaV4` adds its V3 → V4 stage and the assertions for its new fields to this test. Regenerate only if the fixture is lost:
+
+```sh
+MINDMAP_WRITE_V3_FIXTURE=/tmp/V3.store \
+  swift test --package-path Packages/MindMapCore --filter writeV3Fixture
+sqlite3 /tmp/V3.store 'PRAGMA wal_checkpoint(TRUNCATE);'
+cp /tmp/V3.store Packages/MindMapCore/Tests/MindMapPersistenceTests/Fixtures/V3.store
+```
 
 ## Recently Deleted (MM-19)
 
