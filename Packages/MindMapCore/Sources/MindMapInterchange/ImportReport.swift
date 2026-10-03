@@ -18,8 +18,9 @@ public struct ImportReport: Hashable, Sendable {
         case image
         /// A file attached to a topic, which maps have no place for.
         case attachment
-        /// An icon or marker on a topic that is not a priority or task
-        /// marker; topics have one symbol of their own, and the sets do not line up.
+        /// An icon on a topic: a FreeMind or Freeplane icon (MM-102), or an
+        /// XMind marker that is not a priority or task marker (MM-103);
+        /// topics have one symbol of their own, and the sets do not line up.
         case icon
         /// A relationship whose ends are not both topics of the map, or
         /// that repeats another (MM-103).

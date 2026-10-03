@@ -14168,6 +14168,28 @@
         }
       }
     },
+    "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、OPML (.opml) ファイル、FreeMindまたはFreeplane (.mm) ファイル、XMind (.xmind) ファイル、およびMindMap AIのバックアップ (.json) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt), OPML (.opml), FreeMind hoặc Freeplane (.mm), XMind (.xmind) và bản sao lưu của chính ứng dụng (.json)."
+          }
+        }
+      }
+    },
     "The file isn’t an OPML outline. MindMap AI imports OPML files from outliners and other mind map apps, Markdown (.md) and plain text (.txt)." : {
       "localizations" : {
         "en" : {
@@ -14186,50 +14208,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tệp không phải dàn ý OPML. MindMap AI nhập tệp OPML từ ứng dụng dàn ý và ứng dụng sơ đồ tư duy khác, Markdown (.md) và văn bản thuần (.txt)."
-          }
-        }
-      }
-    },
-    "The file isn’t an XMind map. MindMap AI imports .xmind files saved by XMind 8 and later, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The file isn’t an XMind map. MindMap AI imports .xmind files saved by XMind 8 and later, OPML (.opml), Markdown (.md) and plain text (.txt)."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このファイルはXMindのマップではありません。MindMap AIで読み込めるのは、XMind 8以降で保存した .xmind ファイル、OPML (.opml)、Markdown (.md)、プレーンテキスト (.txt) です。"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tệp không phải sơ đồ XMind. MindMap AI nhập tệp .xmind lưu bằng XMind 8 trở lên, OPML (.opml), Markdown (.md) và văn bản thuần (.txt)."
-          }
-        }
-      }
-    },
-    "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このファイルは展開するとMindMap AIが一度に読み込める大きさを超えます。XMindでマップを小さなファイルに分けてから、もう一度お試しください。"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tệp khi giải nén lớn hơn mức MindMap AI đọc được một lần. Hãy tách sơ đồ thành các tệp nhỏ hơn trong XMind rồi thử lại."
           }
         }
       }
@@ -14482,52 +14460,6 @@
         }
       }
     },
-    "%lld icons couldn’t be imported." : {
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld icon couldn’t be imported."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld icons couldn’t be imported."
-                }
-              }
-            }
-          }
-        },
-        "ja" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld件のアイコンを読み込めませんでした。"
-                }
-              }
-            }
-          }
-        },
-        "vi" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld biểu tượng không nhập được."
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld relationships couldn’t be imported as connections." : {
       "localizations" : {
         "en" : {
@@ -14662,6 +14594,118 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld icons couldn’t be imported." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld icon couldn’t be imported."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld icons couldn’t be imported."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld個のアイコンを読み込めませんでした。"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld biểu tượng không nhập được."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "The file isn’t a FreeMind or Freeplane map. MindMap AI imports .mm files saved by FreeMind and Freeplane, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t a FreeMind or Freeplane map. MindMap AI imports .mm files saved by FreeMind and Freeplane, OPML (.opml), Markdown (.md) and plain text (.txt)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルはFreeMindやFreeplaneのマップではありません。MindMap AIで読み込めるのは、FreeMindとFreeplaneで保存した.mmファイル、OPML (.opml)、Markdown (.md)、プレーンテキスト (.txt) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải sơ đồ FreeMind hay Freeplane. MindMap AI nhập tệp .mm do FreeMind và Freeplane lưu, OPML (.opml), Markdown (.md) và văn bản thuần (.txt)."
+          }
+        }
+      }
+    },
+    "The file isn’t an XMind map. MindMap AI imports .xmind files saved by XMind 8 and later, OPML (.opml), Markdown (.md) and plain text (.txt)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t an XMind map. MindMap AI imports .xmind files saved by XMind 8 and later, OPML (.opml), Markdown (.md) and plain text (.txt)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルはXMindのマップではありません。MindMap AIで読み込めるのは、XMind 8以降で保存した .xmind ファイル、OPML (.opml)、Markdown (.md)、プレーンテキスト (.txt) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải sơ đồ XMind. MindMap AI nhập tệp .xmind lưu bằng XMind 8 trở lên, OPML (.opml), Markdown (.md) và văn bản thuần (.txt)."
+          }
+        }
+      }
+    },
+    "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルは展開するとMindMap AIが一度に読み込める大きさを超えます。XMindでマップを小さなファイルに分けてから、もう一度お試しください。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp khi giải nén lớn hơn mức MindMap AI đọc được một lần. Hãy tách sơ đồ thành các tệp nhỏ hơn trong XMind rồi thử lại."
           }
         }
       }

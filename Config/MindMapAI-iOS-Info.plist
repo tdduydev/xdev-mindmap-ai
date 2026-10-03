@@ -31,6 +31,27 @@
 		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
+			<string>asia.xdev.mindmapai.freemind-map</string>
+			<key>UTTypeDescription</key>
+			<string>FreeMind Map</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.xml</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mm</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/x-freemind</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
 			<string>asia.xdev.mindmapai.xmind</string>
 			<key>UTTypeDescription</key>
 			<string>XMind Map</string>

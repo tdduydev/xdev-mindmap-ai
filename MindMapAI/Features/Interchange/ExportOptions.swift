@@ -71,6 +71,10 @@ extension UTType {
     /// `UTImportedTypeDeclarations`); without it `.opml` files would be greyed out in the open panel.
     nonisolated static let opml = UTType(importedAs: "org.opml.opml", conformingTo: .xml)
 
+    /// FreeMind and Freeplane maps (`.mm`), imported for the same reason as OPML.
+    /// The identifier is ours: neither app's declaration is one the system ships.
+    nonisolated static let freeMindMap = UTType(importedAs: "asia.xdev.mindmapai.freemind-map", conformingTo: .xml)
+
     /// XMind maps (`.xmind`), imported for the same reason as OPML. The
     /// identifier is ours; when XMind is installed its own declaration wins
     /// for the extension, so `xmindTypes` also offers whatever the system maps it to.

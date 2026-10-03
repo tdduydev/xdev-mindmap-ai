@@ -55,7 +55,7 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
     var message: String {
         switch self {
         case .unsupportedType:
-            String(localized: "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml) and XMind (.xmind) files, and its own backups (.json).")
+            String(localized: "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json).")
         case .unreadableText:
             String(localized: "The file isn’t UTF-8 or UTF-16 text. Save it as UTF-8 Markdown or plain text, then try again.")
         case .emptyDocument:
@@ -72,6 +72,8 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
             String(localized: "A backup is a whole map. Choose File ▸ Import… to open it as a new map.")
         case .wrongFormat(_, .opml):
             String(localized: "The file isn’t an OPML outline. MindMap AI imports OPML files from outliners and other mind map apps, Markdown (.md) and plain text (.txt).")
+        case .wrongFormat(_, .freeMind):
+            String(localized: "The file isn’t a FreeMind or Freeplane map. MindMap AI imports .mm files saved by FreeMind and Freeplane, OPML (.opml), Markdown (.md) and plain text (.txt).")
         case .wrongFormat(_, .xmind):
             String(localized: "The file isn’t an XMind map. MindMap AI imports .xmind files saved by XMind 8 and later, OPML (.opml), Markdown (.md) and plain text (.txt).")
         case .fileTooLarge:
@@ -95,7 +97,7 @@ nonisolated enum ImportFailure: Error, Equatable, Sendable {
 nonisolated enum MapImporter {
     /// What the open panel offers. Rich text and other text files stay
     /// pickable so the user gets the message of FR-IO-09 rather than a greyed-out file.
-    static let contentTypes: [UTType] = [.markdownText, .plainText, .text, .json, .opml] + UTType.xmindTypes
+    static let contentTypes: [UTType] = [.markdownText, .plainText, .text, .json, .opml, .freeMindMap] + UTType.xmindTypes
 
     /// Decoding and parsing run off the main actor, so a large file does not stall the window.
     @concurrent
