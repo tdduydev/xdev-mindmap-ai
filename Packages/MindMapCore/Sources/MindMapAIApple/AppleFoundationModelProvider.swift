@@ -258,7 +258,7 @@ public struct AppleFoundationModelProvider: AIProvider {
         // keeps the default guardrails.
         let guardrails: SystemLanguageModel.Guardrails = switch feature {
         case .rewrite, .summarize: .permissiveContentTransformations
-        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags, .suggestGroups, .summarizeBoundary: .default
+        case .generateMap, .expandTopic, .brainstorm, .findMissingTopics, .suggestTags, .suggestGroups, .summarizeBoundary, .chat: .default
         }
         let model = SystemLanguageModel(guardrails: guardrails)
         let instructions = catalog.instructions(for: feature, language: language, userLocaleIdentifier: userLocaleIdentifier)
