@@ -30,12 +30,12 @@ The certificates and the profile expire on 2027-10-02.
 
 ## iCloud before it can ship
 
-The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). MM-45 added the iCloud key-value store identifier to the app's iCloud entitlements for theme and export preferences; confirm the app profile permits it before an iCloud-signed archive. Two steps remain before `MINDMAP_ICLOUD=YES` can go into the upload script, and both need a Mac signed in to iCloud (the Mac mini is not):
+The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). MM-45 added the iCloud key-value store identifier to the app's iCloud entitlements for theme and export preferences; confirm the app profile permits it before an iCloud-signed archive. The product owner chose on 2026-10-03 to turn sync on in 1.1 (MM-100).
 
-1. Run `scripts/init-cloudkit-schema.sh` (a Debug build with `MINDMAP_ICLOUD=YES`, launched once with `-InitializeCloudKitSchema`; docs/cloudkit-sync.md) after the node-type fields of MM-59 are on `main`, check the record types in CloudKit Console, then **Deploy Schema Changes** to production. TestFlight and App Store builds use only the production schema.
-2. Test two devices as in docs/cloudkit-sync.md *Testing*.
+1. Done on 2026-10-03: the development schema was created from a SchemaV3 build with `scripts/init-cloudkit-schema.sh` on the Mac mini (signed in to iCloud), and **Deploy Schema Changes** sent it to production: record types `CD_ChatTurnRecord`, `CD_EdgeRecord`, `CD_GroupRecord`, `CD_ImageRecord`, `CD_MapRecord`, `CD_NodeRecord`, `CD_NodeTagRecord`, `CD_TagRecord` with their indexes. Production only grows: a SchemaV4 runs the script again from a V4 build and deploys before the first upload that has it.
+2. Test two devices as in docs/cloudkit-sync.md *Testing* (the product owner, on a TestFlight build from MM-100).
 
-Until then uploads keep iCloud off; the App Group is on.
+Until MM-100 lands, uploads keep iCloud off; the App Group is on.
 
 ## Upload a build
 
