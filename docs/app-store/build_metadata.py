@@ -5,7 +5,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-OUT = Path(__file__).with_name("appstore-metadata.json")
+OUT = Path(__file__).with_name("metadata.json")
 
 
 def nfc(s: str) -> str:
@@ -210,7 +210,9 @@ DESCRIPTION = {
 
 # ---------------------------------------------------------------- review notes
 
-REVIEW_NOTES = """No account, login or demo account is needed: the app has no server. It collects no data (no analytics, no ads, no tracking); maps are stored on the device.
+REVIEW_NOTES = """Mac entitlement com.apple.security.network.server: used only by AI Apps, an optional MCP server on 127.0.0.1 (loopback) that is off by default. How to turn it on and test it is under "AI Apps" below; the attached video shows it.
+
+No account, login or demo account is needed: the app has no server. It collects no data (no analytics, no ads, no tracking); maps are stored on the device.
 
 AI: every AI feature uses Apple's Foundation Models framework (Apple Intelligence) on the device. Nothing is sent to xDev or to any cloud AI service. AI needs a device that supports Apple Intelligence (on the Mac: Apple silicon), with Apple Intelligence turned on and set to a supported language (the app supports English and Vietnamese). On a device that can never run it (for example an Intel Mac), the AI menu, the AI toolbar buttons and the AI tools on the paywall are hidden. When Apple Intelligence is off or still downloading, AI items stay visible but disabled, with one line that says why.
 
