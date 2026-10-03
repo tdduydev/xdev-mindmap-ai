@@ -47,6 +47,7 @@ struct DesignSystemContrastTests {
             expectContrast(Tokens.topicTextSecondary[variant], on: canvas, atLeast: Minimum.text, "topicTextSecondary / canvas", variant)
             expectContrast(Tokens.centralText[variant], on: Tokens.centralFill[variant], atLeast: Minimum.text, "centralText / centralFill", variant)
             expectContrast(Tokens.topicText[variant], on: Tokens.searchMatchFill[variant], atLeast: Minimum.text, "topicText / searchMatchFill", variant)
+            expectContrast(Tokens.topicText[variant], on: Tokens.calloutFill[variant], atLeast: Minimum.text, "topicText / calloutFill", variant)
         }
     }
 

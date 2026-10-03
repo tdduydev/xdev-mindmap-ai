@@ -39,7 +39,23 @@ extension TopicTextSpecs {
             symbolWidth: (CanvasMetrics.tagChipSymbolWidth * chipSize / badge.size).rounded(.up)
         )
         let image = TopicImageSpec(maximumAspect: CanvasMetrics.imageMaxAspect, gap: CanvasMetrics.imageGap)
-        return TopicTextSpecs(levels: levels, placeholder: String(localized: "Untitled Topic"), chip: chip, image: image)
+        // The sub-topic content font, whatever the topic's level (docs/design-system.md "Node types").
+        let calloutStyle = Typography.Content.sub
+        let calloutSize = scaledSize(calloutStyle)
+        let calloutLineHeight = calloutStyle.lineHeight * calloutSize / calloutStyle.size
+        let callout = TopicCalloutSpec(
+            postScriptName: calloutStyle.face.postScriptName,
+            pointSize: calloutSize,
+            lineSpacing: max(0, calloutLineHeight - TopicMeasurer.naturalLineHeight(
+                postScriptName: calloutStyle.face.postScriptName, size: calloutSize
+            )),
+            horizontalPadding: CanvasMetrics.calloutHorizontalPadding,
+            verticalPadding: CanvasMetrics.calloutVerticalPadding,
+            placeholder: String(localized: "Callout")
+        )
+        return TopicTextSpecs(
+            levels: levels, placeholder: String(localized: "Untitled Topic"), chip: chip, image: image, callout: callout
+        )
     }
 
     /// Design sizes, without Dynamic Type: the Mac, and tests.

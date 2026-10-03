@@ -53,6 +53,9 @@ final class EditorSession {
     var noteFocusRequest: NodeID?
     /// The topic whose link sheet shows (Topic ▸ Add Link…, FR-ORG-26).
     var linkEditorTarget: NodeID?
+    /// The topic whose callout bubble is open for typing on the canvas
+    /// (Topic ▸ Add Callout, FR-ORG-30).
+    var calloutEditorTarget: NodeID?
     var imagePickerTarget: NodeID?
     var imageFailure: String?
     /// Asks the inspector's tag field to take focus (Topic ▸ Add Tag…).

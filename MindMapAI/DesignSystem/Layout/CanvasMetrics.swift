@@ -113,6 +113,20 @@ enum CanvasMetrics {
     static let imageCornerRadius: CGFloat = Radius.sm
     static let imagePlaceholderOpacity: Double = 0.3
 
+    /// A callout bubble above its topic (FR-ORG-30). The layout reserves
+    /// the bubble, its tail and `calloutGap`, so it covers no other topic.
+    static let calloutGap: CGFloat = Spacing.sm
+    static let calloutHorizontalPadding: CGFloat = 8
+    static let calloutVerticalPadding: CGFloat = 6
+    // Read by `CalloutBubbleShape`, which draws off the main actor.
+    nonisolated static let calloutCornerRadius: CGFloat = 8 // Radius.md
+    nonisolated static let calloutTailWidth: CGFloat = 8
+    nonisolated static let calloutTailHeight: CGFloat = 6
+    static let calloutStrokeWidth: CGFloat = 1
+    static let calloutStrokeWidthHighContrast: CGFloat = 2
+    /// From the bubble's bottom edge to the card: what `LayoutOptions.calloutSpacing` gets.
+    static let calloutSpacing: CGFloat = calloutTailHeight + calloutGap
+
     /// The pointer hit area is the visual box, at least this tall.
     static let minimumPointerHeight: CGFloat = 28
 

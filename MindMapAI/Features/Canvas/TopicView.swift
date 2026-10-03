@@ -353,6 +353,7 @@ struct TopicContextMenu: View {
         Button("Rename Topic") { model.beginEditing(topic.id) }
         Button("Edit Note") { model.editNote(topic.id) }
         TopicLinkMenuItems(topic: topic, model: model)
+        TopicCalloutMenuItems(topic: topic, model: model)
         Button(topic.topicImage == nil ? "Add Image…" : "Replace Image…") {
             model.session.imagePickerTarget = topic.id
         }
@@ -544,6 +545,7 @@ struct TopicAccessibility: ViewModifier {
             .modifier(TaskDateCustomContent(due: topic.dueDate))
             .modifier(TopicLinkAccessibility(link: topic.isSuggestion ? nil : topic.link))
             .modifier(TopicImageAccessibility(image: topic.topicImage))
+            .modifier(TopicCalloutAccessibility(topicID: topic.id, callout: topic.callout, isSuggestion: topic.isSuggestion, model: model))
     }
 
     /// Accept and Discard for each suggested tag, as the chips offer them.

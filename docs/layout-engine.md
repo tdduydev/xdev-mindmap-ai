@@ -6,11 +6,14 @@
 
 ```swift
 protocol MindMapLayoutEngine: Sendable {
-    func layout(_ graph: GraphState, sizes: [NodeID: CGSize], options: LayoutOptions) -> MapLayout
-    func update(_ previous: MapLayout, graph: GraphState, sizes: [NodeID: CGSize],
+    func layout(_ graph: GraphState, sizes: [NodeID: CGSize], callouts: [NodeID: CGSize],
+                options: LayoutOptions) -> MapLayout
+    func update(_ previous: MapLayout, graph: GraphState, sizes: [NodeID: CGSize], callouts: [NodeID: CGSize],
                 options: LayoutOptions, changed: Set<NodeID>) -> MapLayout
 }
 ```
+
+Overloads without `callouts` lay out a map with no bubbles.
 
 - **Sizes are input.** Only the view knows how a title wraps at the current Dynamic Type size, so the canvas measures topics and passes the sizes in. A topic without a size gets `options.defaultNodeSize`.
 - **`MapLayout`** holds a `LayoutNode` per visible topic (frame, side, depth, how many topics a collapsed branch hides), a connector `EdgePath` (cubic Bézier) from each topic's parent, a path per visible cross-link, and the bounds. Coordinates are canvas points, y down, with the central topic centered on the origin.
@@ -26,6 +29,7 @@ protocol MindMapLayoutEngine: Sendable {
 - **Collapsed branches take no space:** their topics are not in the layout, and the collapsed topic reports `hiddenDescendantCount` for the canvas badge.
 - **Deterministic:** the walk follows `GraphState`'s display order (sort order, creation time, ID), never dictionary order, so the same graph, sizes and options give the same `MapLayout` on every device.
 - Walks use explicit stacks, so a very deep map cannot overflow the call stack.
+- **Callouts** (FR-ORG-30, MM-66). `callouts` holds the measured bubble of each topic that has one; the caller decides which (the canvas also gives one to a topic whose callout is being typed, before it has text). The bubble sits `options.calloutSpacing` above the card (the app passes tail height + `calloutGap`) and its room is reserved: a branch's band grows upward by bubble + spacing (`BranchMeasure.ascent`), and children start past the wider of card and bubble. The bubble is centred on the card but never passes the card's edge facing the parent, so it stays out of the parent's column. `LayoutNode.frame` stays the card, so connectors still attach to the card's centre; `LayoutNode.calloutFrame` is the bubble; bounds include it. Cards and bubbles never overlap (tested on random maps with every `BranchSides`). A bubble that changed for a reason other than a command must be in `changed` on `update`, like a size.
 - **Floating topics** (ADR 0010, MM-61) are laid out after the main tree, in `GraphState.floatingTopicIDs` order. Each is centred on its stored position (relative to the central topic's centre, which is the origin), with side `.right`, depth 1 and no connector; its branch grows to the right by the same band rules whatever `BranchSides` says. Floating branches are not pushed away from the tree or from each other, so they may overlap. `MapLayout.floatingTopicIDs` lists them; bounds and cross-links include them.
 
 ## Updating one branch

@@ -248,6 +248,8 @@ A move on one device and a rename on another resolve by the newest node record, 
 
 **Commands.** `SetCalloutCommand(nodeIDs:text:)`: "Add Callout", "Edit Callout", "Remove Callout". Trimmed; blank is none. `DeleteNodeCommand` needs nothing: the text goes with the node. Duplicate copies it; Merge keeps the survivor's, else the other's.
 
+**As built (MM-66).** `EditorSession.calloutEditorTarget` opens the bubble on the canvas (switching from the outline if needed); while open, the layout gives the topic a bubble measured for the placeholder "Callout", so the room is there before any text exists, and closing it empty stores nothing. Return commits, Esc closes unchanged, losing focus commits. Differences from the design above: a click on the bubble selects its topic (the bubble is not selectable on its own), so Delete deletes the topic and the bubble is removed with Remove Callout (menu bar, topic or bubble context menu, or blank text); the inspector has no Callout field yet; a bubble wider than its card is pulled back to the card's parent-facing edge instead of being centred (*Layout* in [[layout-engine]]). Below the detail zoom the bubbles are not drawn. Topic ▸ Add Callout / Edit Callout ⌥⇧⌘↩ and Remove Callout (no key) are in the menu bar and Help ▸ Keyboard Shortcuts.
+
 **Context menu.** Add Callout on a topic; Edit Callout and Remove Callout on the bubble.
 
 **VoiceOver.** Custom content "Callout: <text>" on the topic; actions Add Callout or Edit Callout. The outline shows it as a caption line under the title, read after the title.

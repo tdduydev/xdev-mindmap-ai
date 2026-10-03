@@ -29,6 +29,10 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     /// Only a link this build can open; drawn on the corner, so not measured.
     var link: TopicLink?
     var topicImage: MindImage?
+    /// The callout text (FR-ORG-30); "" while a new bubble is being typed in.
+    var callout: String?
+    /// Where the bubble sits, above the card; nil without a callout.
+    var calloutFrame: CGRect?
     /// Tag chips under the title: up to `maximumTopicTagChips` tags, "+n",
     /// then suggested tags. Part of the measured size.
     var chips: [TopicChip] = []
@@ -164,9 +168,9 @@ nonisolated struct CanvasScene: Sendable {
     // inside a frame (see `timingsForAThousandTopics`), so a spatial index
     // would add code without a measurable gain.
 
-    /// Topics whose frame meets `rect`, in reading order.
+    /// Topics whose frame or callout meets `rect`, in reading order.
     func topics(in rect: CGRect) -> [CanvasTopic] {
-        topics.filter { $0.frame.intersects(rect) }
+        topics.filter { $0.frame.intersects(rect) || $0.calloutFrame?.intersects(rect) == true }
     }
 
     /// Connectors into visible topics whose curve may cross `rect`. A cubic
@@ -207,6 +211,9 @@ nonisolated struct TopicMeasure: Equatable, Sendable {
     /// The picture's frame, nil without one; a resize measures the topic again.
     var imageSize: CGSize?
     let size: CGSize
+    /// The callout text the bubble was measured for, and the bubble.
+    var callout: String?
+    var calloutSize: CGSize?
     /// The chips with their measured widths.
     var chips: [TopicChip] = []
 }
@@ -227,6 +234,9 @@ nonisolated struct CanvasLayoutPass: Sendable {
     var suggestions: Set<NodeID> = []
     /// Suggested tag names per topic, drawn as AI chips.
     var tagSuggestions: [NodeID: [(id: String, name: String)]] = [:]
+    /// A topic whose bubble is open for typing: it gets a bubble even before
+    /// it has callout text, so the room is there while the person types.
+    var calloutDraft: NodeID?
 
     struct Output: Sendable {
         let scene: CanvasScene
@@ -251,8 +261,25 @@ nonisolated struct CanvasLayoutPass: Sendable {
         let progress = graph.taskProgressByNode()
         let today = CalendarDay.today()
         var chips: [NodeID: [TopicChip]] = [:]
+        var callouts: [NodeID: CGSize] = [:]
+        var calloutTexts: [NodeID: String] = [:]
         for item in outline {
             guard let node = graph.node(item.nodeID) else { continue }
+            let callout = node.callout ?? (item.nodeID == calloutDraft ? "" : nil)
+            if let callout {
+                calloutTexts[item.nodeID] = callout
+                if let known = measures[item.nodeID], known.callout == callout, known.level == item.depth,
+                   let measured = known.calloutSize {
+                    callouts[item.nodeID] = measured
+                } else {
+                    callouts[item.nodeID] = measurer.calloutSize(of: callout, level: item.depth)
+                }
+            }
+            // A draft bubble opening or closing is no graph change, so the
+            // layout learns of it here.
+            if measures[item.nodeID].map({ $0.calloutSize != callouts[item.nodeID] }) ?? false {
+                changed.insert(item.nodeID)
+            }
             var topicChips = TopicChip.taskChips(
                 state: node.taskState, priority: node.priority, progress: progress[item.nodeID], due: node.dueDate, today: today
             ) + TopicChip.chips(tags: tags[item.nodeID] ?? [], suggestions: tagSuggestions[item.nodeID] ?? [])
@@ -261,6 +288,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
             if let known = measures[item.nodeID], known.title == node.title, known.level == item.depth, known.chipLabels == labels,
                known.imageSize == imageSize {
                 sizes[item.nodeID] = known.size
+                measures[item.nodeID]?.callout = callout
+                measures[item.nodeID]?.calloutSize = callouts[item.nodeID]
                 // The kinds can change under the same labels (a tag renamed to another's name).
                 chips[item.nodeID] = zip(topicChips, known.chips).map { chip, measured in
                     var chip = chip
@@ -274,7 +303,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
             let size = measurer.size(of: node.title, level: item.depth, chips: &topicChips, image: imageSize)
             if measures[item.nodeID]?.size != size { changed.insert(item.nodeID) }
             measures[item.nodeID] = TopicMeasure(
-                title: node.title, level: item.depth, chipLabels: labels, imageSize: imageSize, size: size, chips: topicChips
+                title: node.title, level: item.depth, chipLabels: labels, imageSize: imageSize, size: size,
+                callout: callout, calloutSize: callouts[item.nodeID], chips: topicChips
             )
             sizes[item.nodeID] = size
             chips[item.nodeID] = topicChips
@@ -286,13 +316,13 @@ nonisolated struct CanvasLayoutPass: Sendable {
 
         let engine = graph.map.layoutConfiguration.style.engine
         let layout = if let previous {
-            engine.update(previous, graph: graph, sizes: sizes, options: options, changed: changed)
+            engine.update(previous, graph: graph, sizes: sizes, callouts: callouts, options: options, changed: changed)
         } else {
-            engine.layout(graph, sizes: sizes, options: options)
+            engine.layout(graph, sizes: sizes, callouts: callouts, options: options)
         }
         let scene = Self.scene(
             outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags,
-            progress: progress, today: today
+            callouts: calloutTexts, progress: progress, today: today
         )
         return Output(scene: scene, measures: measures)
     }
@@ -304,6 +334,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
         suggestions: Set<NodeID>,
         chips: [NodeID: [TopicChip]],
         tags: [NodeID: [MindTag]],
+        callouts: [NodeID: String],
         progress: [NodeID: TaskProgress],
         today: CalendarDay
     ) -> CanvasScene {
@@ -330,6 +361,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 hasNote: node.hasNote,
                 link: node.link?.url == nil ? nil : node.link,
                 topicImage: images[node.id],
+                callout: callouts[node.id],
+                calloutFrame: placed.calloutFrame,
                 chips: chips[node.id] ?? [],
                 tagNames: tags[node.id]?.map(\.name) ?? [],
                 taskState: node.taskState,
