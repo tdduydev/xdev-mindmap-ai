@@ -22,6 +22,20 @@ import Testing
 struct MacSnapshotTests {
     static let windowSize = CGSize(width: 1100, height: 700)
 
+    @Test func onboarding() async throws {
+        for appearance in SnapshotAppearance.allCases {
+            let window = SnapshotWindow.open(
+                OnboardingView(finish: {}),
+                size: CGSize(width: Metrics.onboardingWidth, height: Metrics.onboardingHeight),
+                appearance: appearance,
+                styleMask: [.titled]
+            )
+            defer { window.close() }
+            try await SnapshotWindow.settle()
+            try Snapshot.verify(try await SnapshotWindow.stableCapture(window), named: "onboarding.\(appearance.rawValue)")
+        }
+    }
+
     enum Scene: String, CaseIterable {
         case library, canvas, outline
     }

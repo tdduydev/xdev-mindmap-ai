@@ -6,6 +6,12 @@
 /// elements, such as library rows or topics, share one identifier; a test
 /// tells them apart by their label, which is the title the person sees.
 nonisolated enum AccessibilityID {
+    enum Onboarding {
+        static let sheet = "onboarding.sheet"
+        static let skip = "onboarding.skip"
+        static let next = "onboarding.next"
+        static let progress = "onboarding.progress"
+    }
     enum Sidebar {
         static let list = "sidebar.list"
         static let settings = "sidebar.settings"

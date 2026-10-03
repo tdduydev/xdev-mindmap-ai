@@ -16,6 +16,8 @@ final class AppEnvironment {
     let openMaps: OpenMaps
     /// Settings ▸ AI Apps and the MCP listener; started on the Mac only.
     let aiApps: AIAppsHost
+    /// Coordinates the first launch across main windows in this process.
+    var isPreparingOnboarding = false
     /// Writes the UI test fixture; nil outside the UI test mode.
     private let seeding: Task<Void, Never>?
 

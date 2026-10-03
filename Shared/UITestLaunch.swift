@@ -17,6 +17,8 @@ nonisolated enum UITestLaunch {
     /// Pro starts unlocked, without StoreKit: a purchase on a fresh simulator
     /// can stop at an Apple Account sign-in the test cannot answer.
     static let pro = "-uitest-pro"
+    /// Keep the throwaway preference suite for a second launch in a first-run test.
+    static let preserveDefaults = "-uitest-preserve-defaults"
 }
 
 /// How the scripted model of the UI test mode behaves.
