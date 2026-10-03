@@ -14542,6 +14542,28 @@
         }
       }
     },
+    "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm) and XMind (.xmind) files, and its own backups (.json)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、OPML (.opml) ファイル、FreeMindまたはFreeplane (.mm) ファイル、XMind (.xmind) ファイル、およびMindMap AIのバックアップ (.json) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt), OPML (.opml), FreeMind hoặc Freeplane (.mm), XMind (.xmind) và bản sao lưu của chính ứng dụng (.json)."
+          }
+        }
+      }
+    },
     "MindMap AI imports Markdown (.md), plain text (.txt), OPML (.opml), FreeMind or Freeplane (.mm), XMind (.xmind), MindNode (.mindnode), SimpleMind (.smmx) and iThoughts (.itmz) files, and its own backups (.json)." : {
       "localizations" : {
         "en" : {
@@ -15128,6 +15150,28 @@
         }
       }
     },
+    "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file expands to more than MindMap AI can read at once. Split the map into smaller files in XMind, then try again."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルは展開するとMindMap AIが一度に読み込める大きさを超えます。XMindでマップを小さなファイルに分けてから、もう一度お試しください。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp khi giải nén lớn hơn mức MindMap AI đọc được một lần. Hãy tách sơ đồ thành các tệp nhỏ hơn trong XMind rồi thử lại."
+          }
+        }
+      }
+    },
     "The file expands to more than MindMap AI can read at once. Split the map into smaller files in the app that made it, then try again." : {
       "localizations" : {
         "en" : {
@@ -15212,6 +15256,406 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OPML mở được trong ứng dụng dàn ý và ứng dụng sơ đồ tư duy khác. Giữ tiêu đề, ghi chú, liên kết và cấu trúc cây."
+          }
+        }
+      }
+    },
+    "Share Link…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクを共有…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ liên kết…"
+          }
+        }
+      }
+    },
+    "Share Link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクを共有"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ liên kết"
+          }
+        }
+      }
+    },
+    "Open Map Link…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップのリンクを開く…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở liên kết sơ đồ…"
+          }
+        }
+      }
+    },
+    "Open Map Link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップのリンクを開く"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở liên kết sơ đồ"
+          }
+        }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ"
+          }
+        }
+      }
+    },
+    "Share Map" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを共有"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ sơ đồ"
+          }
+        }
+      }
+    },
+    "Share Branch" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ブランチを共有"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ nhánh"
+          }
+        }
+      }
+    },
+    "Copy Link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクをコピー"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sao chép liên kết"
+          }
+        }
+      }
+    },
+    "Link Copied" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクをコピーしました"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã sao chép liên kết"
+          }
+        }
+      }
+    },
+    "Preparing Link…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクを準備中…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tạo liên kết…"
+          }
+        }
+      }
+    },
+    "Anyone with this link can see the map." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このリンクを知っている人は誰でもマップを見ることができます。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ai có liên kết này đều xem được sơ đồ."
+          }
+        }
+      }
+    },
+    "Images, tags and connections aren’t included in links." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクには画像、タグ、接続は含まれません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết không chứa ảnh, thẻ và kết nối."
+          }
+        }
+      }
+    },
+    "Notes aren’t included." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモは含まれません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không kèm ghi chú."
+          }
+        }
+      }
+    },
+    "This map is too big for a link." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このマップは大きすぎるため、リンクにできません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ này quá lớn để đưa vào một liên kết."
+          }
+        }
+      }
+    },
+    "This branch is too big for a link." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このブランチは大きすぎるため、リンクにできません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhánh này quá lớn để đưa vào một liên kết."
+          }
+        }
+      }
+    },
+    "Share Without Notes" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモなしで共有"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ không kèm ghi chú"
+          }
+        }
+      }
+    },
+    "Select a topic to share its branch instead." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トピックを選択すると、そのブランチを共有できます。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn một chủ đề để chia sẻ nhánh của nó."
+          }
+        }
+      }
+    },
+    "Map Link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップのリンク"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết sơ đồ"
+          }
+        }
+      }
+    },
+    "Paste a map link from MindMap AI. It opens as a new map." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI のマップのリンクを貼り付けてください。新しいマップとして開きます。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dán liên kết sơ đồ từ MindMap AI. Liên kết sẽ mở thành một sơ đồ mới."
+          }
+        }
+      }
+    },
+    "Open" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開く"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mở"
+          }
+        }
+      }
+    },
+    "Can’t Open Map Link" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップのリンクを開けません"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được liên kết sơ đồ"
+          }
+        }
+      }
+    },
+    "This link can’t be opened. It may be incomplete." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このリンクを開けません。リンクが途中で切れている可能性があります。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không mở được liên kết này. Có thể liên kết bị thiếu."
+          }
+        }
+      }
+    },
+    "This link needs a newer version of MindMap AI. Update the app, then try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このリンクを開くには、新しいバージョンの MindMap AI が必要です。アプリをアップデートしてから、もう一度お試しください。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liên kết này cần phiên bản MindMap AI mới hơn. Hãy cập nhật ứng dụng rồi thử lại."
+          }
+        }
+      }
+    },
+    "This map is too big to open from a link." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このマップは大きすぎるため、リンクから開けません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sơ đồ này quá lớn để mở từ liên kết."
+          }
+        }
+      }
+    },
+    "The map couldn’t be saved. Try again." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを保存できませんでした。もう一度お試しください。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không lưu được sơ đồ. Hãy thử lại."
           }
         }
       }

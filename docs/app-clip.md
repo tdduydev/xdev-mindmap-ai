@@ -1,6 +1,6 @@
 # App Clip and map links
 
-Design from MM-112 (ADR 0012) for FR-CLP-01..05. Nothing here is built yet. MM-113 builds the link and the web page, MM-114 the App Clip, MM-115 AI in the App Clip. [Đề xuất] marks a choice the product owner has not confirmed. [Chưa kiểm chứng] marks an Apple behaviour no source or test confirms yet.
+Design from MM-112 (ADR 0012) for FR-CLP-01..05. MM-113 built the link, Share Link, opening links in the app and the web page (see *Built in MM-113* below); MM-114 builds the App Clip, MM-115 AI in the App Clip. [Đề xuất] marks a choice the product owner has not confirmed. [Chưa kiểm chứng] marks an Apple behaviour no source or test confirms yet.
 
 ## What the person sees
 
@@ -90,6 +90,15 @@ Share Link with a topic selected offers "Share Map" and "Share Branch". The bran
 - The App Clip reads the invocation URL like the app does. **Whether the URL keeps its fragment is the main open risk** [Chưa kiểm chứng]. The fallbacks are in ADR 0012, *Open risk*.
 - Back from the App Switcher, the App Clip gets no URL (same source). It reopens the last map from its App Group.
 
+### Built in MM-113
+
+- **Codec:** `MapLinkCodec` in `MindMapInterchange` ([interchange](interchange.md#map-links-mm-113)). The reader applies every check above; the writer refuses a map over 2,000 topics or 100 levels, so it never makes a link the reader refuses.
+- **Share Link…** (FR-CLP-01): File ▸ Share Link… (⌥⌘S [Đề xuất]: the app has no Save As or Save All) and a toolbar button in the editor on Mac, iPhone and iPad. With a topic other than the central one selected, the sheet has a Share Map / Share Branch switch. The link is shown with the system share button (`ShareLink`) and Copy Link, under "Anyone with this link can see the map." and "Images, tags and connections aren't included in links.". Too long: the sheet says so and offers Share Without Notes (when it fits), Share Branch (the selected topic) and Export…; with nothing selected it says to select a topic.
+- **Opening** (FR-CLP-02, app part): `MapLinkPresenter` (on every window with File ▸ Import) takes the link from `onOpenURL` and from `onContinueUserActivity(NSUserActivityTypeBrowsingWeb)`. Both call `FileTransfer.openMapLink`, which ignores the same link a second time within 2 seconds, so a link delivered both ways makes one map. File ▸ Open Map Link… and the library's toolbar take a pasted link. Failures show "Can't Open Map Link" with the messages of *Reading a link safely*.
+- **Entitlement:** `com.apple.developer.associated-domains` is only in the `+iCloud` entitlements (`applinks:` and `appclips:` on iOS, `applinks:` on macOS), the ones `scripts/upload-testflight.sh` signs with. Development and `scripts/ci.sh` builds are ad-hoc signed or unsigned and keep the plain entitlements, because a restricted entitlement without a profile stops a Mac app from launching. So universal links work only in TestFlight and App Store builds [Chưa kiểm chứng on a device].
+- **Web:** `docs/web/mindmap/m/` (`index.html`, `page.js`, `maplink.js`; tests `node --test docs/web/mindmap/m/decode.test.mjs`) and `docs/web/.well-known/apple-app-site-association`. The page has a strict Content Security Policy (`connect-src 'none'`), inserts text only, opens only `http`, `https` and `mailto` links, and is in English, Vietnamese and Japanese by the browser's language. Checked in headless Chrome against the golden link. The Smart App Banner carries only `app-id` until the App Clip ships; MM-114 adds `app-clip-bundle-id` (comment in the file).
+- **Not done here:** the device tests (fragment kept on App Clip invocation, universal link on Mac Safari, lengths in Messages, Mail, Notes and Slack), and the capacity measurement on the sample maps.
+
 ## App Clip
 
 ### Screens
@@ -144,7 +153,7 @@ Apple's way: an App Group shared by the App Clip and the app ([Sharing data betw
 
 ## Web page on xdev.asia (FR-CLP-05)
 
-The leader publishes it. MM-113 writes the page and the AASA file in `docs/web/` for the leader to copy.
+The leader publishes it. MM-113 wrote the page in `docs/web/mindmap/m/` and the AASA file in `docs/web/.well-known/` for the leader to copy. Serve the AASA file as `application/json`, and the page's `.js` files as `text/javascript`.
 
 - `https://xdev.asia/mindmap/m`: static HTML and one script. It reads `location.hash`, decodes with `DecompressionStream("deflate-raw")`, and draws the outline as nested lists, with text inserted as text, never as HTML. Links in the payload open only if they are `http`/`https`/`mailto`. No analytics, no third-party scripts, no cookies. It shows the Smart App Banner meta tag and links to the App Store.
 - Old browsers without `DecompressionStream` see "Open this link on a device with MindMap AI." [Đề xuất]. MDN lists the API as widely available since May 2023.

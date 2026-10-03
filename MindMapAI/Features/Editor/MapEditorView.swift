@@ -259,6 +259,16 @@ struct MapEditorView: View {
                 }
                 .accessibilityIdentifier(AccessibilityID.Editor.export)
             }
+            // FR-CLP-01: the map, or the selected branch, as a link.
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    transfer.beginShareLink(session)
+                } label: {
+                    Label("Share Link…", systemImage: "link")
+                }
+                .help(Text("Share Link…"))
+                .accessibilityIdentifier(AccessibilityID.Editor.shareLink)
+            }
             #if os(iOS)
             // The Mac and an iPad with a keyboard reach it in File ▸ Import into Map…;
             // an iPhone has no menu bar, and the library's Import… is a screen away.

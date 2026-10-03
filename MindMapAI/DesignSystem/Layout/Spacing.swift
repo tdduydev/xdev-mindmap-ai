@@ -69,6 +69,11 @@ enum Metrics {
 
     /// Room for a typical URL in the Add Link sheet.
     static let linkSheetMinWidth: CGFloat = 420
+    /// Share Link… on the Mac: room for the scope picker and the privacy lines (MM-113).
+    static let shareLinkSheetMinWidth: CGFloat = 420
+    static let shareLinkSheetMinHeight: CGFloat = 260
+    /// Open Map Link… on the Mac: a whole map link is long, so the field is wider.
+    static let openMapLinkSheetMinWidth: CGFloat = 460
     /// The Add Connection target picker on the Mac: room for a topic path.
     static let connectionPickerSize = CGSize(width: 420, height: 480)
 

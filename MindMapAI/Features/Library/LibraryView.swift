@@ -89,6 +89,15 @@ struct LibraryView: View {
                     }
                     .accessibilityIdentifier(AccessibilityID.Library.importMap)
                 }
+                // FR-CLP-02: a link that opened in a browser, pasted here.
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        transfer.isOpeningMapLink = true
+                    } label: {
+                        Label("Open Map Link…", systemImage: "link")
+                    }
+                    .accessibilityIdentifier(AccessibilityID.Library.openMapLink)
+                }
             }
             #if os(macOS)
             ToolbarItem {

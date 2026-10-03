@@ -1,0 +1,54 @@
+<!doctype html>
+<!--
+  https://xdev.asia/mindmap/m: the page a MindMap AI map link opens when the app
+  is not installed (FR-CLP-05, ADR 0012). Static: this file and maplink.js, no
+  analytics, no cookies, no third-party scripts. The map is in the fragment
+  (#1.<data>), which the browser never sends to the server; the script reads it
+  here and draws the outline with text nodes only, never as HTML.
+
+  Smart App Banner: add `, app-clip-bundle-id=asia.xdev.mindmapai.Clip, app-clip-display=card`
+  to the apple-itunes-app content once the App Clip ships (MM-114).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="apple-itunes-app" content="app-id=6818476277">
+<meta property="og:title" content="A map from MindMap AI">
+<meta property="og:site_name" content="MindMap AI by xDev">
+<title>MindMap AI</title>
+<style>
+  :root { color-scheme: light dark; --accent: #3b5bdb; --muted: #6b7280; }
+  @media (prefers-color-scheme: dark) { :root { --accent: #91a7ff; --muted: #9ca3af; } }
+  @media (prefers-contrast: more) { :root { --accent: LinkText; --muted: CanvasText; } }
+  body { font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif; margin: 0 auto; max-width: 46rem; padding: 2rem 1.25rem 4rem; }
+  header { margin-bottom: 1.5rem; }
+  header p { color: var(--muted); margin: .25rem 0 0; }
+  h1 { font-size: 1.75rem; line-height: 1.25; margin: 0; overflow-wrap: anywhere; }
+  ul { list-style: none; margin: 0; padding-left: 1.25rem; border-left: 1px solid color-mix(in srgb, var(--muted) 35%, transparent); }
+  #outline > ul { border-left: 0; padding-left: 0; }
+  li { margin: .35rem 0; overflow-wrap: anywhere; }
+  .title { font-weight: 600; }
+  .note { color: var(--muted); white-space: pre-wrap; margin: .1rem 0 0; }
+  .ai { font-size: .75rem; font-weight: 600; border: 1px dashed var(--accent); color: var(--accent); border-radius: .4rem; padding: 0 .3rem; margin-left: .4rem; }
+  a { color: var(--accent); }
+  .message { padding: 1rem; border-radius: .75rem; background: color-mix(in srgb, var(--muted) 12%, transparent); }
+  footer { margin-top: 2.5rem; color: var(--muted); font-size: .9rem; }
+</style>
+<script type="module" src="page.js"></script>
+</head>
+<body>
+<header>
+  <h1 id="title">MindMap AI</h1>
+  <p id="subtitle"></p>
+</header>
+<main id="outline" aria-live="polite"></main>
+<footer>
+  <p id="privacy"></p>
+  <p><a id="store" href="https://apps.apple.com/app/id6818476277"></a></p>
+</footer>
+<noscript><p class="message">Open this link on a device with MindMap AI, or turn on JavaScript to see the map here.</p></noscript>
+</body>
+</html>

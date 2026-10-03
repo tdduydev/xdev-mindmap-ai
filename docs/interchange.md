@@ -154,6 +154,10 @@ ImportReport.Loss                                      // includedOutline, image
 - **In the app.** Imported types `asia.xdev.mindmapai.simplemind-map` and `asia.xdev.mindmapai.ithoughts-map` (conform to `public.zip-archive`) and `asia.xdev.mindmapai.mindnode` (conforms to `com.apple.package`, so the open panel picks the folder as one file) in both Info.plists; `UTType.otherMindMapTypes` also offers the system's type for each extension when the other app is installed, as for XMind. `MapImporter.readForeign` reads `contents.xml` out of a `.mindnode` folder.
 - **Not confirmed.** MindNode documents saved by MindNode 2023 and later (the "MindNode – Mind Map & Outline" app) and any flat (zipped) `.mindnode` were not in the samples; such a file fails as not a MindNode document. SimpleMind for macOS and iOS files were not in the samples (Windows only). Opening a `.mindnode` package from the Files app on iPad and iPhone was not tried on a device.
 
+## Map links (MM-113)
+
+`MapLinkCodec` writes a map, or one branch, into `https://xdev.asia/mindmap/m#1.<data>` and reads it back as a new `GraphState` (format, limits and safety checks in [app-clip](app-clip.md#link-format), ADR 0012). Encoding and reading run off the main actor (`share`, `map(from:)` are `@concurrent`). A link keeps the tree, titles, notes, URL links (`TopicLink.normalized`, others dropped) and the AI label; floating topics, images, tags, connections and styles stay out. A reader refuses with `MapLinkError`: `notAMapLink`, `damaged` (cut short), `newerVersion`, `tooLarge` (over 1 MB inflated, 2,000 topics or 100 levels; the encoder refuses the same so it never makes a link the reader rejects). Tests read a golden link written by Python's zlib, and `docs/web/mindmap/m/decode.test.mjs` (`node --test`) checks the web page's reader against the same link.
+
 ## Not here
 
 - Clipboard paste of several lines (MM-5) can reuse `PlainTextOutline.parse` and `InsertOutlineCommand`.

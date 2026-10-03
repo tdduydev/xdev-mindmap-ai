@@ -31,11 +31,19 @@ final class FileTransfer {
     /// What a file from another app had that the new map could not keep,
     /// shown after the map opens (FR-IO-13). Nil when nothing was lost.
     var importSummary: ImportSummary?
+    /// Drives the Share Link sheet (MM-113, `FileTransfer+MapLinks.swift`).
+    var shareLinkRequest: ShareLinkRequest?
+    /// Drives the Open Map Link sheet.
+    var isOpeningMapLink = false
+    /// A map link that could not be opened, shown as an alert (FR-IO-09).
+    var mapLinkFailure: MapLinkFailure?
+    /// The last link opened, so a universal link the system delivers twice opens one map.
+    @ObservationIgnored var lastOpenedLink: (url: URL, date: Date)?
 
     /// Kept apart from `isImporting`, which the panel clears before it reports the file.
     @ObservationIgnored private var pendingDestination: ImportDestination?
-    @ObservationIgnored private let createMap: (GraphState, [ImageID: Data]) async -> MapID?
-    @ObservationIgnored private let openMap: (MapID) -> Void
+    @ObservationIgnored let createMap: (GraphState, [ImageID: Data]) async -> MapID?
+    @ObservationIgnored let openMap: (MapID) -> Void
 
     /// - Parameters:
     ///   - createMap: Stores a new map with the bytes of its images and
