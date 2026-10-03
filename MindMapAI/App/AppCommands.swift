@@ -1,5 +1,6 @@
 import MindMapAICore
 import MindMapDomain
+import MindMapSearch
 import SwiftUI
 
 /// What the menus can act on in the frontmost window.
@@ -110,6 +111,22 @@ struct MapCommands: Commands {
             Button("Zoom to Fit") { canvas?.zoomToFit() }
                 .keyboardShortcut("0", modifiers: [.command, .option])
                 .disabled(canvas?.canZoomToFit != true)
+            Divider()
+            // Filter and focus (MM-36): view state of the window, so no undo step.
+            Button(editor?.isFilterBarShown == true ? "Hide Filter Bar" : "Show Filter Bar") { editor?.toggleFilterBar() }
+                .keyboardShortcut("l", modifiers: [.command, .option])
+                .disabled(editor == nil)
+            Button("Clear Filter") { editor?.clearFilter() }
+                .keyboardShortcut("l", modifiers: [.command, .option, .shift])
+                .disabled(editor?.filter.isActive != true)
+            Picker("Filter Mode", selection: filterModeBinding) {
+                Text("Dim Others").tag(FilterMode.dim)
+                Text("Hide Others").tag(FilterMode.hide)
+            }
+            .disabled(editor == nil)
+            Button(editor?.focusID != nil ? "Exit Focus" : "Focus on Branch") { editor?.toggleFocus() }
+                .keyboardShortcut("f", modifiers: [.command, .shift])
+                .disabled(editor?.canFocusOnBranch != true)
             Divider()
             Picker("Theme", selection: themeBinding) {
                 ForEach(MindMapTheme.allCases) { theme in
@@ -409,6 +426,13 @@ struct MapCommands: Commands {
         Binding(
             get: { editor?.map.theme ?? .standard },
             set: { editor?.chooseTheme($0, entitlements: ai.entitlements) }
+        )
+    }
+
+    private var filterModeBinding: Binding<FilterMode> {
+        Binding(
+            get: { editor?.filterMode ?? .dim },
+            set: { editor?.filterMode = $0 }
         )
     }
 

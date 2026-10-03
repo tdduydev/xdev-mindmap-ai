@@ -91,6 +91,19 @@ nonisolated enum AccessibilityID {
         static let done = "find.done"
     }
 
+    /// The filter bar, its toolbar chip and the Focus on Branch breadcrumb (MM-36).
+    enum Filter {
+        static let bar = "filter.bar"
+        static let text = "filter.text"
+        /// "3 of 12 topics".
+        static let count = "filter.count"
+        static let chip = "filter.chip"
+        static let clear = "filter.clear"
+        static let mode = "filter.mode"
+        static let breadcrumb = "filter.breadcrumb"
+        static let exitFocus = "filter.exitFocus"
+    }
+
     enum Outline {
         static let list = "outline.list"
         static let topic = "outline.topic"

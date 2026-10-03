@@ -86,7 +86,7 @@ struct TopicView: View {
             if topic.isSuggestion, isSelected || isHovering, !isEditing { suggestionActions }
         }
         .animation(Motion.selection(reduceMotion: reduceMotion), value: isSelected)
-        .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : 1)
+        .opacity(isDragSource ? CanvasMetrics.dragSourceOpacity : topic.isDimmed ? CanvasMetrics.filteredOpacity : 1)
         .contentShape(.interaction, Rectangle().inset(by: -hitOutset))
         // After the content shape, which would otherwise keep taps off the
         // badge and buttons outside the card.
@@ -242,6 +242,8 @@ struct TopicView: View {
             Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
         } else {
             TopicContextMenu(topic: topic, isRoot: isRoot, model: model)
+            Divider()
+            Button("Focus on Branch") { model.session.focus(on: topic.id) }
             if let assistant = model.assistant, assistant.service.showsControls {
                 Divider()
                 AIActionsMenu(assistant: assistant, nodeID: topic.id)
@@ -583,6 +585,7 @@ struct TopicAccessibility: ViewModifier {
         if topic.taskState != nil {
             Button(topic.taskState?.isDone == true ? "Mark as Not Done" : "Mark as Done") { model.session.toggleDone(topic.id) }
         }
+        Button("Focus on Branch") { model.session.focus(on: topic.id) }
         if !isRoot {
             Button("Delete Topic") { model.delete(topic.id) }
         }
@@ -608,6 +611,8 @@ struct TopicAccessibility: ViewModifier {
             parts.append(String(localized: "\(progress.done) of \(progress.total) tasks done"))
         }
         if isFindMatch { parts.append(String(localized: "Find Match")) }
+        // The fade is the only sign on screen, so VoiceOver hears it too.
+        if topic.isDimmed { parts.append(String(localized: "not matching the filter")) }
         return parts.joined(separator: ", ")
     }
 }

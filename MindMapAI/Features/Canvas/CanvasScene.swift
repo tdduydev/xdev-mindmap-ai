@@ -22,6 +22,8 @@ nonisolated struct CanvasTopic: Identifiable, Equatable, Sendable {
     let hiddenDescendantCount: Int
     /// An AI suggestion drawn from the preview graph, not a topic of the map.
     var isSuggestion = false
+    /// Faded by the filter: no match, or shown only as a matching topic's ancestor (MM-36).
+    var isDimmed = false
     /// A topic beside the tree with no parent (FR-ORG-27), drawn as a main topic.
     var isFloating = false
     /// "Summary of Design to Launch" for a summary topic (FR-ORG-29), read
@@ -314,6 +316,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
     /// A topic whose bubble is open for typing: it gets a bubble even before
     /// it has callout text, so the room is there while the person types.
     var calloutDraft: NodeID?
+    /// Topics the filter fades (`MapFilterView.isDimmed`).
+    var dimmed: Set<NodeID> = []
 
     struct Output: Sendable {
         let scene: CanvasScene
@@ -402,7 +406,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
             engine.layout(graph, sizes: sizes, callouts: callouts, options: options)
         }
         let scene = Self.scene(
-            outline: outline, graph: graph, layout: layout, suggestions: suggestions,
+            outline: outline, graph: graph, layout: layout, suggestions: suggestions, dimmed: dimmed,
             boundarySuggestions: boundarySuggestions, chips: chips, tags: tags,
             colors: colors, marks: marks, callouts: calloutTexts, progress: progress, today: today
         )
@@ -436,6 +440,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
         graph: GraphState,
         layout: MapLayout,
         suggestions: Set<NodeID>,
+        dimmed: Set<NodeID>,
         boundarySuggestions: Set<GroupID>,
         chips: [NodeID: [TopicChip]],
         tags: [NodeID: [MindTag]],
@@ -465,6 +470,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
                 isCollapsed: node.isCollapsed,
                 hiddenDescendantCount: placed.hiddenDescendantCount,
                 isSuggestion: suggestions.contains(node.id),
+                isDimmed: dimmed.contains(node.id),
                 isFloating: node.isFloating(rootID: graph.map.rootNodeID),
                 summaryDescription: summaryDescription(of: node, in: graph),
                 hasNote: node.hasNote,

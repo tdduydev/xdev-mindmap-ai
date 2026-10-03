@@ -2,6 +2,7 @@ import MindMapAICore
 import MindMapDomain
 import MindMapGraph
 import MindMapLayout
+import MindMapSearch
 import Observation
 import SwiftUI
 
@@ -74,6 +75,7 @@ final class CanvasModel {
     /// Whether the last pass drew suggestions; the next one then starts over,
     /// since the previous layout holds topics the map does not.
     @ObservationIgnored private var lastPassHadSuggestions = false
+    @ObservationIgnored private var lastPassWasFiltered = false
     @ObservationIgnored private var isLayingOut = false
     @ObservationIgnored private var layoutTask: Task<Void, Never>?
     /// A topic to scroll into view (and maybe edit) once the layout has it.
@@ -103,6 +105,9 @@ final class CanvasModel {
             self?.graphDidChange(changes)
         }
         assistant?.onSuggestionsChange = { [weak self] in
+            self?.suggestionsDidChange()
+        }
+        session.onViewFilterChange = { [weak self] in
             self?.suggestionsDidChange()
         }
         session.floatingTopicPlacement = { [weak self] in
@@ -188,7 +193,20 @@ final class CanvasModel {
                 suggestedBoundaries = preview.boundaries
             }
             let hasPreview = !suggested.isEmpty || !suggestedBoundaries.isEmpty
-            let startOver = needsFullLayout || lastPassHadSuggestions || hasPreview
+            // Filter and focus draw a projection of the map (MM-36). An edit can
+            // make a topic match or stop matching without naming it in the change
+            // set, so a filtered pass always lays out from scratch.
+            var dimmed: Set<NodeID> = []
+            let isFiltered = session.isViewFiltered
+            if isFiltered {
+                let view = MapFilterView(
+                    state: graph, filter: session.filter, mode: session.filterMode,
+                    focusID: session.focusID, today: .today()
+                )
+                graph = view.project(graph)
+                dimmed = view.shown.filter { view.isDimmed($0) && !suggested.contains($0) }
+            }
+            let startOver = needsFullLayout || lastPassHadSuggestions || hasPreview || isFiltered || lastPassWasFiltered
             let pass = CanvasLayoutPass(
                 graph: graph,
                 previous: startOver ? nil : scene.layout,
@@ -199,11 +217,13 @@ final class CanvasModel {
                 suggestions: suggested,
                 tagSuggestions: assistant?.tagSuggestionChips ?? [:],
                 boundarySuggestions: suggestedBoundaries,
-                calloutDraft: session.calloutEditorTarget
+                calloutDraft: session.calloutEditorTarget,
+                dimmed: dimmed
             )
             pendingChanges = []
             needsFullLayout = false
             lastPassHadSuggestions = hasPreview
+            lastPassWasFiltered = isFiltered
             let output = await pass.runInBackground()
             if generation == specsGeneration { measures = output.measures }
             apply(output.scene)
@@ -731,7 +751,8 @@ final class CanvasModel {
         let rect = CGRect(x: min(start.x, current.x), y: min(start.y, current.y), width: abs(current.x - start.x), height: abs(current.y - start.y))
         marquee = rect
         let canvasRect = CGRect(origin: viewport.toCanvas(rect.origin), size: CGSize(width: rect.width / viewport.scale, height: rect.height / viewport.scale))
-        let hit = scene.topics(in: canvasRect).filter { !$0.isSuggestion }
+        // Topics faded by the filter are not picked, as Select All leaves them out.
+        let hit = scene.topics(in: canvasRect).filter { !$0.isSuggestion && !$0.isDimmed }
         let primary = marqueeBase.primary ?? hit.first?.id
         session.setSelection(marqueeBase.ids.union(hit.map(\.id)), primary: primary)
     }

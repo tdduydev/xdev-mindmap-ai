@@ -1,4 +1,5 @@
 import MindMapDomain
+import MindMapSearch
 import SwiftUI
 
 /// One open map, as a canvas or an outline. Both show the same session, so
@@ -28,6 +29,12 @@ struct MapEditorView: View {
             VStack(spacing: 0) {
                 if session.isFinding {
                     FindBar(session: session)
+                }
+                if session.isFilterBarShown {
+                    FilterBar(session: session)
+                }
+                if session.focusID != nil {
+                    FocusBreadcrumb(session: session)
                 }
                 AISuggestionBar(assistant: assistant)
             }
@@ -157,6 +164,12 @@ struct MapEditorView: View {
             .help(Text("View As"))
             .accessibilityIdentifier(AccessibilityID.Editor.presentation)
         }
+        // While a filter is on, even with the bar closed (MM-36).
+        ToolbarItem {
+            if session.filter.isActive {
+                FilterChip(session: session)
+            }
+        }
         // Design system: a multi-selection shows its count in the toolbar.
         ToolbarItem {
             if session.selectedIDs.count > 1 {
@@ -182,6 +195,12 @@ struct MapEditorView: View {
                 Label("Find", systemImage: "magnifyingglass")
             }
             .accessibilityIdentifier(AccessibilityID.Editor.find)
+            // The only way to the filter on iPhone, which has no menu bar.
+            Button(action: session.toggleFilterBar) {
+                Label("Filter", systemImage: session.filter.isActive
+                    ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+            }
+            .help(session.isFilterBarShown ? Text("Hide Filter Bar") : Text("Show Filter Bar"))
             Button(action: session.addChild) {
                 Label("Add Child Topic", systemImage: "arrow.turn.down.right")
             }

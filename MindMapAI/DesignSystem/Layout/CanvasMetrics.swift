@@ -85,6 +85,9 @@ enum CanvasMetrics {
     static let dropInsertionBarWidth: CGFloat = 3
     static let dropTargetDash: [CGFloat] = [5, 3]
     static let dragSourceOpacity: Double = 0.6
+    /// Topics the filter fades in Dim Others, and ancestors shown for context
+    /// in Hide Others (MM-36, 35% [Đề xuất] in node-organization).
+    static let filteredOpacity: Double = 0.35
     /// How far a pointer or finger moves on a topic before it drags (MM-5).
     static let dragStartDistance: CGFloat = 4
     /// The top and bottom quarter of a topic drop beside it, the middle inside.

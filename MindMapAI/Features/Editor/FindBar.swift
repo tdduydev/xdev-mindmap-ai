@@ -23,6 +23,13 @@ struct FindBar: View {
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
                     .accessibilityIdentifier(AccessibilityID.Find.status)
+                // Find walks only what the filter or focus shows (MM-36).
+                if session.findHiddenCount > 0 {
+                    Text("\(session.findHiddenCount) more hidden by the filter")
+                        .font(Typography.rowDetail)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
             }
             Button(action: session.findPrevious) {
                 Label("Find Previous", systemImage: "chevron.up")
