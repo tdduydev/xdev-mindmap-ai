@@ -41,6 +41,21 @@ python3 scripts/evaluations/summarize.py docs/research/ai-evaluations/*.jsonl
 
 "Nothing valid" means every suggestion the model returned failed the app's checks, after the one retry (`invalidResponse(.empty)`). The person would see "no suggestions", never a wrong edit.
 
+## The MLX Swift engine in the app (MM-119, 2026-10-03, same Mac)
+
+`scripts/evaluations/run-mlx-swift.sh mlx-community/Qwen3-1.7B-4bit` runs the same 30 cases through the app's `MLXInferenceEngine` (mlx-swift-lm 3.32.3, JSON Schema guided decoding) inside the app test host, with the same `LocalLLMProvider`. Raw answers: `mlx-swift-Qwen3-1.7B-4bit.jsonl`.
+
+| Provider | en | vi | ja | All | Median s/case |
+| --- | --- | --- | --- | --- | --- |
+| Qwen3 1.7B 4-bit, `mlx_lm.server` (above) | 8/10 | 10/10 | 9/10 | 27/30 | 2.4 |
+| Qwen3 1.7B 4-bit, MLX Swift + guided decoding | 9/10 | 9/10 | 10/10 | 28/30 | 3.9 |
+
+- **Shape:** guided decoding fixed the weak spot: suggestTags 3/3 (was 1/3) and suggestGroups 3/3 (was 2/3). No answer failed to parse.
+- **Two new failures, both `generationFailed`** (expandTopic.vi, summarizeBoundary.en): the engine threw rather than returning text. The provider logs only the error type, privately, so which `GuidedGenerationError` it was (`incompleteOutput` at the 1,024-token cap or `prematureEOS`) was not recorded. [Inference] Likely the token cap, given the repetition below.
+- **Repetition:** generateMap.vi passed but repeats "Xem lại đề thi thử" a dozen times, and generateMap.ja repeats "店舗の経営計画". The grammar keeps the shape valid but does not stop a small model looping inside it. The `mlx_lm.server` runs did not show this as strongly. Not yet tuned: sampling (`GenerateParameters` defaults), a repetition penalty, or a lower `maxItems` for maps.
+- **Speed:** slower per case (median 3.9 s against 2.4 s; 267 s for all 30, a map 23–25 s). Grammar compile on the first request of each shape and mask computation are included. Tokens per second and peak memory were not measured in this run (the test host does not report them).
+- Qwen3 4B through MLX Swift was not run yet.
+
 ## How to read these numbers
 
 - **One run per case.** Each cell is one sample, so a single flip changes a row by one. An earlier Foundation Models run on the same day failed `suggestGroups.en`, and this run passed it. Treat a difference of one or two cases as noise.
@@ -58,6 +73,5 @@ python3 scripts/evaluations/summarize.py docs/research/ai-evaluations/*.jsonl
 
 ## Not covered
 
-- The MLX Swift engine inside the app (`LocalModelEngines.makeEngine`): these runs use `mlx_lm` in Python with the same prompts and the same provider. Building MLX Swift with `xcodebuild` needs the Metal Toolchain, which this machine does not have (`xcodebuild -downloadComponent MetalToolchain`).
-- Constrained decoding: `mlx_lm.server` does not apply the JSON schema, so these runs measure the weaker case (shape in the instructions only). MLX Swift's `MLXGuidedGeneration` should only improve the parse rate. [Inference]
+- Constrained decoding in the `mlx_lm.server` runs: it does not apply the JSON schema, so the tables in Results measure the weaker case (shape in the instructions only). The MLX Swift section above has guided decoding.
 - iPhone and iPad (MM-107), and more than one run per case.

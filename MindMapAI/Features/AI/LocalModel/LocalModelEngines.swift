@@ -9,7 +9,7 @@ actor LocalModelEngines {
     static let shared = LocalModelEngines()
 
     enum LoadError: Error {
-        /// This build has no runtime linked; see `makeEngine`.
+        /// MLX cannot run in this build: an Intel Mac or the Simulator.
         case runtimeUnavailable
     }
 
@@ -28,9 +28,13 @@ actor LocalModelEngines {
         loaded = nil
     }
 
-    /// The MLX engine (ADR 0011, decision 2) plugs in here. Until it is
-    /// linked no model can be installed either, so this is never reached.
-    static let makeEngine: @Sendable (LocalModel, URL) async throws -> any LocalInferenceEngine = { _, _ in
+    /// The MLX engine (ADR 0011, decision 2). Intel Macs and the Simulator never
+    /// reach it, since `LocalDeviceEligibility` turns the fallback off there.
+    static let makeEngine: @Sendable (LocalModel, URL) async throws -> any LocalInferenceEngine = { _, folder in
+        #if arch(arm64) && !targetEnvironment(simulator)
+        try await MLXInferenceEngine.load(from: folder)
+        #else
         throw LoadError.runtimeUnavailable
+        #endif
     }
 }

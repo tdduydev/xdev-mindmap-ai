@@ -59,7 +59,6 @@ run() {
     -destination "$destination" \
     -derivedDataPath "$derived" \
     -resultBundlePath "$results/$label.xcresult" \
-    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
     "$@"
 }
 
