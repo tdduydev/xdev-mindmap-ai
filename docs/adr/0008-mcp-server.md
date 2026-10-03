@@ -1,6 +1,6 @@
 # ADR 0008: An MCP server in the Mac app, read-only first
 
-- Status: proposed (MM-39); the product owner accepts or changes the items marked [Đề xuất] in [mcp.md](../mcp.md)
+- Status: proposed (MM-39); the product owner accepts or changes the items marked [Đề xuất] in [mcp.md](../mcp.md). Amended by [ADR 0013](0013-mcp-helper-over-app-group-socket.md) (2026-10-03, proposed): after the 2.4.5 rejection of macOS 1.0.0, decisions 1–3 and the `network.server` consequence are replaced by a stdio helper that reaches the app over an App Group socket
 - Date: 2026-10-02
 - Relates to: ADR 0001 (no backend, no outside dependency without a decision), ADR 0003 (commands with recorded undo)
 

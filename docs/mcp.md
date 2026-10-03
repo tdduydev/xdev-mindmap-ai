@@ -6,6 +6,7 @@ Design for MM-39, 2026-10-02. The shared query layer (MM-47), the server core `M
 
 - **What:** a Model Context Protocol (MCP) server inside the Mac app, so AI apps the person already uses (Claude Desktop, Claude Code, ChatGPT desktop, Cursor, VS Code) can list, read and search their maps. Mac only: no iPad or iPhone client launches or reaches a local server *[Inference]*.
 - **Transport (decided 2026-10-02):** first, the app itself serves Streamable HTTP on `127.0.0.1` while it runs, with a token per client. Second, a small stdio helper in the app bundle that only relays to the running app, for clients that speak stdio only (Claude Desktop). No helper reads the store, and nothing is remote: there is no backend (ADR 0001).
+- **Changed 2026-10-03 (proposed, [ADR 0013](adr/0013-mcp-helper-over-app-group-socket.md)):** App Review rejected macOS 1.0.0 for `network.server`. From 1.1 every client goes through the stdio helper, which reaches the app over a Unix socket in a Team-ID-prefixed App Group, with no network entitlement and no token. The HTTP listener leaves the app. See [Helper spike](#helper-spike-mm-48).
 - **Read-only first.** Writing comes later and only as a proposal the person accepts in the app; Accept is one `GraphCommand`, one undo step, like every AI suggestion ([ai-architecture.md](ai-architecture.md)).
 - **Off by default.** Turned on in Settings, one client at a time, each with its own token, visible last access and Revoke.
 - **Privacy:** map text leaves the Mac only through the AI app the person connected, under that app's terms. xDev still receives nothing. Settings, the privacy page and the privacy policy say so before the switch is turned on.
@@ -76,7 +77,7 @@ The two shipping examples follow the same split: iMCP (direct download, not the 
 | Third-party AI (5.1.2(i)) | "clearly disclose where personal data will be shared with third parties, including with third-party AI, and obtain explicit permission" ([guidelines](https://developer.apple.com/app-store/review/guidelines/)) | Turning the switch on is the permission, after a sheet that says which data the connected app can read and that it may send it to its own AI provider |
 | Review Notes (2.3.1(a)) | No hidden features | Describe the switch, the port and a one-line test with Claude Code |
 
-*[Inference, not verified]* A sandboxed helper that another app launches is unusual in the Mac App Store; build a TestFlight build with it before relying on option C (task M4 below).
+*[Inference, not verified]* A sandboxed helper that another app launches is unusual in the Mac App Store; build a TestFlight build with it before relying on option C (task M4 below). Superseded on 2026-10-03 by ADR 0013 (proposed): no `network.server`; the helper and the app share a Team-ID-prefixed App Group and a Unix socket, results in [Helper spike](#helper-spike-mm-48).
 
 ## Tools and resources
 
@@ -196,6 +197,56 @@ Built in MM-40 (M1), in `Packages/MindMapCore/Sources/MindMapMCP`. Protocol page
 
 Try it: `swift run --package-path Packages/MindMapCore mindmap-mcp-dev` (optional port argument; token from `MINDMAP_MCP_TOKEN` or printed).
 
+## Helper spike (MM-48)
+
+Run on 2026-10-03 on the Mac mini (macOS 27.0.1, Claude Code 2.1.283) after App Review rejected macOS 1.0.0 under 2.4.5 for `network.server`. The decision that follows from it is [ADR 0013](adr/0013-mcp-helper-over-app-group-socket.md). The code is in `Prototypes/MCPHelperSpike` (not in the app or the package; `build.sh` there, README for re-running). Both binaries are bare executables with an embedded Info.plist, `app-sandbox` and one App Group, and no network entitlement. `server` stands in for the app.
+
+### What was run
+
+| # | Question | Result | How |
+| --- | --- | --- | --- |
+| 1 | Can a sandboxed helper started by another app run, with stdio? | **Yes.** `APP_SANDBOX_CONTAINER_ID` set, container `~/Library/Containers/<identifier>` created, stdin/stdout pipes usable | Started from a shell and by Claude Code |
+| 2 | Can a real MCP client use it? | **Yes.** `claude -p … --mcp-config` with `"command": "<path>/helper"` (stdio) called the tool and printed the text the server sent over the socket. App not running: the client got "Open MindMap AI to let AI apps read your maps." (-32000) and reported it | Claude Code 2.1.283. Claude Desktop is not tested: its window cannot be driven on the shared Mac. *[Inference]* It spawns stdio servers the same way (subprocess, absolute path, per the MCP docs below) |
+| 3 | Does the socket need `network.server`/`network.client`? | **No.** `bind`, `listen`, `accept` and `connect` on `AF_UNIX` in the group container work with neither entitlement | `server` and `helper` signed with sandbox + group only |
+| 4 | Can a bare executable claim the group without a profile? | **Team-ID-prefixed group: yes** (containermanagerd: "APPROVED. Requestor's signature allows it to access a TCC-protected group container"). **Ad hoc: no** ("REJECTED … Group containers identifiers should be prefixed by requestor's team ID"); `bind` then fails with EPERM | Development certificate of team M6C7NX9MUZ vs `codesign -s -`; group `M6C7NX9MUZ.asia.xdev.mindmapai` |
+| 5 | Can other processes reach the socket? | Sandboxed binary with another group: `connect` EPERM. **Unsandboxed process of the same user (python): connects**, although it cannot list the group folder | So the app must check the peer, see 6 |
+| 6 | Can the app trust the peer without a token? | **Yes.** `getsockopt(LOCAL_PEERTOKEN)` → `SecCodeCopyGuestWithAttributes(kSecGuestAttributeAudit)` → `SecCodeCheckValidity` with `anchor apple generic and certificate leaf[subject.OU] = "M6C7NX9MUZ" and identifier "<helper id>"`: helper 0, python -67050 (`errSecCSReqFailed`), closed unanswered | In `server.swift`. *[Inference]* App Store re-signing keeps team and identifier, so the same requirement holds |
+| 7 | Can a `.mcpb` point at the helper inside the app? | **Schema: yes**, `server.type` `binary` with `mcp_config.command` `/Applications/MindMap AI.app/Contents/Helpers/mindmap-mcp` passes `mcpb validate` (2.1.2); `entry_point` is required, so the bundle must carry some file. **Claude Desktop: not tried** | `npx @anthropic-ai/mcpb validate` |
+
+Gotcha seen: a container made by one signer (ad hoc) and opened by another for the same identifier (development) makes `secinitd` ask the person ("not in ACL for container … prompting"). The process waits inside `_libsecinit_appsandbox` until someone answers. A tester going from a development build to TestFlight may see this once. Store users get one signer.
+
+### Sources
+
+| Claim | Source |
+| --- | --- |
+| A tool run by something other than the app is signed with `app-sandbox` only (no `inherit`) and needs a bundle ID, for example through "Create Info.plist Section in Binary" | Quinn, [forum 751165](https://developer.apple.com/forums/thread/751165); one tool cannot serve both ways, [forum 75436](https://developer.apple.com/forums/thread/75436) |
+| Apple's helper-tool article covers only the child-process case (`app-sandbox` + `inherit`) | [Embedding a command-line tool in a sandboxed app](https://developer.apple.com/documentation/xcode/embedding-a-helper-tool-in-a-sandboxed-app) |
+| Team-ID-prefixed groups need no registration; `group.` IDs need a profile on macOS; on macOS 15+ a group container opens without a prompt when the ID starts with the Team ID, among other cases | [`com.apple.security.application-groups`](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.security.application-groups), [App Groups: macOS vs iOS](https://developer.apple.com/forums/thread/721701) |
+| A Unix domain socket path must be in the group container, within `SOCK_MAXADDRLEN`; Mach/XPC names use `<group>.<name>` | Same entitlement page; Quinn on sockets in a group container, [forum 788364](https://developer.apple.com/forums/thread/788364); `sun_path` 104 bytes, [forum 756756](https://developer.apple.com/forums/thread/756756) |
+| XPC between unrelated processes needs a launchd-registered service (launch agent through `SMAppService`) | [forum 835003](https://developer.apple.com/forums/thread/835003), [forum 99602](https://developer.apple.com/forums/thread/99602) |
+| Custom transports over a byte stream reuse the stdio framing | [MCP transports](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports#custom-transports) |
+| Claude Desktop starts configured servers itself, needs absolute paths, logs each server's stderr to `~/Library/Logs/Claude/mcp-server-<name>.log` | [Connect local servers](https://modelcontextprotocol.io/docs/2026-07-28/develop/connect-local-servers) |
+| MCPB `server.type` `binary`, `${__dirname}`, `platform_overrides` | [MCPB MANIFEST.md](https://github.com/modelcontextprotocol/mcpb/blob/main/MANIFEST.md) |
+| Another developer's Mac app was rejected for `network.server` with no visible feature (August 2026) | [forum 841526](https://developer.apple.com/forums/thread/841526) |
+| An app that tells people to put `/Applications/Muse.app/Contents/MacOS/muse-mcp` in `claude_desktop_config.json` | [Muse](https://www.theodorehq.com/muse/blog/posts/add-mcp-server-claude-desktop). It does not say whether Muse is sold in the Mac App Store |
+
+The forum quotes reached the spike through a summarising fetch. Reread them before quoting them to App Review.
+
+### Answers
+
+- **Helper runs sandboxed when another app starts it:** yes, tested with Claude Code. Claude Desktop [Chưa kiểm chứng].
+- **Helper–app without `network.server`/`network.client`:** yes, through a Unix socket in a Team-ID-prefixed App Group, tested.
+- **App Review accepts the helper:** [Chưa kiểm chứng]. No Mac App Store app with a sandboxed helper started by other apps was found, and no rejection of one either. Upload validation was not run either, because that needs the helper in the Xcode target (MM-49).
+- **HTTP loopback:** drop it from the app (ADR 0013). Every client in [Clients](#clients) speaks stdio, so nothing needs HTTP. Keeping it would keep the entitlement that caused the rejection.
+- **`.mcpb`:** possible by schema, not tried in Claude Desktop. Ship the config snippet first.
+
+### MM-49 order
+
+1. Add the helper target (bare tool, `CREATE_INFOPLIST_SECTION_IN_BINARY`, identifier `asia.xdev.mindmapai.mcp`, own entitlements and `PrivacyInfo.xcprivacy`), copied to `Contents/Helpers` and signed. Add `$(TeamIdentifierPrefix)asia.xdev.mindmapai` to the Mac app's groups behind `MINDMAP_MAC_APP_GROUP`. Upload a TestFlight build at once, before the rest: upload validation is the first gate.
+2. The product owner installs it from TestFlight, pastes the snippet into Claude Desktop, and checks that `list_maps` answers and that no container prompt appears.
+3. Then: the socket listener in the app with the peer check, `MCPServer` behind a transport-neutral entry point, the listener and `ENABLE_INCOMING_NETWORK_CONNECTIONS` removed, Settings ▸ AI Apps with snippets for the helper, Review Notes rewritten.
+4. If step 1 or 2 fails because of the bare executable, wrap the helper as `Contents/Helpers/MindMap AI MCP.app` (new bundle ID and profile, `LSBackgroundOnly`) and repeat.
+
 ## In the app
 
 Built in MM-46 (M2), Mac only, in `MindMapAI/Features/AIApps`.
@@ -222,6 +273,6 @@ For the leader to create; the names are placeholders.
 | Q1 | Query layer `MindMapQuery` ✓ MM-47 | `MapQueries` and `TopicRef` as above; Vietnamese and English tests for search (diacritics, đ), outline limits, deleted maps left out, live state preferred; docs updated | MM-15, MM-31 (done) |
 | M1 | MCP server core `MindMapMCP` ✓ MM-40 | JSON-RPC for 2026-07-28 and 2025-11-25; the four read tools; Streamable HTTP on loopback with token and `Origin` checks; size and rate limits; tests with recorded requests from Claude Code, Cursor and VS Code; MCP Inspector run noted | Q1 |
 | M2 | MCP in the Mac app ✓ MM-46 (no indicator or menu items, see [In the app](#in-the-app)) | Settings ▸ AI Apps (off by default), clients and Keychain tokens, copy snippets for Claude Code, ChatGPT desktop (Codex config), Cursor and VS Code; reading indicator; menu items; `network.server`; privacy.md, privacy policy, Review Notes; en and vi; UI test for the switch | M1 |
-| M3 | Spike: helper in the Mac App Store | A sandboxed `mindmap-mcp` relay in `Contents/Helpers`, launched by Claude Desktop from a TestFlight build; answer whether App Review and signing accept it, and whether a `.mcpb` can point at it. Ship it (M4) only if yes | M2 |
-| M4 | Claude Desktop through the helper | Helper relays stdio to the app, clear error when the app is closed, own privacy manifest, config snippet or `.mcpb` | M3 |
+| M3 | Spike: helper in the Mac App Store ✓ MM-48 (no TestFlight build, see [Helper spike](#helper-spike-mm-48)) | A sandboxed `mindmap-mcp` relay in `Contents/Helpers`, launched by Claude Desktop from a TestFlight build; answer whether App Review and signing accept it, and whether a `.mcpb` can point at it. Ship it (M4) only if yes | M2 |
+| M4 | AI Apps through the helper (MM-49, ADR 0013) | Steps in [MM-49 order](#mm-49-order): TestFlight upload with the helper first, then the App Group socket with the peer check, the HTTP listener and `network.server` removed, snippets for every client, Review Notes | M3 |
 | M5 | MCP proposals | `propose_topics`, suggestions labelled with the client's name, Accept as one command with undo and redo tests, nothing edited or deleted through MCP | M2, C2 ([chat.md](chat.md)) |

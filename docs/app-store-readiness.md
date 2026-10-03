@@ -67,7 +67,7 @@ The in-app purchase needs its own review screenshot, of any size from this table
 
 | Item | Requirement | Status |
 | --- | --- | --- |
-| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). The Mac app also has `com.apple.security.network.server` (`ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*] = YES`, MM-46) for Settings ▸ AI Apps, which listens on 127.0.0.1 only while the switch is on ([mcp](mcp.md)). No `network.client`. |
+| 2.4.5(i) | Sandboxed, follows the macOS file system rules | Met: `ENABLE_APP_SANDBOX = YES`, and `ENABLE_USER_SELECTED_FILES = readwrite` for File ▸ Import… and Export… (MM-10). The Mac app also has `com.apple.security.network.server` (`ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*] = YES`, MM-46) for Settings ▸ AI Apps, which listens on 127.0.0.1 only while the switch is on ([mcp](mcp.md)). No `network.client`. App Review rejected 1.0.0 for that entitlement on 2026-10-03; ADR 0013 (proposed, MM-49 builds it) removes it in 1.1 and adds a sandboxed helper in `Contents/Helpers` that reaches the app over a socket in the App Group. |
 | 2.4.5(ii) | Packaged and submitted with Xcode, one self-contained bundle | Met: single app target |
 | 2.4.5(iii) | No launch at login and no processes left after quit without consent | Met: none. The AI Apps listener is part of the app process and stops when it quits |
 | 2.4.5(iv) | No downloading apps, code or resources that add features | Applies to any later downloadable local model; see 2.5.2 below |
