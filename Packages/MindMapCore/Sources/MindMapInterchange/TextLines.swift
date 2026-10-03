@@ -71,8 +71,8 @@ struct DraftBuilder {
 
     var lastIndex: Int? { items.indices.last }
 
-    mutating func add(depth: Int, title: String, link: TopicLink? = nil) -> Int {
-        items.append(OutlineDraft.Item(depth: depth, title: title, link: link))
+    mutating func add(depth: Int, title: String, link: TopicLink? = nil, taskState: TaskState? = nil) -> Int {
+        items.append(OutlineDraft.Item(depth: depth, title: title, link: link, taskState: taskState))
         notes.append([])
         return items.count - 1
     }
