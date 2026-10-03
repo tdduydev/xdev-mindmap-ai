@@ -16,6 +16,8 @@ Research for MM-0e, 2026-10-02: how the repository grows through the phases. The
 MindMapAI.xcodeproj
 ├─ MindMapAI/                 app target (macOS, iPadOS, iOS): App/, Features/<Feature>/, Resources
 ├─ MindMapShareExtension/     ✓ MM-11, macOS and iOS
+├─ MindMapClip/               App Clip, iOS and iPadOS (planned, MM-114, [[app-clip]])
+├─ MindMapWatch/              watchOS app, and MindMapWatchWidgets for complications (planned, MM-116, [[watch]])
 ├─ MindMapAITests/            hosted app tests on macOS
 ├─ MindMapAIUITests/          XCUITest, macOS and iOS Simulator; pages and launcher ([[testing]])
 └─ Shared/                    AccessibilityID, UITestLaunch: compiled into the app and the UI tests
@@ -37,8 +39,8 @@ Packages/
 │  ├─ MindMapCapture          ✓ speech (MM-20): `VoiceTranscribing`, `AppleSpeechTranscriber`, `SpokenTopics`; OCR, PDF text, ink later
 │  └─ MindMapTestSupport      fixtures, MockAIProvider (✓ MM-7), in-memory repository (tests only)
 ├─ MindMapUI/                 SwiftUI, no SwiftData
-│  ├─ MindMapDesignSystem     moved out of the app target when the Share Extension needs it
-│  └─ MindMapCanvas           rendering, viewport, hit testing, gestures, PNG/PDF rendering; in the app target (Features/Canvas) until a second target needs it, see [[canvas]]
+│  ├─ MindMapDesignSystem     moved out of the app target when a second target needs it: the App Clip and the watch (ADR 0012)
+│  └─ MindMapCanvas           rendering, viewport, hit testing, gestures, PNG/PDF rendering; in the app target (Features/Canvas) until the App Clip needs it (MM-114, ADR 0012), see [[canvas]]
 └─ MindMapLocalModels/        optional, later: MLX or Core AI models
 ```
 

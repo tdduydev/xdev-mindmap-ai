@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-02
+- Amended by: ADR 0012 (an App Clip target and a watchOS app with its widget extension join the app target)
 - Changes: the "Mac is out of scope" line of the original brief, and the build order of ADR 0001's "iPad first"
 
 ## Context
@@ -23,3 +24,4 @@ The original brief made iPadOS the primary platform and left the Mac out. On 202
 - The Share Extension and App Intents (Phase 11) target both macOS and iOS.
 - Foundation Models runs on Apple silicon Macs with Apple Intelligence, so on-device AI is available on the first platform too.
 - The iPhone remains a companion, with its own compact layouts rather than a scaled-down Mac or iPad UI.
+- ADR 0012 adds two targets next to the multiplatform app: an App Clip (`asia.xdev.mindmapai.Clip`, iOS and iPadOS) and a watchOS app (`asia.xdev.mindmapai.watchkitapp`) with a widget extension. They ship in the same App Store record. The rule about platform branches applies to them too: shared logic stays in the packages.
