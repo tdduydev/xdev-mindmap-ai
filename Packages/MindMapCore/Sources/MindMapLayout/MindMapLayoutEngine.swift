@@ -90,6 +90,10 @@ public struct LayoutOptions: Equatable, Sendable {
     public var boundaryPadding: CGFloat
     /// Room reserved above a titled boundary's members for its title capsule.
     public var boundaryTitleHeight: CGFloat
+    /// From the outermost edge of a summary's run to its bracket.
+    public var summaryBracketGap: CGFloat
+    /// How far a summary bracket reaches from its back to its tip.
+    public var summaryBracketWidth: CGFloat
 
     public init(
         sides: BranchSides = .balanced,
@@ -98,7 +102,9 @@ public struct LayoutOptions: Equatable, Sendable {
         defaultNodeSize: CGSize = CGSize(width: 120, height: 36),
         calloutSpacing: CGFloat = 14,
         boundaryPadding: CGFloat = 8,
-        boundaryTitleHeight: CGFloat = 20
+        boundaryTitleHeight: CGFloat = 20,
+        summaryBracketGap: CGFloat = 8,
+        summaryBracketWidth: CGFloat = 12
     ) {
         self.sides = sides
         self.horizontalSpacing = horizontalSpacing
@@ -107,6 +113,8 @@ public struct LayoutOptions: Equatable, Sendable {
         self.calloutSpacing = calloutSpacing
         self.boundaryPadding = boundaryPadding
         self.boundaryTitleHeight = boundaryTitleHeight
+        self.summaryBracketGap = summaryBracketGap
+        self.summaryBracketWidth = summaryBracketWidth
     }
 }
 

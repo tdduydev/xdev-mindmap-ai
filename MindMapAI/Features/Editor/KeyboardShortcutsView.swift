@@ -62,6 +62,7 @@ struct KeyboardShortcutsView: View {
             Shortcut(keys: "⌥⌘3", action: "Low Priority"),
             Shortcut(keys: "⌥⇧⌘K", action: "Set Task Dates…"),
             Shortcut(keys: "⌥⌘B", action: "Add Boundary"),
+            Shortcut(keys: "⌥⌘]", action: "Add Summary"),
             Shortcut(keys: "⌘D", action: "Duplicate Topic"),
             Shortcut(keys: "⌫", action: "Delete Topic"),
         ]),

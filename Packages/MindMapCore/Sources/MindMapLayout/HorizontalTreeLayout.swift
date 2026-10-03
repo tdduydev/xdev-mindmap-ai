@@ -26,6 +26,14 @@ import MindMapGraph
 /// siblings, plus `boundaryTitleHeight` above it when it has a title, so its
 /// frame never covers a neighbouring branch. Its frame is the union of its
 /// visible members' branches and the boundaries nested inside them.
+///
+/// A summary (FR-ORG-29) draws a bracket `summaryBracketGap` beyond the
+/// outermost edge of its run's branches, and its summary topic one
+/// `horizontalSpacing` past the bracket's tip, centred on the run. The summary
+/// topic is out of its parent's column; when its branch is taller than the run,
+/// the run gets the difference as room above and below, so the branch never
+/// covers a neighbour. Summaries are placed after the tree, innermost first,
+/// so a bracket clears every summary nested in or below its run.
 public struct HorizontalTreeLayout: MindMapLayoutEngine {
     public init() {}
 
@@ -88,6 +96,14 @@ private struct LayoutPass {
     let dirty: Set<NodeID>
     /// Valid boundaries by parent, so measuring a branch does not scan every group.
     let boundariesByParent: [NodeID: [MindGroup]]
+    /// Valid summaries by parent, fewest members first, so inner brackets are
+    /// placed before the ones around them.
+    let summariesByParent: [NodeID: [MindGroup]]
+    /// The topic each summary shows beyond its bracket. A topic named by two
+    /// summaries belongs to the oldest; the other draws its bracket only.
+    let summaryTopics: [GroupID: NodeID]
+    /// Every topic in `summaryTopics`, left out of its parent's column.
+    let summaryTopicSet: Set<NodeID>
 
     private var result: MapLayout
     /// Topics the placement walk reached in this pass; an update must not remove them.
@@ -114,6 +130,25 @@ private struct LayoutPass {
             grouping: graph.groups.values.filter { $0.kind == .boundary && $0.parentNodeID != nil && graph.members(of: $0) != nil },
             by: { $0.parentNodeID! }
         )
+        var memberCounts: [GroupID: Int] = [:]
+        for group in graph.groups.values where group.kind == .summary && group.parentNodeID != nil {
+            if let members = graph.members(of: group) { memberCounts[group.id] = members.count }
+        }
+        let summaries = graph.groups.values
+            .filter { memberCounts[$0.id] != nil }
+            .sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
+        var topics: [GroupID: NodeID] = [:]
+        var claimed: Set<NodeID> = []
+        for group in summaries {
+            guard let topicID = group.summaryNodeID, graph.node(topicID)?.parentID == group.parentNodeID,
+                  topicID != graph.map.rootNodeID, claimed.insert(topicID).inserted else { continue }
+            topics[group.id] = topicID
+        }
+        summaryTopics = topics
+        summaryTopicSet = claimed
+        summariesByParent = Dictionary(grouping: summaries, by: { $0.parentNodeID! }).mapValues { groups in
+            groups.sorted { (memberCounts[$0.id]!, $0.createdAt, $0.id) < (memberCounts[$1.id]!, $1.createdAt, $1.id) }
+        }
         result = previous ?? MapLayout(options: options)
     }
 
@@ -130,6 +165,8 @@ private struct LayoutPass {
             orphans.append(contentsOf: old.filter { !current.contains($0) })
         }
         result.floatingTopicIDs = floating
+        // Summary topics are reached from no column; each goes unless placed again.
+        orphans.append(contentsOf: result.summaries.values.compactMap(\.summaryNodeID))
         measure(from: rootID, rootID: rootID)
         for id in floating {
             measure(from: id, rootID: rootID)
@@ -137,6 +174,11 @@ private struct LayoutPass {
         place(rootID: rootID)
         for id in floating {
             placeFloating(id)
+        }
+        result.summaries = [:]
+        placeSummaries(from: rootID)
+        for id in floating {
+            placeSummaries(from: id)
         }
         removeOrphans()
         crossLinks()
@@ -170,7 +212,13 @@ private struct LayoutPass {
     private func visibleChildren(of id: NodeID, rootID: NodeID) -> [NodeID] {
         guard let node = graph.node(id), !node.isCollapsed else { return [] }
         // The root can only be a child in corrupt data; skipping it keeps the walk finite.
-        return graph.childIDs(of: id).filter { $0 != rootID }
+        return graph.childIDs(of: id).filter { $0 != rootID && !summaryTopicSet.contains($0) }
+    }
+
+    /// The summary topics shown beside runs of `id`'s children; none when collapsed.
+    private func visibleSummaryTopics(of id: NodeID) -> [NodeID] {
+        guard let groups = summariesByParent[id], graph.node(id)?.isCollapsed == false else { return [] }
+        return groups.compactMap { summaryTopics[$0.id] }
     }
 
     /// Bottom-up, with an explicit stack so a very deep map cannot overflow it.
@@ -183,7 +231,7 @@ private struct LayoutPass {
             }
             if isReusable(id) { continue }
             stack.append((id, true))
-            for child in visibleChildren(of: id, rootID: rootID) where !isReusable(child) {
+            for child in visibleChildren(of: id, rootID: rootID) + visibleSummaryTopics(of: id) where !isReusable(child) {
                 stack.append((child, false))
             }
         }
@@ -195,6 +243,10 @@ private struct LayoutPass {
         var weight = 1
         var block: CGFloat = 0
         let gaps = boundaryGaps(under: id, children: children)
+        for summaryTopic in visibleSummaryTopics(of: id) {
+            guard let summaryMeasure = result.measures[summaryTopic] else { preconditionFailure("Summary measured after its parent") }
+            weight += summaryMeasure.weight
+        }
         for (index, child) in children.enumerated() {
             guard let childMeasure = result.measures[child] else { preconditionFailure("Child measured after its parent") }
             weight += childMeasure.weight
@@ -386,15 +438,33 @@ private struct LayoutPass {
     /// Room each child needs above and below its band for the boundaries it
     /// starts or ends. Uses the topmost and bottommost member in `children`'
     /// order, so the title room stays on top when the left side is reversed.
+    /// A summary branch taller than its run adds half the difference on each
+    /// side of the run.
     private func boundaryGaps(under parentID: NodeID, children: [NodeID]) -> [(above: CGFloat, below: CGFloat)] {
         var gaps = Array(repeating: (above: CGFloat(0), below: CGFloat(0)), count: children.count)
-        guard let boundaries = boundariesByParent[parentID], !children.isEmpty else { return gaps }
+        guard !children.isEmpty else { return gaps }
+        let boundaries = boundariesByParent[parentID] ?? []
+        let summaries = graph.node(parentID)?.isCollapsed == false ? summariesByParent[parentID] ?? [] : []
+        guard !boundaries.isEmpty || !summaries.isEmpty else { return gaps }
         let index = Dictionary(children.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
         for boundary in boundaries {
             guard let first = boundary.firstNodeID.flatMap({ index[$0] }),
                   let last = boundary.lastNodeID.flatMap({ index[$0] }) else { continue }
             gaps[min(first, last)].above += options.boundaryPadding + titleRoom(of: boundary)
             gaps[max(first, last)].below += options.boundaryPadding
+        }
+        for summary in summaries {
+            guard let topicID = summaryTopics[summary.id], let topic = result.measures[topicID],
+                  let first = summary.firstNodeID.flatMap({ index[$0] }),
+                  let last = summary.lastNodeID.flatMap({ index[$0] }) else { continue }
+            let run = min(first, last)...max(first, last)
+            let height = run.reduce(CGFloat(0)) { total, member in
+                total + (result.measures[children[member]]?.extent ?? 0)
+            } + options.verticalSpacing * CGFloat(run.count - 1)
+            guard topic.extent > height else { continue }
+            let extra = (topic.extent - height) / 2
+            gaps[run.lowerBound].above += extra
+            gaps[run.upperBound].below += extra
         }
         return gaps
     }
@@ -543,7 +613,8 @@ private struct LayoutPass {
         result.boundaries = frames
     }
 
-    /// Every visible card and callout in the branch.
+    /// Every visible card and callout in the branch, with the summaries
+    /// placed inside it.
     private func branchFrame(of id: NodeID) -> CGRect {
         var union: CGRect?
         var stack = [id]
@@ -552,8 +623,88 @@ private struct LayoutPass {
             let frame = node.calloutFrame.map { node.frame.union($0) } ?? node.frame
             union = union?.union(frame) ?? frame
             stack += result.measures[next]?.visibleChildren ?? []
+            for summary in summariesByParent[next] ?? [] {
+                guard let bracket = result.summaries[summary.id] else { continue }
+                union = union?.union(bracket.frame) ?? bracket.frame
+                if let topicID = bracket.summaryNodeID { stack.append(topicID) }
+            }
         }
         return union ?? .zero
+    }
+
+    // MARK: Summaries
+
+    private enum SummaryStep {
+        case visit(NodeID)
+        case place(MindGroup)
+    }
+
+    /// Bottom-up over the placed tree: a node's summaries are placed after
+    /// every branch below it is final, inner ones first, and each summary
+    /// topic's own branch is visited before the next summary beside it.
+    private mutating func placeSummaries(from start: NodeID) {
+        var stack: [SummaryStep] = [.visit(start)]
+        var done: [NodeID: [(members: Set<NodeID>, frame: CGRect)]] = [:]
+        while let step = stack.popLast() {
+            switch step {
+            case .visit(let id):
+                guard result.nodes[id] != nil, let measure = result.measures[id] else { continue }
+                var steps = measure.visibleChildren.map { SummaryStep.visit($0) }
+                if graph.node(id)?.isCollapsed == false {
+                    for summary in summariesByParent[id] ?? [] {
+                        steps.append(.place(summary))
+                        if let topicID = summaryTopics[summary.id] { steps.append(.visit(topicID)) }
+                    }
+                }
+                stack += steps.reversed()
+            case .place(let summary):
+                guard let parentID = summary.parentNodeID,
+                      let placed = placeSummary(summary, inner: done[parentID] ?? []) else { continue }
+                done[parentID, default: []].append(placed)
+            }
+        }
+    }
+
+    /// Returns the members and everything the summary drew, for the summaries around it.
+    private mutating func placeSummary(
+        _ summary: MindGroup,
+        inner: [(members: Set<NodeID>, frame: CGRect)]
+    ) -> (members: Set<NodeID>, frame: CGRect)? {
+        guard let parentID = summary.parentNodeID, let parent = result.nodes[parentID],
+              let visible = result.measures[parentID].map({ Set($0.visibleChildren) }),
+              var members = graph.members(of: summary)?.filter({ visible.contains($0) && result.nodes[$0] != nil }),
+              let side = members.first.flatMap({ result.nodes[$0]?.side }) else { return nil }
+        // A run split by the central topic brackets only the first member's side.
+        members = members.filter { result.nodes[$0]?.side == side }
+        let memberSet = Set(members)
+        var union = members.map(branchFrame(of:)).reduce(CGRect.null) { $0.union($1) }
+        for item in inner where item.members.isSubset(of: memberSet) {
+            union = union.union(item.frame)
+        }
+        let width = options.summaryBracketWidth
+        let backX = side == .left ? union.minX - options.summaryBracketGap - width : union.maxX + options.summaryBracketGap
+        let bracket = SummaryBracket(
+            frame: CGRect(x: backX, y: union.minY, width: width, height: union.height),
+            side: side,
+            summaryNodeID: summaryTopics[summary.id]
+        )
+        result.summaries[summary.id] = bracket
+        var drawn = union.union(bracket.frame)
+        if let topicID = bracket.summaryNodeID, let topicMeasure = result.measures[topicID] {
+            let tip = bracket.tip
+            place([Placement(
+                id: topicID,
+                side: side,
+                depth: parent.depth + 1,
+                anchorX: side == .left ? tip.x - options.horizontalSpacing : tip.x + options.horizontalSpacing,
+                centerY: tip.y + topicMeasure.ascent - topicMeasure.extent / 2,
+                parentFrame: parent.frame
+            )])
+            // The bracket stands for the line from the parent.
+            result.connectors[topicID] = nil
+            drawn = drawn.union(branchFrame(of: topicID))
+        }
+        return (memberSet, drawn)
     }
 
     /// Nested in a run under the same parent, or under one of the members.
@@ -577,6 +728,9 @@ private struct LayoutPass {
         }
         for frame in result.boundaries.values {
             union = union?.union(frame) ?? frame
+        }
+        for bracket in result.summaries.values {
+            union = union?.union(bracket.frame) ?? bracket.frame
         }
         return union ?? .zero
     }

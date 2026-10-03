@@ -60,6 +60,11 @@ enum CanvasMetrics {
     static let boundaryTitlePadding = CGSize(width: 6, height: 2)
     /// The title capsule wraps past this width.
     nonisolated static let boundaryTitleMaxWidth: CGFloat = 200
+
+    /// Summaries (MM-65): the bracket's gap from the run's outermost edge and
+    /// its depth from back to tip. It takes the summary topic's line colour and width.
+    static let summaryBracketGap: CGFloat = 8
+    static let summaryBracketWidth: CGFloat = 12
     static let crossLinkDash: [CGFloat] = [4, 3]
     static let crossLinkDot: [CGFloat] = [0.1, 3]
     /// A connection drawn to a visible ancestor because an end is hidden.
