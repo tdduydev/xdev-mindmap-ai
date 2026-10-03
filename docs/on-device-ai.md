@@ -81,3 +81,5 @@ If the product later wants AI where Apple Intelligence is unavailable, open mode
 | Qwen2.5 3B | Research license, non-commercial | — | not usable commercially |
 
 This would be its own package (MLX shaders do not build with the SwiftPM command line), downloaded on demand, and needs an App Review check on downloaded model weights (guideline 2.5.2) first.
+
+MM-77 measured these models and a prototype provider: see [research/local-llm.md](research/local-llm.md) and the draft [ADR 0011](adr/0011-local-llm-fallback.md).
