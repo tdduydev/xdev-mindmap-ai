@@ -11,9 +11,14 @@ final class AppStoreScreenshotUITests: XCTestCase {
         guard values["MINDMAP_STORE_SCREENSHOTS"] == "1" else {
             throw XCTSkip("Run with scripts/app-store-screenshots.sh")
         }
-        let language: MindMapApp.Language = values["MINDMAP_SCREENSHOT_LANGUAGE"] == "vi" ? .vietnamese : .english
+        let language = MindMapApp.Language(rawValue: values["MINDMAP_SCREENSHOT_LANGUAGE"] ?? "") ?? .english
         let appearance = values["MINDMAP_SCREENSHOT_APPEARANCE"] == "dark" ? "dark" : "light"
-        let fixture: UITestFixture = language == .vietnamese ? .showcaseVi : .showcaseEn
+        let fixture: UITestFixture = switch language {
+        case .english: .showcaseEn
+        case .vietnamese: .showcaseVi
+        case .japanese: .showcaseJa
+        }
+        let copy = Copy(language)
         let title = UITestFixture.Title.showcase(language.rawValue)
         let launched = MindMapApp.launch(
             fixture: fixture,
@@ -27,12 +32,11 @@ final class AppStoreScreenshotUITests: XCTestCase {
         editor.show(.outline)
         commit(editor.selectOutlineTopic(title))
         openAIMenu(in: launched.app)
-        let suggestTitle = language == .vietnamese ? "Đề xuất chủ đề con" : "Suggest Subtopics"
         #if os(macOS)
         // A menu item on the Mac, whose name is its title.
-        let suggest = launched.app.menuItems.matching(NSPredicate(format: "title == %@", suggestTitle)).firstMatch
+        let suggest = launched.app.menuItems.matching(NSPredicate(format: "title == %@", copy.suggest)).firstMatch
         #else
-        let suggest = launched.app.buttons.matching(NSPredicate(format: "label == %@", suggestTitle)).firstMatch
+        let suggest = launched.app.buttons.matching(NSPredicate(format: "label == %@", copy.suggest)).firstMatch
         #endif
         suggest.waitToExist().tapOrClick()
         launched.app.buttons[AccessibilityID.Suggestions.review].firstMatch.waitToExist().tapOrClick()
@@ -42,16 +46,15 @@ final class AppStoreScreenshotUITests: XCTestCase {
         let second = MindMapApp.launch(fixture: fixture, language: language,
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
         let outline = openFitted(title, in: second).show(.outline)
-        let design = language == .vietnamese ? "Thiết kế" : "Design"
-        commit(outline.selectOutlineTopic(design))
+        commit(outline.selectOutlineTopic(copy.design))
         capture("03-outline", in: second.app)
 
         let third = MindMapApp.launch(fixture: fixture, language: language,
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
         openFitted(title, in: third)
         let chat = ChatPage(app: third.app)
-        chat.open(label: language == .vietnamese ? "Hỏi về sơ đồ này" : "Ask About This Map")
-        chat.ask(language == .vietnamese ? "Thiết kế gồm những gì?" : "What is in Design?")
+        chat.open(label: copy.askAboutMap)
+        chat.ask(copy.question)
         chat.answers.firstMatch.waitToExist()
         // The Ask button returns once the answer is complete, replacing Stop.
         chat.sendButton.waitToExist()
@@ -68,6 +71,29 @@ final class AppStoreScreenshotUITests: XCTestCase {
         fourth.openSettings().show(.privacy)
         fourth.app.descendants(matching: .any)[AccessibilityID.Settings.privacyAI].firstMatch.waitToExist()
         capture("05-privacy", in: fourth.app)
+    }
+
+    /// The interface and showcase texts the capture looks for, per language.
+    private struct Copy {
+        let suggest: String
+        let design: String
+        let askAboutMap: String
+        let question: String
+
+        init(_ language: MindMapApp.Language) {
+            switch language {
+            case .english:
+                (suggest, design, askAboutMap, question) =
+                    ("Suggest Subtopics", "Design", "Ask About This Map", "What is in Design?")
+            case .vietnamese:
+                (suggest, design, askAboutMap, question) =
+                    ("Đề xuất chủ đề con", "Thiết kế", "Hỏi về sơ đồ này", "Thiết kế gồm những gì?")
+            case .japanese:
+                // The scripted chat splits Japanese at hiragana, so デザイン is the word it finds.
+                (suggest, design, askAboutMap, question) =
+                    ("サブトピックを提案", "デザイン", "このマップについて質問", "デザインには何がありますか？")
+            }
+        }
     }
 
     @MainActor

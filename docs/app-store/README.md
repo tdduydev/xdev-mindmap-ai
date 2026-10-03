@@ -14,7 +14,7 @@ Rules for these texts are in [app-store-readiness.md](../app-store-readiness.md)
 
 ## Screenshots
 
-`scripts/app-store-screenshots.sh <iphone|ipad|mac> <en|vi|all> <light|dark|all>` runs `AppStoreScreenshotUITests` (UI test mode: showcase map, scripted AI, status bar 9:41) and writes:
+`scripts/app-store-screenshots.sh <iphone|ipad|mac> <en|vi|ja|all> <light|dark|all>` runs `AppStoreScreenshotUITests` (UI test mode: showcase map, scripted AI, status bar 9:41) and writes:
 
 | Path | What |
 | --- | --- |
@@ -23,4 +23,6 @@ Rules for these texts are in [app-store-readiness.md](../app-store-readiness.md)
 | `screenshots/<platform>/<language>/NN-name.png` | Fallback slides at App Store size: caption over a plain gradient |
 | `screenshots/backgrounds/<platform>/<language>/NN-name.png` | Optional art for a slide (MM-74); when present it replaces the gradient |
 
-To recompose after adding art without recapturing, run again with `MINDMAP_SCREENSHOT_REUSE_RESULTS=1`. Set `MINDMAP_SCREENSHOT_SIMULATOR=<udid>` to capture on a simulator no other run uses. The Mac set is captured by the leader only, because a macOS UI test takes over the mouse and keyboard.
+To recompose after adding art without recapturing, run again with `MINDMAP_SCREENSHOT_REUSE_RESULTS=1`. Set `MINDMAP_SCREENSHOT_SIMULATOR=<udid>` to capture on a simulator no other run uses. The Mac set is captured by the leader only (or a task allowed to run Mac UI tests alone), because a macOS UI test takes over the mouse and keyboard; set `MINDMAP_SCREENSHOT_DERIVED_DATA` per run when two devices capture at once.
+
+The App Store slides are `screenshots/final/<platform>/<language>/`, made by `swift docs/app-store/marketing/compose.swift` from the raw captures over the Codex artwork ([marketing/prompts.md](marketing/prompts.md)). Japanese captions use Hiragino Sans W6, since Space Grotesk has no Japanese glyphs; the captions are AI translations, not yet reviewed by a native speaker.

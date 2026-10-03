@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Opt-in UI capture. Run one device at a time: [iphone|ipad|mac] [en|vi|all] [light|dark|all].
+# Opt-in UI capture. Run one device at a time: [iphone|ipad|mac] [en|vi|ja|all] [light|dark|all].
 set -euo pipefail
 cd "$(dirname "$0")/.."
 if [[ -z "${DEVELOPER_DIR:-}" && "$(xcode-select -p)" == *CommandLineTools* ]]; then
@@ -15,7 +15,7 @@ case "$platform" in
   mac) device=''; width=2880; height=1800 ;;
   *) echo 'platform: iphone, ipad or mac' >&2; exit 64 ;;
 esac
-case "$language" in en|vi|all) ;; *) exit 64 ;; esac
+case "$language" in en|vi|ja|all) ;; *) exit 64 ;; esac
 case "$appearance" in light|dark|all) ;; *) exit 64 ;; esac
 
 if [[ "$platform" == mac ]]; then
@@ -35,7 +35,7 @@ work=scripts/out/app-store-screenshots
 mkdir -p "$work"
 swiftc scripts/compose-app-store-screenshots.swift -o "$work/compose"
 
-languages=(en vi)
+languages=(en vi ja)
 [[ "$language" == all ]] || languages=("$language")
 appearances=(light dark)
 [[ "$appearance" == all ]] || appearances=("$appearance")
