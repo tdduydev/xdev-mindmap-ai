@@ -124,6 +124,8 @@ New state that persists across launches (a file, a preference, a first-run flag)
 
 In the `ready` mode Suggest Subtopics answers with `UITestAI.subtopics` (Budget, Timeline, Risks) under the focus topic; the other suggestion features still fail like a bad answer. Voice input in the mode hears `UITestVoice.heard` (two sentences, two topics) instead of using the Speech framework, which the Simulator does not have. The `MindMapAIUITests` scheme runs the app with `MindMapAITests/MindMapAI.storekit`, so the paywall shows a price and a purchase goes through StoreKit Testing; a purchase stays on that simulator until the test transactions are deleted.
 
+`PurchaseUITests` opens its own `SKTestSession` on `MindMapAITests/MindMapAI.storekit` (read by path, since the simulator sees the Mac's files) with `disableDialogs`, so a purchase completes without the system sheet that asks a fresh iOS 27 simulator for an Apple Account. The session changes the simulator's store, which the app uses, so `buyProduct` and `clearTransactions()` reach it. `setSimulatedError` did not seem to: with a purchase error set from the runner, the paywall showed no failure message (MM-27; why is not proven, likely the error stays in the runner's process). So a cancelled or failed purchase is tested in `ProEntitlementTests`, not here. Importing `StoreKitTest` for iOS fails with warnings as errors (a header uses `SKPaymentTransactionState`, deprecated in iOS 18), so the UI test target passes `-Xcc -Wno-deprecated-declarations`.
+
 Titles are data, not interface text, so they are the same in every language. Tests refer to them through `UITestFixture.Title`, never as string literals. A new fixture is a new case and a `makeMaps()` branch; keep existing ones unchanged, because other suites count their topics.
 
 ## Accessibility identifiers
@@ -145,6 +147,7 @@ Identifiers live in one enum, `AccessibilityID` (`Shared/AccessibilityID.swift`)
 | `FindUITests` | Find in map: match count, Next and Previous, no results, folding, Done, Vietnamese | macOS, iOS |
 | `SettingsUITests` | Opening Settings (⌘, or the sidebar button), panes, Appearance kept across a reopen, Vietnamese | macOS, iOS |
 | `PaywallUITests` | Settings ▸ Pro ▸ See What’s in Pro… shows the purchase button with its price, English and Vietnamese (skips when the device already owns Pro) | macOS, iOS |
+| `PurchaseUITests` | StoreKit Testing driven from the runner (`SKTestSession`, dialogs off): the paywall's price and Pro list, Purchase unlocks Pro and it holds across a launch, Restore Purchases with and without an earlier purchase, opening and creating a map without Pro. Clears every test transaction before and after each test | iOS (not run on macOS yet) |
 | `DataSettingsUITests` | Settings present one dialog and keep Settings open: Empty Recently Deleted asks first, Export All Maps opens the folder picker (iOS); Add App opens one sheet (macOS) | macOS, iOS |
 | `MenuShortcutUITests` | Menu items disabled without a map, ⌘N, ⌘1/⌘2, ⇧⌘Return with ⌘Z and ⇧⌘Z, ⌘F/⌘G/⇧⌘G/Esc, ⌘, | macOS only |
 

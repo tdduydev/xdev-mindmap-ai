@@ -195,6 +195,11 @@ struct ProEntitlementTests {
 
         #expect(!store.isUnlocked)
         #expect(store.purchaseState == .idle)
+
+        await store.purchase { _ in throw StoreKitError.userCancelled }
+
+        #expect(!store.isUnlocked)
+        #expect(store.purchaseState == .idle)
     }
 
     @Test func failedPurchaseIsReported() async {
