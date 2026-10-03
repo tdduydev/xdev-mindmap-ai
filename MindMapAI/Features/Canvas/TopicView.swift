@@ -390,6 +390,13 @@ struct TopicContextMenu: View {
             .disabled(isRoot || topic.isFloating)
         Button("Attach to Topic…") { model.session.beginAttaching(topic.id) }
             .disabled(!topic.isFloating)
+        // On a summary topic it removes that summary; elsewhere it brackets the selected run.
+        if let summaryID = model.session.engine.state.summaries(naming: topic.id).first?.id {
+            Button("Remove Summary") { model.session.removeSummary(summaryID) }
+        } else {
+            Button("Add Summary") { perform { $0.addSummary() } }
+                .disabled(isRoot || topic.isFloating)
+        }
         Divider()
         Button("Cut") { perform { $0.cutSelection() } }
             .disabled(isRoot)
@@ -553,13 +560,6 @@ struct TopicAccessibility: ViewModifier {
                 } else {
                     topicActions
                     suggestedTagActions
-                    if topic.summaryDescription != nil {
-                        Button("Remove Summary") {
-                            if let id = model.session.engine.state.summaries(naming: topic.id).first?.id {
-                                model.session.removeSummary(id)
-                            }
-                        }
-                    }
                 }
             }
             .modifier(TagCustomContent(names: topic.tagNames))
