@@ -20,12 +20,7 @@ final class AppStoreScreenshotUITests: XCTestCase {
             language: language,
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance]
         )
-        let editor = launched.library.show().open(title).show(.canvas)
-        editor.canvasTopics.firstMatch.waitToExist()
-        // The map opens at its last zoom on iPhone, which cuts the leaf topics
-        // at both edges; the slide must show the whole map.
-        launched.app.buttons[AccessibilityID.Canvas.zoomToFit].firstMatch.waitToExist().tapOrClick()
-        waitUntilVisible(editor.canvasTopics, in: launched.app)
+        let editor = openFitted(title, in: launched)
         capture("01-canvas", in: launched.app)
 
         // Review the mock model's proposed topics without changing the map.
@@ -46,14 +41,14 @@ final class AppStoreScreenshotUITests: XCTestCase {
         // A fresh launch closes the proposal while preserving the original fixture.
         let second = MindMapApp.launch(fixture: fixture, language: language,
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
-        let outline = second.library.show().open(title).show(.outline)
+        let outline = openFitted(title, in: second).show(.outline)
         let design = language == .vietnamese ? "Thiết kế" : "Design"
         commit(outline.selectOutlineTopic(design))
         capture("03-outline", in: second.app)
 
         let third = MindMapApp.launch(fixture: fixture, language: language,
             arguments: [UITestLaunch.ai, UITestAI.ready.rawValue, "-appearance", appearance])
-        third.library.show().open(title).show(.canvas)
+        openFitted(title, in: third)
         let chat = ChatPage(app: third.app)
         chat.open(label: language == .vietnamese ? "Hỏi về sơ đồ này" : "Ask About This Map")
         chat.ask(language == .vietnamese ? "Thiết kế gồm những gì?" : "What is in Design?")
@@ -130,6 +125,19 @@ final class AppStoreScreenshotUITests: XCTestCase {
         return bitmap.representation(using: .png, properties: [:]) ?? screen.pngRepresentation
     }
     #endif
+
+    /// Opens the map on the canvas, fitted. On iOS 27 a map opened at its
+    /// last zoom cuts the leaf topics at both edges, and until Zoom to Fit
+    /// runs the View As picker ignores taps (seen on iPhone and iPad, MM-87).
+    @MainActor
+    @discardableResult
+    private func openFitted(_ title: String, in launched: MindMapApp) -> EditorPage {
+        let editor = launched.library.show().open(title).show(.canvas)
+        editor.canvasTopics.firstMatch.waitToExist()
+        launched.app.buttons[AccessibilityID.Canvas.zoomToFit].firstMatch.waitToExist().tapOrClick()
+        waitUntilVisible(editor.canvasTopics, in: launched.app)
+        return editor
+    }
 
     /// Waits for Zoom to Fit to settle: every topic inside the window.
     @MainActor
