@@ -51,7 +51,8 @@ for language in $languages; do
   # xcodebuild passes TEST_RUNNER_* variables on without the prefix; TZ fixes
   # the inspector's dates.
   status=0
-  TEST_RUNNER_MINDMAP_SNAPSHOTS=$mode TEST_RUNNER_TZ=UTC xcodebuild test -quiet \
+  # macOS shares one StoreKit store per app with every other test run (scripts/storekit-lock.sh).
+  TEST_RUNNER_MINDMAP_SNAPSHOTS=$mode TEST_RUNNER_TZ=UTC scripts/storekit-lock.sh xcodebuild test -quiet \
     -project MindMapAI.xcodeproj -scheme MindMapAI \
     -destination 'platform=macOS,arch=arm64' \
     -derivedDataPath "$derived" \

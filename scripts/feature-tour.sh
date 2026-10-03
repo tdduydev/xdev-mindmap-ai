@@ -52,8 +52,12 @@ printf '==> Feature tour on %s, %s (%s)\n' "$platform" "$language" "$destination
 # xcodebuild passes TEST_RUNNER_* variables to the runner without the prefix;
 # the tour skips itself without MINDMAP_FEATURE_TOUR.
 status=0
+# The tour buys Pro; on the Mac that changes the StoreKit store every other test
+# run of the app uses (scripts/storekit-lock.sh).
+lock=()
+if [[ $platform == macos ]]; then lock=(scripts/storekit-lock.sh); fi
 TEST_RUNNER_MINDMAP_FEATURE_TOUR=1 TEST_RUNNER_MINDMAP_FEATURE_TOUR_LANGUAGE=$language \
-xcodebuild test -quiet \
+${lock[@]+"${lock[@]}"} xcodebuild test -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAIUITests \
   -destination "$destination" \
   -derivedDataPath "$derived" \

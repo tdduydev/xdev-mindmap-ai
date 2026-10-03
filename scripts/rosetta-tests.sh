@@ -33,7 +33,8 @@ step "Core package tests under Rosetta"
   SWIFT_TREAT_WARNINGS_AS_ERRORS=YES)
 
 step "App tests on macOS under Rosetta"
-xcodebuild test -quiet \
+# Same app, same StoreKit store as every other test run (scripts/storekit-lock.sh).
+scripts/storekit-lock.sh xcodebuild test -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI \
   -destination 'platform=macOS,arch=x86_64' \
   -derivedDataPath "$derived/App" \
