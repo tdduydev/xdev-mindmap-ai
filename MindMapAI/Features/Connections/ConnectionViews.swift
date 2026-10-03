@@ -168,3 +168,41 @@ struct ConnectionAccessibility: ViewModifier {
         }
     }
 }
+
+/// A connection's label edited where it is drawn (double-click the line).
+/// Return or leaving the field commits one "Edit Connection" step; Esc
+/// leaves the label as it was.
+struct ConnectionLabelField: View {
+    let model: CanvasModel
+    let edgeID: EdgeID
+    @State private var draft = ""
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        TextField("Label", text: $draft, prompt: Text("Add a label"))
+            .textFieldStyle(.roundedBorder)
+            .font(Typography.Content.badge.font)
+            .frame(width: CanvasMetrics.connectionLabelMaxWidth)
+            .focused($isFocused)
+            .onAppear {
+                draft = model.session.engine.state.edges[edgeID]?.label ?? ""
+                isFocused = true
+            }
+            .onSubmit(finish)
+            .onChange(of: isFocused) { _, focused in if !focused { finish() } }
+            #if os(macOS)
+            .onExitCommand { model.editingConnectionLabel = nil }
+            #endif
+            .onKeyPress(.escape) {
+                model.editingConnectionLabel = nil
+                return .handled
+            }
+            .accessibilityLabel(Text("Connection Label"))
+    }
+
+    private func finish() {
+        guard model.editingConnectionLabel == edgeID else { return }
+        model.editingConnectionLabel = nil
+        model.session.setConnectionLabel(draft, for: edgeID)
+    }
+}

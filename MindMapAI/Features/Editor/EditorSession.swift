@@ -74,6 +74,9 @@ final class EditorSession {
     /// The topic a new connection starts from while its target is picked
     /// (Topic ▸ Add Connection…).
     var connectionSource: NodeID?
+    /// A connection clicked on the canvas; selecting a topic clears it. Read
+    /// `activeConnection`, which also drops one that undo took away.
+    private(set) var selectedConnection: EdgeID?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false
@@ -186,6 +189,11 @@ final class EditorSession {
     /// focus outside a text field: otherwise it would eat Delete in a title
     /// being typed, or delete a topic while the library list is focused.
     var deleteKeyDeletesTopic: Bool { keyboardFocus == .content && canDeleteSelection }
+
+    var activeConnection: EdgeID? {
+        guard selectedIDs.isEmpty, let selectedConnection, engine.state.edges[selectedConnection] != nil else { return nil }
+        return selectedConnection
+    }
 
     /// The display name of the map, also the editor's window title.
     var displayTitle: String {
@@ -337,7 +345,19 @@ final class EditorSession {
     /// Deletes the selected branches as one undo step (FR-EDT-04); the root
     /// stays, the map itself is deleted from the library.
     func deleteSelection() {
+        // Delete on a selected connection removes it, as on a topic.
+        if movableBranchRoots.isEmpty, let connection = activeConnection {
+            removeConnection(connection)
+            selectedConnection = nil
+            return
+        }
         deleteSelection(named: nil)
+    }
+
+    /// Selects one connection and no topic.
+    func selectConnection(_ id: EdgeID?) {
+        if id != nil { setSelection([], primary: nil) }
+        selectedConnection = id
     }
 
     private func deleteSelection(named name: String?) {
@@ -811,6 +831,7 @@ final class EditorSession {
     func setSelection(_ ids: Set<NodeID>, primary: NodeID?) {
         var ids = ids
         if let primary { ids.insert(primary) }
+        if !ids.isEmpty { selectedConnection = nil }
         selectedIDs = ids
         primarySelection = primary ?? inOutlineOrder(ids).first
     }

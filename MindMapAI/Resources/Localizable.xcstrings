@@ -143,6 +143,17 @@
         }
       }
     },
+    "Connection Label" : {
+      "comment" : "VoiceOver: the field that edits a connection's label on the canvas.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhãn kết nối"
+          }
+        }
+      }
+    },
     "Connections" : {
       "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
       "localizations" : {

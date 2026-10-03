@@ -20,8 +20,8 @@ enum MapExporter {
         imageData: [ImageID: Data] = [:]
     ) async throws -> Data {
         if let format = options.format.interchange {
-            // A file keeps the connections; copy and paste (EditorSession) do not,
-            // since pasted topics get new IDs the connections could not follow.
+            // A file keeps the connections; copy (EditorSession.markdown) leaves
+            // them out, since paste makes new topics they could not point to.
             return try await format.exportData(graph, branch: options.branch, includeNotes: options.includeNotes,
                 connectionsTitle: String(localized: "Connections:"))
         }

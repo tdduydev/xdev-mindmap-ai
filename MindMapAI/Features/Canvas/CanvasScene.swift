@@ -157,6 +157,10 @@ nonisolated struct CanvasScene: Sendable {
         connectorCurves.compactMap { $0.bounds.intersects(rect) ? ($0.id, $0.path) : nil }
     }
 
+    func crossLinkPath(_ id: EdgeID) -> EdgePath? {
+        layout?.crossLinks[id]
+    }
+
     func crossLinks(in rect: CGRect) -> [(id: EdgeID, path: EdgePath)] {
         crossLinkCurves.compactMap { $0.bounds.intersects(rect) ? ($0.id, $0.path) : nil }
     }

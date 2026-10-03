@@ -46,6 +46,8 @@ struct CanvasDrawing {
     var outlines: [Stroke: Path] = [:]
     var imagePlaceholders: [SRGBColor: Path] = [:]
     var selection = Path()
+    /// The selected connection, drawn over its own stroke in the selection colour.
+    var selectedConnection = Path()
     var selectionWidth: CGFloat = CanvasMetrics.selectionRingWidth
     /// Edges into AI suggestions, and suggestions drawn as shapes, in the AI style.
     var suggestionEdges = Path()
@@ -62,6 +64,7 @@ struct CanvasDrawing {
             rect: model.cullingRect,
             shapes: model.isDetailed ? nil : model.visibleTopics,
             selection: model.session.selection,
+            selectedConnection: model.session.activeConnection,
             variant: ColorVariant(colorScheme: colorScheme, contrast: contrast),
             imageFrame: { topic in
                 guard let image = topic.topicImage, let spec = model.textSpec(for: topic) else { return nil }
@@ -85,6 +88,7 @@ struct CanvasDrawing {
         rect: CGRect,
         shapes: [CanvasTopic]?,
         selection selected: NodeID?,
+        selectedConnection: EdgeID? = nil,
         variant: ColorVariant,
         imageFrame: (CanvasTopic) -> CGRect? = { _ in nil },
         style: (CanvasTopic) -> TopicStyle
@@ -113,6 +117,7 @@ struct CanvasDrawing {
             if look.hasStartArrow {
                 drawing.arrowheads[fill, default: Path()].addArrowhead(at: path.start, from: path.control1)
             }
+            if id == selectedConnection { drawing.selectedConnection.addCurve(path) }
             if let label = look.label {
                 drawing.connectionLabels.append(Label(text: label, center: path.midpoint, color: color, isDimmed: look.isRerouted))
             }
@@ -176,6 +181,10 @@ struct EdgeLayer: View {
             for (fill, path) in drawing.arrowheads {
                 let opacity = fill.isDimmed ? CanvasMetrics.reroutedCrossLinkOpacity : 1
                 context.fill(path, with: .color(fill.color.color.opacity(opacity)))
+            }
+            if !drawing.selectedConnection.isEmpty {
+                context.stroke(drawing.selectedConnection, with: .color(Palette.selectionRing),
+                    style: StrokeStyle(lineWidth: drawing.selectionWidth, lineCap: .round))
             }
             for label in drawing.connectionLabels {
                 drawLabel(label, in: &context)

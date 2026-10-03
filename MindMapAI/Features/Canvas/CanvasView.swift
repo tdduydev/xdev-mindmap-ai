@@ -42,6 +42,10 @@ struct CanvasView: View {
             }
             CanvasDragLayer(model: model, colorScheme: colorScheme, contrast: contrast)
                 .allowsHitTesting(false)
+            if let id = model.editingConnectionLabel, let anchor = model.connectionLabelAnchor(id) {
+                ConnectionLabelField(model: model, edgeID: id)
+                    .position(anchor)
+            }
         }
         .coordinateSpace(.named(Self.coordinateSpace))
         .clipped()

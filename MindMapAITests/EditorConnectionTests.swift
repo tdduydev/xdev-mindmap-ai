@@ -128,5 +128,43 @@ struct EditorConnectionTests {
         #expect(drawing.connectionBadges.first?.corner == canvas.scene.topic(first)?.frame.origin)
     }
 
+    @Test func deleteRemovesTheSelectedConnectionAndSelectingATopicClearsIt() async throws {
+        let (session, first, _, second) = try await open()
+        let id = try #require(session.connect(first, to: second))
+
+        session.selectConnection(id)
+        #expect(session.selectedIDs.isEmpty)
+        #expect(session.activeConnection == id)
+        session.selection = first
+        #expect(session.activeConnection == nil)
+
+        session.selectConnection(id)
+        session.deleteSelection()
+        #expect(session.engine.state.edges.isEmpty)
+        #expect(session.engine.state.node(first) != nil, "no topic deleted")
+    }
+
+    @Test func clickingTheLineSelectsTheConnection() async throws {
+        let (session, first, _, second) = try await open()
+        let id = try #require(session.connect(first, to: second))
+        let canvas = CanvasModel(session: session)
+        canvas.setViewSize(CGSize(width: 800, height: 600))
+        canvas.setTextSpecs(.designSizes())
+        await canvas.layoutSettled()
+        // A point on the line outside every topic: this one passes the central topic.
+        let path = try #require(canvas.scene.crossLinkPath(id))
+        let anchor = try #require((1..<20).lazy
+            .map { canvas.viewport.toView(path.point(at: CGFloat($0) / 20)) }
+            .first { canvas.topic(at: $0) == nil })
+
+        canvas.tap(at: CGPoint(x: 0, y: 0))
+        #expect(session.activeConnection == nil, "empty canvas selects nothing")
+        canvas.tap(at: anchor)
+        #expect(session.activeConnection == id)
+        canvas.doubleTap(at: anchor)
+        #expect(canvas.editingConnectionLabel == id)
+    }
+
     private struct OpenFailed: Error {}
 }
+
