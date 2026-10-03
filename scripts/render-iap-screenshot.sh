@@ -20,7 +20,8 @@ mkdir -p "$out" "$attachments"
 # The test runs inside the sandboxed app, so it cannot write into the repo; it
 # records the PNG as a test attachment and the result bundle carries it out.
 # xcodebuild passes TEST_RUNNER_* variables to the test process without the prefix.
-TEST_RUNNER_MINDMAP_RENDER_IAP_SCREENSHOT=1 xcodebuild test -quiet \
+# Its SKTestSession shares the Mac's StoreKit store with other test runs (scripts/storekit-lock.sh).
+TEST_RUNNER_MINDMAP_RENDER_IAP_SCREENSHOT=1 scripts/storekit-lock.sh xcodebuild test -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI \
   -destination 'platform=macOS,arch=arm64' \
   -derivedDataPath "$derived" \
