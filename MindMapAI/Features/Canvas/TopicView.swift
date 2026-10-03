@@ -245,6 +245,8 @@ struct TopicView: View {
             Button("Discard Suggestion") { model.discardSuggestion(topic.id) }
         } else {
             TopicContextMenu(topic: topic, isRoot: isRoot, model: model)
+            Divider()
+            Button("Focus on Branch") { model.session.focus(on: topic.id) }
             if let assistant = model.assistant, assistant.service.showsControls {
                 Divider()
                 AIActionsMenu(assistant: assistant, nodeID: topic.id)
