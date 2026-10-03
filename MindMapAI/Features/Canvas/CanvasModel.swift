@@ -91,7 +91,9 @@ final class CanvasModel {
         verticalSpacing: CanvasMetrics.layoutSiblingGap,
         calloutSpacing: CanvasMetrics.calloutSpacing,
         boundaryPadding: CanvasMetrics.boundaryPadding,
-        boundaryTitleHeight: CanvasMetrics.boundaryTitleHeight
+        boundaryTitleHeight: CanvasMetrics.boundaryTitleHeight,
+        summaryBracketGap: CanvasMetrics.summaryBracketGap,
+        summaryBracketWidth: CanvasMetrics.summaryBracketWidth
     )
 
     init(session: EditorSession, assistant: AIAssistant? = nil) {

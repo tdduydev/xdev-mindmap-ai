@@ -219,6 +219,10 @@ struct MapCommands: Commands {
                 if let id = editor?.activeBoundary { canvas?.editingBoundaryTitle = id }
             }
             .disabled(canvas == nil || editor?.activeBoundary == nil)
+            // ⌥⌘] (MM-58): the bracket's shape. Acts on a selected summary topic first.
+            Button(editor?.summaryToRemove != nil ? "Remove Summary" : "Add Summary") { editor?.toggleSummary() }
+                .keyboardShortcut("]", modifiers: [.command, .option])
+                .disabled(editor?.summaryToRemove == nil && editor?.canAddSummary != true)
             Divider()
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")

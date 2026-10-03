@@ -312,9 +312,10 @@ final class EditorSession {
     }
 
     /// The root and floating topics have no siblings, so on them this adds a
-    /// child instead.
+    /// child instead; so does a summary topic, which stands apart from its
+    /// parent's column.
     func addSibling() {
-        guard let anchor = selection, anchor != rootID, !isFloating(anchor) else { return addChild() }
+        guard let anchor = selection, anchor != rootID, !isFloating(anchor), !isSummaryTopic(anchor) else { return addChild() }
         let id = NodeID()
         if perform(AddNodeCommand(nodeID: id, .sibling(after: anchor), title: ""), named: String(localized: "Add Topic")) {
             select(id, focus: true)
