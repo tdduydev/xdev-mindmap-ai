@@ -32,6 +32,9 @@ struct MapInspectorView: View {
                         }
                     }
                 }
+                Section("Style") {
+                    TopicStyleInspector(session: session)
+                }
                 if session.selectedIDs.count == 1 {
                     ConnectionsInspectorSection(session: session, nodeID: node.id)
                 }

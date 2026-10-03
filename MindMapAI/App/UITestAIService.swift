@@ -22,7 +22,7 @@ enum UITestAIService {
 }
 
 /// Reports the mode's capabilities. Suggest Subtopics answers with
-/// `UITestAI.subtopics` under the focus topic, so a test can accept and
+/// `UITestAI.subtopics(languageCode:)` under the focus topic, so a test can accept and
 /// discard them and screenshots never depend on an installed model; the
 /// other features are not scripted yet, so each one fails the way a bad
 /// answer would.
@@ -32,7 +32,8 @@ private struct UITestAIProvider: AIProvider {
     func capabilities() async -> AICapabilities { current }
     func generateMap(_ request: GenerateMapRequest) async throws -> AIProposal { throw AIError.generationFailed }
     func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
-        let topics = UITestAI.subtopics.enumerated().map { index, title in
+        let language = Locale.preferredLanguages.first ?? "en"
+        let topics = UITestAI.subtopics(languageCode: language).enumerated().map { index, title in
             ProposedTopic(temporaryID: "t\(index)", title: title)
         }
         return AIProposal(feature: .expandTopic, anchor: .node(request.context.focus.nodeID), topics: topics)

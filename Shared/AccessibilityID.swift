@@ -44,6 +44,13 @@ nonisolated enum AccessibilityID {
         static let note = "inspector.note"
         static let tagField = "inspector.tagField"
         static let theme = "inspector.theme"
+        static let topicColor = "inspector.topicColor"
+        static let topicSymbol = "inspector.topicSymbol"
+    }
+
+    /// Choose Symbol… (MM-32).
+    enum SymbolPicker {
+        static let emoji = "symbolPicker.emoji"
     }
 
     /// AI suggestions waiting for Accept or Discard (FR-AI-10).

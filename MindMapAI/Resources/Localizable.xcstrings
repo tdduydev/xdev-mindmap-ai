@@ -489,6 +489,556 @@
         }
       }
     },
+    "Approved" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã duyệt"
+          }
+        }
+      }
+    },
+    "Book" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sách"
+          }
+        }
+      }
+    },
+    "Bookmark" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dấu trang"
+          }
+        }
+      }
+    },
+    "Build" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xây dựng"
+          }
+        }
+      }
+    },
+    "Calendar" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lịch"
+          }
+        }
+      }
+    },
+    "Camera" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy ảnh"
+          }
+        }
+      }
+    },
+    "Car" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ô tô"
+          }
+        }
+      }
+    },
+    "Change Color" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi màu"
+          }
+        }
+      }
+    },
+    "Change Symbol" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi biểu tượng"
+          }
+        }
+      }
+    },
+    "Chart" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biểu đồ"
+          }
+        }
+      }
+    },
+    "Choose Symbol" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn biểu tượng"
+          }
+        }
+      }
+    },
+    "Choose Symbol…" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn biểu tượng…"
+          }
+        }
+      }
+    },
+    "Cloud" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đám mây"
+          }
+        }
+      }
+    },
+    "Comment" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bình luận"
+          }
+        }
+      }
+    },
+    "Document" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tài liệu"
+          }
+        }
+      }
+    },
+    "Draft" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản nháp"
+          }
+        }
+      }
+    },
+    "Emoji" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emoji"
+          }
+        }
+      }
+    },
+    "Emoji & Symbols" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biểu tượng & Emoji"
+          }
+        }
+      }
+    },
+    "Flag" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cờ"
+          }
+        }
+      }
+    },
+    "Gear" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bánh răng"
+          }
+        }
+      }
+    },
+    "Gift" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quà"
+          }
+        }
+      }
+    },
+    "Goal" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mục tiêu"
+          }
+        }
+      }
+    },
+    "Heart" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trái tim"
+          }
+        }
+      }
+    },
+    "Home" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhà"
+          }
+        }
+      }
+    },
+    "Hot" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nóng"
+          }
+        }
+      }
+    },
+    "Key" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chìa khoá"
+          }
+        }
+      }
+    },
+    "Learning" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Học tập"
+          }
+        }
+      }
+    },
+    "Lightning" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tia chớp"
+          }
+        }
+      }
+    },
+    "Locked" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã khoá"
+          }
+        }
+      }
+    },
+    "Mixed" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhiều giá trị"
+          }
+        }
+      }
+    },
+    "Money" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiền"
+          }
+        }
+      }
+    },
+    "Moon" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mặt trăng"
+          }
+        }
+      }
+    },
+    "Music" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Âm nhạc"
+          }
+        }
+      }
+    },
+    "Nature" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiên nhiên"
+          }
+        }
+      }
+    },
+    "Number 1" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số 1"
+          }
+        }
+      }
+    },
+    "Number 2" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số 2"
+          }
+        }
+      }
+    },
+    "Number 3" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Số 3"
+          }
+        }
+      }
+    },
+    "Paperclip" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kẹp giấy"
+          }
+        }
+      }
+    },
+    "People" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhóm người"
+          }
+        }
+      }
+    },
+    "Person" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Người"
+          }
+        }
+      }
+    },
+    "Phone" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điện thoại"
+          }
+        }
+      }
+    },
+    "Pin" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ghim"
+          }
+        }
+      }
+    },
+    "Place" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Địa điểm"
+          }
+        }
+      }
+    },
+    "Puzzle" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mảnh ghép"
+          }
+        }
+      }
+    },
+    "Question" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Câu hỏi"
+          }
+        }
+      }
+    },
+    "Rejected" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bị loại"
+          }
+        }
+      }
+    },
+    "Reminder" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhắc nhở"
+          }
+        }
+      }
+    },
+    "Remove Symbol" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ biểu tượng"
+          }
+        }
+      }
+    },
+    "Shopping" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mua sắm"
+          }
+        }
+      }
+    },
+    "Star" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngôi sao"
+          }
+        }
+      }
+    },
+    "Style" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kiểu"
+          }
+        }
+      }
+    },
+    "Sun" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mặt trời"
+          }
+        }
+      }
+    },
+    "Symbol" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biểu tượng"
+          }
+        }
+      }
+    },
+    "Symbols" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biểu tượng"
+          }
+        }
+      }
+    },
+    "The central topic keeps its own color." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chủ đề trung tâm giữ màu riêng."
+          }
+        }
+      }
+    },
     "Solid" : {
       "comment" : "Connection line style.",
       "localizations" : {
@@ -3925,6 +4475,116 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dừng hỏi bằng giọng nói"
+          }
+        }
+      }
+    },
+    "Thumbs Down" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thích"
+          }
+        }
+      }
+    },
+    "Thumbs Up" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thích"
+          }
+        }
+      }
+    },
+    "Time" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thời gian"
+          }
+        }
+      }
+    },
+    "Topic Color" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Màu chủ đề"
+          }
+        }
+      }
+    },
+    "Topic Symbol" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biểu tượng chủ đề"
+          }
+        }
+      }
+    },
+    "Travel" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du lịch"
+          }
+        }
+      }
+    },
+    "Trophy" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cúp"
+          }
+        }
+      }
+    },
+    "Type or paste an emoji" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gõ hoặc dán một emoji"
+          }
+        }
+      }
+    },
+    "Use Emoji" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dùng emoji"
+          }
+        }
+      }
+    },
+    "Warning" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cảnh báo"
+          }
+        }
+      }
+    },
+    "Work" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Công việc"
           }
         }
       }

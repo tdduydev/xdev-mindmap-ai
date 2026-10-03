@@ -15,6 +15,8 @@ struct CanvasView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// Adds the colour's shape before a coloured topic's title (FR-ORG-02).
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -102,6 +104,7 @@ struct CanvasView: View {
         }
         .onChange(of: isFocused) { _, focused in model.hasKeyboardFocus = focused }
         .onChange(of: dynamicTypeSize) { model.setTextSpecs(textSpecs) }
+        .onChange(of: differentiateWithoutColor) { model.setTextSpecs(textSpecs) }
         .onChange(of: session.calloutEditorTarget) { model.calloutEditingDidChange() }
         .onChange(of: session.focusRequest) { model.takeFocusRequest() }
         .onChange(of: session.selection) {
@@ -287,11 +290,11 @@ struct CanvasView: View {
     private var textSpecs: TopicTextSpecs {
         #if os(iOS)
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(dynamicTypeSize))
-        return .make { style in
+        return .make(showsColorShapes: differentiateWithoutColor) { style in
             UIFontMetrics(forTextStyle: style.textStyle.uiTextStyle).scaledValue(for: style.size, compatibleWith: traits)
         }
         #else
-        return .designSizes()
+        return .designSizes(showsColorShapes: differentiateWithoutColor)
         #endif
     }
 }

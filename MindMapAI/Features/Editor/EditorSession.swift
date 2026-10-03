@@ -62,6 +62,8 @@ final class EditorSession {
     var tagFieldFocusRequest = false
     /// Whether Manage Tags shows.
     var isManagingTags = false
+    /// The topics the symbol picker sets a symbol on (Format ▸ Topic Symbol ▸ Choose Symbol…).
+    var symbolPickerTargets: [NodeID]?
     /// Why the last tag action changed nothing, for an alert.
     var tagFailure: TagFailure?
     /// A Pro theme picked without Pro: the window shows the paywall and the
@@ -910,7 +912,7 @@ final class EditorSession {
     }
 
     /// Topics in outline (pre-order) order, hidden ones included.
-    private func inOutlineOrder(_ ids: Set<NodeID>) -> [NodeID] {
+    func inOutlineOrder(_ ids: Set<NodeID>) -> [NodeID] {
         guard ids.count > 1 else { return Array(ids) }
         guard rootID != nil else { return ids.sorted() }
         let state = engine.state

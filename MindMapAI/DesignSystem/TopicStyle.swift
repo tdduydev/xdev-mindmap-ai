@@ -1,3 +1,4 @@
+import MindMapDomain
 import SwiftUI
 
 /// Everything the canvas needs to draw one topic at rest, resolved once from
@@ -36,15 +37,19 @@ struct TopicStyle: Hashable {
     ///   - level: Depth from the central topic, which is 0.
     ///   - branch: Index of the topic's level-1 ancestor among the central
     ///     topic's children, in `sortOrder`; ignored for the central topic.
+    ///   - color: A colour the person set on the topic or an ancestor
+    ///     (FR-ORG-01). It wins over the theme's branch colour; fills and
+    ///     badges derive from it as they do from a branch colour.
     static func resolve(
         level: Int,
         branch: Int,
+        color: TopicColor? = nil,
         theme: MapTheme,
         colorScheme: ColorScheme,
         contrast: ColorSchemeContrast
     ) -> TopicStyle {
         let variant = ColorVariant(colorScheme: colorScheme, contrast: contrast)
-        let colors = theme.branch(branch, in: variant)
+        let colors = color.map { BranchColors(line: $0.token, variant: variant) } ?? theme.branch(branch, in: variant)
         let tokens = Palette.Tokens.self
         let kind: Kind = level <= 0 ? .central : level == 1 ? .main : .sub
 
