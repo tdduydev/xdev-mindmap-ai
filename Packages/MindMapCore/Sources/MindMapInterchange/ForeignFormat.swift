@@ -7,11 +7,14 @@ import MindMapGraph
 /// (MM-102..104) add a case each, with a reader that fills a `ForeignImport`.
 public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
     case opml
+    /// XMind 8 and XMind 2020 and later (MM-103): a ZIP with one map per sheet.
+    case xmind
 
     /// Nil for an extension no importer reads.
     public init?(fileExtension: String) {
         switch fileExtension.lowercased() {
         case "opml": self = .opml
+        case "xmind": self = .xmind
         default: return nil
         }
     }
@@ -19,6 +22,7 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
     public var fileExtension: String {
         switch self {
         case .opml: "opml"
+        case .xmind: "xmind"
         }
     }
 
@@ -37,6 +41,8 @@ public enum ForeignFormat: String, Hashable, Sendable, CaseIterable {
                 throw .emptyDocument
             }
             return ForeignImport(maps: [map], imageData: [:], report: document.report)
+        case .xmind:
+            return try XMindMap.read(data, fileName: fileName, now: now)
         }
     }
 }
@@ -66,4 +72,7 @@ public enum ForeignImportError: Error, Hashable, Sendable {
     case damaged
     /// The file holds no topics.
     case emptyDocument
+    /// An archive (XMind) whose contents would expand beyond what the app
+    /// reads into memory, such as a zip bomb.
+    case tooLarge
 }
