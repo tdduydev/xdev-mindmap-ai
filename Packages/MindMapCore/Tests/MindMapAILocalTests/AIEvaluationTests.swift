@@ -1,4 +1,5 @@
 import MindMapAICore
+import MindMapTestSupport
 import Testing
 @testable import MindMapAIEvaluation
 @testable import MindMapAILocal
@@ -81,8 +82,12 @@ import Testing
 @Suite struct AIEvaluationRepeatTests {
     @Test func aSuggestionRepeatingAnExistingTopicFails() async {
         let evaluation = AIEvaluationSuite.cases.first { $0.id == "expandTopic.en" }!
-        let engine = ScriptedEngine(#"{"topics": [{"title": "Quiet room"}, {"title": "fixed bedtime"}]}"#)
-        let outcome = await AIEvaluationRunner.run(evaluation, provider: readyProvider(engine)) { _, _ in "" }
+        // Foundation Models' answers are not filtered for repeats, so the
+        // check still matters for it; the mock stands in for that provider.
+        let provider = MockAIProvider()
+        let topics = ["Quiet room", "fixed bedtime"].enumerated().map { ProposedTopic(temporaryID: "s\($0.offset)", title: $0.element) }
+        provider.enqueue(.proposal(AIProposal(feature: .expandTopic, anchor: .root, topics: topics)), for: .expandTopic)
+        let outcome = await AIEvaluationRunner.run(evaluation, provider: provider) { _, _ in "" }
         #expect(outcome.reason == "repeats fixed bedtime")
     }
 }

@@ -142,3 +142,24 @@ import Testing
         }
     }
 }
+
+@Suite struct LocalRepeatFilterTests {
+    @Test func topicsAlreadyInTheMapAreDropped() async throws {
+        let root = ContextTopic(nodeID: NodeID(), parentID: nil, title: "Healthy habits", depth: 0)
+        let focus = ContextTopic(nodeID: NodeID(), parentID: root.nodeID, title: "Sleep", depth: 1)
+        let context = AIContext(mapID: MapID(), mapTitle: "Healthy habits", focus: focus, ancestors: [root],
+                                siblings: [ContextTopic(nodeID: NodeID(), parentID: root.nodeID, title: "Exercise", depth: 1)],
+                                descendants: [ContextTopic(nodeID: NodeID(), parentID: focus.nodeID, title: "Fixed bedtime", depth: 2)],
+                                language: .english, userLocaleIdentifier: "en_US")
+        let engine = ScriptedEngine(#"{"topics": ["fixed bedtime ", "Exercise", "Dark room", "dark room", "Sleep"]}"#)
+        let proposal = try await readyProvider(engine).expandTopic(ExpandTopicRequest(context: context))
+        #expect(proposal.topics.map(\.title) == ["Dark room"])
+    }
+
+    @Test func onlyRepeatsIsAskedForAgain() async throws {
+        let engine = ScriptedEngine(#"{"topics": ["Sleep"]}"#, #"{"topics": ["Dark room"]}"#)
+        let proposal = try await readyProvider(engine).brainstorm(BrainstormRequest(context: context()))
+        #expect(proposal.topics.map(\.title) == ["Dark room"])
+        #expect(engine.callCount == 2)
+    }
+}

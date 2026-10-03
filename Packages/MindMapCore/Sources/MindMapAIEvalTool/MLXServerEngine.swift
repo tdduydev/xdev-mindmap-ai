@@ -68,6 +68,17 @@ actor MLXServerEngine: LocalInferenceEngine {
         let usage = json?["usage"] as? [String: Any]
         record(tokens: usage?["completion_tokens"] as? Int ?? 0,
                seconds: Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18)
+        if let path = ProcessInfo.processInfo.environment["RAW_OUTPUT"] {
+            // For reading failed answers by hand: the provider keeps them to itself.
+            let line = Data((text.replacingOccurrences(of: "\n", with: " ") + "\n").utf8)
+            if let handle = FileHandle(forWritingAtPath: path) {
+                handle.seekToEndOfFile()
+                handle.write(line)
+                try? handle.close()
+            } else {
+                FileManager.default.createFile(atPath: path, contents: line)
+            }
+        }
         return text
     }
 }

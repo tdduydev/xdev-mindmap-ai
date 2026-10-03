@@ -136,7 +136,17 @@ public struct LocalLLMProvider: AIProvider {
         try await respond(feature, .topicList, language: context.language,
                           locale: context.userLocaleIdentifier, prompt: prompt) { text in
             let answer = try LocalAnswer.decode(LocalAnswer.TopicList.self, from: text)
-            let topics = answer.topics.prefix(limit).enumerated().map {
+            // Qwen3 1.7B lists topics already in the map in most answers
+            // (MM-105 evaluations) despite the rule; Accept would add duplicates.
+            // Dropping them leaves the rest, and nothing left asks again.
+            let existing = Self.normalizedTitles(of: context)
+            var seen: Set<String> = []
+            let fresh = answer.topics.filter {
+                let key = Self.normalized($0.title)
+                return !existing.contains(key) && seen.insert(key).inserted
+            }
+            guard !fresh.isEmpty else { throw AIError.invalidResponse(.empty) }
+            let topics = fresh.prefix(limit).enumerated().map {
                 ProposedTopic(temporaryID: "s\($0.offset + 1)", title: $0.element.title)
             }
             return try checked(AIProposal(feature: feature, anchor: .node(context.focus.nodeID), topics: topics), limit: limit)
@@ -197,6 +207,18 @@ public struct LocalLLMProvider: AIProvider {
         }
         try Task.checkCancellation()
         return text
+    }
+
+    /// Every title the request showed the model, as `normalized` keys.
+    static func normalizedTitles(of context: AIContext) -> Set<String> {
+        let topics = [context.focus] + context.ancestors + context.siblings + context.descendants + context.linkedTopics
+        return Set(([context.mapTitle] + topics.map(\.title)).map(normalized))
+    }
+
+    /// Case, width and surrounding spaces do not make a topic new.
+    static func normalized(_ title: String) -> String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: [.caseInsensitive, .widthInsensitive], locale: nil)
     }
 
     /// Added to the prompt after an answer that could not be used. It names
