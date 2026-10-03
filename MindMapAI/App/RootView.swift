@@ -1,5 +1,6 @@
 import MindMapAICore
 import MindMapDomain
+import MindMapPersistence
 import MindMapQuery
 import OSLog
 import SwiftUI
@@ -88,8 +89,11 @@ struct RootView: View {
         .task {
             await environment.prepare()
             await library.load()
-            await startOnboardingIfNeeded()
+            // The first run can wait for iCloud for a while; the list keeps
+            // following the store meanwhile, so maps arriving show at once.
+            let onboarding = Task { await startOnboardingIfNeeded() }
             await library.observeChanges()
+            onboarding.cancel()
         }
         .sheet(isPresented: $showsOnboarding) {
             OnboardingView {
@@ -198,22 +202,33 @@ struct RootView: View {
 
     /// An existing library is also the upgrade marker: a person with maps
     /// must reach those maps without a first-run sheet or a duplicate sample.
+    /// With iCloud on, `FirstRunGate` also asks the person's other devices.
     private func startOnboardingIfNeeded() async {
         guard library.failure == nil else { return }
         if environment.isPreparingOnboarding { return }
+        let gate = firstRunGate
         if onboardingCompleted {
             // A previous launch may have closed while the introduction was up.
             introductionFinished = true
+            // A device that finished before iCloud was on tells the others now.
+            gate.recordCompleted()
             return
         }
-        guard library.maps.isEmpty, library.deletedMaps.isEmpty else {
+        // Claim first launch before any await, since two fresh windows can
+        // otherwise create two samples from the same empty store.
+        environment.isPreparingOnboarding = true
+        let decision = await gate.decide()
+        // The window closed while waiting for iCloud: the next one decides.
+        guard !Task.isCancelled else {
+            environment.isPreparingOnboarding = false
+            return
+        }
+        guard decision == .createSample else {
             onboardingCompleted = true
             introductionFinished = true
+            environment.isPreparingOnboarding = false
             return
         }
-        // Claim first launch before the repository await, since two fresh
-        // windows can otherwise create two samples from the same empty store.
-        environment.isPreparingOnboarding = true
         do {
             let sample = try SampleMap.make(languageCode: Locale.preferredLanguages.first ?? "en")
             guard let id = await library.createMap(sample) else {
@@ -221,12 +236,30 @@ struct RootView: View {
                 return
             }
             onboardingCompleted = true
+            gate.recordCompleted()
             show(id)
             showsOnboarding = true
         } catch {
             environment.isPreparingOnboarding = false
             Log.persistence.error("Creating the sample map failed: \(error.localizedDescription, privacy: .private)")
         }
+    }
+
+    private var firstRunGate: FirstRunGate {
+        let library = library
+        let storeSync = environment.storeSync
+        let firstImport = environment.firstImport
+        return FirstRunGate(
+            isCloudStoreOn: storeSync != .off,
+            cloudFlag: UbiquitousFirstRunFlag(),
+            accountStatus: { await CloudSyncMonitor.account(for: storeSync) },
+            waitForFirstImport: { flag in
+                if await !firstImport.wait(for: flag) {
+                    Log.persistence.notice("No iCloud import within the first-run wait")
+                }
+            },
+            libraryHasMaps: { await library.reloadHasAnyMap() }
+        )
     }
 }
 
