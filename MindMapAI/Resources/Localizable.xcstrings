@@ -11723,7 +11723,24 @@
         }
       }
     },
-    "“%1$@” is used in %2$lld maps. Deleting it removes it from every map and can’t be undone. The topics stay." : {
+    "This file isn't an image the app can read" : {
+      "comment" : "Shown when an image file can't be decoded.",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルは読み込める画像ではありません"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp này không phải ảnh mà ứng dụng đọc được"
+          }
+        }
+      }
+    },
+    "“%@” is used in %lld maps. Deleting it removes it from every map and can’t be undone. The topics stay." : {
       "localizations" : {
         "en" : {
           "variations" : {
