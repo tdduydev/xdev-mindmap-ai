@@ -115,7 +115,7 @@ enum SnapshotWindow {
             // draws every control as in a background window.
             .environment(\.controlActiveState, .key))
         hosting.sceneBridgingOptions = [.toolbars, .title]
-        let window = NSWindow(
+        let window = InactiveWindow(
             contentRect: CGRect(origin: CGPoint(x: -20_000, y: -20_000), size: size),
             styleMask: styleMask, backing: .buffered, defer: false
         )
@@ -141,15 +141,34 @@ enum SnapshotWindow {
     /// the content, so a single capture now and then catches the window
     /// halfway. Two were not enough: the first map window of a run sometimes
     /// held a toolbar item blank for two captures (MM-81).
+    ///
+    /// A glass toolbar item can also stay undrawn (transparent) for every
+    /// capture, and so pass as stable: the selected Map/Outline segment, or
+    /// the Search button, which an image viewer shows white (MM-98). Such a
+    /// window is drawn again and captured until the toolbar is whole (MM-111).
     static func stableCapture(_ window: NSWindow) async throws -> CGImage {
+        let toolbarHeight = Int((window.frame.height - window.contentLayoutRect.height).rounded())
         var previous = try capture(window)
         var unchanged = 0
-        for _ in 0..<20 {
+        var redraws = 0
+        for _ in 0..<40 {
             try await Task.sleep(for: .milliseconds(250))
             let next = try capture(window)
-            if try Bitmap(next).pixels == Bitmap(previous).pixels {
+            let bitmap = try Bitmap(next)
+            if try bitmap.pixels == Bitmap(previous).pixels {
                 unchanged += 1
-                if unchanged == 2 { return next }
+                if unchanged == 2 {
+                    guard bitmap.undrawnPixels(inTopRows: toolbarHeight) > 0 else { return next }
+                    redraws += 1
+                    // Exported to scripts/out/snapshots/<language>/, to see how often it happens.
+                    Attachment.record(try bitmap.png(), named: "undrawn.\(redraws).png")
+                    if redraws == 5 {
+                        Issue.record("a toolbar item stayed undrawn after \(redraws) redraws")
+                        return next
+                    }
+                    redraw(window)
+                    unchanged = 0
+                }
             } else {
                 unchanged = 0
             }
@@ -157,6 +176,20 @@ enum SnapshotWindow {
         }
         Issue.record("the window never stopped changing")
         return previous
+    }
+
+    /// Asks AppKit to lay out and draw the whole window again, toolbar included.
+    private static func redraw(_ window: NSWindow) {
+        window.toolbar?.validateVisibleItems()
+        guard let frameView = window.contentView?.superview else { return }
+        var views = [frameView]
+        while let view = views.popLast() {
+            view.needsLayout = true
+            view.needsDisplay = true
+            views += view.subviews
+        }
+        frameView.layoutSubtreeIfNeeded()
+        frameView.displayIfNeeded()
     }
 
     /// The whole window at 1× (the frame view draws the title bar and toolbar
@@ -173,6 +206,15 @@ enum SnapshotWindow {
         rep.size = bounds.size
         view.cacheDisplay(in: bounds, to: rep)
         return try #require(rep.cgImage)
+    }
+
+    /// A window that never becomes key or main, so it draws inactive (grey
+    /// traffic lights and toolbar symbols) as in the references, whether or
+    /// not the test host is the active app: with someone at the Mac it can
+    /// be, and its windows then drew active (MM-111).
+    private final class InactiveWindow: NSWindow {
+        override var canBecomeKey: Bool { false }
+        override var canBecomeMain: Bool { false }
     }
 }
 
@@ -238,6 +280,24 @@ struct Bitmap {
             summary: "\(changed) pixels differ (\(percent)%)",
             diff: Bitmap(width: width, height: height, pixels: diff)
         )
+    }
+
+    /// Pixels in the top `rows` (the title bar and toolbar) left transparent
+    /// in a column that is opaque in the middle of the window. A drawn toolbar
+    /// is opaque wherever the content under it is; an undrawn glass item is
+    /// not. Columns transparent in the middle are a glass sidebar, which the
+    /// capture never draws.
+    func undrawnPixels(inTopRows rows: Int) -> Int {
+        let rows = min(max(rows, 0), height)
+        let middle = (rows + height) / 2
+        guard middle < height else { return 0 }
+        var count = 0
+        for x in 0..<width where pixels[(middle * width + x) * 4 + 3] == 255 {
+            for y in 0..<rows where pixels[(y * width + x) * 4 + 3] < 255 {
+                count += 1
+            }
+        }
+        return count
     }
 
     /// Whether the pixel at `index` has a match within `Snapshot.neighbourRadius`

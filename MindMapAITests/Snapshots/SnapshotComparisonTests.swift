@@ -49,6 +49,28 @@ struct SnapshotComparisonTests {
         #expect(Self.bitmap(columns: 5...8, colour: Self.accent).compared(with: Self.bitmap(columns: 5...8)).differs)
     }
 
+    // MARK: Undrawn toolbar items (MM-111)
+
+    static let clear: [UInt8] = [0, 0, 0, 0]
+
+    @Test func drawnToolbarHasNoUndrawnPixels() {
+        #expect(Self.bitmap(columns: 5...8).undrawnPixels(inTopRows: 4) == 0)
+    }
+
+    @Test func transparentToolbarItemIsUndrawn() {
+        // A 3×2 hole in the top rows over opaque content, as a glass segment
+        // the capture left out.
+        let image = Self.bitmap(columns: 10...12, rows: 1...2, colour: Self.clear)
+        #expect(image.undrawnPixels(inTopRows: 4) == 6)
+        // Below the toolbar, transparency is not a toolbar item.
+        #expect(image.undrawnPixels(inTopRows: 1) == 0)
+    }
+
+    @Test func transparentSidebarColumnIsNotUndrawn() {
+        // The glass sidebar is transparent from top to bottom.
+        #expect(Self.bitmap(columns: 0...4, colour: Self.clear).undrawnPixels(inTopRows: 4) == 0)
+    }
+
     @Test func otherSizeDiffers() {
         let small = Bitmap(width: 1, height: 1, pixels: Self.white)
         #expect(small.compared(with: Self.bitmap(columns: 5...8)).differs)
