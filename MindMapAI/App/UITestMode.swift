@@ -11,6 +11,10 @@ struct UITestMode {
     let fixture: UITestFixture
     /// Nil leaves the real model in place.
     var ai: UITestAI?
+    /// `UITestFiles` stands in for the open and save panels.
+    var files = false
+    /// Pro is unlocked whatever StoreKit says.
+    var unlocksPro = false
 
     static let current: UITestMode? = {
         #if DEBUG
@@ -20,7 +24,10 @@ struct UITestMode {
             .flatMap { arguments.indices.contains($0 + 1) ? UITestFixture(rawValue: arguments[$0 + 1]) : nil }
         let ai = arguments.firstIndex(of: UITestLaunch.ai)
             .flatMap { arguments.indices.contains($0 + 1) ? UITestAI(rawValue: arguments[$0 + 1]) : nil }
-        return UITestMode(fixture: fixture ?? .empty, ai: ai)
+        return UITestMode(
+            fixture: fixture ?? .empty, ai: ai, files: arguments.contains(UITestLaunch.files),
+            unlocksPro: arguments.contains(UITestLaunch.pro)
+        )
         #else
         return nil
         #endif

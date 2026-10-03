@@ -23,6 +23,10 @@ nonisolated enum AccessibilityID {
         static let importMap = "library.importMap"
         /// The swipe action that moves a map to Recently Deleted.
         static let delete = "library.delete"
+        /// The swipe action that brings a map back from Recently Deleted.
+        static let restore = "library.restore"
+        /// The button of the dialog that asks before deleting a map permanently.
+        static let confirmPermanentDeletion = "library.confirmPermanentDeletion"
     }
 
     enum Editor {
@@ -88,6 +92,13 @@ nonisolated enum AccessibilityID {
         static let format = "export.format"
         static let export = "export.export"
         static let cancel = "export.cancel"
+    }
+
+    /// Elements only the UI test mode shows.
+    enum UITest {
+        /// The file the stand-in for the save panel wrote: its name in the
+        /// label, what it holds in the value (`UITestFiles.Report`).
+        static let exportedFile = "uitest.exportedFile"
     }
 
     enum Voice {

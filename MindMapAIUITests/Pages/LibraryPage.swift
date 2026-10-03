@@ -111,6 +111,46 @@ struct LibraryPage {
         return editor.waitUntilOpen(file: file, line: line)
     }
 
+    /// Moves a map to Recently Deleted: the swipe action on iOS, ⌘⌫ on the Mac.
+    func delete(_ title: String, file: StaticString = #filePath, line: UInt = #line) {
+        let row = map(titled: title).waitToExist(file: file, line: line)
+        #if os(iOS)
+        row.swipeLeft()
+        app.buttons[AccessibilityID.Library.delete].firstMatch.waitToExist(file: file, line: line).tapOrClick()
+        #else
+        row.click()
+        app.typeKey(.delete, modifierFlags: .command)
+        #endif
+    }
+
+    /// Restores a map shown in Recently Deleted: the leading swipe action on
+    /// iOS, the row's context menu on the Mac (menu items have no identifiers,
+    /// so the Mac finds it by its English title).
+    func restore(_ title: String, file: StaticString = #filePath, line: UInt = #line) {
+        let row = map(titled: title).waitToExist(file: file, line: line)
+        #if os(iOS)
+        row.swipeRight()
+        app.buttons[AccessibilityID.Library.restore].firstMatch.waitToExist(file: file, line: line).tapOrClick()
+        #else
+        row.rightClick()
+        app.menuItems["Restore"].firstMatch.waitToExist(file: file, line: line).tapOrClick()
+        #endif
+    }
+
+    /// Asks to delete a map in Recently Deleted for good and returns the
+    /// dialog's Delete Permanently button, not yet pressed.
+    func askToDeletePermanently(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+        let row = map(titled: title).waitToExist(file: file, line: line)
+        #if os(iOS)
+        row.swipeLeft()
+        app.buttons[AccessibilityID.Library.delete].firstMatch.waitToExist(file: file, line: line).tapOrClick()
+        #else
+        row.click()
+        app.typeKey(.delete, modifierFlags: [.command, .option])
+        #endif
+        return app.buttons[AccessibilityID.Library.confirmPermanentDeletion].firstMatch.waitToExist(file: file, line: line)
+    }
+
     /// Types into the search field; the list then shows the matching maps.
     @discardableResult
     func search(_ text: String, file: StaticString = #filePath, line: UInt = #line) -> LibraryPage {
