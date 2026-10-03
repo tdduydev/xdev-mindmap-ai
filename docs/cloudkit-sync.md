@@ -30,6 +30,20 @@ Status: built in MM-6; on from 1.1 (MM-100): `scripts/upload-testflight.sh` sets
 - *[Chưa kiểm chứng]* That `NSPersistentCloudKitContainer` (which SwiftData's mirroring uses) exports records that existed before mirroring was turned on. Apple's Core Data with CloudKit pages say to add the capability and container options to an app that already uses Core Data, but do not state what happens to existing rows; a CloudKit process cannot run in the unentitled test process. Checked by step 0 of *Testing on real devices*.
 - Duplicates. Each record has its own ID, so maps made on two devices are two maps, not a conflict. The one case that sends the same map ID up twice is a 1.0 library restored onto a second device (backup or device migration) before both turn sync on: each device exports its copy as its own CloudKit record. The library lists a map ID once (`SwiftDataMapRepository.fetchMaps` and `fetchDeletedMaps`, newest first) and the next save of that map folds the records into one (`mapRecord(for:)`); topics, links and other records were already folded per ID.
 
+## First run and the sample map (FR-ONB-01, FR-SYN-08)
+
+On a second device or after a reinstall the store starts empty while CloudKit is still bringing the library down. The 1.0 rule (MM-108: an empty library and Recently Deleted on first launch get the sample map) would then add a sample, sync it up, and add another one per device. `FirstRunGate` (MM-120) decides instead, after the window's first load:
+
+1. A map in the library or Recently Deleted: no sample, no introduction.
+2. Store not in iCloud this launch (switch off, build without the entitlement): as MM-108.
+3. `onboarding.completed` set in the iCloud key-value store (`NSUbiquitousKeyValueStore`, beside the preferences of `PreferenceCloudSync`): another device had the first run; no sample.
+4. iCloud account not available (signed out, restricted, needs attention, unknown): nothing can arrive, so as MM-108.
+5. Otherwise wait until the first successful CloudKit import of this launch ends (`NSPersistentCloudKitContainer.eventChangedNotification`, type `.import`, seen by `FirstCloudImport`, which listens from before the store opens), the key-value flag arrives, or 20 seconds pass *[Đề xuất]*; then reload and apply 1 and 3 again; still empty means the sample.
+
+Every device with its store in iCloud writes the key-value flag once it has had the first run, including one that finished it before 1.1. A device with sync off does not, so it cannot stop another device's sample for maps it never sent up. The library list keeps following the store during the wait. A failed import (offline) does not end the wait early.
+
+*[Chưa kiểm chứng]* Whether the first `.import` event of a fresh install already holds every map, or CloudKit brings a large library in several imports. If only part arrives, step 1 still sees a map; only an import that ends with no map at all, on an account whose devices never wrote the flag, could still lead to a sample. Checked by step 0b of *Testing on real devices*.
+
 ## Undo after a change from another device (FR-UND-05)
 
 Decided 2026-10-02 (Q5): drop the undo steps that touch the topics the remote change touched and keep the rest.
@@ -95,6 +109,7 @@ The `aps-environment` value in the entitlements files is `development`; the App 
 With two devices on the same Apple Account and a TestFlight build of 1.1:
 
 0. **Maps from 1.0.** On one device, install 1.0.0 (App Store) or a 1.0 TestFlight build, make two maps (one with a chat, one in Recently Deleted), then update to 1.1 signed in to iCloud → the maps are still there once each, and appear on the second device with their topics, tags, images and chat. Repeat with the 1.0 library on both devices (a restored backup): each map is listed once on both.
+0b. **No second sample map.** With 1.1 installed and a map on the first device (signed in to iCloud), install 1.1 on the second device signed in to the same account (or delete and reinstall it) → no sample map appears there, only the first device's maps once they arrive, and the first device does not get a second "sample". Repeat with the second device offline for the first launch: after 20 seconds it may show the sample only if the first device never ran 1.1 (no key-value flag).
 1. Mac (or iPad) creates a map → the other device shows it without relaunching; the other edits a topic → the first shows the edit, and its undo menu no longer offers the step that touched that topic.
 2. Airplane mode on one device, edit on both, reconnect → both edits survive (different topics), last writer wins (same topic); the status line says Waiting for Network while offline, never an alert.
 3. Signed out of iCloud: the app opens and edits normally; Settings says Not Using iCloud.
