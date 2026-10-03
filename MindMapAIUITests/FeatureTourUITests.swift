@@ -69,7 +69,7 @@ final class FeatureTourUITests: XCTestCase {
             let row = library.map(titled: UITestFixture.Title.favorite).waitToExist()
             #if os(iOS)
             row.swipeLeft()
-            app.app.buttons[AccessibilityID.Library.delete].firstMatch.waitToExist().tap()
+            app.app.buttons[AccessibilityID.Library.delete].firstMatch.waitToExist().tapOrClick()
             #else
             row.click()
             app.app.typeKey(.delete, modifierFlags: .command)
@@ -95,7 +95,7 @@ final class FeatureTourUITests: XCTestCase {
         }
         tour.step("09-canvas-select") { _ in
             let design = editor.canvasTopic(UITestFixture.Title.design).waitToExist()
-            design.tap()
+            design.tapOrClick()
             XCTAssertTrue(editor.canvasTopic(UITestFixture.Title.design).waitForSelection(), "Design is not selected")
         }
         tour.step("10-canvas-add-buttons") { _ in
@@ -104,13 +104,13 @@ final class FeatureTourUITests: XCTestCase {
             XCTAssertTrue(editor.canvasTopic(UITestFixture.Title.design).isSelected)
         }
         tour.step("11-canvas-rename") { app in
-            editor.canvasTopic(UITestFixture.Title.design).waitToExist().doubleTap()
+            editor.canvasTopic(UITestFixture.Title.design).waitToExist().doubleTapOrClick()
             let field = editor.canvas.textFields.firstMatch.waitToExist()
             field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: UITestFixture.Title.design.count + 2) + "Prototype\n")
             editor.canvasTopic("Prototype").waitToExist()
         }
         tour.step("12-canvas-add-child") { app in
-            editor.canvasTopic("Prototype").waitToExist().tap()
+            editor.canvasTopic("Prototype").waitToExist().tapOrClick()
             editor.tap(.addChild)
             editor.canvasTopics.waitForCount(6)
             tour.finishTyping("Mockups")
@@ -125,7 +125,7 @@ final class FeatureTourUITests: XCTestCase {
             // menu); the outline's disclosure sets the same state.
             editor.show(.outline)
             editor.outlineDisclosures.firstMatch.waitToExist()
-            editor.outlineDisclosures.element(boundBy: 1).tap()
+            editor.outlineDisclosures.element(boundBy: 1).tapOrClick()
             editor.show(.canvas)
             editor.canvasTopic(UITestFixture.Title.research).waitToExist()
             XCTAssertFalse(editor.canvasTopic(UITestFixture.Title.interviews).exists, "Interviews still shows under collapsed Research")
@@ -133,12 +133,12 @@ final class FeatureTourUITests: XCTestCase {
         tour.step("15-canvas-zoom") { app in
             let level = app.app.buttons[AccessibilityID.Canvas.actualSize].firstMatch.waitToExist()
             let before = level.value as? String
-            app.app.buttons[AccessibilityID.Canvas.zoomIn].firstMatch.waitToExist().tap()
-            app.app.buttons[AccessibilityID.Canvas.zoomIn].firstMatch.tap()
+            app.app.buttons[AccessibilityID.Canvas.zoomIn].firstMatch.waitToExist().tapOrClick()
+            app.app.buttons[AccessibilityID.Canvas.zoomIn].firstMatch.tapOrClick()
             XCTAssertNotEqual(level.value as? String, before, "zoom level stayed \(before ?? "")")
         }
         tour.step("16-canvas-zoom-to-fit") { app in
-            app.app.buttons[AccessibilityID.Canvas.zoomToFit].firstMatch.waitToExist().tap()
+            app.app.buttons[AccessibilityID.Canvas.zoomToFit].firstMatch.waitToExist().tapOrClick()
             editor.canvasTopic(UITestFixture.Title.plan).waitToExist()
         }
     }
@@ -156,16 +156,16 @@ final class FeatureTourUITests: XCTestCase {
             editor.outlineTopic(titled: "Launch Event").waitToExist()
         }
         tour.step("19-outline-undo") { _ in
-            editor.undoButton.waitToExist().tap()
+            editor.undoButton.waitToExist().tapOrClick()
             editor.outlineTopic(titled: UITestFixture.Title.marketing).waitToExist()
         }
         tour.step("20-outline-redo") { _ in
-            editor.redoButton.waitToExist().tap()
+            editor.redoButton.waitToExist().tapOrClick()
             editor.outlineTopic(titled: "Launch Event").waitToExist()
         }
         tour.step("21-outline-collapse") { _ in
             editor.outlineDisclosures.waitForCount(2)
-            editor.outlineDisclosures.element(boundBy: 1).tap()
+            editor.outlineDisclosures.element(boundBy: 1).tapOrClick()
             editor.outlineTopics.waitForCount(4)
         }
     }
@@ -182,20 +182,20 @@ final class FeatureTourUITests: XCTestCase {
         }
         tour.step("23-inspector-note") { app in
             let note = app.app.textViews[AccessibilityID.Inspector.note].firstMatch.waitToExist()
-            note.tap()
+            note.tapOrClick()
             note.typeText("Ask five customers first.")
             XCTAssertTrue((note.value as? String ?? "").contains("five customers"), "note reads \(note.value ?? "")")
         }
         tour.step("24-inspector-link") { app in
             let field = app.app.textFields[AccessibilityID.Link.field].firstMatch.waitToExist()
-            field.tap()
+            field.tapOrClick()
             field.typeText("example.com/design\n")
             app.app.buttons[AccessibilityID.Link.open].firstMatch.waitToExist()
         }
         tour.step("25-inspector-tag") { app in
             let field = app.app.textFields[AccessibilityID.Inspector.tagField].firstMatch
             tour.scrollTo(field)
-            field.waitToExist().tap()
+            field.waitToExist().tapOrClick()
             field.typeText("launch\n")
             app.app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "launch")).firstMatch.waitToExist()
         }
@@ -216,9 +216,9 @@ final class FeatureTourUITests: XCTestCase {
             editor.findStatus.waitToExist()
         }
         tour.step("28-find-next") { _ in
-            let before = editor.findStatus.label
-            editor.findNextButton.waitToExist().tap()
-            XCTAssertNotEqual(editor.findStatus.label, before, "Next did not move from \(before)")
+            let before = editor.findStatus.shownText
+            editor.findNextButton.waitToExist().tapOrClick()
+            XCTAssertNotEqual(editor.findStatus.shownText, before, "Next did not move from \(before)")
         }
         tour.step("29-find-no-results") { _ in
             editor.findField.typeText("zzzz")
@@ -242,13 +242,13 @@ final class FeatureTourUITests: XCTestCase {
         }
         guard !isUnlocked else { return }
         tour.step("31-paywall") { app in
-            app.app.buttons[AccessibilityID.Settings.showPaywall].firstMatch.tap()
+            app.app.buttons[AccessibilityID.Settings.showPaywall].firstMatch.tapOrClick()
             // The price comes from MindMapAITests/MindMapAI.storekit, which
             // the MindMapAIUITests scheme runs the app with.
             app.app.buttons[AccessibilityID.Paywall.purchase].firstMatch.waitToExist()
         }
         tour.step("32-paywall-purchase") { app in
-            app.app.buttons[AccessibilityID.Paywall.purchase].firstMatch.tap()
+            app.app.buttons[AccessibilityID.Paywall.purchase].firstMatch.tapOrClick()
             tour.confirmStoreKitPurchase()
             // Unlocked, the paywall shows a thank-you instead of the button.
             let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.app.buttons[AccessibilityID.Paywall.purchase].firstMatch)
@@ -262,38 +262,38 @@ final class FeatureTourUITests: XCTestCase {
     func test07AI() {
         let editor = tour.openPlan(.canvas, ai: .ready)
         tour.step("33-ai-menu") { app in
-            editor.canvasTopic(UITestFixture.Title.design).waitToExist().tap()
+            editor.canvasTopic(UITestFixture.Title.design).waitToExist().tapOrClick()
             tour.openAIMenu()
             tour.menuItem(symbol: "arrow.turn.down.right").waitToExist()
         }
         tour.step("34-ai-expand") { app in
-            tour.menuItem(symbol: "arrow.turn.down.right").tap()
+            tour.menuItem(symbol: "arrow.turn.down.right").tapOrClick()
             app.app.buttons[AccessibilityID.Suggestions.acceptAll].firstMatch.waitToExist()
             editor.canvasTopics.waitForCount(5 + UITestAI.subtopics.count)
         }
         tour.step("35-ai-review") { app in
-            app.app.buttons[AccessibilityID.Suggestions.review].firstMatch.waitToExist().tap()
+            app.app.buttons[AccessibilityID.Suggestions.review].firstMatch.waitToExist().tapOrClick()
             app.app.buttons.matching(identifier: AccessibilityID.Suggestions.discard).waitForCount(UITestAI.subtopics.count)
         }
         tour.step("36-ai-discard-one") { app in
-            app.app.buttons.matching(identifier: AccessibilityID.Suggestions.discard).element(boundBy: 0).tap()
+            app.app.buttons.matching(identifier: AccessibilityID.Suggestions.discard).element(boundBy: 0).tapOrClick()
             app.app.buttons.matching(identifier: AccessibilityID.Suggestions.discard).waitForCount(UITestAI.subtopics.count - 1)
             tour.dismissPopover()
         }
         tour.step("37-ai-accept") { app in
-            app.app.buttons[AccessibilityID.Suggestions.acceptAll].firstMatch.waitToExist().tap()
+            app.app.buttons[AccessibilityID.Suggestions.acceptAll].firstMatch.waitToExist().tapOrClick()
             editor.canvasTopic(UITestAI.subtopics[1]).waitToExist()
             XCTAssertFalse(app.app.buttons[AccessibilityID.Suggestions.acceptAll].firstMatch.exists)
         }
         tour.step("38-ai-undo") { _ in
-            editor.undoButton.waitToExist().tap()
+            editor.undoButton.waitToExist().tapOrClick()
             editor.canvasTopics.waitForCount(5)
         }
         tour.step("39-ai-discard-all") { app in
-            editor.canvasTopic(UITestFixture.Title.marketing).waitToExist().tap()
+            editor.canvasTopic(UITestFixture.Title.marketing).waitToExist().tapOrClick()
             tour.openAIMenu()
-            tour.menuItem(symbol: "arrow.turn.down.right").waitToExist().tap()
-            app.app.buttons[AccessibilityID.Suggestions.discardAll].firstMatch.waitToExist().tap()
+            tour.menuItem(symbol: "arrow.turn.down.right").waitToExist().tapOrClick()
+            app.app.buttons[AccessibilityID.Suggestions.discardAll].firstMatch.waitToExist().tapOrClick()
             editor.canvasTopics.waitForCount(5)
         }
     }
@@ -305,7 +305,10 @@ final class FeatureTourUITests: XCTestCase {
         let editor = tour.openPlan(.canvas, ai: .ready)
         let chat = ChatPage(app: editor.app)
         tour.step("40-chat") { _ in
-            chat.open()
+            // On iPhone the chat button moves into the More menu, where items
+            // keep only their title; find it by symbol so Vietnamese works too.
+            tour.tapToolbarItem(AccessibilityID.Chat.toolbar, symbol: "bubble.left.and.text.bubble.right")
+            chat.field.waitToExist()
         }
         tour.step("41-chat-answer") { _ in
             chat.ask("Where are the interviews?")
@@ -328,7 +331,7 @@ final class FeatureTourUITests: XCTestCase {
             // rows are the form's cells below it, not its children.
             let options = theme.buttons
             if options.count > 1 {
-                options.element(boundBy: 1).tap()
+                options.element(boundBy: 1).tapOrClick()
             } else {
                 // The picker is the form's last section; the sheet's own swipe
                 // only grows it, so scroll the form itself to the end.
@@ -336,7 +339,7 @@ final class FeatureTourUITests: XCTestCase {
                 for _ in 0..<3 { form.swipeUp() }
                 let rows = app.app.collectionViews.cells.allElementsBoundByIndex
                     .filter { $0.frame.minY >= theme.frame.maxY - 1 }
-                if rows.count > 1 { rows[1].tap() } else { XCTFail("no theme rows below \(theme)") }
+                if rows.count > 1 { rows[1].tapOrClick() } else { XCTFail("no theme rows below \(theme)") }
             }
             editor.undoButton.waitToExist()
             XCTAssertTrue(editor.undoButton.isEnabled, "picking a theme left nothing to undo")
@@ -367,7 +370,7 @@ final class FeatureTourUITests: XCTestCase {
         }
         tour.step("48-export-save") { app in
             tour.pick(0, in: app.app.descendants(matching: .any)[AccessibilityID.Export.format].firstMatch)
-            app.app.buttons[AccessibilityID.Export.export].firstMatch.tap()
+            app.app.buttons[AccessibilityID.Export.export].firstMatch.tapOrClick()
             // The system's save panel or document picker.
             tour.waitForSystemFilePanel()
         }
@@ -398,11 +401,11 @@ final class FeatureTourUITests: XCTestCase {
         tour.step("51-voice-heard") { app in
             // Pro is bought in test06Paywall; StoreKit Testing keeps it for the simulator.
             let listen = app.app.buttons[AccessibilityID.Voice.listen].firstMatch
-            if listen.waitForExistence(timeout: MindMapApp.timeout / 6) { listen.tap() }
+            if listen.waitForExistence(timeout: MindMapApp.timeout / 6) { listen.tapOrClick() }
             app.app.textFields.matching(NSPredicate(format: "value == %@", UITestVoice.topics[0])).firstMatch.waitToExist()
         }
         tour.step("52-voice-added") { app in
-            app.app.buttons[AccessibilityID.Voice.addTopics].firstMatch.tap()
+            app.app.buttons[AccessibilityID.Voice.addTopics].firstMatch.tapOrClick()
             editor.outlineTopic(titled: UITestVoice.topics[1]).waitToExist()
         }
     }
@@ -432,7 +435,7 @@ final class FeatureTourUITests: XCTestCase {
                 #if os(iOS)
                 // Each pane is a page of its own: back to the list first.
                 if !page.paneButton(pane).waitForExistence(timeout: MindMapApp.timeout / 6) {
-                    app.app.navigationBars.buttons.element(boundBy: 0).tap()
+                    app.app.navigationBars.buttons.element(boundBy: 0).tapOrClick()
                 }
                 #endif
                 page.show(pane)
@@ -511,14 +514,14 @@ final class Tour {
     func openAIMenu() {
         let button = xcApp.buttons[AccessibilityID.Editor.ai].firstMatch
         if button.waitForExistence(timeout: MindMapApp.timeout / 6) {
-            button.tap()
+            button.tapOrClick()
             return
         }
         #if os(iOS)
         // In the More menu the AI menu is a submenu titled AI, in both languages.
         let overflow = xcApp.buttons.matching(identifier: "OverflowBarButtonItem")
-        overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist().tap()
-        xcApp.buttons.matching(NSPredicate(format: "label == %@", "AI")).firstMatch.waitToExist().tap()
+        overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist().tapOrClick()
+        xcApp.buttons.matching(NSPredicate(format: "label == %@", "AI")).firstMatch.waitToExist().tapOrClick()
         #else
         button.waitToExist()
         #endif
@@ -539,22 +542,22 @@ final class Tour {
         #if os(iOS)
         if !button.waitForExistence(timeout: MindMapApp.timeout / 6) {
             let overflow = xcApp.buttons.matching(identifier: "OverflowBarButtonItem")
-            overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist().tap()
-            xcApp.collectionViews.buttons.containing(.image, identifier: symbol).firstMatch.waitToExist().tap()
+            overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist().tapOrClick()
+            xcApp.collectionViews.buttons.containing(.image, identifier: symbol).firstMatch.waitToExist().tapOrClick()
             return
         }
         #endif
-        button.waitToExist().tap()
+        button.waitToExist().tapOrClick()
     }
 
     /// Picks an option of a menu picker by position.
     func pick(_ index: Int, in picker: XCUIElement) {
-        picker.waitToExist().tap()
+        picker.waitToExist().tapOrClick()
         #if os(macOS)
-        picker.menuItems.element(boundBy: index).waitToExist().tap()
+        picker.menuItems.element(boundBy: index).waitToExist().tapOrClick()
         #else
         // The open menu is the only collection of buttons over the sheet.
-        xcApp.collectionViews.buttons.element(boundBy: index).waitToExist().tap()
+        xcApp.collectionViews.buttons.element(boundBy: index).waitToExist().tapOrClick()
         #endif
     }
 
@@ -571,7 +574,7 @@ final class Tour {
         #if os(iOS)
         // A popover on iPad, a sheet on iPhone: a tap outside or a swipe down closes either.
         let dismiss = xcApp.otherElements["PopoverDismissRegion"].firstMatch
-        if dismiss.exists { dismiss.tap() } else { xcApp.swipeDown() }
+        if dismiss.exists { dismiss.tapOrClick() } else { xcApp.swipeDown() }
         #else
         xcApp.typeKey(.escape, modifierFlags: [])
         #endif
@@ -594,14 +597,14 @@ final class Tour {
         let deadline = Date().addingTimeInterval(MindMapApp.timeout)
         while Date() < deadline {
             if let button = buttons.first(where: \.exists) {
-                button.tap()
+                button.tapOrClick()
                 break
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.5))
         }
         // "You're all set": the confirmation alert after a test purchase.
         let ok = springboard.buttons.matching(NSPredicate(format: "label IN %@", ["OK", "Done"])).firstMatch
-        if ok.waitForExistence(timeout: MindMapApp.timeout / 3) { ok.tap() }
+        if ok.waitForExistence(timeout: MindMapApp.timeout / 3) { ok.tapOrClick() }
         #endif
     }
 
@@ -621,7 +624,7 @@ final class Tour {
     func dismissSystemFilePanel() {
         #if os(iOS)
         let cancel = xcApp.buttons.matching(NSPredicate(format: "label IN %@", ["Cancel", "Hủy", "Huỷ"])).firstMatch
-        if cancel.waitForExistence(timeout: MindMapApp.timeout / 6) { cancel.tap() }
+        if cancel.waitForExistence(timeout: MindMapApp.timeout / 6) { cancel.tapOrClick() }
         #else
         xcApp.typeKey(.escape, modifierFlags: [])
         #endif
@@ -638,6 +641,15 @@ extension EditorPage {
 
 @MainActor
 extension XCUIElement {
+    /// `doubleTap()` is a touch, which macOS 27 never delivers (see `tapOrClick()`).
+    func doubleTapOrClick() {
+        #if os(macOS)
+        doubleClick()
+        #else
+        doubleTap()
+        #endif
+    }
+
     /// Waits until the element is selected.
     func waitForSelection(timeout: TimeInterval = MindMapApp.timeout / 3) -> Bool {
         let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: self)
