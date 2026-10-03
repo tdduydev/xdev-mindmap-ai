@@ -17,6 +17,8 @@ public struct SuggestionState: Hashable, Sendable {
         /// The real topic the suggestion, or its top suggested ancestor, attaches to.
         public var anchorID: NodeID
         public var title: String
+        /// Kept as the new topic's note on Accept; only AI apps send one (M5).
+        public var note: String?
         /// A node ID that stays the same while the answer streams in, so the
         /// canvas keeps the topic's place and measure from one snapshot to the next.
         public let previewID: NodeID
@@ -27,6 +29,9 @@ public struct SuggestionState: Hashable, Sendable {
     public let feature: AIFeature
     /// Where the top level of the proposal attaches.
     public let anchorID: NodeID
+    /// The AI app that proposed the topics over MCP ("Claude Code"), for
+    /// "Suggested by Claude Code"; nil for the app's own AI.
+    public let suggestedBy: String?
     /// Suggestions in pre-order, parents first.
     public private(set) var topics: [Topic] = []
     /// The title the model gave a generated map.
@@ -38,9 +43,10 @@ public struct SuggestionState: Hashable, Sendable {
     private var removed: Set<String> = []
     private var previewIDs: [String: NodeID] = [:]
 
-    public init(feature: AIFeature, anchorID: NodeID) {
+    public init(feature: AIFeature, anchorID: NodeID, suggestedBy: String? = nil) {
         self.feature = feature
         self.anchorID = anchorID
+        self.suggestedBy = suggestedBy
     }
 
     public var isEmpty: Bool { topics.isEmpty }
@@ -81,6 +87,7 @@ public struct SuggestionState: Hashable, Sendable {
                 parentTemporaryID: parent?.isEmpty == false ? parent : nil,
                 anchorID: anchorID,
                 title: renamed[id] ?? title,
+                note: raw.note?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
                 previewID: previewID
             ))
         }
@@ -136,6 +143,7 @@ public struct SuggestionState: Hashable, Sendable {
                 nodeID: topic.previewID,
                 .child(of: parent, at: .last),
                 title: topic.title,
+                note: topic.note,
                 metadata: NodeMetadata(origin: .ai)
             ))
         }
@@ -185,7 +193,7 @@ public struct SuggestionState: Hashable, Sendable {
                 feature: feature,
                 anchor: .node(anchor),
                 topics: members.map {
-                    ProposedTopic(temporaryID: $0.temporaryID, parentTemporaryID: $0.parentTemporaryID, title: $0.title)
+                    ProposedTopic(temporaryID: $0.temporaryID, parentTemporaryID: $0.parentTemporaryID, title: $0.title, note: $0.note)
                 }
             )
             let accepted = try ProposalTranslator.accept(proposal, topics: chosen, in: engine, makeNodeID: makeNodeID)
@@ -254,4 +262,8 @@ public struct SuggestionState: Hashable, Sendable {
         }
         return ordered
     }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }

@@ -16,6 +16,7 @@ struct MCPHarness {
     let server: MCPServer
 
     init(configure: (inout MCPServer.Configuration) -> Void = { _ in },
+         proposals: (any MCPProposalReceiver)? = nil,
          onActivity: @escaping @Sendable (MCPServer.Activity) -> Void = { _ in }) throws {
         repository = try PersistenceController.makeRepository(at: .inMemory)
         access = MCPTokenList([Self.token: Self.client])
@@ -25,6 +26,7 @@ struct MCPHarness {
             queries: MapQueries(repository: repository, graphs: RepositoryGraphSource(repository: repository)),
             access: access,
             configuration: configuration,
+            proposals: proposals,
             onActivity: onActivity
         )
     }

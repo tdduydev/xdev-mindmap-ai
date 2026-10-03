@@ -130,6 +130,29 @@ struct SuggestionStateTests {
         #expect(fixture.childTitles(of: "Trip") == ["Flights", "Hotels", "Food", "Weather"])
     }
 
+    @Test func notesFromAnAIAppSurvivePreviewAndAccept() throws {
+        var fixture = try OutlineFixture(outline)
+        var state = SuggestionState(feature: .chat, anchorID: fixture["Trip"], suggestedBy: "Claude Code")
+        state.update(with: complete(AIProposal(feature: .chat, anchor: .node(fixture["Trip"]), topics: [
+            ProposedTopic(temporaryID: "p1", title: "Ngân sách", note: "  Vé máy bay và khách sạn \n"),
+            ProposedTopic(temporaryID: "p2", parentTemporaryID: "p1", title: "Vé", note: "   "),
+        ])))
+        #expect(state.suggestedBy == "Claude Code")
+        #expect(state.topics.map(\.note) == ["Vé máy bay và khách sạn", nil])
+        let previewTopic = try #require(state.topics.first?.previewID)
+        #expect(state.preview(in: fixture.engine).node(previewTopic)?.note == "Vé máy bay và khách sạn")
+
+        let accepted = try state.accept(in: fixture.engine)
+        try fixture.engine.execute(accepted.command)
+        let budget = try #require(accepted.nodeIDs["p1"])
+        #expect(fixture.state.node(budget)?.note == "Vé máy bay và khách sạn")
+        #expect(fixture.state.node(budget)?.metadata.origin == .ai)
+        fixture.engine.undo()
+        #expect(fixture.state.node(budget) == nil)
+        fixture.engine.redo()
+        #expect(fixture.state.node(budget)?.note == "Vé máy bay và khách sạn")
+    }
+
     @Test func acceptingOneKeepsTheOthers() throws {
         var fixture = try OutlineFixture(outline)
         var state = SuggestionState(feature: .brainstorm, anchorID: fixture["Trip"])

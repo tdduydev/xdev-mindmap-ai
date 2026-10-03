@@ -45,15 +45,49 @@ extension MapTools {
         ),
     ]
 
+    /// Listed only when the app takes proposals. Not read-only, but never
+    /// destructive: it adds a suggestion the person reviews, and changes
+    /// nothing in the map by itself.
+    static let proposeTopicsDefinition = tool(
+        "propose_topics", title: "Propose Topics",
+        description: "Suggest new topics under one existing topic of a map. The person sees them in MindMap AI as a suggestion labelled with this app's name, can edit or discard each one, and nothing is added until they accept. At most 20 topics, counting subtopics. This cannot edit, move or delete existing topics.",
+        properties: [
+            "map_id": ["type": "string", "description": "A map_id from list_maps or search."],
+            "parent_topic_id": ["type": "string", "description": "The topic_id the new topics go under, from get_map or search."],
+            "topics": [
+                "type": "array", "minItems": 1, "maxItems": 20,
+                "description": "The new topics, in order. Each has a short title, an optional note, and optional subtopics of the same shape.",
+                "items": ["$ref": "#/$defs/topic"],
+            ],
+        ],
+        required: ["map_id", "parent_topic_id", "topics"],
+        definitions: [
+            "topic": [
+                "type": "object",
+                "properties": [
+                    "title": ["type": "string", "minLength": 1, "maxLength": 200, "description": "One line, like a topic title in the map."],
+                    "note": ["type": "string", "maxLength": 2000, "description": "Optional detail shown as the topic's note."],
+                    "subtopics": ["type": "array", "items": ["$ref": "#/$defs/topic"]],
+                ],
+                "required": ["title"],
+                "additionalProperties": false,
+            ],
+        ],
+        readOnly: false
+    )
+
     private static func tool(
         _ name: String,
         title: String,
         description: String,
         properties: [String: JSONValue],
-        required: [String] = []
+        required: [String] = [],
+        definitions: [String: JSONValue] = [:],
+        readOnly: Bool = true
     ) -> JSONValue {
         var schema: [String: JSONValue] = ["type": "object", "properties": .object(properties), "additionalProperties": false]
         if !required.isEmpty { schema["required"] = .array(required.map(JSONValue.string)) }
+        if !definitions.isEmpty { schema["$defs"] = .object(definitions) }
         return [
             "name": .string(name),
             "title": .string(title),
@@ -63,9 +97,10 @@ extension MapTools {
             // its confirmation prompt for reads.
             "annotations": [
                 "title": .string(title),
-                "readOnlyHint": true,
+                "readOnlyHint": .bool(readOnly),
                 "destructiveHint": false,
-                "idempotentHint": true,
+                // Proposing twice shows the topics twice.
+                "idempotentHint": .bool(readOnly),
                 "openWorldHint": false,
             ],
         ]
