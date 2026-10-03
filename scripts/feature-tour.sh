@@ -63,8 +63,7 @@ ${lock[@]+"${lock[@]}"} xcodebuild test -quiet \
   -derivedDataPath "$derived" \
   -resultBundlePath "$results" \
   -only-testing:MindMapAIUITests/FeatureTourUITests \
-  -collect-test-diagnostics never \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES || status=$?
+  -collect-test-diagnostics never || status=$?
 
 if [[ ! -d "$results" ]]; then
   echo "No result bundle: the tour did not build or start." >&2

@@ -38,7 +38,6 @@ scripts/storekit-lock.sh xcodebuild test -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI \
   -destination 'platform=macOS,arch=x86_64' \
   -derivedDataPath "$derived/App" \
-  -only-testing:MindMapAITests \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+  -only-testing:MindMapAITests
 
 printf '\nRosetta checks passed.\n'

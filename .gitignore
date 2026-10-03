@@ -11,6 +11,8 @@ build/
 .build/
 .swiftpm/
 Package.resolved
+# The app's pins every MLX package at an exact version (ADR 0011, MM-119).
+!MindMapAI.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # Local check output
 scripts/out/
