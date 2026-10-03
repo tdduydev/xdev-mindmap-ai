@@ -34,7 +34,7 @@ Keys follow the existing pattern `area.name` (`export.includeNotes`, `voiceInput
 
 ## Layout
 
-**Mac:** the `Settings` scene, a `TabView` with one tab per pane, 480 pt wide (`Metrics.settingsWidth`), each pane one grouped `Form`. Panes, in this order: General, Export, AI, Data, AI Apps, Pro, Privacy, About. The window title is the pane's name. To reopen the last pane, the selected tab is kept in AppDefaults (`settings.pane`) [Đề xuất] (HIG Settings: restore the most recently viewed pane).
+**Mac:** the `Settings` scene, a `TabView` with one tab per pane, 560 pt wide (`Metrics.settingsWidth`, the width at which all eight tabs fit in Vietnamese, so none falls into the toolbar overflow menu), each pane one grouped `Form`. Panes, in this order: General, Export, AI, Data, AI Apps, Pro, Privacy, About. The window title is the pane's name. To reopen the last pane, the selected tab is kept in AppDefaults (`settings.pane`) [Đề xuất] (HIG Settings: restore the most recently viewed pane).
 
 The Mac opens Settings from App ▸ Settings… (⌘,) and, decided by the product owner on 2026-10-03 (MM-72) because ⌘, alone was hard to find, from two buttons in the library window: **Settings** (Cài đặt, `gearshape`, tooltip "Open Settings (⌘,)") at the foot of the sidebar under the iCloud status line (`AccessibilityID.Sidebar.settings`) and in the toolbar (`AccessibilityID.Library.settings`). Both are a `SettingsLink` (`Features/Settings/SettingsButton.swift`), so they open the same window as ⌘,. Map windows get no button. This departs from HIG Settings (no Settings button in a window toolbar) on purpose.
 
