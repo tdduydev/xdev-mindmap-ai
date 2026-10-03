@@ -23,7 +23,7 @@ AI is not a chatbot bolted onto a diagram tool. It works on the selected part of
 
 ## Platforms
 
-macOS (developed first, and the only platform of the first release), iPadOS and iOS, all from version 26. The Mac app runs on Apple silicon and on Intel Macs that run macOS 26; on-device AI needs Apple silicon, so it is hidden on Intel. Windows, keyboard, trackpad and mouse on the Mac; portrait and landscape, Split View, Stage Manager, Apple Pencil and touch on iPad; light and dark mode, Dynamic Type and VoiceOver everywhere.
+macOS (developed first), iPadOS and iOS, all from version 26. The first release, 1.0.0, ships on all three together; the product owner decided this on 2026-10-03, replacing the earlier Mac-only plan. The Mac app runs on Apple silicon and on Intel Macs that run macOS 26; on-device AI needs Apple silicon, so it is hidden on Intel. Windows, keyboard, trackpad and mouse on the Mac; portrait and landscape, Split View, Stage Manager, Apple Pencil and touch on iPad; light and dark mode, Dynamic Type and VoiceOver everywhere.
 
 ## MVP scope
 

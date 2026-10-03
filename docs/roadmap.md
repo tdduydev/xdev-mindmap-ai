@@ -75,7 +75,7 @@ No Foundation Models, CloudKit, Firebase or final canvas in this phase.
 
 ## 14. Release
 
-- **MM-14** App Store submission kit for the Mac-only first release: metadata in English and Vietnamese, screenshots, Review Notes on AI availability, privacy and accessibility labels, age rating, TestFlight builds as 0.x, 1.0.0 for the public release.
+- **MM-14** App Store submission kit for the first release (Mac, iPhone and iPad from 2026-10-03; Mac only before): metadata in English, Vietnamese and Japanese, screenshots, Review Notes on AI availability, privacy and accessibility labels, age rating, TestFlight builds as 0.x, 1.0.0 for the public release.
 
 ## 15. Node organization
 

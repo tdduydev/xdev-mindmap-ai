@@ -10,7 +10,7 @@ How a build of MindMap AI reaches TestFlight and the Mac App Store. Set up on 20
 | Platforms | macOS first; iOS is added to the same app later (universal purchase, ADR 0006) |
 | Bundle ID | `asia.xdev.mindmapai`, registered as UNIVERSAL so iOS can share it. Capabilities: In-App Purchase, Push Notifications, iCloud (CloudKit, container `iCloud.asia.xdev.mindmapai`), App Groups (`group.asia.xdev.mindmapai`); the Share Extension `asia.xdev.mindmapai.share` has App Groups. Set on 2026-10-02 |
 | Team ID | `M6C7NX9MUZ`, passed as `DEVELOPMENT_TEAM` by `scripts/upload-testflight.sh` only; the project leaves it empty so `scripts/ci.sh` builds on machines without a signing certificate |
-| Version | 0.x for TestFlight while in beta, 1.0.0 for the public release; the build number is the upload time (`YYYYMMDDHHmm`) |
+| Version | 0.1.0 for the TestFlight beta; `MARKETING_VERSION` is 1.0.0 from 2026-10-03, the first public release. The build number is the upload time (`YYYYMMDDHHmm`) |
 
 ## What lives outside the repo
 
@@ -56,7 +56,7 @@ Every upload adds a row here with the commit it was archived from, so whether a 
 
 The first four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02, and none contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
 
-From 202610030024 on, SchemaV2 has shipped to testers: a schema change now needs SchemaV3 and a migration stage ([data-model.md](data-model.md)). The iOS platform was added to the same app record on 2026-10-03 for TestFlight (universal purchase, ADR 0006); the first public release stays Mac only. Internal testers are in the TestFlight group "xDev Internal", which gets every build.
+From 202610030024 on, SchemaV2 has shipped to testers: a schema change now needs SchemaV3 and a migration stage ([data-model.md](data-model.md)). The iOS platform was added to the same app record on 2026-10-03 (universal purchase, ADR 0006). On 2026-10-03 the product owner chose to submit 1.0.0 for Mac, iPhone and iPad together, released as soon as App Review approves it (release type `AFTER_APPROVAL`). Internal testers are in the TestFlight group "xDev Internal", which gets every build.
 
 ```bash
 scripts/upload-testflight.sh        # Mac
