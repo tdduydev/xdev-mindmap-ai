@@ -43,12 +43,29 @@ struct AILanguageTests {
         #expect(AILanguage(preferredFor: Locale(identifier: "vi")) == .vietnamese)
         #expect(AILanguage(preferredFor: Locale(identifier: "en_GB")) == .english)
         #expect(AILanguage(preferredFor: Locale(identifier: "fr_FR")) == .english)
+        #expect(AILanguage(preferredFor: Locale(identifier: "ja_JP")) == .japanese)
+        #expect(AILanguage(preferredFor: Locale(identifier: "ja")) == .japanese)
+    }
+
+    @Test func japaneseIsNamedForTheModel() {
+        #expect(AILanguage.japanese.rawValue == "ja")
+        #expect(AILanguage.japanese.locale.identifier == "ja_JP")
+        #expect(AILanguage.japanese.englishName == "Japanese")
+        #expect(AILanguage.allCases == [.english, .vietnamese, .japanese])
     }
 
     @Test func detectsTheLanguageOfTheText() {
         #expect(AILanguage.dominant(in: "Kế hoạch ra mắt sản phẩm mới cho khách hàng", fallback: .english) == .vietnamese)
         #expect(AILanguage.dominant(in: "Plan the launch of the new product for customers", fallback: .vietnamese) == .english)
         #expect(AILanguage.dominant(in: "", fallback: .vietnamese) == .vietnamese)
+        #expect(AILanguage.dominant(in: "新製品の発売計画を顧客に向けて立てる", fallback: .english) == .japanese)
+        #expect(AILanguage.dominant(in: "マーケティングのアイデアを考える", fallback: .vietnamese) == .japanese)
+        // Kanji only would read as Chinese without the language constraint.
+        #expect(AILanguage.dominant(in: "東京旅行計画", fallback: .english) == .japanese)
+    }
+
+    @Test func mixedJapaneseAndEnglishCountsAsJapanese() {
+        #expect(AILanguage.dominant(in: "新しいiPhoneアプリのマーケティング計画", fallback: .english) == .japanese)
     }
 
     @Test func rewriteStylesThatTranslatePickTheirLanguage() {
@@ -61,5 +78,6 @@ struct AILanguageTests {
         )
         #expect(RewriteRequest(context: context, style: .vietnamese).outputLanguage == .vietnamese)
         #expect(RewriteRequest(context: context, style: .shorter).outputLanguage == .english)
+        #expect(RewriteRequest(context: context, style: .japanese).outputLanguage == .japanese)
     }
 }

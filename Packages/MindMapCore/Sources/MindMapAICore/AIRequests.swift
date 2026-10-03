@@ -66,12 +66,14 @@ public enum RewriteStyle: String, Hashable, Sendable, CaseIterable, Codable {
     case technical
     case vietnamese
     case english
+    case japanese
 
     /// Translating styles decide the output language themselves.
     public var outputLanguage: AILanguage? {
         switch self {
         case .vietnamese: .vietnamese
         case .english: .english
+        case .japanese: .japanese
         case .shorter, .clearer, .formal, .simpler, .technical: nil
         }
     }

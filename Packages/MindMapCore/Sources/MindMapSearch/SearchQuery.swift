@@ -4,11 +4,19 @@ import Foundation
 ///
 /// People type Vietnamese without tone marks all the time ("thiet ke" for
 /// "Thiết kế"), so a search that needs the marks finds nothing.
+///
+/// Japanese keeps its voiced marks: "が" and "か" are different letters that
+/// nobody types one for the other, and Foundation's diacritic folding leaves
+/// the kana marks alone anyway. Hiragana and katakana stay apart too.
 public enum SearchText {
     public static func fold(_ text: String) -> String {
-        // Diacritic folding removes combining marks, but "đ" is its own letter
-        // with no decomposition, so it survives folding and needs mapping by hand.
-        text.folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: nil)
+        // Half-width "ｶﾞ" widens to "カ" plus a separate voiced mark, which only
+        // composing turns into "ガ"; folding it all at once would leave "カﾞ".
+        text.folding(options: .widthInsensitive, locale: nil)
+            .precomposedStringWithCanonicalMapping
+            // Diacritic folding removes combining marks, but "đ" is its own letter
+            // with no decomposition, so it survives folding and needs mapping by hand.
+            .folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale: nil)
             .replacingOccurrences(of: "đ", with: "d")
     }
 }
