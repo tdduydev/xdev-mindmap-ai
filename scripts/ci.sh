@@ -32,6 +32,16 @@ fail_on_missing_dependency() {
   fi
 }
 
+# Xcode 27 can report a warning-as-error in a dependency target (the watch app
+# inside the iOS build) as "failed with exit code 0" and still exit 0 (MM-116).
+fail_on_hidden_error() {
+  if grep -q "failed with exit code 0" "$1"; then
+    grep -B1 -A4 "failed with exit code 0" "$1" | grep -E "warning:|error:" | sort -u >&2
+    echo "error: a compile step failed inside $1" >&2
+    exit 1
+  fi
+}
+
 step "Package dependencies match imports"
 swift package --package-path Packages/MindMapCore dump-package > "$logs/package.json"
 python3 - "$logs/package.json" <<'PY'
@@ -112,6 +122,7 @@ xcodebuild build -quiet \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$derived" 2>&1 | tee "$logs/ios-simulator.log"
 fail_on_missing_dependency "$logs/ios-simulator.log"
+fail_on_hidden_error "$logs/ios-simulator.log"
 
 # The watch app and its complication (MM-116), on their own so a watch-only
 # error names the watch scheme. The iOS build above embeds the same app.
@@ -121,6 +132,7 @@ xcodebuild build -quiet \
   -destination 'generic/platform=watchOS Simulator' \
   -derivedDataPath "$derived" 2>&1 | tee "$logs/watchos-simulator.log"
 fail_on_missing_dependency "$logs/watchos-simulator.log"
+fail_on_hidden_error "$logs/watchos-simulator.log"
 watch_app="$derived/Build/Products/Debug-watchsimulator/MindMapWatch.app"
 if [[ ! -d "$watch_app/PlugIns/MindMapWatchWidgets.appex" ]]; then
   echo "error: the watch app does not embed MindMapWatchWidgets.appex" >&2
