@@ -25,7 +25,7 @@ Packages/
 │  ├─ MindMapGraph            ✓
 │  ├─ MindMapPersistence      ✓, plus App Group store and CloudKit config (MM-6)
 │  ├─ MindMapLayout           ✓ (MM-4), see [[layout-engine]]
-│  ├─ MindMapInterchange      ✓ Markdown and text (MM-10a), see [[interchange]]; OPML later
+│  ├─ MindMapInterchange      ✓ Markdown and text (MM-10a), OPML and the import report for other apps (MM-101), see [[interchange]]
 │  ├─ MindMapSearch           ✓ text search (MM-15): folding, library index and ranking, Find; `Embedder` protocol later
 │  ├─ MindMapSharing          ✓ (MM-11): QuickCapture, SharedContent, ShareInbox for the extension and the intents
 │  ├─ MindMapIntents          ✓ (MM-11): entities, queries, intents, AppIntentsPackage, Spotlight index; see [[system-integration]]

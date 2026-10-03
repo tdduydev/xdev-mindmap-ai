@@ -21,6 +21,7 @@ struct ExportSheet: View {
     @State private var file: ExportedFile?
     @State private var isPreparing = false
     @State private var failed = false
+    @State private var paywallFeature: ProFeature?
 
     init(session: EditorSession, entitlements: any ProEntitlements, onClose: @escaping () -> Void) {
         self.session = session
@@ -44,7 +45,7 @@ struct ExportSheet: View {
                 Section {
                     Picker("Format", selection: $options.format) {
                         ForEach(ExportFormat.allCases) { format in
-                            Text(format.title).tag(format)
+                            ProChoiceLabel(title: format.title, isLocked: !isAllowed(format)).tag(format)
                         }
                     }
                     .accessibilityIdentifier(AccessibilityID.Export.format)
@@ -52,6 +53,8 @@ struct ExportSheet: View {
                 switch options.format {
                 case .markdown, .plainText:
                     textOptions
+                case .opml:
+                    opmlOptions
                 case .png:
                     imageOptions
                 case .pdf:
@@ -97,6 +100,9 @@ struct ExportSheet: View {
         .onChange(of: options) { old, new in
             ExportPreferences().save(new, changedFrom: old)
         }
+        .sheet(item: $paywallFeature) { feature in
+            PaywallView(feature: feature)
+        }
         .alert("Couldn’t Export Map", isPresented: $failed) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -116,6 +122,31 @@ struct ExportSheet: View {
         } footer: {
             Text("Markdown and plain text open in any text editor and can be imported again.")
         }
+    }
+
+    /// Same choices as text; Pro (FR-IO-06), so a locked sheet leads to the paywall.
+    @ViewBuilder
+    private var opmlOptions: some View {
+        Section {
+            Picker("Include", selection: $scope) {
+                Text("Whole Map").tag(ExportScope.wholeMap)
+                Text("Selected Branch").tag(ExportScope.selectedBranch)
+                    .selectionDisabled(selectedBranch == nil)
+            }
+            Toggle("Include Notes", isOn: $options.includeNotes)
+            if let lockedFeature {
+                Button("See What’s in Pro…") { paywallFeature = lockedFeature }
+                    .accessibilityIdentifier(AccessibilityID.Export.showPaywall)
+            }
+        } footer: {
+            footer(default: Text("OPML opens in outliners and other mind map apps. Titles, notes, links and the tree are kept."))
+        }
+    }
+
+    private func isAllowed(_ format: ExportFormat) -> Bool {
+        var options = ExportOptions()
+        options.format = format
+        return options.requiredFeature.map(entitlements.allows) ?? true
     }
 
     @ViewBuilder
