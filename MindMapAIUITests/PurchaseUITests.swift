@@ -130,9 +130,9 @@ private enum Status {
     static let locked = ", Not unlocked"
 }
 
-/// `ProFeature` lives in the app: the paywall lists 4 features without AI, 7 with it.
+/// `ProFeature` lives in the app: the paywall lists 5 features without AI, 9 with it.
 private enum ProFeatureCount {
-    static let withoutAI = 4
+    static let withoutAI = 5
 }
 
 /// The paywall sheet, from Settings or from a Pro feature.
