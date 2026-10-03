@@ -63,6 +63,25 @@ nonisolated enum AccessibilityID {
         /// One per suggested topic in the Review list.
         static let accept = "suggestions.accept"
         static let discard = "suggestions.discard"
+        /// Why the last request ended without suggestions, and what to do.
+        static let failure = "suggestions.failure"
+        static let editRequest = "suggestions.editRequest"
+    }
+
+    /// The AI sheets: a request to type, or a result to review first.
+    enum AISheet {
+        static let promptField = "aiSheet.promptField"
+        static let submit = "aiSheet.submit"
+        static let newTitle = "aiSheet.newTitle"
+        static let useTitle = "aiSheet.useTitle"
+        static let summary = "aiSheet.summary"
+        static let addToNote = "aiSheet.addToNote"
+        static let cancel = "aiSheet.cancel"
+    }
+
+    enum AIMenu {
+        /// The one line on why AI cannot run, at the top of the AI menus.
+        static let unavailableReason = "aiMenu.unavailableReason"
     }
 
     enum Export {

@@ -10,41 +10,71 @@ import MindMapQuery
 enum UITestAIService {
     static func make(_ mode: UITestAI, queries: MapQueries, entitlements: any ProEntitlements) -> AIService {
         let capabilities: AICapabilities = switch mode {
-        case .ready: AICapabilities(model: .ready, supportedLanguages: Set(AILanguage.allCases), contextSize: 4_096)
+        case .ready, .fiveSuggestions, .guardrail:
+            AICapabilities(model: .ready, supportedLanguages: Set(AILanguage.allCases), contextSize: 4_096)
         case .ineligible: .notEligible
+        case .appleIntelligenceOff: AICapabilities(model: .appleIntelligenceOff)
         }
         return AIService(
-            provider: { UITestAIProvider(current: capabilities) },
+            provider: { UITestAIProvider(mode: mode, current: capabilities) },
             chatProvider: { UITestChatProvider(current: capabilities, queries: queries) },
             entitlements: entitlements
         )
     }
 }
 
-/// Reports the mode's capabilities. Suggest Subtopics answers with
-/// `UITestAI.subtopics(languageCode:)` under the focus topic, so a test can accept and
-/// discard them and screenshots never depend on an installed model; the
-/// other features are not scripted yet, so each one fails the way a bad
-/// answer would.
+/// Reports the mode's capabilities and gives fixed answers, so a test can
+/// accept, edit and discard them and screenshots never depend on an installed
+/// model. Suggest Subtopics answers with `UITestAI.subtopics(languageCode:)`
+/// (or `UITestAI.fiveSubtopics`) under the focus topic; Generate Map, Rewrite
+/// Topic and Summarize Branch with the other `UITestAI` answers; the
+/// remaining features fail the way a bad answer would. In the `guardrail`
+/// mode every request is blocked.
 private struct UITestAIProvider: AIProvider {
+    let mode: UITestAI
     let current: AICapabilities
 
     func capabilities() async -> AICapabilities { current }
-    func generateMap(_ request: GenerateMapRequest) async throws -> AIProposal { throw AIError.generationFailed }
-    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
-        let language = Locale.preferredLanguages.first ?? "en"
-        let topics = UITestAI.subtopics(languageCode: language).enumerated().map { index, title in
-            ProposedTopic(temporaryID: "t\(index)", title: title)
-        }
-        return AIProposal(feature: .expandTopic, anchor: .node(request.context.focus.nodeID), topics: topics)
+
+    func generateMap(_ request: GenerateMapRequest) async throws -> AIProposal {
+        try checkGuardrail()
+        return AIProposal(feature: .generateMap, anchor: .root, topics: Self.topics(UITestAI.generatedTopics))
     }
-    func brainstorm(_ request: BrainstormRequest) async throws -> AIProposal { throw AIError.generationFailed }
-    func rewrite(_ request: RewriteRequest) async throws -> AIRewrite { throw AIError.generationFailed }
-    func summarize(_ request: SummarizeRequest) async throws -> AISummary { throw AIError.generationFailed }
-    func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal { throw AIError.generationFailed }
-    func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions { throw AIError.generationFailed }
-    func suggestGroups(_ request: SuggestGroupsRequest) async throws -> AIGroupSuggestions { throw AIError.generationFailed }
-    func summarizeBoundary(_ request: SummarizeBoundaryRequest) async throws -> AIBoundaryTitle { throw AIError.generationFailed }
+
+    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
+        try checkGuardrail()
+        let titles = mode == .fiveSuggestions
+            ? UITestAI.fiveSubtopics
+            : UITestAI.subtopics(languageCode: Locale.preferredLanguages.first ?? "en")
+        return AIProposal(feature: .expandTopic, anchor: .node(request.context.focus.nodeID), topics: Self.topics(titles))
+    }
+
+    func rewrite(_ request: RewriteRequest) async throws -> AIRewrite {
+        try checkGuardrail()
+        let focus = request.context.focus
+        return AIRewrite(nodeID: focus.nodeID, originalTitle: focus.title, suggestions: UITestAI.rewrites)
+    }
+
+    func summarize(_ request: SummarizeRequest) async throws -> AISummary {
+        try checkGuardrail()
+        return AISummary(nodeID: request.context.focus.nodeID, text: UITestAI.summary)
+    }
+
+    func brainstorm(_ request: BrainstormRequest) async throws -> AIProposal { throw failure }
+    func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal { throw failure }
+    func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions { throw failure }
+    func suggestGroups(_ request: SuggestGroupsRequest) async throws -> AIGroupSuggestions { throw failure }
+    func summarizeBoundary(_ request: SummarizeBoundaryRequest) async throws -> AIBoundaryTitle { throw failure }
+
+    private var failure: AIError { mode == .guardrail ? .guardrailViolation : .generationFailed }
+
+    private func checkGuardrail() throws {
+        if mode == .guardrail { throw AIError.guardrailViolation }
+    }
+
+    private static func topics(_ titles: [String]) -> [ProposedTopic] {
+        titles.enumerated().map { index, title in ProposedTopic(temporaryID: "t\(index)", title: title) }
+    }
 }
 
 /// Answers by searching the map for each word of the question, through the

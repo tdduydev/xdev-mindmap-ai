@@ -19,11 +19,28 @@ nonisolated enum UITestAI: String, CaseIterable {
     case ready
     /// A device that can never run Apple Intelligence: every AI entry point is hidden.
     case ineligible
+    /// Ready, and Suggest Subtopics proposes `fiveSubtopics`, so a test can
+    /// accept some and discard the rest (AT-04).
+    case fiveSuggestions
+    /// Ready, but the model's guardrails block every request.
+    case guardrail
+    /// Apple Intelligence is turned off: entry points stay, with one line on
+    /// how to turn it on.
+    case appleIntelligenceOff
 
     /// What Suggest Subtopics proposes in the `ready` mode, in this order.
     static let subtopics = ["Budget", "Timeline", "Risks"]
     static let subtopicsVi = ["Ngân sách", "Lịch trình", "Rủi ro"]
     static let subtopicsJa = ["予算", "スケジュール", "リスク"]
+
+    /// What Suggest Subtopics proposes in the `fiveSuggestions` mode, in this order.
+    static let fiveSubtopics = ["Budget", "Timeline", "Risks", "Team", "Launch Date"]
+    /// The rewritten titles every ready mode offers, in this order.
+    static let rewrites = ["Visual Design", "Design Work"]
+    /// The branch summary every ready mode offers.
+    static let summary = "The branch covers the visual design of the launch."
+    /// The topics Generate Map proposes under the central topic.
+    static let generatedTopics = ["Goals", "Channels"]
 
     /// Follows the app language (`-AppleLanguages`), not the topic's, so a test
     /// knows the titles from how it launched: the Vietnamese and Japanese
