@@ -28,6 +28,9 @@ final class FileTransfer {
     var exportRequest: ExportRequest?
     /// Shown as an alert.
     var failure: ImportFailure?
+    /// What a file from another app had that the new map could not keep,
+    /// shown after the map opens (FR-IO-13). Nil when nothing was lost.
+    var importSummary: ImportSummary?
 
     /// Kept apart from `isImporting`, which the panel clears before it reports the file.
     @ObservationIgnored private var pendingDestination: ImportDestination?
@@ -75,6 +78,10 @@ final class FileTransfer {
             await importBackup(at: url, into: destination)
             return
         }
+        if let format = MapImporter.foreignFormat(of: url) {
+            await importForeign(at: url, format: format, into: destination)
+            return
+        }
         let file: ImportedFile
         do {
             file = try await MapImporter.read(url)
@@ -104,6 +111,36 @@ final class FileTransfer {
         Log.interchange.info("Imported \(file.draft.items.count, privacy: .public) topics from \(file.format.rawValue, privacy: .public)")
     }
 
+    /// Every map of the file is stored before the first opens, so a failure
+    /// part way leaves no half-imported file behind the summary.
+    private func importForeign(at url: URL, format: ForeignFormat, into destination: ImportDestination) async {
+        guard case .newMap = destination else {
+            failure = .foreignIntoMap(fileName: url.lastPathComponent)
+            return
+        }
+        let imported: ForeignImport
+        do {
+            imported = try await MapImporter.readForeign(url, format: format)
+        } catch {
+            failure = error
+            return
+        }
+        var created: [MapID] = []
+        for map in imported.maps {
+            let imageData = imported.imageData.filter { map.images[$0.key] != nil }
+            guard let id = await createMap(map, imageData) else {
+                failure = .couldNotSave
+                return
+            }
+            created.append(id)
+        }
+        if let first = created.first { openMap(first) }
+        if !imported.report.isEmpty {
+            importSummary = ImportSummary(fileName: url.lastPathComponent, report: imported.report)
+        }
+        Log.interchange.info("Imported \(imported.maps.count, privacy: .public) maps from \(format.rawValue, privacy: .public), \(imported.report.entries.count, privacy: .public) kinds of loss")
+    }
+
     private func importBackup(at url: URL, into destination: ImportDestination) async {
         guard case .newMap = destination else {
             failure = .backupIntoMap(fileName: url.lastPathComponent)
@@ -125,5 +162,33 @@ final class FileTransfer {
         }
         openMap(id)
         Log.interchange.info("Imported a backup of \(graph.nodes.count, privacy: .public) topics, version \(archive.version, privacy: .public)")
+    }
+}
+
+/// The alert after an import from another app that could not keep everything.
+struct ImportSummary: Identifiable, Equatable {
+    let id = UUID()
+    let fileName: String
+    let report: ImportReport
+
+    var title: String {
+        String(localized: "Imported “\(fileName)”")
+    }
+
+    /// One line per kind of loss; every topic is in the map either way.
+    var message: String {
+        let lines = report.entries.map { Self.line(for: $0) }
+        return (lines + [String(localized: "Every topic was imported.")]).joined(separator: "\n")
+    }
+
+    static func line(for entry: ImportReport.Entry) -> String {
+        switch entry.loss {
+        case .includedOutline:
+            String(localized: "\(entry.count) linked outlines weren’t downloaded. Their links are on the topics.")
+        case .image:
+            String(localized: "\(entry.count) images couldn’t be imported.")
+        case .attachment:
+            String(localized: "\(entry.count) attached files couldn’t be imported.")
+        }
     }
 }

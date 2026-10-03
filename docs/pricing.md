@@ -6,7 +6,7 @@ Decided 2026-10-02: MindMap AI is free, with one **Pro** unlock at **USD 14.99**
 
 | Pro | Stays free |
 | --- | --- |
-| Advanced export: multi-page vector PDF, high-resolution PNG (OPML joins once it is built, FR-IO-06; not offered until then) | Markdown and plain text import and export |
+| Advanced export: multi-page vector PDF, high-resolution PNG, OPML (FR-IO-06, MM-101) | Markdown and plain text import and export; import from other apps (OPML, FR-IO-13) |
 | Themes beyond Standard (xDev Blue, Graphite and later ones) | The Standard theme |
 | Advanced AI: generate a map from a long description, summarize a whole map, find missing topics, Ask About Library (MM-52) | Expand a topic, brainstorm, rewrite, summarize a branch, Ask About This Map |
 | Voice input | Everything else: maps, topics, canvas, outline, search, iCloud sync, Recently Deleted |
@@ -16,7 +16,7 @@ The list lives in one place in code, so it can change without touching the featu
 ## In code
 
 - Product ID `asia.xdev.mindmapai.pro`, non-consumable, in `MindMapAITests/MindMapAI.storekit` (local testing and the scheme's Run action). The App Store Connect product must use the same ID.
-- `ProFeature` (`MindMapAI/Features/Store/ProFeature.swift`) lists what Pro unlocks, and only what the app already has: the paywall lists every case (MM-75 removed OPML, which is not built). Its titles use the same names as the menus (Find Missing Topics). A Pro feature asks `ProEntitlement.allows(_:)` before it runs and opens `PaywallView(feature:)` when the answer is no; free features never ask.
+- `ProFeature` (`MindMapAI/Features/Store/ProFeature.swift`) lists what Pro unlocks, and only what the app already has: the paywall lists every case (MM-75 removed OPML until it was built; MM-101 added `opmlExport` back). Its titles use the same names as the menus (Find Missing Topics). A Pro feature asks `ProEntitlement.allows(_:)` before it runs and opens `PaywallView(feature:)` when the answer is no; free features never ask.
 - `ProEntitlement` reads `Transaction.currentEntitlements` at launch and whenever the app becomes active, listens to `Transaction.updates`, and finishes transactions. A refunded transaction locks Pro again. Nothing is cached in defaults.
 - Themes: every theme picker (the map inspector, View ▸ Theme, Settings ▸ General ▸ Theme for New Maps) marks Pro themes with a star and opens the paywall when one is picked without Pro; the theme is applied only if Pro is unlocked there (`EditorSession.chooseTheme(_:entitlements:)`). A map that already has a Pro theme keeps showing it.
 - The paywall does not name iCloud sync: a build without `MINDMAP_ICLOUD` has none, so it says "Maps, topics and everything else stay free."

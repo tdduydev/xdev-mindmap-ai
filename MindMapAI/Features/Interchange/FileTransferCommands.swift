@@ -55,6 +55,15 @@ struct FileTransferPresenter: ViewModifier {
             } message: { failure in
                 Text(failure.message)
             }
+            .alert(
+                transfer.importSummary?.title ?? "",
+                isPresented: Binding(get: { transfer.importSummary != nil }, set: { if !$0 { transfer.importSummary = nil } }),
+                presenting: transfer.importSummary
+            ) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { summary in
+                Text(summary.message)
+            }
             .overlay(alignment: .bottom) {
                 if let files = UITestFiles.shared { UITestExportReport(files: files) }
             }

@@ -25,6 +25,9 @@ enum MapExporter {
             return try await format.exportData(graph, branch: options.branch, includeNotes: options.includeNotes,
                 connectionsTitle: String(localized: "Connections:"))
         }
+        if options.format == .opml {
+            return try await OPMLOutline.exportData(graph, branch: options.branch, includeNotes: options.includeNotes)
+        }
         // The whole map whatever the sheet's branch says: a backup is the map.
         if options.format == .backup {
             return try await MapArchive.exportData(graph, imageData: imageData)
@@ -52,7 +55,7 @@ enum MapExporter {
                 colorScheme: colorScheme,
                 title: graph.map.title
             )
-        case .markdown, .plainText, .backup:
+        case .markdown, .plainText, .opml, .backup:
             preconditionFailure("Text formats and backups return above")
         }
     }

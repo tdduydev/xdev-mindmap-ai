@@ -8,6 +8,8 @@ import UniformTypeIdentifiers
 enum ExportFormat: String, CaseIterable, Identifiable {
     case markdown
     case plainText
+    /// For outliners and other mind map apps (FR-IO-06); Pro.
+    case opml
     case png
     case pdf
     /// Everything in the map, to import again without loss (`MapArchive`).
@@ -19,6 +21,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         switch self {
         case .markdown: "Markdown"
         case .plainText: "Plain Text"
+        case .opml: "OPML"
         case .png: "PNG Image"
         case .pdf: "PDF"
         case .backup: "MindMap AI Backup"
@@ -30,7 +33,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         switch self {
         case .markdown: .markdown
         case .plainText: .plainText
-        case .png, .pdf, .backup: nil
+        case .opml, .png, .pdf, .backup: nil
         }
     }
 
@@ -38,6 +41,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         switch self {
         case .markdown: .markdownText
         case .plainText: .plainText
+        case .opml: .opml
         case .png: .png
         case .pdf: .pdf
         case .backup: .json
@@ -48,6 +52,7 @@ enum ExportFormat: String, CaseIterable, Identifiable {
         switch self {
         case .markdown: "md"
         case .plainText: "txt"
+        case .opml: ForeignFormat.opml.fileExtension
         case .png: "png"
         case .pdf: "pdf"
         case .backup: MapArchive.fileExtension
@@ -61,6 +66,10 @@ extension UTType {
     nonisolated static let markdownText = UTType("net.daringfireball.markdown")
         ?? UTType(filenameExtension: "md", conformingTo: .plainText)
         ?? .plainText
+
+    /// The system declares no OPML type, so the app imports one (Info.plist,
+    /// `UTImportedTypeDeclarations`); without it `.opml` files would be greyed out in the open panel.
+    nonisolated static let opml = UTType(importedAs: "org.opml.opml", conformingTo: .xml)
 }
 
 /// Behind an exported picture: the canvas colour of the current appearance,
@@ -166,6 +175,7 @@ struct ExportOptions: Equatable {
     var requiredFeature: ProFeature? {
         switch format {
         case .markdown, .plainText, .backup: nil
+        case .opml: .opmlExport
         case .png: imageScale.requiredFeature
         case .pdf: pageMode.requiredFeature
         }
@@ -199,7 +209,8 @@ struct ExportPreferences {
     /// free counterparts, so the sheet never opens on a locked option.
     func options(entitlements: any ProEntitlements, locale: Locale = .current) -> ExportOptions {
         var options = ExportOptions()
-        if let format = defaults.string(forKey: Self.formatKey).flatMap(ExportFormat.init(rawValue:)) {
+        if let format = defaults.string(forKey: Self.formatKey).flatMap(ExportFormat.init(rawValue:)),
+           format != .opml || entitlements.allows(.opmlExport) {
             options.format = format
         }
         if defaults.object(forKey: Self.includeNotesKey) != nil {

@@ -50,7 +50,7 @@ GraphState.imported(from: draft, title: fileName)                               
 - **The export sheet.** Format (Markdown, Plain Text, PNG Image, PDF), then per format: whole map or the selected branch and Include Notes for text; resolution 1×/2×/3× and background for PNG; one fitted page or actual size over several pages, A4 or US Letter (by region), and background for PDF. Every option but the branch starts from Settings ▸ Export (FR-SET-07) and a change in the sheet is written back to the same key (`ExportPreferences`, [[settings]]); the sheet also reopens on the last format. The file is made before the save panel opens, so a failure shows in the sheet.
 - **Pictures (FR-IO-04, FR-IO-05).** `MapPicture.make` runs a full `CanvasLayoutPass` off the main actor with `CanvasModel.layoutOptions` and design-size fonts, so a picture has the canvas's layout but not its camera, AI suggestions, selection or Dynamic Type. Collapsed branches stay collapsed with their badge, as on screen. `MapPictureView` draws edges through the canvas's `CanvasDrawing`/`EdgeLayer` and each topic with the same `TopicTitleText` and `CollapseBadgeLabel` as `TopicView`, at standard contrast (the file is for other people). `ImageRenderer` turns it into a PNG (`CGImageDestination`) or a PDF (`render` into a `CGContext` PDF), where text stays text and lines stay paths. White paper always uses the light colours.
 - **Limits.** A PNG's longest side is capped at `CanvasMetrics.exportMaximumPixels` (16,384 px); a larger map is drawn at a lower scale. `PDFPageLayout` is plain geometry: a fitted page turns landscape for a wide map and never enlarges a small one; several pages tile the map at actual size inside a 36 pt margin, centred on the grid, in reading order, in the orientation that needs fewer sheets. Each page draws the whole picture clipped to its tile, so a PDF of n pages holds the map's drawing n times.
-- **Pro.** PNG above 1× and PDFs over several pages ask `ProEntitlements` (`ProFeature.highResolutionImage`, `.multiPagePDF`); the sheet disables Export with one line when locked. Until MM-13's StoreKit entitlement lands everything is unlocked (`AllFeaturesUnlocked`). OPML is not built.
+- **Pro.** PNG above 1×, PDFs over several pages and OPML ask `ProEntitlements` (`ProFeature.highResolutionPNGExport`, `.vectorPDFExport`, `.opmlExport`); the sheet disables Export with one line when locked, and for OPML also offers See What’s in Pro… (the paywall). The format picker marks a locked format with a star, and the sheet never reopens on OPML without Pro.
 
 ## Map archive: the backup format (MM-54)
 
@@ -82,7 +82,32 @@ archive.imported(sharedTags:)                   // (graph, imageData) for MapRep
 
 **In the app.** File ▸ Export… has the format **MindMap AI Backup** (`ExportFormat.backup`, `.json`, always the whole map); File ▸ Import… reads a `.json` file as a backup and opens it as a new map (`MapImporter.readBackup`, `FileTransfer.importBackup`). Import into Map… refuses a backup with a message, since a backup is a whole map. Settings ▸ Data reuses both: Export All Maps (MM-45) writes `MapArchive.exportData` for each map into one folder, and its Import Maps… calls `FileTransfer.importFile`, so the menu and Settings share one reader and one writer. Errors (FR-IO-09): not a backup, made by a newer version, damaged.
 
+## Files from other apps (MM-101)
+
+FR-IO-13: a file made by another app is imported free, off the main actor, as new maps, and nothing it had is dropped without a word.
+
+```swift
+ForeignFormat(fileExtension:)                          // .opml today; MM-102..104 add .freeMind, .xmind, .mindNode
+try await format.read(data, fileName:)                 // @concurrent → ForeignImport, throws ForeignImportError
+ForeignImport { maps: [GraphState], imageData, report: ImportReport }
+ImportReport.Loss                                      // includedOutline, image, attachment; add a case per new kind
+```
+
+- **The shape every importer fills.** `ForeignImport` holds one map per file, or one per sheet for formats that have several (XMind), the images' bytes for `MapRepository.create(_:imageData:)`, and an `ImportReport`. A reader builds maps through `GraphEngine` commands like `GraphState.imported(from:title:)` does, so a map from a file is as valid as one made by hand, every topic with `origin = .imported`. Errors are `wrongFormat` (the extension lies), `damaged` and `emptyDocument`.
+- **Never drop a topic.** A reader keeps every topic, even one with nothing but an attribute it does not know; what it cannot carry over (a picture it cannot decode, an attachment, an outline it would have to download) is counted in the report, not silently skipped. Something that fits as text goes into the note instead (an OPML link with a `file:` URL).
+- **In the app.** `MapImporter.foreignFormat(of:)` picks the format by extension; `FileTransfer.importForeign` stores every map, opens the first and, when the report is not empty, shows an alert titled “Imported “file”” with one line per kind of loss and “Every topic was imported.” (`ImportSummary`). Import into Map… refuses these files (`ImportFailure.foreignIntoMap`): a file from another app can carry connections, boundaries and images that an outline insert has no place for. Each `Loss` case needs a line in `ImportSummary.line(for:)`, with a plural variant in `Localizable.xcstrings` (en one/other, vi and ja other).
+
+### OPML (FR-IO-06)
+
+`OPMLOutline` reads and writes OPML 2.0 ([opml.org/spec2.opml](http://opml.org/spec2.opml)); OPML 1.0 files read the same way.
+
+- **Reading** uses Foundation's `XMLParser`, which streams: depth costs a counter, not stack (a test reads 2,000 levels). External entities are not resolved. Each `outline` directly in `body` or in another `outline` is a topic; `text` is the title (missing → empty title, still a topic), `_note` the note. `type="link"` gives the topic its `url` as a link, `type="rss"` its `htmlUrl` or `xmlUrl`, `type="include"` its `url` and a report line, since the outline behind it is not downloaded (the app reads no network). A URL this build does not open (a `file:` path) goes into the note. Every other attribute (`created`, `_status`, `isComment`, `isBreakpoint`, other namespaces) and element is skipped; an `outline` inside an unknown element is not part of the tree. `head` gives the map's title through `title`; `expansionState` and the rest are skipped.
+- **A new map** follows `GraphState.imported`: one top-level outline becomes the central topic; several go under a central topic named by `head`'s title, or the file name without one.
+- **Writing:** UTF-8, `head` with the map's `title`, then the central topic as the one top-level `outline` and every topic nested under it, floating topics after it as further top-level outlines (they come back as children of the central topic, as in Markdown). `text` is the title on one line with its emoji; `_note` the note when Include Notes is on; a link this build opens is `type="link" url="…"`. Line breaks and tabs in attributes are character references (`&#10;`), since a parser turns literal ones into spaces; control characters XML 1.0 cannot hold are left out. Task state, colours, tags, connections and boundaries have no OPML attribute and are not written (FR-ORG-10).
+- **Round trip.** Map → OPML → map keeps titles, notes, links and the tree. OPML with one top-level outline → map → OPML gives the same file back (test); with several top-level outlines the map gains a central topic, so the file comes back with one more level.
+- **Files from other apps.** The fixtures in `OPMLOutlineTests` are written from the spec with the attributes outliners add; no file from another app is in the repo, since none came with a licence to ship it.
+- **In the app.** File ▸ Import… offers `.opml` through an imported type `org.opml.opml` conforming to `public.xml` (`UTImportedTypeDeclarations` in `Config/MindMapAI-macOS-Info.plist` and `Config/MindMapAI-iOS-Info.plist`; the system declares none, so without it the open panel greys `.opml` out). Export… has the format OPML (`.opml`, whole map or branch, Include Notes), Pro. Import is free.
+
 ## Not here
 
-- OPML (FR-IO-06): not planned for V1. It would be a third `InterchangeFormat` case over the same `OutlineDraft`.
 - Clipboard paste of several lines (MM-5) can reuse `PlainTextOutline.parse` and `InsertOutlineCommand`.
