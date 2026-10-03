@@ -30,6 +30,7 @@ struct AIActionsMenu: View {
         if let note = assistant.service.unavailableReason {
             // One line on why AI is not ready, in place of an alert (FR-AI-02).
             Text(note)
+                .accessibilityIdentifier(AccessibilityID.AIMenu.unavailableReason)
         }
         if includesGenerateMap {
             Button("Generate Map…", systemImage: "sparkles") { assistant.requestGenerateMap() }

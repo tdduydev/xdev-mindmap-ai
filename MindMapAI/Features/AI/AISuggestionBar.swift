@@ -47,6 +47,7 @@ struct AISuggestionBar: View {
     private var message: some View {
         if let failure = assistant.failure, !assistant.isWorking {
             Text(failure.message)
+                .accessibilityIdentifier(AccessibilityID.Suggestions.failure)
         } else if let activity = assistant.activity, !assistant.hasSuggestions {
             if activity.parts > 1 {
                 Text("Summarizing part \(activity.part) of \(activity.parts)…")
@@ -92,6 +93,7 @@ struct AISuggestionBar: View {
             if assistant.canEditLastRequest {
                 Button("Edit Request…", action: assistant.editLastRequest)
                     .buttonStyle(.glass)
+                    .accessibilityIdentifier(AccessibilityID.Suggestions.editRequest)
             }
             Button("OK") { assistant.failure = nil }
                 .buttonStyle(.glass)

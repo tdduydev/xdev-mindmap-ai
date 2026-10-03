@@ -180,7 +180,7 @@ Differences from the design above:
 - **Errors** map to `ChatFailure` (its own messages: no "suggestions" wording), not `AIFailure`. `LanguageModelError` (27) is read beside `GenerationError`.
 - **Menu:** AI ▸ Ask About This Map… (⌃⌘A, approved 2026-10-02) and Clear Chat; Cancel AI Request (⌘.) stops a chat answer too, so the chat has no Stop item of its own. Toolbar: Ask About This Map, beside the AI menu.
 - **Use AI Features** (MM-44): the chat is hidden exactly where the other AI controls are (`AIService.showsControls`: an ineligible device, or the switch off in Settings), and when the app has no store. A panel already open when the switch goes off keeps its answers but cannot ask again.
-- **UI test mode:** `-uitest-ai ready|ineligible` puts a scripted model in place of Apple Intelligence (Debug only, `UITestAIService.swift`): the chat cites the first topic whose title matches a word of the question.
+- **UI test mode:** `-uitest-ai <mode>` (see [[testing]]) puts a scripted model in place of Apple Intelligence (Debug only, `UITestAIService.swift`): the chat cites the first topic whose title matches a word of the question.
 
 ## Suggested questions and scope (MM-78)
 
