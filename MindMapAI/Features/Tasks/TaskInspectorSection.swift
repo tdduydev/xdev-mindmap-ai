@@ -135,7 +135,8 @@ struct OutlineTaskDetails: View {
             }
             if let due = node.dueDate, node.taskState != nil || progress != nil {
                 let overdue = CalendarDay.isOverdue(due, state: node.taskState, today: today)
-                Label(due.shortText(today: today), systemImage: overdue ? "exclamationmark.circle" : "calendar")
+                let date = due.shortText(today: today)
+                Label(overdue ? String(localized: "Overdue \(date)") : date, systemImage: overdue ? "exclamationmark.circle" : "calendar")
                     .foregroundStyle(overdue ? Palette.danger : .secondary)
             }
         }

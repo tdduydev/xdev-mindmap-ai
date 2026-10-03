@@ -7124,6 +7124,16 @@
           }
         }
       }
+    },
+    "Overdue %@" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quá hạn %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

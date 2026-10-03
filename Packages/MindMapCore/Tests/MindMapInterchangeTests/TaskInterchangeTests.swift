@@ -72,4 +72,20 @@ struct TaskInterchangeTests {
         _ = engine.redo()
         #expect(sameContent(engine.state, after))
     }
+
+    @Test func plainTextWritesAndReadsTaskBoxes() throws {
+        let text = try PlainTextOutline.export(Self.taskMap())
+        #expect(text == "Plan\n\t[ ] Launch\n\t\t[x] Ship\n\t\t[ ] \\[ ] looks boxed\n\t\t[ ] Docs <https://example.com>\n\t\tPlain\n")
+
+        let draft = PlainTextOutline.parse(text)
+        #expect(draft.items.map(\.title) == ["Plan", "Launch", "Ship", "[ ] looks boxed", "Docs", "Plain"])
+        #expect(draft.items.map(\.taskState) == [nil, .open, .done, .open, .open, nil])
+        #expect(draft.items[4].link?.string == "https://example.com")
+    }
+
+    @Test func plainTextReadsBoxesAfterABulletAndKeepsEscapedOnes() {
+        let draft = PlainTextOutline.parse("- [x] Done\n\\[ ] text\n")
+        #expect(draft.items.map(\.title) == ["Done", "[ ] text"])
+        #expect(draft.items.map(\.taskState) == [.done, nil])
+    }
 }

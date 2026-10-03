@@ -210,11 +210,8 @@ private struct Parser {
         return (state, unescaped(raw.dropFirst(length), trailingHash: true))
     }
 
-    /// `[ ] ` is open, `[x] ` or `[X] ` done, as GitHub writes task lists.
     static func taskBoxPrefix(_ text: Substring) -> (TaskState, Int)? {
-        if text.hasPrefix("[ ] ") || text == "[ ]" { return (.open, min(4, text.count)) }
-        if text.hasPrefix("[x] ") || text.hasPrefix("[X] ") || text == "[x]" || text == "[X]" { return (.done, min(4, text.count)) }
-        return nil
+        TaskBox.prefix(text)
     }
 
     /// A bullet (`-`, `*`, `+`) or a number (`1.`, `1)`) followed by a space or
@@ -298,7 +295,7 @@ private struct Writer {
     mutating func heading(level: Int, title: String, note: [Substring]?, escapingLink: Bool = false, task: TaskState? = nil) {
         if last != .none { lines.append("") }
         var title = (escapingLink ? "\\" : "") + Self.escapedLine(title)
-        if let task { title = Self.box(task) + title }
+        if let task { title = TaskBox.write(task) + title }
         // A closing `#` run would be read as decoration and dropped. The reader
         // takes one backslash off before a final `#`, so a title that already
         // has one there gets another.
@@ -320,18 +317,13 @@ private struct Writer {
         let padding = String(repeating: " ", count: indent)
         var title = (escapingLink ? "\\" : "") + Self.escapedTitle(title)
         // The box goes before any escape, so `- [ ] \[ ] a` reads back as a task named `[ ] a`.
-        if let task { title = Self.box(task) + title }
+        if let task { title = TaskBox.write(task) + title }
         lines.append(padding + "-" + (title.isEmpty ? "" : " " + title))
         last = .item
         guard let note else { return }
         lines.append("")
         lines.append(contentsOf: Self.escapedNote(note, indent: padding + "  "))
         last = .itemNote
-    }
-
-    /// Anything but done is written open, as `TaskState.isDone` reads it.
-    private static func box(_ task: TaskState) -> String {
-        task.isDone ? "[x] " : "[ ] "
     }
 
     private static func escapedTitle(_ title: String) -> String {

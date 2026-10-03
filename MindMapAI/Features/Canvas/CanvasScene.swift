@@ -101,7 +101,10 @@ nonisolated struct TopicChip: Identifiable, Hashable, Sendable {
         }
         if let due, state != nil || progress != nil {
             let overdue = CalendarDay.isOverdue(due, state: state, today: today)
-            chips.append(TopicChip(kind: .due(overdue: overdue), label: due.shortText(today: today), color: nil))
+            // The word as well as the symbol and the colour (WCAG 1.4.1).
+            let date = due.shortText(today: today)
+            let label = overdue ? String(localized: "Overdue \(date)") : date
+            chips.append(TopicChip(kind: .due(overdue: overdue), label: label, color: nil))
         }
         return chips
     }

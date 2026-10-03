@@ -25,7 +25,8 @@ GraphState.imported(from: draft, title: fileName)                               
 
 - One topic per line, nested by indentation: tabs, spaces or both, any number of spaces per level. A tab advances to the next multiple of four columns. A line indented back goes up to the nearest topic it lines up with or passes.
 - A leading bullet (`-`, `*`, `+`, `•`) is dropped, so a pasted list reads well. Blank lines are skipped.
-- Export: one tab per level. A note goes on `> ` lines one level below its topic, and those lines read back as the note. A title that starts with `>`, a bullet or a backslash gets a leading backslash, so it reads back unchanged.
+- Export: one tab per level. A note goes on `> ` lines one level below its topic, and those lines read back as the note. A title that starts with `>`, a bullet, a backslash or a task box gets a leading backslash, so it reads back unchanged.
+- Tasks (MM-35): `[ ] Title` and `[x] Title` (after the indentation or a bullet) set the task state, and export writes them; a task's title is escaped after the box (`[ ] \\[ ] a`).
 
 ## Markdown (FR-IO-02, FR-IO-03)
 
