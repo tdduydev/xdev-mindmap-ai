@@ -86,19 +86,27 @@ public struct LayoutOptions: Equatable, Sendable {
     /// From a callout bubble's bottom edge to its card's top: the tail and the
     /// gap past it.
     public var calloutSpacing: CGFloat
+    /// From a boundary's members to its frame, reserved above and below the run.
+    public var boundaryPadding: CGFloat
+    /// Room reserved above a titled boundary's members for its title capsule.
+    public var boundaryTitleHeight: CGFloat
 
     public init(
         sides: BranchSides = .balanced,
         horizontalSpacing: CGFloat = 48,
         verticalSpacing: CGFloat = 16,
         defaultNodeSize: CGSize = CGSize(width: 120, height: 36),
-        calloutSpacing: CGFloat = 14
+        calloutSpacing: CGFloat = 14,
+        boundaryPadding: CGFloat = 8,
+        boundaryTitleHeight: CGFloat = 20
     ) {
         self.sides = sides
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
         self.defaultNodeSize = defaultNodeSize
         self.calloutSpacing = calloutSpacing
+        self.boundaryPadding = boundaryPadding
+        self.boundaryTitleHeight = boundaryTitleHeight
     }
 }
 
