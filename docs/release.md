@@ -53,10 +53,12 @@ Every upload adds a row here with the commit it was archived from, so whether a 
 | 202610021848 | 0.1.0 | 2026-10-02 11:51 | `a9f7028` | V1 |
 | 202610030024 | 0.1.0 (macOS) | 2026-10-02 17:30 | `a2b8ef3` | V2 (node types) |
 | 202610030030 (iOS, iPhone and iPad) | 0.1.0 | 2026-10-02 17:34 | `a2b8ef3` | V2 (node types) |
+| 202610031203 (macOS) | 1.0.0 | 2026-10-03 05:05 | `a5e2508` | V3 (chat history) |
+| 202610031207 (iOS, iPhone and iPad) | 1.0.0 | 2026-10-03 05:09 | `a5e2508` | V3 (chat history) |
 
 The first four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02, and none contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
 
-From 202610030024 on, SchemaV2 has shipped to testers: a schema change now needs SchemaV3 and a migration stage ([data-model.md](data-model.md)). The iOS platform was added to the same app record on 2026-10-03 (universal purchase, ADR 0006). On 2026-10-03 the product owner chose to submit 1.0.0 for Mac, iPhone and iPad together, released as soon as App Review approves it (release type `AFTER_APPROVAL`). Internal testers are in the TestFlight group "xDev Internal", which gets every build.
+From 202610030024 on, SchemaV2 has shipped to testers, and from the 1.0.0 builds 202610031203 and 202610031207 SchemaV3: a schema change now needs SchemaV4 and a migration stage ([data-model.md](data-model.md)). The iOS platform was added to the same app record on 2026-10-03 (universal purchase, ADR 0006). On 2026-10-03 the product owner chose to submit 1.0.0 for Mac, iPhone and iPad together, released as soon as App Review approves it (release type `AFTER_APPROVAL`). Internal testers are in the TestFlight group "xDev Internal", which gets every build.
 
 ```bash
 scripts/upload-testflight.sh        # Mac

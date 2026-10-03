@@ -54,7 +54,7 @@ records ─▶ GraphState(map:nodes:edges:tags:nodeTags:groups:)
 
 ## Migrations
 
-`SchemaV1`, `SchemaV2` and `SchemaV3` are `VersionedSchema`s; `MindMapMigrationPlan` (`MigrationPlan.swift`) lists every schema, and `CurrentSchema` (V3) with the `…Record` typealiases there name the schema the app opens. A schema change adds a new `SchemaVn` (every model copied, since a versioned schema lists its own types), a migration stage and a test that opens the older fixtures with the new plan. A shipped schema is never edited in place: V1 shipped first, V2 from builds 202610030024 (macOS) and 202610030030 (iOS) ([[release]], *Uploads*).
+`SchemaV1`, `SchemaV2` and `SchemaV3` are `VersionedSchema`s; `MindMapMigrationPlan` (`MigrationPlan.swift`) lists every schema, and `CurrentSchema` (V3) with the `…Record` typealiases there name the schema the app opens. A schema change adds a new `SchemaVn` (every model copied, since a versioned schema lists its own types), a migration stage and a test that opens the older fixtures with the new plan. A shipped schema is never edited in place: V1 shipped first, V2 from builds 202610030024 (macOS) and 202610030030 (iOS), V3 from 1.0.0 builds 202610031203 (macOS) and 202610031207 (iOS) ([[release]], *Uploads*). The next schema change is `SchemaV4`.
 
 ### Migration harness
 
