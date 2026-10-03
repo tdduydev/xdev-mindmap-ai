@@ -81,6 +81,22 @@ struct LibraryPage {
         return EditorPage(app: app).waitUntilOpen(file: file, line: line)
     }
 
+    /// Taps Import…. On iPhone it is in the toolbar's More menu, whose items
+    /// lose their identifiers, so there it is found by its symbol.
+    func tapImport(file: StaticString = #filePath, line: UInt = #line) {
+        let button = app.buttons[AccessibilityID.Library.importMap].firstMatch
+        #if os(iOS)
+        if !button.waitForExistence(timeout: MindMapApp.timeout / 6) {
+            let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
+            overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist(file: file, line: line).tapOrClick()
+            app.collectionViews.buttons.containing(.image, identifier: "square.and.arrow.down").firstMatch
+                .waitToExist(file: file, line: line).tapOrClick()
+            return
+        }
+        #endif
+        button.waitToExist(file: file, line: line).tapOrClick()
+    }
+
     func open(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
         let row = map(titled: title).waitToExist(file: file, line: line)
         let editor = EditorPage(app: app)
