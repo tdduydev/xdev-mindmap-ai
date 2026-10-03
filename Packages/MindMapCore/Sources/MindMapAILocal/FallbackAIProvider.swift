@@ -35,8 +35,8 @@ public enum AIProviderChoice: Hashable, Sendable {
 /// or the local model by `AIProviderChoice`. Both are asked for capabilities
 /// on every request, which is cheap: neither loads a model to answer.
 public struct FallbackAIProvider: AIProvider {
-    let apple: any AIProvider
-    let local: any AIProvider
+    public let apple: any AIProvider
+    public let local: any AIProvider
 
     public init(apple: any AIProvider, local: any AIProvider) {
         self.apple = apple

@@ -30,7 +30,7 @@ actor LocalModelEngines {
 
     /// The MLX engine (ADR 0011, decision 2) plugs in here. Until it is
     /// linked no model can be installed either, so this is never reached.
-    static var makeEngine: @Sendable (LocalModel, URL) async throws -> any LocalInferenceEngine = { _, _ in
+    static let makeEngine: @Sendable (LocalModel, URL) async throws -> any LocalInferenceEngine = { _, _ in
         throw LoadError.runtimeUnavailable
     }
 }

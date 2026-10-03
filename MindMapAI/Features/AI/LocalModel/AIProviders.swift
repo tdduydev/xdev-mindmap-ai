@@ -21,7 +21,7 @@ enum AIProviders {
 /// Where a model's files live: Application Support/LocalModels/<id>, not
 /// Caches, which the system may purge while the model is in use. MM-106
 /// downloads into it; until then nothing is there and the fallback is off.
-enum LocalModelFolder {
+nonisolated enum LocalModelFolder {
     static let root = URL.applicationSupportDirectory.appending(path: "LocalModels", directoryHint: .isDirectory)
 
     static func folder(for model: LocalModel) -> URL {

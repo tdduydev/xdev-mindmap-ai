@@ -1,6 +1,7 @@
 @testable import MindMapAI
 import MindMapAIApple
 import MindMapAICore
+import MindMapAILocal
 import Testing
 
 /// The service the app actually ships with, not the mock the assistant tests
@@ -9,7 +10,10 @@ import Testing
 struct AIServiceTests {
     @Test func theAppAsksTheOnDeviceModel() {
         let service = AIService(entitlements: NothingUnlocked())
-        #expect(service.provider is AppleFoundationModelProvider)
+        // Foundation Models first, the downloaded model only where it cannot run (ADR 0011).
+        let provider = service.provider as? FallbackAIProvider
+        #expect(provider?.apple is AppleFoundationModelProvider)
+        #expect(provider?.local is LocalLLMProvider)
         #expect(!service.showsEntryPoints, "hidden until the first check, so AI never flashes on an Intel Mac")
     }
 
