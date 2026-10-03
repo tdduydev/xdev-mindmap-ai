@@ -238,8 +238,10 @@ struct OutlineRow: View {
     }
 
     /// "task, not done, priority High, overdue, 2 of 5 tasks done", as the canvas reads it.
+    /// Starts with the title: a value set on a TextField replaces its text,
+    /// so without it VoiceOver and UI tests saw an empty field (MM-87).
     private var taskValue: String {
-        var parts: [String] = []
+        var parts: [String] = [draft]
         if let state = row.node.taskState {
             parts.append(state.isDone ? String(localized: "task, done") : String(localized: "task, not done"))
         }
