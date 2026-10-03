@@ -13,6 +13,8 @@ extension FocusedValues {
     @Entry var aiAssistant: AIAssistant?
     /// Ask About This Map in the frontmost map window.
     @Entry var mapChat: MapChat?
+    /// Ask About Library in the frontmost library window (MM-52).
+    @Entry var libraryChat: LibraryChat?
     @Entry var newMapWithAIAction: NewMapAction?
     @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
     /// Voice input for the frontmost map (FR-AI-21).
@@ -52,6 +54,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.editorSession) private var editor
     @FocusedValue(\.aiAssistant) private var assistant
     @FocusedValue(\.mapChat) private var chat
+    @FocusedValue(\.libraryChat) private var libraryChat
     @FocusedValue(\.newMapWithAIAction) private var newMapWithAI
     @FocusedValue(\.newMapAction) private var newMap
     @FocusedValue(\.canvasModel) private var canvas
@@ -380,6 +383,10 @@ struct MapCommands: Commands {
         Button("Ask About This Map…") { chat?.present() }
             .keyboardShortcut("a", modifiers: [.command, .control])
             .disabled(chat?.showsEntryPoints != true)
+        // No key: none is approved, and ⌃⌘A stays with the map. Without Pro
+        // it stays enabled and opens the paywall, as other Pro items do.
+        Button("Ask About Library…") { libraryChat?.present() }
+            .disabled(libraryChat?.showsEntryPoints != true)
         // The chat's microphone (MM-80). No key yet: none has been approved.
         Button {
             chat?.present()
@@ -388,18 +395,25 @@ struct MapCommands: Commands {
             dictation?.isListening == true ? Text("Stop Asking by Voice") : Text("Ask by Voice")
         }
         .disabled(dictation?.canToggle != true)
-        Button("Clear Chat") { chat?.requestClear() }
-            .disabled(chat?.canClear != true)
+        // The map's chat when a map shows, else the library's.
+        Button("Clear Chat") {
+            if let chat { chat.requestClear() } else { libraryChat?.clear() }
+        }
+        .disabled((chat.map(\.canClear) ?? libraryChat?.canClear) != true)
         // The answer buttons on the last answer (MM-79). No keys yet: none
         // has been approved, and ⌘C would steal Copy from the canvas.
-        Button("Copy Answer") { chat?.copyLastAnswer() }
-            .disabled(chat?.canCopyLastAnswer != true)
+        Button("Copy Answer") {
+            if let chat { chat.copyLastAnswer() } else { libraryChat?.copyLastAnswer() }
+        }
+        .disabled((chat.map(\.canCopyLastAnswer) ?? libraryChat?.canCopyLastAnswer) != true)
         Button("Add Answer to Note") { chat?.addLastAnswerToNote() }
             .disabled(chat?.canAddLastAnswerToNote != true)
         Button("Create Topics from Answer") { chat?.createTopicsFromLastAnswer() }
             .disabled(chat?.canCreateTopicsFromLastAnswer != true)
-        Button("Ask Again") { chat?.askLastQuestionAgain() }
-            .disabled(chat?.canAskLastQuestionAgain != true)
+        Button("Ask Again") {
+            if let chat { chat.askLastQuestionAgain() } else { libraryChat?.askLastQuestionAgain() }
+        }
+        .disabled((chat.map(\.canAskLastQuestionAgain) ?? libraryChat?.canAskLastQuestionAgain) != true)
         Divider()
         Button("Accept All Suggestions") { assistant?.acceptAll() }
             .keyboardShortcut(.return, modifiers: [.command, .control])
@@ -412,9 +426,10 @@ struct MapCommands: Commands {
         Button("Cancel AI Request") {
             assistant?.cancel()
             chat?.stop()
+            libraryChat?.stop()
         }
         .keyboardShortcut(".")
-        .disabled(assistant?.isWorking != true && chat?.isAnswering != true)
+        .disabled(assistant?.isWorking != true && chat?.isAnswering != true && libraryChat?.isAnswering != true)
     }
 
     /// The bare Delete key comes and goes with focus, so it stays with text

@@ -103,7 +103,8 @@ private struct UITestChatProvider: ChatProvider {
             let queries = queries
             return AsyncThrowingStream { continuation in
                 let task = Task {
-                    guard case .map(let mapID) = scope else { return continuation.finish() }
+                    // The library scope (MM-52) searches every map.
+                    let mapID: MapID? = if case .map(let id) = scope { id } else { nil }
                     continuation.yield(ChatUpdate(isReadingMap: true))
                     var table = CitationTable()
                     var hit: TopicHit?
@@ -121,10 +122,10 @@ private struct UITestChatProvider: ChatProvider {
                     let language = message.language
                     let text: String
                     if let hit {
-                        let handle = table.handle(for: hit.ref.nodeID, in: mapID, title: hit.title)
+                        let handle = table.handle(for: hit.ref.nodeID, in: hit.ref.mapID, title: hit.title)
                         let children = (try? await queries.topic(hit.ref))?.children ?? []
                         let cited = children.map { child in
-                            "\(child.title) [\(table.handle(for: child.nodeID, in: mapID, title: child.title))]"
+                            "\(child.title) [\(table.handle(for: child.nodeID, in: hit.ref.mapID, title: child.title))]"
                         }
                         // The screenshots show this answer, so it reads like one about the topic's branch.
                         if cited.isEmpty {

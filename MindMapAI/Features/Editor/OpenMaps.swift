@@ -62,6 +62,8 @@ final class OpenMaps {
     @ObservationIgnored private var activators: [WindowToken: () -> Void] = [:]
     @ObservationIgnored private var mapChangeObservers: [WindowToken: (MindMap) -> Void] = [:]
     @ObservationIgnored private var closing: [MapID: Task<Void, Never>] = [:]
+    /// A topic to show once its map opens: a library chat citation (MM-52).
+    @ObservationIgnored private var pendingTopics: [MapID: NodeID] = [:]
 
     init(repository: any MapRepository, clipboard: any TextClipboard = SystemClipboard()) {
         self.repository = repository
@@ -136,6 +138,16 @@ final class OpenMaps {
         for task in closing.values { await task.value }
     }
 
+    /// Selects and reveals a topic in its map ("Reveal Topic", as Find does),
+    /// now if the map is open, else as soon as a window opens it.
+    func showTopic(_ nodeID: NodeID, in mapID: MapID) {
+        if let map = maps[mapID] {
+            map.session.showTopic(nodeID)
+        } else {
+            pendingTopics[mapID] = nodeID
+        }
+    }
+
     /// Whether `mapID` is loaded, for tests.
     func isOpen(_ mapID: MapID) -> Bool { maps[mapID] != nil }
 
@@ -178,7 +190,11 @@ final class OpenMaps {
         loading[mapID] = task
         let opening = await task.value
         loading[mapID] = nil
-        if case .ready(let map) = opening { maps[mapID] = map }
+        let pendingTopic = pendingTopics.removeValue(forKey: mapID)
+        if case .ready(let map) = opening {
+            maps[mapID] = map
+            if let pendingTopic { map.session.showTopic(pendingTopic) }
+        }
         return opening
     }
 

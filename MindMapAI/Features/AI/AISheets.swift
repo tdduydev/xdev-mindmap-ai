@@ -54,8 +54,9 @@ struct AISheet: View {
     }
 }
 
-/// FR-AI-19: shown before the first AI request.
-private struct AIPrivacyNotice: View {
+/// FR-AI-19: shown before the first AI request, from a map or from the
+/// library's chat (MM-52).
+struct AIPrivacyNotice: View {
     let onContinue: () -> Void
     let onCancel: () -> Void
 

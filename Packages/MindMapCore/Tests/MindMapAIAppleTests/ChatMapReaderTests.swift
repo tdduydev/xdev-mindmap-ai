@@ -192,6 +192,96 @@ struct ChatMapReaderTests {
     }
 }
 
+/// Ask across the library (C3): the reader with no map reads every live map.
+@Suite("Chat library reader")
+struct ChatLibraryReaderTests {
+    let launch: OutlineFixture
+    let budget: OutlineFixture
+    let repository: SwiftDataMapRepository
+    let reader: ChatMapReader
+
+    init() async throws {
+        launch = try OutlineFixture("""
+        Ra mắt sản phẩm
+          Kế hoạch
+            Beta
+        """, mapTitle: "Ra mắt")
+        budget = try OutlineFixture("""
+        Ngân sách 2027
+          Kế hoạch chi
+          Thuê ngoài
+        """, mapTitle: "Ngân sách")
+        repository = try PersistenceController.makeRepository(at: .inMemory)
+        try await repository.create(launch.state)
+        try await repository.create(budget.state)
+        let queries = MapQueries(repository: repository, graphs: RepositoryGraphSource(repository: repository))
+        reader = ChatMapReader(queries: queries, mapID: nil, toolOutput: 600)
+    }
+
+    @Test func listMapsNamesEveryLiveMapByHandle() async throws {
+        try await repository.moveToRecentlyDeleted(budget.state.map.id, at: .now)
+
+        let output = await reader.listMaps("")
+
+        #expect(output.contains("- M1: Ra mắt (3 topics)"))
+        #expect(!output.contains("Ngân sách"), "Recently Deleted is never listed")
+        #expect(reader.map(for: "m1") == launch.state.map.id)
+        #expect(reader.map(for: "M2") == nil)
+    }
+
+    @Test func listMapsMatchesTitlesFoldingMarks() async {
+        let output = await reader.listMaps("ngan sach")
+
+        #expect(output.contains(": Ngân sách"))
+        #expect(!output.contains("Ra mắt"))
+    }
+
+    @Test func searchFindsTopicsInEveryMapAndSaysWhichMap() async {
+        let output = await reader.searchTopics("ke hoach")
+
+        #expect(output.contains("Kế hoạch (map M"))
+        #expect(output.contains("Kế hoạch chi (map M"))
+        let maps = Set(reader.citationTable.citations(in: "[T1] [T2]").map(\.mapID))
+        #expect(maps == [launch.state.map.id, budget.state.map.id])
+        #expect(!output.contains(launch.state.map.id.description))
+    }
+
+    @Test func aMapHandleReadsTheWholeMap() async {
+        _ = await reader.listMaps("ngân")
+
+        let output = await reader.readBranch("M1", depth: 1)
+
+        #expect(output.hasPrefix("Map M1: Ngân sách"))
+        #expect(output.contains("- T1: Ngân sách 2027"))
+        #expect(output.contains("  - T2: Kế hoạch chi"))
+        #expect(reader.citationTable.citation(for: "T2")?.mapID == budget.state.map.id)
+    }
+
+    @Test func aTopicHandleReadsInItsOwnMap() async {
+        _ = await reader.searchTopics("beta")
+
+        let topic = await reader.readTopic("T1")
+        let branch = await reader.readBranch("T1", depth: 1)
+
+        #expect(topic.hasPrefix("T1: Beta"))
+        #expect(topic.contains("Path: T2 Ra mắt sản phẩm > T3 Kế hoạch"))
+        #expect(branch.contains("Ra mắt"))
+        #expect(reader.citationTable.citation(for: "T3")?.mapID == launch.state.map.id)
+    }
+
+    @Test func anEmptyOrUnknownHandleAsksForAMap() async {
+        #expect(await reader.readBranch("", depth: 1).hasPrefix("Give the handle of a map"))
+        #expect(await reader.readBranch("M4", depth: 1) == ChatMapReader.unknownHandle("M4"))
+    }
+
+    @Test func noHitsPointsToListMaps() async {
+        let output = await reader.searchTopics("marketing")
+
+        #expect(output.hasPrefix("No topic in any map matches"))
+        #expect(output.contains("listMaps"))
+    }
+}
+
 @Suite("Chat prompts")
 struct ChatPromptTests {
     let catalog = PromptCatalog(version: .v26_0)
@@ -224,6 +314,21 @@ struct ChatPromptTests {
         #expect(prompt.contains("Scope: only the branch \u{201C}Kế hoạch\u{201D}."))
         #expect(prompt.contains("saying it covers this branch"))
         #expect(prompt.hasSuffix("Question: Còn thiếu gì?\nYou MUST respond in Vietnamese."))
+    }
+
+    @Test func libraryInstructionsNameListMapsAndFitTheReserve() {
+        let instructions = catalog.libraryChatInstructions(userLocaleIdentifier: "vi_VN")
+
+        #expect(instructions.contains("listMaps"))
+        #expect(instructions.contains("[T1]"))
+        #expect(instructions.hasSuffix("The person's locale is vi_VN."))
+        #expect(TokenEstimator.estimate(instructions) < ChatBudget.instructionsReserve / 2)
+    }
+
+    @Test func aLibraryPromptHasNoMapTitle() {
+        let prompt = catalog.libraryChatPrompt(question: "Map nào nói về ngân sách?", language: .vietnamese)
+
+        #expect(prompt == "Scope: every map in the library.\nQuestion: Map nào nói về ngân sách?\nYou MUST respond in Vietnamese.")
     }
 
     @Test func everyModelGenerationHasChatInstructions() {

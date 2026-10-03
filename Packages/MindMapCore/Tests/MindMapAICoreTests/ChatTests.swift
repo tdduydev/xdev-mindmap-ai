@@ -47,6 +47,27 @@ struct CitationTableTests {
         #expect(CitationTable.displayText("Use [brackets] as written") == "Use [brackets] as written")
     }
 
+    // MARK: Library (C3)
+
+    @Test func theSameNodeIDInTwoMapsGetsTwoHandles() {
+        var table = CitationTable()
+        let shared = NodeID()
+        let otherMap = MapID()
+
+        #expect(table.handle(for: shared, in: mapID, title: "Launch") == "T1")
+        #expect(table.handle(for: shared, in: otherMap, title: "Launch copy") == "T2")
+        #expect(table.citation(for: "T2")?.mapID == otherMap)
+    }
+
+    @Test func mapHandlesAreShownNeverCited() {
+        var table = CitationTable()
+        let launch = NodeID()
+        _ = table.handle(for: launch, in: mapID, title: "Launch")
+
+        #expect(table.citations(in: "In two maps [M1, T1].").map(\.handle) == ["T1"])
+        #expect(CitationTable.displayText("In the map Launch [M2]. Kế hoạch [M") == "In the map Launch. Kế hoạch")
+    }
+
     @Test func historyKeepsItsHandlesAndNumberingGoesOn() {
         let old = NodeID()
         let turn = ChatTurn(

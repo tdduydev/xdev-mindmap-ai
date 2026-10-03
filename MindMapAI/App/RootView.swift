@@ -1,4 +1,6 @@
+import MindMapAICore
 import MindMapDomain
+import MindMapQuery
 import SwiftUI
 
 /// Sidebar, library and editor. On a narrow iPhone the split view collapses
@@ -15,6 +17,8 @@ struct RootView: View {
     @State private var transfer: FileTransfer
     @State private var window = WindowToken()
     @State private var windowHandle = WindowHandle()
+    /// Ask About Library (MM-52): one conversation per library window.
+    @State private var libraryChat: LibraryChat?
     /// What the window showed, brought back at relaunch (FR-PER-09).
     @SceneStorage("library.section") private var savedSection: LibrarySection = .all
     @SceneStorage("editor.map") private var savedMapID: String?
@@ -42,6 +46,7 @@ struct RootView: View {
                 selection: mapSelection,
                 openInNewWindow: mapWindowOpener
             )
+            .modifier(LibraryChatPresenter(chat: libraryChat))
         } detail: {
             if let mapID = router.selectedMapID {
                 EditorView(
@@ -63,6 +68,7 @@ struct RootView: View {
         }
         .windowHandle(windowHandle)
         .onAppear(perform: restoreWindow)
+        .onAppear(perform: makeLibraryChat)
         .onDisappear { environment.openMaps.unregister(window) }
         .onChange(of: router.section) { _, section in savedSection = section ?? .all }
         .onReceive(NotificationCenter.default.publisher(for: .showRecentlyDeleted)) { _ in
@@ -85,6 +91,7 @@ struct RootView: View {
             openRequestedMap()
         }
         .focusedSceneValue(\.openInNewWindowAction, openSelectedMapInNewWindow)
+        .focusedSceneValue(\.libraryChat, libraryChat)
         .focusedSceneValue(\.newMapWithAIAction, ai.showsControls ? NewMapAction(perform: createMapWithAI) : nil)
         .modifier(FileTransferPresenter(transfer: transfer, entitlements: ai.entitlements))
         .redeemCodeCommandTarget()
@@ -108,6 +115,21 @@ struct RootView: View {
         router.section = savedSection
         if router.selectedMapID == nil, let saved = savedMapID.flatMap(UUID.init(uuidString:)) {
             show(MapID(saved))
+        }
+    }
+
+    /// A citation opens its map in this window, or brings forward the
+    /// window that shows it, and selects the topic there.
+    private func makeLibraryChat() {
+        guard libraryChat == nil else { return }
+        let queries = environment.mapQueries
+        let openMaps = environment.openMaps
+        libraryChat = LibraryChat(service: ai) { citation in
+            let ref = TopicRef(mapID: citation.mapID, nodeID: citation.nodeID)
+            guard (try? await queries.topic(ref)) != nil else { return false }
+            openMaps.showTopic(citation.nodeID, in: citation.mapID)
+            show(citation.mapID)
+            return true
         }
     }
 
@@ -168,6 +190,50 @@ struct StartupFailureView: View {
             Text("MindMap AI couldn’t open its storage. Restart the app. If it keeps happening, contact xDev support.")
         } actions: {
             Link("Contact Support", destination: AppLinks.support)
+        }
+    }
+}
+
+/// The library chat's panel beside the library list (a sheet on iPhone), its
+/// toolbar button, the paywall and the on-device notice. Nothing while the
+/// window has not made the chat yet.
+private struct LibraryChatPresenter: ViewModifier {
+    let chat: LibraryChat?
+
+    func body(content: Content) -> some View {
+        if let chat {
+            content.modifier(Presenter(chat: chat))
+        } else {
+            content
+        }
+    }
+
+    private struct Presenter: ViewModifier {
+        @Bindable var chat: LibraryChat
+
+        func body(content: Content) -> some View {
+            content
+                .inspector(isPresented: $chat.isPresented) {
+                    LibraryChatPanel(chat: chat)
+                }
+                .toolbar {
+                    if chat.showsEntryPoints {
+                        ToolbarItem {
+                            Button(action: chat.toggle) {
+                                Label("Ask About Library", systemImage: "books.vertical")
+                            }
+                            .help(chat.isPresented ? Text("Hide Chat") : Text("Ask About Library"))
+                            .accessibilityIdentifier(AccessibilityID.LibraryChat.toolbar)
+                        }
+                    }
+                }
+                .proChoicePaywall($chat.paywall)
+                .sheet(isPresented: $chat.isShowingPrivacyNotice, onDismiss: chat.declinePrivacyNotice) {
+                    AIPrivacyNotice(onContinue: chat.acknowledgePrivacyNotice, onCancel: chat.declinePrivacyNotice)
+                        #if os(macOS)
+                        .frame(width: Metrics.aiSheetWidth)
+                        #endif
+                }
         }
     }
 }

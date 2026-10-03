@@ -298,6 +298,7 @@ struct ProFeatureTests {
             .extraThemes,
             .generateMapFromDescription, .summarizeWholeMap, .findMissingIdeas,
             .voiceInput,
+            .askLibrary,
         ])
     }
 
