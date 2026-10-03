@@ -105,6 +105,15 @@ struct MapChatTests {
         #expect(chatProvider.questions.first?.message.language == .vietnamese)
     }
 
+    @Test func aJapaneseQuestionGetsAJapaneseAnswer() async throws {
+        let chat = try await open()
+        chatProvider.enqueue(.text("ベータ版が先です。", citations: []))
+
+        await ask("発売計画で最初にやることは何ですか？", in: chat)
+
+        #expect(chatProvider.questions.first?.message.language == .japanese)
+    }
+
     @Test func oneConversationHoldsEveryQuestionUntilCleared() async throws {
         let chat = try await open()
         chatProvider.enqueue(.text("One.", citations: []))
