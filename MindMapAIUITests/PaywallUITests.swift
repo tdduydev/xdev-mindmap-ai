@@ -23,8 +23,9 @@ final class PaywallUITests: XCTestCase {
         try XCTSkipUnless(showPaywall.waitForExistence(timeout: MindMapApp.timeout / 3), "Pro is already unlocked on this device")
         showPaywall.tapOrClick()
 
-        let purchase = app.app.buttons[AccessibilityID.Paywall.purchase].firstMatch
-        let found = purchase.waitForExistence(timeout: MindMapApp.timeout)
+        let purchase = app.paywall.purchase
+        // Below the Pro list on an iPhone: the lazy form has no row there until scrolled to.
+        let found = app.paywall.reveal(purchase)
         if !found {
             // What the screen showed instead: the price loading, the retry, or no paywall at all.
             let tree = XCTAttachment(string: app.app.debugDescription)
