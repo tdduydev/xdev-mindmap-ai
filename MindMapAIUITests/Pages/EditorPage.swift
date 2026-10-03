@@ -123,6 +123,30 @@ struct EditorPage {
         button.waitToExist(file: file, line: line).tapOrClick()
     }
 
+    /// The formats of the export sheet, in `ExportFormat` order: the picker's positions.
+    enum ExportFormat: Int {
+        case markdown, plainText, png, pdf, backup
+    }
+
+    /// Export… from the toolbar: picks `format` by position, so it works in
+    /// every language, and exports. With `-uitest-files` the file goes to the
+    /// stand-in for the save panel (`MindMapApp.exportedFileSummary`).
+    func export(_ format: ExportFormat, file: StaticString = #filePath, line: UInt = #line) {
+        tap(.export, file: file, line: line)
+        let picker = app.descendants(matching: .any)[AccessibilityID.Export.format].firstMatch
+        picker.waitToExist(file: file, line: line).tapOrClick()
+        #if os(macOS)
+        picker.menuItems.element(boundBy: format.rawValue).waitToExist(file: file, line: line).tapOrClick()
+        #else
+        // The open menu is the only collection of buttons over the sheet.
+        app.collectionViews.buttons.element(boundBy: format.rawValue).waitToExist(file: file, line: line).tapOrClick()
+        #endif
+        let export = app.buttons[AccessibilityID.Export.export].firstMatch.waitToExist(file: file, line: line)
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"), object: export)
+        XCTAssertEqual(XCTWaiter().wait(for: [enabled], timeout: MindMapApp.timeout), .completed, "Export… stays off", file: file, line: line)
+        export.tapOrClick()
+    }
+
     /// Opens the find bar from the toolbar and types `text` into its field.
     @discardableResult
     func find(_ text: String, file: StaticString = #filePath, line: UInt = #line) -> EditorPage {

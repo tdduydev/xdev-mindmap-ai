@@ -107,6 +107,8 @@ UI tests launch the app with `-uitest` (`Shared/UITestLaunch.swift`). The mode i
 - **No animation:** `Motion` returns no animation, and on iOS `UIView` animations are off, so a query never finds a view halfway through moving.
 - **Language:** `MindMapApp.launch(language:)` passes `-AppleLanguages` and `-AppleLocale` (English by default), so a run does not depend on the machine's language.
 - **Windows:** `-ApplePersistenceIgnoreState YES`, so the Mac does not reopen the windows of the previous run.
+- **Pro (only with `-uitest-pro`):** `ProEntitlement` starts and stays unlocked whatever StoreKit says, so a test of a Pro feature does not depend on a purchase: on a fresh iOS 27 simulator the StoreKit purchase sheet stopped at "You must enter both your Apple Account and password" (MM-26). Tests of the paywall and the purchase itself leave it off.
+- **Files (only with `-uitest-files`):** `UITestFiles` (`MindMapAI/App/UITestFiles.swift`) stands in for the system's open and save panels. Import… and Import into Map… read `UITestFile.markdown` (`Shared/UITestLaunch.swift`) from the app's temporary folder; Export… writes the file there, reads it back and shows a small report at the bottom of the window (`AccessibilityID.UITest.exportedFile`: the file name in the label, the text, or `png <bytes>` / `pdf <bytes>` by the file's signature, in the value). The code before and after the panel is the shipping code. The real panels are another process, look different on each OS version and cannot reach a fixture, so a test of what import and export do uses the stand-in; `ImportUITests` and `DataSettingsUITests` still check that the real panels open.
 
 New state that persists across launches (a file, a preference, a first-run flag) must go through the same mode, or UI tests become order-dependent.
 
@@ -146,6 +148,9 @@ Identifiers live in one enum, `AccessibilityID` (`Shared/AccessibilityID.swift`)
 | `SettingsUITests` | Opening Settings (⌘, or the sidebar button), panes, Appearance kept across a reopen, Vietnamese | macOS, iOS |
 | `PaywallUITests` | Settings ▸ Pro ▸ See What’s in Pro… shows the purchase button with its price, English and Vietnamese (skips when the device already owns Pro) | macOS, iOS |
 | `DataSettingsUITests` | Settings present one dialog and keep Settings open: Empty Recently Deleted asks first, Export All Maps opens the folder picker (iOS); Add App opens one sheet (macOS) | macOS, iOS |
+| `FileTransferUITests` | With `-uitest-files`: a Markdown file imported then exported again keeps its headings and nested lists (AT-06); PNG and PDF exports write a non-empty file of that type | macOS, iOS |
+| `RecentlyDeletedUITests` | Delete moves a map to Recently Deleted, Restore brings it back, Delete Permanently asks first | macOS, iOS |
+| `VoiceInputUITests` | Add Topics by Voice with the scripted transcriber: the topics heard are added under the selected topic, one undo removes them all, redo adds them back (`-uitest-pro`) | macOS, iOS |
 | `MenuShortcutUITests` | Menu items disabled without a map, ⌘N, ⌘1/⌘2, ⇧⌘Return with ⌘Z and ⇧⌘Z, ⌘F/⌘G/⇧⌘G/Esc, ⌘, | macOS only |
 
 Menu bar items have no accessibility identifier (SwiftUI `Commands` do not pass one on), so `MenuShortcutUITests` finds them by their English titles and runs in English only. On iPhone the editor toolbar moves what does not fit into an overflow menu; its items lose their identifiers, so `EditorPage.tap(_:)` opens the menu and finds the item by its SF Symbol name, which is not translated.

@@ -4,6 +4,7 @@ import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// File ▸ Export…: the format and its options, then the save panel. The file
 /// is made before the panel opens, so a failure shows here, not after the
@@ -174,7 +175,15 @@ struct ExportSheet: View {
                 await session.flush()
                 let imageData = [ExportFormat.backup, .png, .pdf].contains(options.format)
                     ? try await repository.imageData(of: graph) : [:]
-                file = ExportedFile(data: try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme, imageData: imageData))
+                let data = try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme, imageData: imageData)
+                if let files = UITestFiles.shared {
+                    // The UI test mode's stand-in for the save panel.
+                    let fileExtension = options.format.contentType.preferredFilenameExtension.map { ".\($0)" } ?? ""
+                    try files.save(data, fileName: MapExporter.fileName(for: graph.map.title) + fileExtension)
+                    onClose()
+                    return
+                }
+                file = ExportedFile(data: data)
             } catch {
                 Log.interchange.error("Making an export failed: \(String(describing: error), privacy: .private)")
                 failed = true

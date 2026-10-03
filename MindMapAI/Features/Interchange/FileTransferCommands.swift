@@ -55,6 +55,9 @@ struct FileTransferPresenter: ViewModifier {
             } message: { failure in
                 Text(failure.message)
             }
+            .overlay(alignment: .bottom) {
+                if let files = UITestFiles.shared { UITestExportReport(files: files) }
+            }
             .environment(transfer)
             .focusedSceneValue(\.fileTransfer, transfer)
     }
