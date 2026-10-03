@@ -25,6 +25,8 @@ public struct AIEvaluationCase: Sendable, Identifiable {
     public var expectedFact: String?
     /// Fewest items a list answer may have.
     public var minimumCount: Int
+    /// Topics already in the map, which a suggestion must not repeat.
+    public var existingTitles: [String] = []
 }
 
 /// A chat question with the map it is about, written out with handles as the
@@ -76,7 +78,8 @@ public enum AIEvaluationSuite {
         let answerIndex = f.summaryChildren.firstIndex { $0.contains(f.fact) } ?? 0
 
         func make(_ feature: AIFeature, _ request: AIEvaluationCase.Request, fact: String? = nil, minimum: Int = 1) -> AIEvaluationCase {
-            AIEvaluationCase(feature: feature, language: language, request: request, expectedFact: fact, minimumCount: minimum)
+            AIEvaluationCase(feature: feature, language: language, request: request, expectedFact: fact, minimumCount: minimum,
+                             existingTitles: [f.mapTitle, f.focus] + f.children + f.siblings)
         }
         return [
             make(.generateMap, .suggestion(.generateMap(GenerateMapRequest(prompt: f.subject, language: language, userLocaleIdentifier: locale))), minimum: 5),

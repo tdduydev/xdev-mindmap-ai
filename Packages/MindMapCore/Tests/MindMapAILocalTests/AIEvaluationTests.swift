@@ -77,3 +77,12 @@ import Testing
         }
     }
 }
+
+@Suite struct AIEvaluationRepeatTests {
+    @Test func aSuggestionRepeatingAnExistingTopicFails() async {
+        let evaluation = AIEvaluationSuite.cases.first { $0.id == "expandTopic.en" }!
+        let engine = ScriptedEngine(#"{"topics": [{"title": "Quiet room"}, {"title": "fixed bedtime"}]}"#)
+        let outcome = await AIEvaluationRunner.run(evaluation, provider: readyProvider(engine)) { _, _ in "" }
+        #expect(outcome.reason == "repeats fixed bedtime")
+    }
+}

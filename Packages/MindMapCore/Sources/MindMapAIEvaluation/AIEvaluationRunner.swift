@@ -43,7 +43,14 @@ public enum AIEvaluationRunner {
         case .suggestion(let request):
             let proposal = try await provider.suggest(request)
             let titles = proposal.topics.map(\.title)
-            return (check(titles, language: language, minimum: evaluation.minimumCount), titles.joined(separator: " | "))
+            var reason = check(titles, language: language, minimum: evaluation.minimumCount)
+            // The common rules forbid it, and MM-105's first run showed the
+            // small model doing it: Accept would add a duplicate topic.
+            let existing = Set(evaluation.existingTitles.map { $0.lowercased() })
+            if reason == nil, let repeated = titles.first(where: { existing.contains($0.lowercased()) }) {
+                reason = "repeats \(repeated)"
+            }
+            return (reason, titles.joined(separator: " | "))
         case .rewrite(let request):
             let titles = try await provider.rewrite(request).suggestions
             return (check(titles, language: language, minimum: evaluation.minimumCount), titles.joined(separator: " | "))
