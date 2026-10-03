@@ -17,6 +17,39 @@
         }
       }
     },
+    "%@, label: %@" : {
+      "comment" : "VoiceOver: a connection, then its label.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, nhãn: %@"
+          }
+        }
+      }
+    },
+    "Add a label" : {
+      "comment" : "Placeholder of a connection's label field.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm nhãn"
+          }
+        }
+      }
+    },
+    "Add Connection…" : {
+      "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm kết nối…"
+          }
+        }
+      }
+    },
     "Add Image…" : {
       "localizations": {
         "en": {
@@ -29,6 +62,182 @@
           "stringUnit": {
             "state": "translated",
             "value": "Thêm ảnh…"
+          }
+        }
+      }
+    },
+    "Arrows" : {
+      "comment" : "A connection's arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mũi tên"
+          }
+        }
+      }
+    },
+    "At End" : {
+      "comment" : "Connection arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ở cuối"
+          }
+        }
+      }
+    },
+    "At Start" : {
+      "comment" : "Connection arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ở đầu"
+          }
+        }
+      }
+    },
+    "Both Ends" : {
+      "comment" : "Connection arrowheads.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hai đầu"
+          }
+        }
+      }
+    },
+    "Change Connection Style" : {
+      "comment" : "Undo action name: a connection's line, arrows or colour changed.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đổi kiểu kết nối"
+          }
+        }
+      }
+    },
+    "Connection from %@" : {
+      "comment" : "VoiceOver: a connection from another topic to this one; %@ is the other topic's title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối từ %@"
+          }
+        }
+      }
+    },
+    "Connection to %@" : {
+      "comment" : "VoiceOver: a connection from this topic to another; %@ is the other topic's title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối tới %@"
+          }
+        }
+      }
+    },
+    "Connections" : {
+      "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối"
+          }
+        }
+      }
+    },
+    "Dashed" : {
+      "comment" : "Connection line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đứt"
+          }
+        }
+      }
+    },
+    "Default" : {
+      "comment" : "Connection colour: the standard connection colour.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mặc định"
+          }
+        }
+      }
+    },
+    "Dotted" : {
+      "comment" : "Connection line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chấm"
+          }
+        }
+      }
+    },
+    "Edit Connection" : {
+      "comment" : "Undo action name: a connection's label changed.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa kết nối"
+          }
+        }
+      }
+    },
+    "Find a topic" : {
+      "comment" : "Search prompt in the Add Connection target picker.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm chủ đề"
+          }
+        }
+      }
+    },
+    "From %@" : {
+      "comment" : "Inspector: a connection from another topic; %@ is its title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Từ %@"
+          }
+        }
+      }
+    },
+    "Label" : {
+      "comment" : "A connection's label.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhãn"
+          }
+        }
+      }
+    },
+    "Line" : {
+      "comment" : "A connection's line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nét"
           }
         }
       }
@@ -97,6 +306,17 @@
         }
       }
     },
+    "Reverse Connection" : {
+      "comment" : "Glossary: a link between two topics is a “Connection” / “kết nối”.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đảo chiều kết nối"
+          }
+        }
+      }
+    },
     "Small" : {
       "localizations": {
         "en": {
@@ -157,6 +377,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mô tả ảnh cho VoiceOver"
+          }
+        }
+      }
+    },
+    "Solid" : {
+      "comment" : "Connection line style.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liền"
           }
         }
       }
@@ -3586,6 +3817,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dừng hỏi bằng giọng nói"
+          }
+        }
+      }
+    },
+    "To %@" : {
+      "comment" : "Inspector: a connection to another topic; %@ is its title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tới %@"
           }
         }
       }

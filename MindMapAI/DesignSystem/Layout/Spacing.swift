@@ -62,6 +62,8 @@ enum Metrics {
 
     /// Room for a typical URL in the Add Link sheet.
     static let linkSheetMinWidth: CGFloat = 420
+    /// The Add Connection target picker on the Mac: room for a topic path.
+    static let connectionPickerSize = CGSize(width: 420, height: 480)
 
     /// Topic ▸ Tags ▸ Manage Tags… on the Mac.
     static let tagManagerSize = CGSize(width: 440, height: 480)

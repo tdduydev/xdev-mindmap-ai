@@ -71,6 +71,7 @@ struct MapEditorView: View {
             }
         }
         .modifier(AttachFloatingTopicSheetPresenter(session: session))
+        .modifier(ConnectionPickerPresenter(session: session))
         .modifier(TopicImagePicker(session: session))
         .sheet(isPresented: $session.isManagingTags) {
             TagManagerView(session: session)

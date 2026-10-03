@@ -124,6 +124,7 @@ struct MapPictureView: View {
             rect: frame,
             shapes: nil,
             selection: nil,
+            variant: ColorVariant(colorScheme: colorScheme, contrast: .standard),
             style: styles.style(for:)
         )
         ZStack(alignment: .topLeading) {

@@ -11,9 +11,36 @@ struct CanvasDrawing {
         let width: CGFloat
     }
 
+    /// A connection's look that changes the stroke; dimmed ones have their own.
+    struct LinkStroke: Hashable {
+        let color: SRGBColor
+        let lineStyle: EdgeLineStyle
+        let isDimmed: Bool
+    }
+
+    struct LinkFill: Hashable {
+        let color: SRGBColor
+        let isDimmed: Bool
+    }
+
+    struct Label {
+        let text: String
+        let center: CGPoint
+        let color: SRGBColor
+        let isDimmed: Bool
+    }
+
+    struct Badge {
+        /// The top-leading corner of the topic it marks.
+        let corner: CGPoint
+        let count: Int
+    }
+
     var edges: [Stroke: Path] = [:]
-    var crossLinks = Path()
-    var arrowheads = Path()
+    var crossLinks: [LinkStroke: Path] = [:]
+    var arrowheads: [LinkFill: Path] = [:]
+    var connectionLabels: [Label] = []
+    var connectionBadges: [Badge] = []
     /// Topics drawn as shapes below the detail zoom.
     var fills: [SRGBColor: Path] = [:]
     var outlines: [Stroke: Path] = [:]
@@ -35,6 +62,7 @@ struct CanvasDrawing {
             rect: model.cullingRect,
             shapes: model.isDetailed ? nil : model.visibleTopics,
             selection: model.session.selection,
+            variant: ColorVariant(colorScheme: colorScheme, contrast: contrast),
             imageFrame: { topic in
                 guard let image = topic.topicImage, let spec = model.textSpec(for: topic) else { return nil }
                 let size = image.displaySize(
@@ -57,6 +85,7 @@ struct CanvasDrawing {
         rect: CGRect,
         shapes: [CanvasTopic]?,
         selection selected: NodeID?,
+        variant: ColorVariant,
         imageFrame: (CanvasTopic) -> CGRect? = { _ in nil },
         style: (CanvasTopic) -> TopicStyle
     ) -> CanvasDrawing {
@@ -73,10 +102,24 @@ struct CanvasDrawing {
         }
 
         for (id, path) in scene.crossLinks(in: rect) {
-            drawing.crossLinks.addCurve(path)
-            if scene.crossLinkTypes[id] == .reference {
-                drawing.arrowheads.addArrowhead(at: path.end, from: path.control2)
+            guard let look = scene.crossLinkLooks[id] else { continue }
+            let color = (look.color?.token ?? Palette.Tokens.crossLink)[variant]
+            drawing.crossLinks[LinkStroke(color: color, lineStyle: look.lineStyle, isDimmed: look.isRerouted), default: Path()]
+                .addCurve(path)
+            let fill = LinkFill(color: color, isDimmed: look.isRerouted)
+            if look.hasEndArrow {
+                drawing.arrowheads[fill, default: Path()].addArrowhead(at: path.end, from: path.control2)
             }
+            if look.hasStartArrow {
+                drawing.arrowheads[fill, default: Path()].addArrowhead(at: path.start, from: path.control1)
+            }
+            if let label = look.label {
+                drawing.connectionLabels.append(Label(text: label, center: path.midpoint, color: color, isDimmed: look.isRerouted))
+            }
+        }
+        for (id, count) in scene.connectionBadges {
+            guard let topic = scene.topic(id), topic.frame.intersects(rect) else { continue }
+            drawing.connectionBadges.append(Badge(corner: topic.frame.origin, count: count))
         }
 
         guard let shapes else { return drawing }
@@ -126,10 +169,16 @@ struct EdgeLayer: View {
             for (stroke, path) in drawing.edges {
                 context.stroke(path, with: .color(stroke.color.color), style: StrokeStyle(lineWidth: stroke.width, lineCap: .round))
             }
-            if !drawing.crossLinks.isEmpty {
-                let dashed = StrokeStyle(lineWidth: CanvasMetrics.crossLinkWidth, lineCap: .round, dash: CanvasMetrics.crossLinkDash)
-                context.stroke(drawing.crossLinks, with: .color(Palette.crossLink), style: dashed)
-                context.fill(drawing.arrowheads, with: .color(Palette.crossLink))
+            for (stroke, path) in drawing.crossLinks {
+                let opacity = stroke.isDimmed ? CanvasMetrics.reroutedCrossLinkOpacity : 1
+                context.stroke(path, with: .color(stroke.color.color.opacity(opacity)), style: Self.strokeStyle(stroke.lineStyle))
+            }
+            for (fill, path) in drawing.arrowheads {
+                let opacity = fill.isDimmed ? CanvasMetrics.reroutedCrossLinkOpacity : 1
+                context.fill(path, with: .color(fill.color.color.opacity(opacity)))
+            }
+            for label in drawing.connectionLabels {
+                drawLabel(label, in: &context)
             }
             if !drawing.suggestionEdges.isEmpty {
                 let dashed = StrokeStyle(lineWidth: CanvasMetrics.suggestionEdgeWidth, lineCap: .round, dash: CanvasMetrics.suggestionDash)
@@ -152,8 +201,69 @@ struct EdgeLayer: View {
             if !drawing.selection.isEmpty {
                 context.stroke(drawing.selection, with: .color(Palette.selectionRing), lineWidth: drawing.selectionWidth)
             }
+            for badge in drawing.connectionBadges {
+                drawBadge(badge, in: &context)
+            }
         }
         .accessibilityHidden(true)
+    }
+
+    static func strokeStyle(_ lineStyle: EdgeLineStyle) -> StrokeStyle {
+        let width = CanvasMetrics.crossLinkWidth
+        return switch lineStyle {
+        case .solid: StrokeStyle(lineWidth: width, lineCap: .round)
+        case .dotted: StrokeStyle(lineWidth: width, lineCap: .round, dash: CanvasMetrics.crossLinkDot)
+        // A style from a newer version draws as the V1 dash.
+        default: StrokeStyle(lineWidth: width, lineCap: .round, dash: CanvasMetrics.crossLinkDash)
+        }
+    }
+
+    private func drawLabel(_ label: CanvasDrawing.Label, in context: inout GraphicsContext) {
+        let padding = CanvasMetrics.connectionLabelPadding
+        let text = context.resolve(Text(label.text)
+            .font(Typography.Content.badge.font)
+            .foregroundStyle(Palette.topicText))
+        let size = text.measure(in: CGSize(width: CanvasMetrics.connectionLabelMaxWidth, height: .infinity))
+        let box = CGRect(
+            x: label.center.x - size.width / 2 - padding.width,
+            y: label.center.y - size.height / 2 - padding.height,
+            width: size.width + 2 * padding.width,
+            height: size.height + 2 * padding.height
+        )
+        var context = context
+        if label.isDimmed { context.opacity = CanvasMetrics.reroutedCrossLinkOpacity }
+        let capsule = Path(roundedRect: box, cornerRadius: box.height / 2, style: .continuous)
+        context.fill(capsule, with: .color(Palette.canvasBackground))
+        context.stroke(capsule, with: .color(label.color.color), lineWidth: CanvasMetrics.crossLinkWidth)
+        context.draw(text, in: box.insetBy(dx: padding.width, dy: padding.height))
+    }
+
+    private func drawBadge(_ badge: CanvasDrawing.Badge, in context: inout GraphicsContext) {
+        let padding = CanvasMetrics.connectionBadgePadding
+        let content = context.resolve(Text("\(Image(systemName: CanvasMetrics.connectionBadgeSymbol)) \(badge.count)")
+            .font(Typography.Content.badge.font)
+            .foregroundStyle(Palette.crossLink))
+        let size = content.measure(in: CGSize(width: CGFloat.infinity, height: .infinity))
+        let box = CGRect(
+            x: badge.corner.x - size.width / 2 - padding.width,
+            y: badge.corner.y - size.height / 2 - padding.height,
+            width: size.width + 2 * padding.width,
+            height: size.height + 2 * padding.height
+        )
+        let capsule = Path(roundedRect: box, cornerRadius: box.height / 2, style: .continuous)
+        context.fill(capsule, with: .color(Palette.canvasBackground))
+        context.stroke(capsule, with: .color(Palette.crossLink), lineWidth: CanvasMetrics.crossLinkWidth)
+        context.draw(content, in: box.insetBy(dx: padding.width, dy: padding.height))
+    }
+}
+
+extension EdgePath {
+    /// The curve at t = 0.5, where a connection's label sits.
+    nonisolated var midpoint: CGPoint {
+        CGPoint(
+            x: (start.x + 3 * control1.x + 3 * control2.x + end.x) / 8,
+            y: (start.y + 3 * control1.y + 3 * control2.y + end.y) / 8
+        )
     }
 }
 

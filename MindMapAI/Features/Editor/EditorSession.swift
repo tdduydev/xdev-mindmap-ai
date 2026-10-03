@@ -71,6 +71,9 @@ final class EditorSession {
     @ObservationIgnored var floatingTopicPlacement: (() -> TopicPosition?)?
     /// Floating topic whose new parent is being chosen in the editor sheet.
     var attachTarget: NodeID?
+    /// The topic a new connection starts from while its target is picked
+    /// (Topic ▸ Add Connection…).
+    var connectionSource: NodeID?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false

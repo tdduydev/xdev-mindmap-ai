@@ -585,6 +585,14 @@ final class CanvasModel {
         session.editSelectionNote()
     }
 
+    /// Always the picker: the context menu and VoiceOver name one topic, so a
+    /// second selected topic must not become the target unasked.
+    func addConnection(from id: NodeID) {
+        commitEditing()
+        session.selection = id
+        session.beginAddingConnection()
+    }
+
     func editLink(_ id: NodeID) {
         performFromContextMenu(on: id) { $0.selection = id; $0.beginEditingSelectionLink() }
     }
