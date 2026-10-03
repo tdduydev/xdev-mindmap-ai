@@ -428,6 +428,8 @@ struct CollapseBadgeLabel: View {
 /// the topic element already has Add Child Topic and Add Sibling Topic.
 struct TopicAddButton: View {
     let label: LocalizedStringKey
+    /// Where the circle sits in its larger tap area.
+    var alignment: Alignment = .center
     let action: () -> Void
 
     var body: some View {
@@ -440,7 +442,7 @@ struct TopicAddButton: View {
                 .background(Palette.accent, in: Circle())
                 // Keeps the circle apart from a card or edge of the same hue.
                 .overlay(Circle().strokeBorder(Palette.canvasBackground, lineWidth: CanvasMetrics.addButtonRingWidth))
-                .frame(width: Metrics.minimumHitTarget, height: Metrics.minimumHitTarget)
+                .frame(width: Metrics.minimumHitTarget, height: Metrics.minimumHitTarget, alignment: alignment)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

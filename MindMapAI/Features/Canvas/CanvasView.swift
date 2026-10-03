@@ -175,19 +175,23 @@ struct CanvasView: View {
 
     /// These controls live in view coordinates so zoom never shrinks the hit area.
     private var addButtons: some View {
-        ForEach(model.visibleTopics) { topic in
+        let topics = model.visibleTopics
+        return ForEach(topics) { topic in
             if let buttons = model.addButtons(for: topic) {
+                let child = CanvasAddButtonPlacement.childFrame(for: topic, viewport: model.viewport)
                 TopicAddButton(label: "Add Child Topic") {
                     model.addFromButton(topic.id, sibling: false)
                 }
                 .onHover { model.setHovering(topic.id, part: .addChild, $0) }
-                .position(CanvasAddButtonPlacement.center(for: topic, viewport: model.viewport, sibling: false))
-                if buttons.showsSibling {
-                    TopicAddButton(label: "Add Sibling Topic") {
+                .position(x: child.midX, y: child.midY)
+                if buttons.showsSibling,
+                   let sibling = CanvasAddButtonPlacement.siblingFrame(for: topic, among: topics, viewport: model.viewport) {
+                    // The circle hugs the card; the rest of the tap area hangs below it.
+                    TopicAddButton(label: "Add Sibling Topic", alignment: .top) {
                         model.addFromButton(topic.id, sibling: true)
                     }
                     .onHover { model.setHovering(topic.id, part: .addSibling, $0) }
-                    .position(CanvasAddButtonPlacement.center(for: topic, viewport: model.viewport, sibling: true))
+                    .position(x: sibling.midX, y: sibling.midY)
                 }
             }
         }
