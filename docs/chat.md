@@ -157,7 +157,7 @@ Errors map through `AIFailure`. Logs carry the scope, tool names, token counts a
 
 ## What C1 built
 
-MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51) and the library scope (C3, MM-52) are not built. Saving came with MM-55 ([Saving the conversation](#saving-the-conversation)).
+MM-41, 2026-10-02. Ask in a map, read-only; suggestions came with C2, MM-51 ([Topics from the chat](#topics-from-the-chat-mm-51)); the library scope (C3, MM-52) is not built. Saving came with MM-55 ([Saving the conversation](#saving-the-conversation)).
 
 | Type | Where | Role |
 | --- | --- | --- |
@@ -203,7 +203,20 @@ Chosen by the product owner on 2026-10-03 (FR-AI-10, FR-EDT-13). Under each answ
 - **Add to Note** (finished answers): appends the answer to a topic's note, after a blank line when the note has text, as one `UpdateNodeCommand(.note)` named "Add Answer to Note": one undo step, redo restores it. The topic is the selected one; with nothing selected, the first cited topic still in the map [Đề xuất]; with several topics selected, or no selection and no citation, the button is disabled (its help says "Select one topic to add the answer to its note"). The help names the topic that will get it. The text is the plain answer, without handles.
 - **Ask Again** (the last question only, once its answer is finished, stopped or failed; disabled while the model is not ready): asks the same question with the same scope (`branch`) in place of that answer. The conversation is rebuilt from the turns before it, so the model does not see the answer it replaces. The old saved turn is deleted at once (`ChatHistoryStore.deleteChatTurn`, no schema change) and the new answer is saved as a new turn when it finishes, so a retry that stops or fails leaves no stale answer in the store. An earlier question has later turns built on it, so it has no Ask Again.
 - **Menu bar:** AI ▸ Copy Answer, Add Answer to Note, Ask Again act on the last answer and are disabled when it does not allow them. No shortcuts: none is approved yet, and ⌘C must stay Copy for the canvas and text.
-- **Not here:** Create Topics from Answer belongs to MM-51 (suggestions from the chat).
+- **Not here:** Create Topics from Answer came with MM-51 ([Topics from the chat](#topics-from-the-chat-mm-51)).
+
+## Topics from the chat (MM-51)
+
+C2, FR-AI-26. The product owner chose on 2026-10-03 a "Create Topics from Answer" button on each answer, besides the model's `suggestTopics` tool. Both end in the same place: AI suggestions on the canvas (`SuggestionState`, feature `.chat`), editable and discardable, and Accept is one `BatchCommand` named "Add AI Topics", one undo step, topics with `origin = .ai`.
+
+- **`ChatSuggestion`** (`MindMapAICore`): a parent topic and up to 8 topics [Đề xuất], temporary IDs `c1`, `c2`… Built from the model's titles (trimmed, one line, repeats and titles already under the parent left out) or read from an answer.
+- **`suggestTopics(handle, titles)`**, the fourth tool (`ChatTools.swift`, `ChatMapReader.suggestTopics`): the handle must be one a tool returned and, for a branch question, inside the branch; an empty handle means the branch topic, else the central topic. It records the suggestion and changes nothing; its result tells the model "Nothing was added yet … Say you suggested them". The latest call of an answer wins; the reader clears it before each question. `ChatUpdate.suggestion` carries it to the app.
+- **Instructions** gained one line ("To add topics, call suggestTopics … never say they were added") and lost the old "You cannot change the map"; they were shortened to stay under half of `ChatBudget.instructionsReserve` (the test guards it).
+- **Honest answer:** the panel adds its own line under the answer, "Suggested 3 topics under “Plan”. Review them on the map." (AI symbol), so what it says never depends on the model's wording. `MapChat.Entry.suggestion`; not saved with the turn, so the line is gone when the map opens again (the answer text stays) [Đề xuất].
+- **Create Topics from Answer** (`MapChat.createTopics(from:)`): finished answers, beside Copy and Add to Note, shown where the chat's AI controls are. The app reads the answer itself, no second model request: each list item (`-`, `*`, `+`, `•`, `1.`, `1)`) becomes a topic and an indented item a subtopic of the item above it; an answer without a list gives one topic per sentence (`NLTokenizer`). Handles, `**`, `` ` `` and heading marks are left out; the first 8 are kept. The parent is the one selected topic, else the branch the question was about, else the central topic [Đề xuất]; with several topics selected it is disabled. Its help names the parent.
+- **Either way** the suggestions take the place of others on the canvas, as a new AI request does (`AIAssistant.showChatSuggestion`); a parent deleted meanwhile shows "topic gone".
+- **Menu bar:** AI ▸ Create Topics from Answer acts on the last answer, no shortcut (none approved), disabled when it does not apply. Accept All Suggestions (⌃⌘Return) and Discard Suggestions (⌃⌘Delete) work as for every suggestion.
+- **Tests:** `ChatSuggestionTests` (titles, lists, nesting, sentences, cap, Accept through `SuggestionState`), `ChatMapReaderTests` (suggestTopics records, refuses, says nothing was added), `MapChatTests` (tool suggestion reaches `SuggestionState` with the map unchanged; Accept is one "Add AI Topics" step with undo and redo, for the tool and for Create Topics from Answer; targets).
 
 ## Ask by voice (MM-80)
 

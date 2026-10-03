@@ -13201,6 +13201,132 @@
           }
         }
       }
+    },
+    "Answering…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答しています…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang trả lời…"
+          }
+        }
+      }
+    },
+    "Suggested from the chat" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "チャットからの提案"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đề xuất từ chat"
+          }
+        }
+      }
+    },
+    "Create Topics from Answer" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答からトピックを作成"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tạo chủ đề từ câu trả lời"
+          }
+        }
+      }
+    },
+    "Select one topic to suggest the answer’s topics under it" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トピックを1つ選択すると、回答の項目をその下に提案します"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn một chủ đề để đề xuất các ý của câu trả lời dưới chủ đề đó"
+          }
+        }
+      }
+    },
+    "Suggest the answer’s points as topics under “%@”" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答の項目を「%@」の下にトピックとして提案します"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đề xuất các ý của câu trả lời thành chủ đề dưới “%@”"
+          }
+        }
+      }
+    },
+    "Suggested %lld topics under “%@”. Review them on the map." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Suggested %lld topic under “%@”. Review it on the map."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Suggested %lld topics under “%@”. Review them on the map."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "「%@」の下に%lld件のトピックを提案しました。マップで確認してください。"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Đã đề xuất %lld chủ đề dưới “%@”. Hãy xem lại trên sơ đồ."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
