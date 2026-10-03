@@ -117,7 +117,17 @@ let package = Package(
         .target(name: "MindMapAILocal", dependencies: ["MindMapAICore", "MindMapAIApple", "MindMapDomain"]),
         .testTarget(
             name: "MindMapAILocalTests",
-            dependencies: ["MindMapAILocal", "MindMapAICore", "MindMapAIApple", "MindMapDomain", "MindMapTestSupport"]
+            dependencies: [
+                "MindMapAILocal", "MindMapAIEvaluation", "MindMapAICore", "MindMapAIApple", "MindMapDomain", "MindMapTestSupport",
+            ]
+        ),
+        // Evaluations of every AI feature and the chat in en, vi and ja (MM-105),
+        // and the developer tool that runs them on Foundation Models or MLX.
+        .target(name: "MindMapAIEvaluation", dependencies: ["MindMapAICore", "MindMapDomain"]),
+        .executableTarget(
+            name: "mindmap-ai-eval",
+            dependencies: ["MindMapAIEvaluation", "MindMapAILocal", "MindMapAIApple", "MindMapAICore"],
+            path: "Sources/MindMapAIEvalTool"
         ),
         // A developer tool, not shipped: serves sample maps so the MCP Inspector
         // and real clients can be pointed at the server before the app hosts it.
