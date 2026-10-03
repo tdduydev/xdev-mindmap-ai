@@ -25,6 +25,7 @@ let package = Package(
         .library(name: "MindMapQuery", targets: ["MindMapQuery"]),
         .library(name: "MindMapMCP", targets: ["MindMapMCP"]),
         .library(name: "MindMapImages", targets: ["MindMapImages"]),
+        .library(name: "MindMapAILocal", targets: ["MindMapAILocal"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -110,6 +111,14 @@ let package = Package(
         // processing runs on every platform and in `swift test`.
         .target(name: "MindMapImages", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapImagesTests", dependencies: ["MindMapImages", "MindMapDomain"]),
+        // The downloadable open model (ADR 0011): provider, answer checks and
+        // device rules. MLX itself is linked only by the app, behind
+        // LocalInferenceEngine, so this target and `swift test` stay dependency-free.
+        .target(name: "MindMapAILocal", dependencies: ["MindMapAICore", "MindMapAIApple", "MindMapDomain"]),
+        .testTarget(
+            name: "MindMapAILocalTests",
+            dependencies: ["MindMapAILocal", "MindMapAICore", "MindMapAIApple", "MindMapDomain", "MindMapTestSupport"]
+        ),
         // A developer tool, not shipped: serves sample maps so the MCP Inspector
         // and real clients can be pointed at the server before the app hosts it.
         .executableTarget(
