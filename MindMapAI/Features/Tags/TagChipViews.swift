@@ -79,7 +79,7 @@ struct TopicChipLabel: View {
                     .foregroundStyle(labelColor(colors: colors))
             }
         }
-        .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
+        .font(ContentFont.font(postScriptName: spec.postScriptName, size: spec.pointSize))
         .padding(.horizontal, spec.horizontalPadding)
         .frame(width: chip.width, height: spec.height)
         .background {

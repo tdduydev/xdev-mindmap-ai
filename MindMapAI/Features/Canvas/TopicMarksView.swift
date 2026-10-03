@@ -49,7 +49,7 @@ struct TopicMarksView: View {
             }
             if let symbol = marks.symbol {
                 symbolText(symbol)
-                    .font(.custom(spec.postScriptName, fixedSize: spec.pointSize))
+                    .font(ContentFont.font(postScriptName: spec.postScriptName, size: spec.pointSize))
                     .foregroundStyle(textColor)
                     .lineLimit(1)
                     .fixedSize()

@@ -6,7 +6,7 @@ import XCTest
 /// recorded and the tour goes on, so one run shows everything that works.
 ///
 /// Off unless `MINDMAP_FEATURE_TOUR=1` reaches the runner, so
-/// scripts/ui-tests.sh skips it: run scripts/feature-tour.sh [ios|macos] [en|vi],
+/// scripts/ui-tests.sh skips it: run scripts/feature-tour.sh [ios|macos] [en|vi|ja],
 /// which also sets `MINDMAP_FEATURE_TOUR_LANGUAGE` and exports the screenshots.
 /// Steps tell views apart by identifier, position or fixture title, never by
 /// interface text, so the same tour runs in English and Vietnamese.
