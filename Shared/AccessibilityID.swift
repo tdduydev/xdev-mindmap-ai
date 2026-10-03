@@ -37,6 +37,8 @@ nonisolated enum AccessibilityID {
         static let voice = "editor.voice"
         static let ai = "editor.ai"
         static let export = "editor.export"
+        /// iOS only; the Mac has File ▸ Import into Map….
+        static let importIntoMap = "editor.importIntoMap"
     }
 
     /// The topic and map settings beside an open map.

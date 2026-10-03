@@ -227,6 +227,18 @@ struct MapEditorView: View {
                 }
                 .accessibilityIdentifier(AccessibilityID.Editor.export)
             }
+            #if os(iOS)
+            // The Mac and an iPad with a keyboard reach it in File ▸ Import into Map…;
+            // an iPhone has no menu bar, and the library's Import… is a screen away.
+            ToolbarItem(placement: .secondaryAction) {
+                Button {
+                    transfer.beginImport(.openMap(session))
+                } label: {
+                    Label("Import into Map…", systemImage: "square.and.arrow.down")
+                }
+                .accessibilityIdentifier(AccessibilityID.Editor.importIntoMap)
+            }
+            #endif
         }
         // After the primary actions, so it sits at the trailing edge above the inspector.
         ToolbarItem(placement: .primaryAction) {

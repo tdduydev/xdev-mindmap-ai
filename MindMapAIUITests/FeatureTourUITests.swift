@@ -392,6 +392,17 @@ final class FeatureTourUITests: XCTestCase {
             tour.waitForSystemFilePanel()
         }
         tour.dismissSystemFilePanel()
+        // Import into Map… from the open map: the iOS toolbar's, the Mac's File menu.
+        let editor = tour.openPlan(.canvas)
+        tour.step("49b-import-into-map") { app in
+            #if os(iOS)
+            editor.tap(.importIntoMap)
+            #else
+            app.app.typeKey("i", modifierFlags: [.command, .shift, .option])
+            #endif
+            tour.waitForSystemFilePanel()
+        }
+        tour.dismissSystemFilePanel()
     }
 
     // MARK: Voice
@@ -616,25 +627,12 @@ final class Tour {
     }
 
     /// The document picker on iOS, the open or save panel on the Mac.
-    func waitForSystemFilePanel() {
-        #if os(iOS)
-        let picker = xcApp.otherElements.matching(NSPredicate(format: "identifier BEGINSWITH 'DOC'")).firstMatch
-        let browser = xcApp.navigationBars.matching(NSPredicate(format: "identifier CONTAINS 'DOC' OR identifier CONTAINS 'FullDocumentManager'")).firstMatch
-        let cancel = xcApp.buttons.matching(NSPredicate(format: "label IN %@", ["Cancel", "Hủy", "Huỷ"])).firstMatch
-        let shown = [picker, browser, cancel].contains { $0.waitForExistence(timeout: MindMapApp.timeout / 3) }
-        XCTAssertTrue(shown, "no document picker")
-        #else
-        XCTAssertTrue(xcApp.sheets.firstMatch.waitForExistence(timeout: MindMapApp.timeout / 3) || xcApp.dialogs.firstMatch.exists, "no file panel")
-        #endif
+    func waitForSystemFilePanel(file: StaticString = #filePath, line: UInt = #line) {
+        app?.waitForSystemFilePanel(file: file, line: line)
     }
 
     func dismissSystemFilePanel() {
-        #if os(iOS)
-        let cancel = xcApp.buttons.matching(NSPredicate(format: "label IN %@", ["Cancel", "Hủy", "Huỷ"])).firstMatch
-        if cancel.waitForExistence(timeout: MindMapApp.timeout / 6) { cancel.tapOrClick() }
-        #else
-        xcApp.typeKey(.escape, modifierFlags: [])
-        #endif
+        app?.dismissSystemFilePanel()
     }
 }
 
