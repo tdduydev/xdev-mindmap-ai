@@ -11,6 +11,8 @@
     {"file": "docs/node-organization.md", "key": "node-organization", "title": "Node organization"},
     {"file": "docs/interchange.md", "key": "interchange", "title": "Interchange"},
     {"file": "docs/system-integration.md", "key": "system-integration", "title": "System integration"},
+    {"file": "docs/app-clip.md", "key": "app-clip", "title": "App Clip and map links"},
+    {"file": "docs/watch.md", "key": "watch", "title": "Apple Watch app"},
     {"file": "docs/ai-architecture.md", "key": "ai-architecture", "title": "AI architecture"},
     {"file": "docs/on-device-ai.md", "key": "on-device-ai", "title": "On-device AI"},
     {"file": "docs/mcp.md", "key": "mcp", "title": "MCP server"},
@@ -37,6 +39,7 @@
     {"file": "docs/adr/0009-local-chat.md", "key": "adr-0009", "title": "0009 Chat on the device", "parent": "adr"},
     {"file": "docs/adr/0010-floating-topic-positions.md", "key": "adr-0010", "title": "0010 Floating topics store their position", "parent": "adr"},
     {"file": "docs/adr/0011-local-llm-fallback.md", "key": "adr-0011", "title": "0011 Downloadable open model as fallback", "parent": "adr"},
+    {"file": "docs/adr/0012-app-clip-and-watch.md", "key": "adr-0012", "title": "0012 App Clip and Apple Watch app", "parent": "adr"},
     {"file": "docs/research/local-llm.md", "key": "research-local-llm", "title": "Research: local open models"}
   ]
 }

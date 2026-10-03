@@ -25,6 +25,8 @@ AI is not a chatbot bolted onto a diagram tool. It works on the selected part of
 
 macOS (developed first), iPadOS and iOS, all from version 26. The first release, 1.0.0, ships on all three together; the product owner decided this on 2026-10-03, replacing the earlier Mac-only plan. The Mac app runs on Apple silicon and on Intel Macs that run macOS 26; on-device AI needs Apple silicon, so it is hidden on Intel. Windows, keyboard, trackpad and mouse on the Mac; portrait and landscape, Split View, Stage Manager, Apple Pencil and touch on iPad; light and dark mode, Dynamic Type and VoiceOver everywhere.
 
+Two free companions follow the 1.0 release (product owner, 2026-10-03; ADR 0012): an **App Clip** on iPhone and iPad that opens a map from a link and makes a quick map with on-device AI ([app-clip](app-clip.md)), and an **Apple Watch app** (watchOS 26) that captures ideas into an Inbox map and shows recent maps read-only, through iCloud ([watch](watch.md)). Map links carry the map in the URL fragment, so no server stores maps (ADR 0001).
+
 ## MVP scope
 
 | Area | Items |
