@@ -21,6 +21,9 @@ enum Palette {
     static let centralFill = Color(.centralFill)
     static let centralText = Color(.centralText)
     static let crossLink = Color(.crossLink)
+    /// Callout bubble (FR-ORG-30); its outline and tail use `calloutStroke`.
+    static let calloutFill = Color(.calloutFill)
+    static let calloutStroke = crossLink
     static let searchMatchFill = Color(.searchMatchFill)
     static let searchMatchBorder = Color(.searchMatchBorder)
 
@@ -51,6 +54,7 @@ enum Palette {
         static let centralText = ColorToken(light: 0xFFFFFF, dark: 0x142745, lightHighContrast: 0xFFFFFF, darkHighContrast: 0x0B1830)
         static let accent = ColorToken(light: 0x004CFF, dark: 0x4AAEFF, lightHighContrast: 0x0038C2, darkHighContrast: 0x7BD4FF)
         static let crossLink = ColorToken(light: 0x5B6885, dark: 0x9DAAC7, lightHighContrast: 0x344568, darkHighContrast: 0xE8ECF8)
+        static let calloutFill = ColorToken(light: 0xEEF2FA, dark: 0x1E3358, lightHighContrast: 0xFFFFFF, darkHighContrast: 0x0B1830)
         static let searchMatchFill = ColorToken(light: 0xFFF4DB, dark: 0x3D3423, lightHighContrast: 0xFFE7B3, darkHighContrast: 0x4A3B1E)
         static let searchMatchBorder = ColorToken(light: 0xB26A00, dark: 0xFFC35C, lightHighContrast: 0x8B5300, darkHighContrast: 0xFFD285)
         static let favorite = ColorToken(light: 0xB26A00, dark: 0xFFC35C, lightHighContrast: 0x9A5B00, darkHighContrast: 0xFFD285)
@@ -77,6 +81,7 @@ enum Palette {
             "CentralFill": centralFill,
             "CentralText": centralText,
             "CrossLink": crossLink,
+            "CalloutFill": calloutFill,
             "SearchMatchFill": searchMatchFill,
             "SearchMatchBorder": searchMatchBorder,
             "Favorite": favorite,

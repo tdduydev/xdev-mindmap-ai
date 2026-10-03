@@ -1,18 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "No description" : {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No description"
+    "Add Callout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Callout"
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không có mô tả"
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chú thích"
           }
         }
       }
@@ -46,22 +46,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thêm kết nối…"
-          }
-        }
-      }
-    },
-    "Add Image…" : {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add Image…"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thêm ảnh…"
           }
         }
       }
@@ -110,6 +94,22 @@
         }
       }
     },
+    "Callout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Callout"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chú thích"
+          }
+        }
+      }
+    },
     "Change Connection Style" : {
       "comment" : "Undo action name: a connection's line, arrows or colour changed.",
       "localizations" : {
@@ -117,28 +117,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Đổi kiểu kết nối"
-          }
-        }
-      }
-    },
-    "Connection from %@" : {
-      "comment" : "VoiceOver: a connection from another topic to this one; %@ is the other topic's title.",
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kết nối từ %@"
-          }
-        }
-      }
-    },
-    "Connection to %@" : {
-      "comment" : "VoiceOver: a connection from this topic to another; %@ is the other topic's title.",
-      "localizations" : {
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kết nối tới %@"
           }
         }
       }
@@ -154,6 +132,17 @@
         }
       }
     },
+    "Connection from %@" : {
+      "comment" : "VoiceOver: a connection from another topic to this one; %@ is the other topic's title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối từ %@"
+          }
+        }
+      }
+    },
     "Connection Label" : {
       "comment" : "VoiceOver: the field that edits a connection's label on the canvas.",
       "localizations" : {
@@ -161,6 +150,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nhãn kết nối"
+          }
+        }
+      }
+    },
+    "Connection to %@" : {
+      "comment" : "VoiceOver: a connection from this topic to another; %@ is the other topic's title.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối tới %@"
           }
         }
       }
@@ -220,13 +220,18 @@
         }
       }
     },
-    "Edit Label" : {
-      "comment" : "Format ▸ Connection: edit the selected connection's label on the canvas.",
+    "Edit Callout" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Callout"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sửa nhãn"
+            "value" : "Sửa chú thích"
           }
         }
       }
@@ -238,6 +243,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sửa kết nối"
+          }
+        }
+      }
+    },
+    "Edit Label" : {
+      "comment" : "Format ▸ Connection: edit the selected connection's label on the canvas.",
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sửa nhãn"
           }
         }
       }
@@ -282,6 +298,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nét"
+          }
+        }
+      }
+    },
+    "No description" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No description"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không có mô tả"
+          }
+        }
+      }
+    },
+    "Add Image…" : {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Image…"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm ảnh…"
+          }
+        }
+      }
+    },
+    "Remove Callout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Callout"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá chú thích"
           }
         }
       }

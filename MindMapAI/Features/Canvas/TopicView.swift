@@ -351,6 +351,7 @@ struct TopicContextMenu: View {
         Button("Edit Note") { model.editNote(topic.id) }
         TopicLinkMenuItems(topic: topic, model: model)
         Button("Add Connection…") { model.addConnection(from: topic.id) }
+        TopicCalloutMenuItems(topic: topic, model: model)
         Button(topic.topicImage == nil ? "Add Image…" : "Replace Image…") {
             model.session.imagePickerTarget = topic.id
         }
@@ -541,6 +542,7 @@ struct TopicAccessibility: ViewModifier {
             .modifier(TopicLinkAccessibility(link: topic.isSuggestion ? nil : topic.link))
             .modifier(ConnectionAccessibility(descriptions: topic.connectionDescriptions))
             .modifier(TopicImageAccessibility(image: topic.topicImage))
+            .modifier(TopicCalloutAccessibility(topicID: topic.id, callout: topic.callout, isSuggestion: topic.isSuggestion, model: model))
     }
 
     /// Accept and Discard for each suggested tag, as the chips offer them.
