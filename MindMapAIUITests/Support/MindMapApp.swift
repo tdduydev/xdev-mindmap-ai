@@ -1,4 +1,7 @@
 import XCTest
+#if os(macOS)
+import AppKit
+#endif
 
 /// The app under test, launched in the UI test mode (docs/testing.md): an
 /// in-memory store holding `fixture`, throwaway preferences, no animation,
@@ -102,6 +105,29 @@ extension XCUIElement {
         click()
         #else
         tap()
+        #endif
+    }
+
+    /// Types `text` into the focused field. On macOS, XCTest synthesizes
+    /// typing through the current keyboard layout, and a character the layout
+    /// cannot produce (Vietnamese "ế", "ữ") stalls until "Timed out while
+    /// synthesizing event", so such text is pasted instead and the previous
+    /// clipboard is put back, since the Mac is shared with its user.
+    func enterText(_ text: String) {
+        #if os(macOS)
+        guard !text.allSatisfy(\.isASCII) else {
+            typeText(text)
+            return
+        }
+        let pasteboard = NSPasteboard.general
+        let previous = pasteboard.string(forType: .string)
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        typeKey("v", modifierFlags: .command)
+        pasteboard.clearContents()
+        if let previous { pasteboard.setString(previous, forType: .string) }
+        #else
+        typeText(text)
         #endif
     }
 

@@ -168,7 +168,7 @@ struct ChatPage {
     func ask(_ question: String, file: StaticString = #filePath, line: UInt = #line) {
         let field = field.waitToExist(file: file, line: line)
         field.tapOrClick()
-        field.typeText(question)
+        field.enterText(question)
         sendButton.waitToExist(file: file, line: line).tapOrClick()
     }
 }

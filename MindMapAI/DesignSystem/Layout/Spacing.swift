@@ -37,8 +37,10 @@ enum Metrics {
     /// Room for "400%" in the canvas controls, so the cluster does not resize while zooming.
     static let zoomLabelWidth: CGFloat = 48
 
-    /// Width of the Mac Settings window.
-    static let settingsWidth: CGFloat = 480
+    /// Width of the Mac Settings window: wide enough for all eight pane tabs
+    /// in Vietnamese, the longest titles, or Privacy and About fall into the
+    /// toolbar's overflow menu (MM-93).
+    static let settingsWidth: CGFloat = 560
 
     /// Width of the paywall sheet on the Mac.
     static let paywallWidth: CGFloat = 420
