@@ -15,7 +15,7 @@ MindMap AI holds private thinking: personal notes, research, company plans. It m
 4. **SwiftData** for local persistence.
 5. **CloudKit through the user's iCloud** for sync between their devices.
 6. **No user account.** iCloud identity is enough.
-7. **Apple Foundation Models** as the first AI provider, on-device.
+7. **Apple Foundation Models** as the first AI provider, on-device. Amended by ADR 0011 (2026-10-03): an open model on the device may stand in where Foundation Models is unavailable.
 8. **Firebase optional.** If added later, behind protocols with no-op defaults; maps, sync and sign-in never depend on it.
 
 ## Consequences

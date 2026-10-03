@@ -1,6 +1,6 @@
 # ADR 0011: A downloadable open model where Apple Intelligence is missing
 
-- Status: draft (MM-77). The product owner accepts, changes or rejects it; until then nothing here reaches the app or `Packages/MindMapCore`
+- Status: accepted by the product owner on 2026-10-03, as drafted in MM-77, for 1.1 (MM-105 engine and evaluations, MM-106 download in Settings, MM-107 measurements on iPhone and iPad)
 - Date: 2026-10-03
 - Relates to: ADR 0001 (no backend, Foundation Models first, no dependency without a decision), ADR 0005 (OS 26 minimum), ADR 0006 (macOS first)
 - Research: [local-llm.md](../research/local-llm.md)
@@ -11,7 +11,7 @@ Every AI feature runs on Foundation Models. People without it get no AI: iPhones
 
 ADR 0001 says Foundation Models is the first provider, and the project rules forbid external dependencies without a decision. A local model needs both: a third-party runtime and weights downloaded after install.
 
-## Decision [Đề xuất]
+## Decision
 
 1. **Fallback only.** Foundation Models stays the provider wherever it is ready. The open model is offered only when the capability check reports `deviceNotEligible`, `appleIntelligenceOff` or `languageUnsupported` and the device has enough memory, and only after the person downloads it in Settings ▸ AI. It never replaces a working Foundation Models.
 2. **Runtime: MLX Swift (`mlx-swift-lm`, MIT)**, the first external dependency, pinned to an exact version and linked only into the app target behind `LocalInferenceEngine`. `MindMapAICore` stays free of it. On 27 and later, the `LanguageModel` protocol (`MLXLanguageModel`) may replace the direct engine, reusing the `@Generable` types.
