@@ -11,7 +11,7 @@ How a build of MindMap AI reaches TestFlight and the Mac App Store. Set up on 20
 | Bundle ID | `asia.xdev.mindmapai`, registered as UNIVERSAL so iOS can share it. Capabilities: In-App Purchase, Push Notifications, iCloud (CloudKit, container `iCloud.asia.xdev.mindmapai`), App Groups (`group.asia.xdev.mindmapai`); the Share Extension `asia.xdev.mindmapai.share` has App Groups. Set on 2026-10-02 |
 | More bundle IDs (2026-10-03, ADR 0012) | App Clip `asia.xdev.mindmapai.Clip` (App Clip type, parent `asia.xdev.mindmapai`; App Groups `group.asia.xdev.mindmapai.clip`, Associated Domains, On Demand Install Capable); watch app `asia.xdev.mindmapai.watchkitapp` (iCloud with container `iCloud.asia.xdev.mindmapai`, Push Notifications); watch widgets `asia.xdev.mindmapai.watchkitapp.widgets`. The app itself gained Associated Domains and the second App Group `group.asia.xdev.mindmapai.clip` the same day |
 | Team ID | `M6C7NX9MUZ`, passed as `DEVELOPMENT_TEAM` by `scripts/upload-testflight.sh` only; the project leaves it empty so `scripts/ci.sh` builds on machines without a signing certificate |
-| Version | 0.1.0 for the TestFlight beta; `MARKETING_VERSION` is 1.0.0 from 2026-10-03, the first public release. The build number is the upload time (`YYYYMMDDHHmm`) |
+| Version | 0.1.0 for the TestFlight beta; 1.0.0 for the first public release (submitted 2026-10-03, tag `v1.0.0`); `main` is 1.1.0 from 2026-10-03. The build number is the upload time (`YYYYMMDDHHmm`) |
 
 ## What lives outside the repo
 
