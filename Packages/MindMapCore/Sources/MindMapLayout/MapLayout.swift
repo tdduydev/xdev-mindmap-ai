@@ -15,7 +15,7 @@ public struct MapLayout: Equatable, Sendable {
     public internal(set) var connectors: [NodeID: EdgePath]
     /// Cross-links whose two ends are both visible.
     public internal(set) var crossLinks: [EdgeID: EdgePath]
-    /// The smallest rectangle holding every topic frame; `.zero` for an empty map.
+    /// The smallest rectangle holding every topic frame and callout; `.zero` for an empty map.
     public internal(set) var bounds: CGRect
 
     /// Per-topic results kept so `update` can skip untouched branches.
@@ -34,7 +34,11 @@ public struct MapLayout: Equatable, Sendable {
 }
 
 public struct LayoutNode: Equatable, Sendable {
+    /// The topic's card; connectors attach to it.
     public var frame: CGRect
+    /// The callout bubble above the card, nil without one (FR-ORG-30). Its
+    /// room is reserved, so it overlaps no other topic or bubble.
+    public var calloutFrame: CGRect?
     public var side: LayoutSide
     /// 0 for the central topic.
     public var depth: Int
@@ -72,6 +76,9 @@ public struct EdgePath: Equatable, Sendable {
 struct BranchMeasure: Equatable, Sendable {
     /// Height of the band the branch occupies, the topic and all visible descendants.
     var extent: CGFloat
+    /// The part of `extent` above the card's centre. More than half of it when
+    /// a callout above the card needs the room.
+    var ascent: CGFloat
     /// Visible topics in the branch, itself included; balances the two sides.
     var weight: Int
     var visibleChildren: [NodeID]

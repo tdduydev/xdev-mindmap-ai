@@ -23,6 +23,21 @@ struct MapArchiveTests {
         #expect(restored.images == graph.images)
     }
 
+    /// MM-66: a callout survives export, decode and import onto new IDs.
+    @Test func calloutSurvivesExportAndImport() async throws {
+        let graph = ArchiveFixture.everyField()
+        let withCallout = try #require(graph.nodes.values.first { $0.callout != nil })
+
+        let archive = try await MapArchive.decode(try await MapArchive.exportData(graph))
+        #expect(archive.graph.node(withCallout.id)?.callout == withCallout.callout)
+
+        let (imported, _) = archive.imported()
+        let copies = imported.nodes.values.filter { $0.callout == withCallout.callout }
+        #expect(copies.count == 1)
+        #expect(copies.first?.title == withCallout.title)
+        #expect(copies.first?.id != withCallout.id)
+    }
+
     /// Image bytes travel base64 inside the JSON and come back as they went.
     @Test func imageBytesSurviveARoundTrip() async throws {
         let graph = ArchiveFixture.everyField()

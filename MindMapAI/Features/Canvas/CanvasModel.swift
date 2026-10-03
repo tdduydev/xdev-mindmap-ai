@@ -84,7 +84,8 @@ final class CanvasModel {
     /// Shared with export, so a picture of the map has the canvas's layout.
     static let layoutOptions = LayoutOptions(
         horizontalSpacing: CanvasMetrics.layoutParentGap,
-        verticalSpacing: CanvasMetrics.layoutSiblingGap
+        verticalSpacing: CanvasMetrics.layoutSiblingGap,
+        calloutSpacing: CanvasMetrics.calloutSpacing
     )
 
     init(session: EditorSession, assistant: AIAssistant? = nil) {
@@ -182,7 +183,8 @@ final class CanvasModel {
                 specs: specs,
                 options: layoutOptions,
                 suggestions: suggested,
-                tagSuggestions: assistant?.tagSuggestionChips ?? [:]
+                tagSuggestions: assistant?.tagSuggestionChips ?? [:],
+                calloutDraft: session.calloutEditorTarget
             )
             pendingChanges = []
             needsFullLayout = false
@@ -281,7 +283,8 @@ final class CanvasModel {
     /// Scrolls a topic into view, for the VoiceOver rotor and new topics.
     func reveal(_ id: NodeID) {
         guard let topic = scene.topic(id) else { return }
-        viewport.reveal(topic.frame, margin: CanvasMetrics.revealMargin)
+        let frame = topic.calloutFrame.map { topic.frame.union($0) } ?? topic.frame
+        viewport.reveal(frame, margin: CanvasMetrics.revealMargin)
     }
 
     // MARK: Selection and editing
@@ -306,6 +309,8 @@ final class CanvasModel {
 
     /// The canvas's chip settings, once it has its text settings.
     var chipSpec: TopicChipSpec? { specs?.chip }
+    /// The callout bubble's text settings, once the canvas has them.
+    var calloutSpec: TopicCalloutSpec? { specs?.callout }
 
     /// What a topic's context menu tags: the selection when the topic is in
     /// it, else the topic alone, as `performFromContextMenu` decides.
@@ -592,6 +597,27 @@ final class CanvasModel {
     func removeLink(_ id: NodeID) {
         commitEditing()
         session.removeLink(from: id)
+    }
+
+    // MARK: Callouts
+
+    func editCallout(_ id: NodeID) {
+        performFromContextMenu(on: id) { $0.selection = id; $0.beginEditingSelectionCallout() }
+    }
+
+    func removeCallout(_ id: NodeID) {
+        commitEditing()
+        session.removeCallout(from: id)
+    }
+
+    /// A bubble opened or closed for typing: it takes or gives back room in
+    /// the layout, and an opened one scrolls into view.
+    func calloutEditingDidChange() {
+        if let id = session.calloutEditorTarget {
+            commitEditing()
+            pendingReveal = (id, false)
+        }
+        scheduleLayout()
     }
 
     // MARK: Multi-selection
