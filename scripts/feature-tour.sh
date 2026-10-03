@@ -4,7 +4,7 @@
 # of scripts/ui-tests.sh, where the tour skips itself; it takes several minutes.
 #
 #   scripts/feature-tour.sh                # iOS Simulator, English
-#   scripts/feature-tour.sh ios vi         # platform: ios or macos; language: en or vi
+#   scripts/feature-tour.sh ios ja         # platform: ios or macos; language: en, vi or ja
 #   IOS_SIMULATOR="iPad Air 11-inch (M3)" scripts/feature-tour.sh ios en
 #   TOUR_NAME=ipad DERIVED_DATA=scripts/out/DerivedData-ipad IOS_SIMULATOR=… scripts/feature-tour.sh
 #
@@ -23,8 +23,8 @@ language=en
 for arg in "$@"; do
   case "$arg" in
     ios | macos) platform=$arg ;;
-    en | vi) language=$arg ;;
-    *) echo "usage: $0 [ios|macos] [en|vi]" >&2; exit 64 ;;
+    en | vi | ja) language=$arg ;;
+    *) echo "usage: $0 [ios|macos] [en|vi|ja]" >&2; exit 64 ;;
   esac
 done
 
