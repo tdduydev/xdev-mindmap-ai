@@ -2,6 +2,7 @@ import Foundation
 import MindMapAICore
 import MindMapDomain
 import MindMapGraph
+import MindMapMCP
 import Observation
 import OSLog
 import SwiftUI
@@ -63,6 +64,11 @@ final class AIAssistant {
     var sheet: Sheet?
     /// The suggestion selected on the canvas, by temporary ID.
     var selectedSuggestion: String?
+
+    /// Topics AI apps proposed over MCP that wait for the editor to be free
+    /// (docs/mcp.md, M5): one is shown at a time, never over the person's
+    /// own request or suggestions.
+    @ObservationIgnored private(set) var waitingAppSuggestions: [MCPProposal] = []
 
     /// Called whenever the suggestions change, so the canvas lays them out.
     @ObservationIgnored var onSuggestionsChange: (() -> Void)?
@@ -289,6 +295,7 @@ final class AIAssistant {
         task = nil
         activity = nil
         if suggestions?.isComplete == false { clearSuggestions() }
+        scheduleWaitingAppSuggestion()
     }
 
     // MARK: Suggestions
@@ -416,6 +423,7 @@ final class AIAssistant {
     /// A sheet closed without its buttons (swipe down, Esc): nothing runs.
     func sheetDismissed() {
         if sheet == nil { afterPrivacyNotice = nil }
+        scheduleWaitingAppSuggestion()
     }
 
     // MARK: Running
@@ -495,6 +503,7 @@ final class AIAssistant {
                 guard let self, !Task.isCancelled else { return }
                 self.activity = nil
                 self.task = nil
+                self.scheduleWaitingAppSuggestion()
                 done(result)
             } catch is CancellationError {
             } catch {
@@ -514,7 +523,9 @@ final class AIAssistant {
                 commands.append(RenameMapCommand(title: title))
                 commands.append(UpdateNodeCommand(nodeID: rootID, .title(title)))
             }
-            guard session.perform(BatchCommand(commands), named: String(localized: "Add AI Topics")) else {
+            // Topics an AI app proposed get their own name, so Undo says whose they were.
+            let name = suggestions.suggestedBy == nil ? String(localized: "Add AI Topics") : String(localized: "Add Suggested Topics")
+            guard session.perform(BatchCommand(commands), named: name) else {
                 show(.unusable)
                 return
             }
@@ -563,6 +574,7 @@ final class AIAssistant {
         guard tagSuggestions != nil else { return }
         tagSuggestions = nil
         onSuggestionsChange?()
+        scheduleWaitingAppSuggestion()
     }
 
     func clearSuggestions() {
@@ -570,6 +582,58 @@ final class AIAssistant {
         suggestions = nil
         selectedSuggestion = nil
         onSuggestionsChange?()
+        scheduleWaitingAppSuggestion()
+    }
+
+    // MARK: Suggestions from AI apps
+
+    /// An AI app's proposal for this map: shown now if nothing else is on
+    /// the map or running, else kept until the current suggestions are settled.
+    func receive(_ proposal: MCPProposal) -> MCPProposalOutcome {
+        guard waitingAppSuggestions.count < MCPProposal.maximumWaiting else { return .tooManyWaiting }
+        waitingAppSuggestions.append(proposal)
+        return showWaitingAppSuggestion() ? .shown : .waiting
+    }
+
+    /// Shows the oldest waiting proposal whose topic still exists, if the
+    /// editor is free. Returns whether it showed one.
+    @discardableResult
+    func showWaitingAppSuggestion() -> Bool {
+        // A failure stays until the person reads it: OK shows the next one.
+        guard !isWorking, failure == nil, suggestions == nil, !hasTagSuggestions, !hasBoundarySuggestions, sheet == nil else { return false }
+        while !waitingAppSuggestions.isEmpty {
+            let proposal = waitingAppSuggestions.removeFirst()
+            // The topic may have been deleted since the app proposed it.
+            guard session.engine.state.node(proposal.parentID) != nil else { continue }
+            let topics = proposal.topics.map {
+                ProposedTopic(temporaryID: $0.id, parentTemporaryID: $0.parentID, title: $0.title, note: $0.note)
+            }
+            var state = SuggestionState(feature: .chat, anchorID: proposal.parentID, suggestedBy: proposal.client.name)
+            state.update(with: ProposalSnapshot(
+                proposal: AIProposal(feature: .chat, anchor: .node(proposal.parentID), topics: topics),
+                isComplete: true
+            ))
+            guard !state.isEmpty else { continue }
+            selectedSuggestion = nil
+            suggestions = state
+            onSuggestionsChange?()
+            AccessibilityNotification.Announcement(String(localized: "New suggestions from \(proposal.client.name)")).post()
+            return true
+        }
+        return false
+    }
+
+    /// The failure line's OK.
+    func dismissFailure() {
+        failure = nil
+        scheduleWaitingAppSuggestion()
+    }
+
+    /// After the current code has run, since a clear is often followed by
+    /// the next suggestion in the same call (a new request, a chat suggestion).
+    func scheduleWaitingAppSuggestion() {
+        guard !waitingAppSuggestions.isEmpty else { return }
+        Task { [weak self] in self?.showWaitingAppSuggestion() }
     }
 
     private func fail(_ error: any Error, feature: AIFeature) {

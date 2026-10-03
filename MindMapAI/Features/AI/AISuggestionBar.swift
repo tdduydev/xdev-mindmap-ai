@@ -56,8 +56,9 @@ struct AISuggestionBar: View {
             }
         } else if let feature = suggestionFeature {
             VStack(alignment: .leading, spacing: Spacing.xxs) {
-                Text(feature.suggestionsTitle)
+                Text(appName.map { String(localized: "Suggested by \($0)") } ?? feature.suggestionsTitle)
                     .font(.headline)
+                    .accessibilityIdentifier(AccessibilityID.Suggestions.title)
                 Group {
                     if feature == .summarizeBoundary, let title = assistant.boundarySuggestions?.groups.first?.title {
                         Text(verbatim: title)
@@ -74,6 +75,11 @@ struct AISuggestionBar: View {
                 .foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// The AI app that proposed the topics on show, over MCP.
+    private var appName: String? {
+        assistant.hasTagSuggestions || assistant.hasBoundarySuggestions ? nil : assistant.suggestions?.suggestedBy
     }
 
     private var suggestionFeature: AIFeature? {
@@ -95,7 +101,7 @@ struct AISuggestionBar: View {
                     .buttonStyle(.glass)
                     .accessibilityIdentifier(AccessibilityID.Suggestions.editRequest)
             }
-            Button("OK") { assistant.failure = nil }
+            Button("OK", action: assistant.dismissFailure)
                 .buttonStyle(.glass)
         } else if assistant.hasSuggestions {
             Button("Review…") { isReviewing = true }
@@ -142,12 +148,16 @@ struct AISuggestionList: View {
                     }
                 } header: {
                     Label {
-                        Text(suggestions.feature.suggestionsTitle)
+                        Text(suggestions.suggestedBy.map { String(localized: "Suggested by \($0)") } ?? suggestions.feature.suggestionsTitle)
                     } icon: {
                         AISymbol()
                     }
                 } footer: {
-                    Text("Suggested by AI on this device. Nothing changes until you accept.")
+                    if let name = suggestions.suggestedBy {
+                        Text("Suggested by \(name), an AI app you connected. Nothing changes until you accept.")
+                    } else {
+                        Text("Suggested by AI on this device. Nothing changes until you accept.")
+                    }
                 }
             }
             .frame(minWidth: Metrics.suggestionListWidth, minHeight: Metrics.suggestionListHeight)

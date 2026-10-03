@@ -36,6 +36,7 @@ struct AIAppsTests {
         return AIAppsHost(
             queries: MapQueries(repository: repository, graphs: graphs),
             store: store ?? self.store,
+            openMaps: openMaps,
             defaults: defaults,
             serverVersion: "test"
         )
@@ -181,6 +182,112 @@ struct AIAppsTests {
         host.start()
         #expect(host.keychainFailed)
         #expect(host.apps.isEmpty)
+    }
+
+    // MARK: Suggestions from AI apps (M5)
+
+    private struct OpenFailed: Error {}
+
+    private func openMap() async throws -> OpenMap {
+        guard case .ready(let open) = await openMaps.open(mapID, in: WindowToken(), service: AIService(provider: { MockAIProvider() }, entitlements: Unlocked())) else {
+            throw OpenFailed()
+        }
+        return open
+    }
+
+    private func proposal(under parentID: NodeID, _ topics: [[String: Any]]) -> [String: Any] {
+        ["map_id": mapID.rawValue.uuidString, "parent_topic_id": parentID.rawValue.uuidString, "topics": topics]
+    }
+
+    @Test func suggestionsAreOffUntilAllowed() async throws {
+        let host = makeHost()
+        #expect(!host.allowsSuggestions)
+        let token = try host.addApp(named: "Claude Code")
+        let open = try await openMap()
+        let rootID = try #require(open.session.rootID)
+
+        let refused = try await call("propose_topics", proposal(under: rootID, [["title": "Ngân sách"]]), token: token, on: host)
+        #expect(refused.text.contains("Allow Suggestions"))
+        #expect(open.assistant.suggestions == nil)
+
+        host.setAllowsSuggestions(true)
+        #expect(defaults.bool(forKey: AIAppsHost.allowSuggestionsKey))
+        #expect(makeHost().allowsSuggestions, "remembered after a relaunch")
+    }
+
+    @Test func aProposalWaitsForReviewAndAcceptIsOneUndoStep() async throws {
+        let host = makeHost()
+        host.setAllowsSuggestions(true)
+        let token = try host.addApp(named: "Claude Code")
+        let open = try await openMap()
+        let session = open.session
+        let undoManager = UndoManager()
+        undoManager.groupsByEvent = false
+        session.undoManager = undoManager
+        let rootID = try #require(session.rootID)
+
+        let reply = try await call("propose_topics", proposal(under: rootID, [
+            ["title": "Ngân sách", "note": "Chi phí đi lại", "subtopics": [["title": "Vé máy bay"]]],
+        ]), token: token, on: host)
+
+        #expect(reply.text.contains("Waiting for the person to review it in MindMap AI"))
+        let suggestions = try #require(open.assistant.suggestions)
+        #expect(suggestions.suggestedBy == "Claude Code")
+        #expect(suggestions.topics.map(\.title) == ["Ngân sách", "Vé máy bay"])
+        #expect(session.engine.state.children(of: rootID).isEmpty, "nothing is in the map before Accept")
+        #expect(!session.canUndo)
+
+        undoManager.beginUndoGrouping()
+        open.assistant.acceptAll()
+        undoManager.endUndoGrouping()
+
+        #expect(undoManager.undoActionName == "Add Suggested Topics")
+        let budget = try #require(session.engine.state.children(of: rootID).first)
+        #expect(budget.title == "Ngân sách")
+        #expect(budget.note == "Chi phí đi lại")
+        #expect(budget.metadata.origin == .ai)
+        #expect(session.engine.state.children(of: budget.id).map(\.title) == ["Vé máy bay"])
+        #expect(open.assistant.suggestions == nil)
+
+        undoManager.undo()
+        #expect(session.engine.state.children(of: rootID).isEmpty)
+        undoManager.redo()
+        #expect(session.engine.state.children(of: rootID).map(\.title) == ["Ngân sách"])
+        #expect(session.engine.state.children(of: budget.id).map(\.title) == ["Vé máy bay"])
+    }
+
+    @Test func proposalsWaitForTheMapToOpenAndForTheEditorToBeFree() async throws {
+        let host = makeHost()
+        host.setAllowsSuggestions(true)
+        let token = try host.addApp(named: "Codex")
+        let rootID = try #require(try await repository.loadGraph(for: mapID)?.map.rootNodeID)
+
+        let first = try await call("propose_topics", proposal(under: rootID, [["title": "Một"]]), token: token, on: host)
+        #expect(first.text.contains("when the person opens the map"))
+        let second = try await call("propose_topics", proposal(under: rootID, [["title": "Hai"]]), token: token, on: host)
+        #expect(second.text.contains("when the person opens the map"))
+
+        let open = try await openMap()
+        #expect(open.assistant.suggestions?.topics.map(\.title) == ["Một"], "one proposal at a time")
+        #expect(open.assistant.suggestions?.suggestedBy == "Codex")
+
+        open.assistant.discardAll()
+        await Task.yield()
+        #expect(open.assistant.suggestions?.topics.map(\.title) == ["Hai"], "the next shows once the first is settled")
+        #expect(open.session.engine.state.children(of: rootID).isEmpty, "discarding adds nothing")
+    }
+
+    @Test func aFullQueueTellsTheAppToWait() async throws {
+        let host = makeHost()
+        host.setAllowsSuggestions(true)
+        let token = try host.addApp(named: "Cursor")
+        let rootID = try #require(try await repository.loadGraph(for: mapID)?.map.rootNodeID)
+        for index in 0..<MCPProposal.maximumWaiting {
+            let reply = try await call("propose_topics", proposal(under: rootID, [["title": "Chủ đề \(index)"]]), token: token, on: host)
+            #expect(reply.text.contains("when the person opens the map"))
+        }
+        let full = try await call("propose_topics", proposal(under: rootID, [["title": "Thêm"]]), token: token, on: host)
+        #expect(full.text.contains("proposals waiting for review"))
     }
 
     // MARK: What apps read

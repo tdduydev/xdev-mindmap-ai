@@ -8,7 +8,7 @@ Every sentence must describe the app as shipped. Change this page, [privacy](../
 
 - iCloud sync: on from version 1.1 (MM-100). The iCloud section says sync is on while you are signed in to iCloud and how to turn it off; check it again after the account-change test in [cloudkit-sync](../cloudkit-sync.md), *Testing on real devices*, before 1.1 is released.
 - Voice input ships (MM-20): same for the voice section; it must stay on the device.
-- AI Apps (MCP, MM-46): the "AI apps you connect" section must match Settings ▸ AI Apps; change it when AI apps can write (M5) or when anything but loopback is served.
+- AI Apps (MCP, MM-46, suggestions MM-50): the "AI apps you connect" section must match Settings ▸ AI Apps; change it when AI apps can do more than read and propose topics, or when anything but loopback is served.
 - Analytics, crash reporting, cloud AI or any network call to xDev is added: rewrite the page before the build ships.
 
 Do not add claims the app does not make good on. Dates are the publish date of the wording.
@@ -31,7 +31,7 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 
 **Voice input.** When voice input is available, speech is turned into text on your device and is not sent to xDev. The app asks for microphone and speech recognition access the first time you use it.
 
-**AI apps you connect (Mac).** You can let AI apps on your Mac, such as Claude Code or ChatGPT, read your maps in MindMap AI ▸ Settings ▸ AI Apps. It is off until you turn it on, and each app needs a token you add there. A connected app can read the titles, notes and structure of your maps while MindMap AI is open, and may send what it reads to its own AI provider under that app's terms and privacy policy; check those before you connect it. MindMap AI does not send this data to xDev. Turn the switch off to stop every app, or revoke one app in the same place.
+**AI apps you connect (Mac).** You can let AI apps on your Mac, such as Claude Code or ChatGPT, read your maps in MindMap AI ▸ Settings ▸ AI Apps. It is off until you turn it on, and each app needs a token you add there. A connected app can read the titles, notes and structure of your maps while MindMap AI is open, and may send what it reads to its own AI provider under that app's terms and privacy policy; check those before you connect it. MindMap AI does not send this data to xDev. If you also turn on Allow Suggestions, a connected app can propose new topics for a map; they appear labelled with the app's name and nothing is added until you accept them. Connected apps can't edit or delete anything in your maps. Turn the switch off to stop every app, or revoke one app in the same place.
 
 **Purchases.** Payments are handled by Apple through the App Store. xDev does not receive your payment details.
 

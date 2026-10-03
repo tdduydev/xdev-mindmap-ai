@@ -2,6 +2,7 @@ import Foundation
 import MindMapAICore
 import MindMapDomain
 import MindMapGraph
+import MindMapMCP
 import MindMapPersistence
 import Observation
 import OSLog
@@ -64,6 +65,9 @@ final class OpenMaps {
     @ObservationIgnored private var closing: [MapID: Task<Void, Never>] = [:]
     /// A topic to show once its map opens: a library chat citation (MM-52).
     @ObservationIgnored private var pendingTopics: [MapID: NodeID] = [:]
+    /// Topics AI apps proposed for maps no window shows yet (docs/mcp.md, M5),
+    /// in memory only: they wait for the map to open, not for a relaunch.
+    @ObservationIgnored private var pendingProposals: [MapID: [MCPProposal]] = [:]
 
     init(repository: any MapRepository, clipboard: any TextClipboard = SystemClipboard()) {
         self.repository = repository
@@ -148,6 +152,16 @@ final class OpenMaps {
         }
     }
 
+    /// Puts an AI app's proposal on its map now if the editor is free, else
+    /// keeps it until the map opens or its current suggestions are settled.
+    func propose(_ proposal: MCPProposal) -> MCPProposalOutcome {
+        if let map = maps[proposal.mapID] { return map.assistant.receive(proposal) }
+        let waiting = pendingProposals[proposal.mapID, default: []]
+        guard waiting.count < MCPProposal.maximumWaiting else { return .tooManyWaiting }
+        pendingProposals[proposal.mapID] = waiting + [proposal]
+        return .waiting
+    }
+
     /// Whether `mapID` is loaded, for tests.
     func isOpen(_ mapID: MapID) -> Bool { maps[mapID] != nil }
 
@@ -191,9 +205,11 @@ final class OpenMaps {
         let opening = await task.value
         loading[mapID] = nil
         let pendingTopic = pendingTopics.removeValue(forKey: mapID)
+        let proposals = pendingProposals.removeValue(forKey: mapID) ?? []
         if case .ready(let map) = opening {
             maps[mapID] = map
             if let pendingTopic { map.session.showTopic(pendingTopic) }
+            for proposal in proposals { _ = map.assistant.receive(proposal) }
         }
         return opening
     }

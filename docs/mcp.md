@@ -1,13 +1,13 @@
 # MCP server: AI apps read your maps
 
-Design for MM-39, 2026-10-02. The shared query layer (MM-47), the server core `MindMapMCP` (MM-40, [Server core](#server-core)) and the Mac app's Settings ▸ AI Apps that hosts it (MM-46, [In the app](#in-the-app)) are built. Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
+Design for MM-39, 2026-10-02. The shared query layer (MM-47), the server core `MindMapMCP` (MM-40, [Server core](#server-core)) the Mac app's Settings ▸ AI Apps that hosts it (MM-46, [In the app](#in-the-app)) and `propose_topics` (MM-50, [Writing](#writing-propose_topics)) are built. Decisions are in [ADR 0008](adr/0008-mcp-server.md); the in-app chat that shares the query layer is in [chat.md](chat.md). Items marked [Đề xuất] are proposals waiting for the product owner. *[Inference]* marks reasoning that no source states. Sources were read on 2026-10-02; recheck them before building, since the protocol and the clients change every few months.
 
 ## Summary
 
 - **What:** a Model Context Protocol (MCP) server inside the Mac app, so AI apps the person already uses (Claude Desktop, Claude Code, ChatGPT desktop, Cursor, VS Code) can list, read and search their maps. Mac only: no iPad or iPhone client launches or reaches a local server *[Inference]*.
 - **Transport (decided 2026-10-02):** first, the app itself serves Streamable HTTP on `127.0.0.1` while it runs, with a token per client. Second, a small stdio helper in the app bundle that only relays to the running app, for clients that speak stdio only (Claude Desktop). No helper reads the store, and nothing is remote: there is no backend (ADR 0001).
 - **Changed 2026-10-03 (proposed, [ADR 0013](adr/0013-mcp-helper-over-app-group-socket.md)):** App Review rejected macOS 1.0.0 for `network.server`. From 1.1 every client goes through the stdio helper, which reaches the app over a Unix socket in a Team-ID-prefixed App Group, with no network entitlement and no token. The HTTP listener leaves the app. See [Helper spike](#helper-spike-mm-48).
-- **Read-only first.** Writing comes later and only as a proposal the person accepts in the app; Accept is one `GraphCommand`, one undo step, like every AI suggestion ([ai-architecture.md](ai-architecture.md)).
+- **Read-only first.** Writing is only a proposal the person accepts in the app (`propose_topics`, MM-50, behind its own switch); Accept is one `GraphCommand`, one undo step, like every AI suggestion ([ai-architecture.md](ai-architecture.md)).
 - **Off by default.** Turned on in Settings, one client at a time, each with its own token, visible last access and Revoke.
 - **Privacy:** map text leaves the Mac only through the AI app the person connected, under that app's terms. xDev still receives nothing. Settings, the privacy page and the privacy policy say so before the switch is turned on.
 - **No dependency.** A small JSON-RPC server in a new `MindMapMCP` target on the Network framework, not the official Swift SDK ([Dependency](#dependency)).
@@ -81,7 +81,7 @@ The two shipping examples follow the same split: iMCP (direct download, not the 
 
 ## Tools and resources
 
-Read-only tools, in a fixed order (2026-07-28 asks for deterministic `tools/list`). Each one is marked `readOnlyHint: true` and returns Markdown text plus `structuredContent`. IDs are the UUIDs the app already uses.
+Read-only tools, in a fixed order, then `propose_topics` when suggestions are served ([Writing](#writing-propose_topics)) (2026-07-28 asks for deterministic `tools/list`). Each one is marked `readOnlyHint: true` and returns Markdown text plus `structuredContent`. IDs are the UUIDs the app already uses.
 
 | Tool | Arguments | Returns |
 | --- | --- | --- |
@@ -95,13 +95,19 @@ Read-only tools, in a fixed order (2026-07-28 asks for deterministic `tools/list
 - **Prompts:** none.
 - **Errors:** an unknown ID, a deleted map or a bad argument is a tool result with `isError: true` and a plain message the model can act on (changed in MM-40 from invalid-params: 2026-07-28 classes these as tool execution errors that clients pass to the model). An unknown tool name stays a JSON-RPC invalid-params error. A store error says to try again, without its description.
 
-### Writing, later
+### Writing: `propose_topics`
 
-One write tool, `propose_topics(map_id, parent_topic_id, topics)`, where `topics` is a small tree of titles and optional notes (`destructiveHint: false`):
+Built in MM-50 (M5). One write tool, `propose_topics(map_id, parent_topic_id, topics)`, where `topics` is a small tree: each item has `title`, optional `note` and optional `subtopics` of the same shape (`readOnlyHint: false`, `destructiveHint: false`, `idempotentHint: false`, listed last).
 
-1. The app checks it with `ProposalTranslator` (the same checks as model output) and keeps it as a suggestion with the client's name: "Suggested by Claude Code".
-2. The map shows it like any AI suggestion; nothing is in the graph or the store yet. The tool answers "Waiting for the person to review it in MindMap AI", never "added".
-3. Accept is one `BatchCommand` of `AddNodeCommand`s named "Add Suggested Topics", one undo step; the topics keep `metadata.origin = .ai` (no new `NodeOrigin` case, so the stored raw value stays one an older build reads).
+1. The server checks the arguments before anything reaches the app [Đề xuất limits]: at most 20 topics counting subtopics, titles one line (newlines become spaces) and at most 200 characters, notes at most 2,000, no unknown fields; the map must be live and the topic must exist. Each failure is an `isError` result the model can act on. Topics get temporary IDs `p1`, `p2`… in pre-order.
+2. The app keeps it as a suggestion with the client's name: the bar says "Suggested by Claude Code", the Review list's footer says it came from an AI app the person connected, and the AI symbol stays. Nothing is in the graph, the undo history or the store yet. The tool answers "Waiting for the person to review it in MindMap AI; nothing is added until they accept", never "added".
+3. Accept is one `BatchCommand` of `AddNodeCommand`s through `SuggestionState.accept` and `ProposalTranslator` (the same checks as model output), named "Add Suggested Topics", one undo step; notes come along; the topics keep `metadata.origin = .ai` (no new `NodeOrigin` case, so the stored raw value stays one an older build reads). Topics can be renamed or discarded one by one first, as any AI suggestion.
+
+**When it shows.** Settings ▸ AI Apps ▸ Allow Suggestions (`mcp.allowSuggestions`, off by default) is read on every call; off answers an `isError` that names the switch. A proposal for an open map shows at once if its editor is free (no request running, no suggestions, no sheet, no failure line on show); otherwise it waits in that map's `AIAssistant` and shows when the current suggestions are accepted, discarded or the request ends, one proposal at a time. A proposal for a map no window shows waits in `OpenMaps` and shows when the map opens. Waiting proposals live in memory only, so a relaunch drops them [Đề xuất]. At most 3 wait per map (`MCPProposal.maximumWaiting`) [Đề xuất]; the next call gets "already has 3 proposals waiting". A proposal whose topic was deleted meanwhile is dropped when its turn comes.
+
+**Types.** `MindMapMCP`: `MCPProposal` (map, parent, topics, client), `MCPProposalReceiver` (the app's side), `MCPProposalOutcome` (`shown`, `waiting`, `notAllowed`, `tooManyWaiting`); `MCPServer(…, proposals:)` lists and serves `propose_topics` only when a receiver is given, so the dev server and read-only tests keep four tools; `instructions` then say that proposals are reviewed and nothing can be edited, moved or deleted. App: `AIAppsHost.receive` → `OpenMaps.propose` → `AIAssistant.receive`. `SuggestionState.suggestedBy` and `SuggestionState.Topic.note` are new; the proposal uses `AIFeature.chat` rather than a new case, so no prompt or availability switch gains a branch that never runs.
+
+**Changed from the design:** notes are kept on Accept (the suggestion state dropped them before); a map that is not open still takes proposals, which wait for it.
 
 No tool edits, moves or deletes existing topics. A tool that did would let text inside a map (prompt injection) steer the client into changing the map without the person.
 
@@ -261,7 +267,7 @@ Built in MM-46 (M2), Mac only, in `MindMapAI/Features/AIApps`.
 
 - Settings ▸ Privacy has an AI Apps row on the Mac: "Off", or "On: apps you connect can read your maps and handle them under their own terms".
 - `com.apple.security.network.server` comes from `ENABLE_INCOMING_NETWORK_CONNECTIONS[sdk=macosx*] = YES` (no entitlements file change). There is no `network.client`, so the app's hosted tests send requests to `AIAppsHost.server` directly; the socket round trip stays in the core tests.
-- Not built here: the "AI app reading" toolbar indicator and menu items listed for M2 above (the task note keeps the menu bar unchanged); a confirmation sheet when turning the switch on (the footer says it first, per [settings.md](settings.md)); Allow Suggestions (M5).
+- Not built here: the "AI app reading" toolbar indicator and menu items listed for M2 above (the task note keeps the menu bar unchanged); a confirmation sheet when turning the switch on (the footer says it first, per [settings.md](settings.md)). Allow Suggestions came with M5 (MM-50): a second section with its own footer.
 - Tests: `MindMapAITests/AIAppsTests` (defaults, port range, tokens per app, Revoke → 401, relaunch keeps apps without last read, activity sets last read, Keychain failure, live graph of an open map, switch and port on a real listener, taken port, Keychain round trip, snippet shapes); `MindMapAIUITests/AIAppsSettingsUITests` (Mac: off by default, Ready at once, Privacy row; iOS: no AI Apps pane).
 
 ## Proposed tasks
@@ -275,4 +281,4 @@ For the leader to create; the names are placeholders.
 | M2 | MCP in the Mac app ✓ MM-46 (no indicator or menu items, see [In the app](#in-the-app)) | Settings ▸ AI Apps (off by default), clients and Keychain tokens, copy snippets for Claude Code, ChatGPT desktop (Codex config), Cursor and VS Code; reading indicator; menu items; `network.server`; privacy.md, privacy policy, Review Notes; en and vi; UI test for the switch | M1 |
 | M3 | Spike: helper in the Mac App Store ✓ MM-48 (no TestFlight build, see [Helper spike](#helper-spike-mm-48)) | A sandboxed `mindmap-mcp` relay in `Contents/Helpers`, launched by Claude Desktop from a TestFlight build; answer whether App Review and signing accept it, and whether a `.mcpb` can point at it. Ship it (M4) only if yes | M2 |
 | M4 | AI Apps through the helper (MM-49, ADR 0013) | Steps in [MM-49 order](#mm-49-order): TestFlight upload with the helper first, then the App Group socket with the peer check, the HTTP listener and `network.server` removed, snippets for every client, Review Notes | M3 |
-| M5 | MCP proposals | `propose_topics`, suggestions labelled with the client's name, Accept as one command with undo and redo tests, nothing edited or deleted through MCP | M2, C2 ([chat.md](chat.md)) |
+| M5 | MCP proposals ✓ MM-50 | `propose_topics`, suggestions labelled with the client's name, Accept as one command with undo and redo tests, nothing edited or deleted through MCP | M2, C2 ([chat.md](chat.md)) |

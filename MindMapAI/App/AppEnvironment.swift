@@ -41,7 +41,8 @@ final class AppEnvironment {
         self.openMaps = openMaps
         aiApps = AIAppsHost(
             queries: MapQueries(repository: repository, graphs: OpenMapsGraphSource(openMaps: openMaps, repository: repository)),
-            store: aiAppClients
+            store: aiAppClients,
+            openMaps: openMaps
         )
         self.storeSync = storeSync
         self.firstImport = firstImport

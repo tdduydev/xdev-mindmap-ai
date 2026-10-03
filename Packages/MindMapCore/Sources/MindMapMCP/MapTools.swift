@@ -14,8 +14,9 @@ struct ToolResult: Sendable, Equatable {
     }
 }
 
-/// The read-only tools (docs/mcp.md, Tools and resources). Every argument and
-/// result is map content, so nothing here logs.
+/// The read tools and, when the app takes proposals, `propose_topics`
+/// (docs/mcp.md, Tools and resources). Every argument and result is map
+/// content, so nothing here logs.
 struct MapTools: Sendable {
     enum CallError: Error, Equatable {
         case unknownTool
@@ -31,10 +32,17 @@ struct MapTools: Sendable {
     /// Characters of Markdown per result, so one big map does not fill the
     /// client's context; `get_map` with `topic_id` and `depth` reads the rest.
     let outputLimit: Int
+    /// Nil in a server that only reads (the dev server, most tests): then
+    /// `propose_topics` is neither listed nor callable.
+    var proposals: (any MCPProposalReceiver)?
 
-    static let names = ["list_maps", "get_map", "search", "get_topic"]
+    static let readNames = ["list_maps", "get_map", "search", "get_topic"]
 
-    func call(_ name: String, arguments: [String: JSONValue]) async throws(CallError) -> ToolResult {
+    var names: [String] { Self.readNames + (proposals == nil ? [] : ["propose_topics"]) }
+
+    var definitions: [JSONValue] { Self.definitions + (proposals == nil ? [] : [Self.proposeTopicsDefinition]) }
+
+    func call(_ name: String, arguments: [String: JSONValue], client: MCPClient) async throws(CallError) -> ToolResult {
         let arguments = Arguments(values: arguments)
         do {
             let result: ToolResult
@@ -43,6 +51,7 @@ struct MapTools: Sendable {
             case "get_map": result = try await getMap(arguments)
             case "search": result = try await search(arguments)
             case "get_topic": result = try await getTopic(arguments)
+            case "propose_topics": result = try await proposeTopics(arguments, client: client)
             default: throw CallError.unknownTool
             }
             return result.limited(to: outputLimit)
@@ -263,7 +272,7 @@ private extension String {
 }
 
 /// Typed reads of a tool's `arguments`, with messages a model can act on.
-private struct Arguments {
+struct Arguments {
     let values: [String: JSONValue]
 
     func string(_ key: String) throws(MapTools.InputError) -> String? {

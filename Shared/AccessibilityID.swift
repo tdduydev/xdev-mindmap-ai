@@ -69,6 +69,8 @@ nonisolated enum AccessibilityID {
         static let review = "suggestions.review"
         static let acceptAll = "suggestions.acceptAll"
         static let discardAll = "suggestions.discardAll"
+        /// "Suggested by Claude Code" or the feature's title.
+        static let title = "suggestions.title"
         /// One per suggested topic in the Review list.
         static let accept = "suggestions.accept"
         static let discard = "suggestions.discard"
@@ -239,6 +241,7 @@ nonisolated enum AccessibilityID {
         static let privacyAI = "settings.privacy.ai"
         static let privacyVoiceInput = "settings.privacy.voiceInput"
         static let aiAppsSwitch = "settings.aiApps.switch"
+        static let aiAppsAllowSuggestions = "settings.aiApps.allowSuggestions"
         static let aiAppsStatus = "settings.aiApps.status"
         static let aiAppsPort = "settings.aiApps.port"
         static let aiAppsAdd = "settings.aiApps.add"
