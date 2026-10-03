@@ -22,7 +22,12 @@ public struct MapLayout: Equatable, Sendable {
     /// the canvas shows it as a badge. A link with both ends below one topic
     /// is counted but not drawn.
     public internal(set) var hiddenCrossLinkCounts: [NodeID: Int]
-    /// The smallest rectangle holding every topic frame and callout; `.zero` for an empty map.
+    /// The frame of each boundary with a visible member: its visible members'
+    /// branches plus `boundaryPadding`, and the title's room on top when it has
+    /// one. Hidden with its parent; members on the far side of the central
+    /// topic from the first member are left out.
+    public internal(set) var boundaries: [GroupID: CGRect]
+    /// The smallest rectangle holding every topic frame, callout and boundary; `.zero` for an empty map.
     public internal(set) var bounds: CGRect
 
     /// Per-topic results kept so `update` can skip untouched branches.
@@ -37,6 +42,7 @@ public struct MapLayout: Equatable, Sendable {
         crossLinks = [:]
         reroutedCrossLinks = []
         hiddenCrossLinkCounts = [:]
+        boundaries = [:]
         bounds = .zero
         measures = [:]
     }

@@ -49,6 +49,10 @@ struct CanvasView: View {
                 ConnectionLabelField(model: model, edgeID: id)
                     .position(anchor)
             }
+            if let id = model.editingBoundaryTitle, let anchor = model.boundaryTitleAnchor(id) {
+                BoundaryTitleField(model: model, groupID: id)
+                    .position(anchor)
+            }
         }
         .coordinateSpace(.named(Self.coordinateSpace))
         .clipped()

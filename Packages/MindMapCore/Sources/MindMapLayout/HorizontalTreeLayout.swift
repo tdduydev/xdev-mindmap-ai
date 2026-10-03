@@ -21,6 +21,11 @@ import MindMapGraph
 /// children start past the wider of card and bubble. The bubble is centred on
 /// the card but never passes the card's edge that faces the parent, so it
 /// cannot reach into the parent's column. Connectors still attach to the card.
+///
+/// A boundary (MM-37) reserves `boundaryPadding` above and below its run of
+/// siblings, plus `boundaryTitleHeight` above it when it has a title, so its
+/// frame never covers a neighbouring branch. Its frame is the union of its
+/// visible members' branches and the boundaries nested inside them.
 public struct HorizontalTreeLayout: MindMapLayoutEngine {
     public init() {}
 
@@ -81,6 +86,8 @@ private struct LayoutPass {
     let options: LayoutOptions
     let previous: MapLayout?
     let dirty: Set<NodeID>
+    /// Valid boundaries by parent, so measuring a branch does not scan every group.
+    let boundariesByParent: [NodeID: [MindGroup]]
 
     private var result: MapLayout
     /// Topics the placement walk reached in this pass; an update must not remove them.
@@ -103,6 +110,10 @@ private struct LayoutPass {
         self.options = options
         self.previous = previous
         self.dirty = dirty
+        boundariesByParent = Dictionary(
+            grouping: graph.groups.values.filter { $0.kind == .boundary && $0.parentNodeID != nil && graph.members(of: $0) != nil },
+            by: { $0.parentNodeID! }
+        )
         result = previous ?? MapLayout(options: options)
     }
 
@@ -129,6 +140,7 @@ private struct LayoutPass {
         }
         removeOrphans()
         crossLinks()
+        boundaryFrames()
         result.bounds = bounds()
         return result
     }
@@ -182,10 +194,11 @@ private struct LayoutPass {
         let children = visibleChildren(of: id, rootID: rootID)
         var weight = 1
         var block: CGFloat = 0
+        let gaps = boundaryGaps(under: id, children: children)
         for (index, child) in children.enumerated() {
             guard let childMeasure = result.measures[child] else { preconditionFailure("Child measured after its parent") }
             weight += childMeasure.weight
-            block += childMeasure.extent
+            block += childMeasure.extent + gaps[index].above + gaps[index].below
             if index > 0 { block += options.verticalSpacing }
         }
         let isCollapsed = graph.node(id)?.isCollapsed ?? false
@@ -232,13 +245,13 @@ private struct LayoutPass {
 
         let (right, left) = split(measure(of: rootID).visibleChildren)
         let rootSlot = slot(of: rootID)
-        var stack = placements(for: right, in: rootFrame, slot: rootSlot, side: .right, depth: 1)
+        var stack = placements(for: right, under: rootID, in: rootFrame, slot: rootSlot, side: .right, depth: 1)
         // With both sides in use, reading goes clockwise around the central topic:
         // down the right side, then up the left, so the first left branch sits at
         // the bottom. A left-only map has no right side to continue from, so it
         // reads top to bottom like a right-only one.
         let leftOrder = options.sides == .balanced ? Array(left.reversed()) : left
-        stack += placements(for: leftOrder, in: rootFrame, slot: rootSlot, side: .left, depth: 1)
+        stack += placements(for: leftOrder, under: rootID, in: rootFrame, slot: rootSlot, side: .left, depth: 1)
         place(stack)
     }
 
@@ -256,7 +269,7 @@ private struct LayoutPass {
         // It may have had one in the previous layout, before it was detached.
         result.connectors[id] = nil
         guard write(id, frame: frame, side: .right, depth: 1) else { return }
-        place(placements(for: measure(of: id).visibleChildren, in: frame, slot: slot(of: id), side: .right, depth: 2))
+        place(placements(for: measure(of: id).visibleChildren, under: id, in: frame, slot: slot(of: id), side: .right, depth: 2))
     }
 
     private mutating func place(_ start: [Placement]) {
@@ -277,6 +290,7 @@ private struct LayoutPass {
             guard write(next.id, frame: frame, side: next.side, depth: next.depth) else { continue }
             stack += placements(
                 for: measure(of: next.id).visibleChildren,
+                under: next.id,
                 in: frame,
                 slot: slot(of: next.id),
                 side: next.side,
@@ -337,6 +351,7 @@ private struct LayoutPass {
     /// Stacks the children's bands top to bottom, centered on the parent.
     private func placements(
         for children: [NodeID],
+        under parentID: NodeID,
         in parentFrame: CGRect,
         slot parentSlot: CGRect,
         side: LayoutSide,
@@ -344,14 +359,17 @@ private struct LayoutPass {
     ) -> [Placement] {
         guard !children.isEmpty else { return [] }
         let measures = children.map { measure(of: $0) }
-        let block = measures.reduce(0) { $0 + $1.extent } + options.verticalSpacing * CGFloat(children.count - 1)
+        let gaps = boundaryGaps(under: parentID, children: children)
+        let block = zip(measures, gaps).reduce(0) { $0 + $1.0.extent + $1.1.above + $1.1.below }
+            + options.verticalSpacing * CGFloat(children.count - 1)
         let anchorX = side == .left
             ? parentSlot.minX - options.horizontalSpacing
             : parentSlot.maxX + options.horizontalSpacing
         var top = parentFrame.midY - block / 2
         var list: [Placement] = []
         list.reserveCapacity(children.count)
-        for (child, childMeasure) in zip(children, measures) {
+        for (index, (child, childMeasure)) in zip(children, measures).enumerated() {
+            top += gaps[index].above
             list.append(Placement(
                 id: child,
                 side: side,
@@ -360,9 +378,29 @@ private struct LayoutPass {
                 centerY: top + childMeasure.ascent,
                 parentFrame: parentFrame
             ))
-            top += childMeasure.extent + options.verticalSpacing
+            top += childMeasure.extent + gaps[index].below + options.verticalSpacing
         }
         return list
+    }
+
+    /// Room each child needs above and below its band for the boundaries it
+    /// starts or ends. Uses the topmost and bottommost member in `children`'
+    /// order, so the title room stays on top when the left side is reversed.
+    private func boundaryGaps(under parentID: NodeID, children: [NodeID]) -> [(above: CGFloat, below: CGFloat)] {
+        var gaps = Array(repeating: (above: CGFloat(0), below: CGFloat(0)), count: children.count)
+        guard let boundaries = boundariesByParent[parentID], !children.isEmpty else { return gaps }
+        let index = Dictionary(children.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
+        for boundary in boundaries {
+            guard let first = boundary.firstNodeID.flatMap({ index[$0] }),
+                  let last = boundary.lastNodeID.flatMap({ index[$0] }) else { continue }
+            gaps[min(first, last)].above += options.boundaryPadding + titleRoom(of: boundary)
+            gaps[max(first, last)].below += options.boundaryPadding
+        }
+        return gaps
+    }
+
+    private func titleRoom(of boundary: MindGroup) -> CGFloat {
+        boundary.title == nil ? 0 : options.boundaryTitleHeight
     }
 
     /// Main branches in display order: a prefix goes right, the rest left.
@@ -459,10 +497,85 @@ private struct LayoutPass {
         return nil
     }
 
+    /// Recomputed on every pass, like cross-links: a map has few boundaries and
+    /// a frame depends on every topic below its members.
+    private mutating func boundaryFrames() {
+        struct Pending {
+            let group: MindGroup
+            let members: [NodeID]
+            let depth: Int
+        }
+        var pending: [Pending] = []
+        for (parentID, boundaries) in boundariesByParent {
+            // Hidden with its parent: a collapsed or hidden parent shows no members.
+            guard let parent = result.nodes[parentID], let parentMeasure = result.measures[parentID] else { continue }
+            let visible = Set(parentMeasure.visibleChildren)
+            for boundary in boundaries {
+                guard var members = graph.members(of: boundary)?.filter({ visible.contains($0) && result.nodes[$0] != nil }),
+                      let firstSide = members.first.flatMap({ result.nodes[$0]?.side }) else { continue }
+                // A run split by the central topic frames only the first member's side.
+                members = members.filter { result.nodes[$0]?.side == firstSide }
+                pending.append(Pending(group: boundary, members: members, depth: parent.depth))
+            }
+        }
+        // Inner boundaries first, so an outer frame can take them in.
+        pending.sort { $0.depth != $1.depth ? $0.depth > $1.depth : $0.members.count < $1.members.count }
+        var frames: [GroupID: CGRect] = [:]
+        var done: [(group: MindGroup, members: Set<NodeID>)] = []
+        for item in pending {
+            var union: CGRect?
+            for member in item.members {
+                let frame = branchFrame(of: member)
+                union = union?.union(frame) ?? frame
+            }
+            guard var frame = union else { continue }
+            let members = Set(item.members)
+            for inner in done where isInside(inner.group, members: inner.members, of: item.group, members: members) {
+                if let innerFrame = frames[inner.group.id] { frame = frame.union(innerFrame) }
+            }
+            frame = frame.insetBy(dx: -options.boundaryPadding, dy: -options.boundaryPadding)
+            let title = titleRoom(of: item.group)
+            frame.origin.y -= title
+            frame.size.height += title
+            frames[item.group.id] = frame
+            done.append((item.group, members))
+        }
+        result.boundaries = frames
+    }
+
+    /// Every visible card and callout in the branch.
+    private func branchFrame(of id: NodeID) -> CGRect {
+        var union: CGRect?
+        var stack = [id]
+        while let next = stack.popLast() {
+            guard let node = result.nodes[next] else { continue }
+            let frame = node.calloutFrame.map { node.frame.union($0) } ?? node.frame
+            union = union?.union(frame) ?? frame
+            stack += result.measures[next]?.visibleChildren ?? []
+        }
+        return union ?? .zero
+    }
+
+    /// Nested in a run under the same parent, or under one of the members.
+    private func isInside(_ inner: MindGroup, members innerMembers: Set<NodeID>, of outer: MindGroup, members: Set<NodeID>) -> Bool {
+        if inner.parentNodeID == outer.parentNodeID { return innerMembers.isSubset(of: members) }
+        var current = inner.parentNodeID
+        var steps = 0
+        while let id = current, steps <= graph.nodes.count {
+            if members.contains(id) { return true }
+            current = graph.node(id)?.parentID
+            steps += 1
+        }
+        return false
+    }
+
     private func bounds() -> CGRect {
         var union: CGRect?
         for node in result.nodes.values {
             let frame = node.calloutFrame.map { node.frame.union($0) } ?? node.frame
+            union = union?.union(frame) ?? frame
+        }
+        for frame in result.boundaries.values {
             union = union?.union(frame) ?? frame
         }
         return union ?? .zero

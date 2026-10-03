@@ -198,6 +198,12 @@ Ratios computed with the WCAG formula from the hex values above. Reusing `crossL
 | `summaryBracketDepth` | 10 pt | How far the bracket's tip stands out |
 | `summaryBracketWidth` | 1.5 pt (2 pt with Increase Contrast) | Bracket stroke, round caps |
 | `floatingTopicNudge` | 24 pt [Đề xuất] | Step when Add Floating Topic looks for a free spot |
+| `boundaryPadding` | 8 pt | From the members to the frame; reserved by the layout |
+| `boundaryTitleHeight` | 20 pt | Title room above a titled boundary's members; the title capsule is centred in it |
+| `boundaryCornerRadius` | 12 pt | Frame |
+| `boundaryStrokeWidth` | 1.5 pt (2 pt with Increase Contrast) | Frame and title capsule stroke |
+| `boundaryTitlePadding` | 6 × 2 pt | Inside the title capsule |
+| `boundaryTitleMaxWidth` | 200 pt | The title capsule truncates past it; also the in-place title field's width |
 
 ### How each draws
 
@@ -207,6 +213,7 @@ Ratios computed with the WCAG formula from the hex values above. Reusing `crossL
 | Image | Above the title inside the card, `imageGap` to the title, `imageCornerRadius`; card padding as for the level. Below the detail zoom: a rectangle in the card's stroke colour at 30% |
 | Callout | Rounded bubble (`calloutCornerRadius`, `calloutPadding`) above the card, `calloutGap` away, `calloutFill`, 1 pt `calloutStroke` (2 pt with Increase Contrast), tail toward the card; text in the sub-topic content font, `topicText`, wraps at the topic's maximum width. Selected: the selection ring around the bubble |
 | Summary bracket | A curly bracket path along the run's outer edge, `summaryBracketGap` away, tip `summaryBracketDepth` toward the summary topic; `summaryBracket` colour, `summaryBracketWidth`. Solid, like boundaries: dashed stays for AI and drop targets. Selected: drawn in `selectionRing` |
+| Boundary (MM-37) | Rounded rectangle (`boundaryCornerRadius`) under every edge and topic: fill = the colour's sub-topic fill (`BranchColors.subFill`, so dark and Increase Contrast come with it), solid `boundaryStrokeWidth` stroke in its line colour; graphite when it has no colour. Title: `badge` text in a `canvasBackground` capsule with the same stroke, `boundaryPadding` from the leading edge, in the title room. Selected: the selection ring `selectionRingGap` outside the frame. AI preview (Suggest Groups, Summarize Boundary): `canvasBackground` fill and the AI dashed stroke on frame and capsule |
 | Summary topic | Drawn as a topic one level below the run's parent (so a summary over main topics looks like a main topic) |
 | Floating topic | Main-topic style (level 1), next branch colour after the main topics; no connector to the tree |
 

@@ -64,6 +64,27 @@ struct GeneratedTopicTags {
     var tags: [String]
 }
 
+@Generable
+struct GeneratedGroups {
+    @Guide(description: "Groups of related topics", .maximumCount(5))
+    var groups: [GeneratedGroup]
+}
+
+@Generable
+struct GeneratedGroup {
+    @Guide(description: "A short title of one to four words for the group")
+    var title: String
+
+    @Guide(description: "References of the topics in the group, such as t1 and t3", .maximumCount(20))
+    var references: [String]
+}
+
+@Generable
+struct GeneratedBoundaryTitle {
+    @Guide(description: "A short title of one to five words for the group of topics")
+    var title: String
+}
+
 extension GeneratedMindMap {
     func proposal() -> AIProposal {
         AIProposal(

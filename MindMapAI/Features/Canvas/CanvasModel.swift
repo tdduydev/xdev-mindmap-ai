@@ -35,6 +35,8 @@ final class CanvasModel {
     }
     /// The connection whose label is being edited in place (double-click).
     var editingConnectionLabel: EdgeID?
+    /// The boundary whose title is being edited in place (double-click, Space).
+    var editingBoundaryTitle: GroupID?
     /// Whether the canvas itself holds keyboard focus. Set by the view.
     var hasKeyboardFocus = false {
         didSet { reportKeyboardFocus() }
@@ -87,7 +89,9 @@ final class CanvasModel {
     static let layoutOptions = LayoutOptions(
         horizontalSpacing: CanvasMetrics.layoutParentGap,
         verticalSpacing: CanvasMetrics.layoutSiblingGap,
-        calloutSpacing: CanvasMetrics.calloutSpacing
+        calloutSpacing: CanvasMetrics.calloutSpacing,
+        boundaryPadding: CanvasMetrics.boundaryPadding,
+        boundaryTitleHeight: CanvasMetrics.boundaryTitleHeight
     )
 
     init(session: EditorSession, assistant: AIAssistant? = nil) {
@@ -172,11 +176,17 @@ final class CanvasModel {
             // take their place in the tree without being part of the map.
             var graph = session.engine.state
             var suggested: Set<NodeID> = []
+            var suggestedBoundaries: Set<GroupID> = []
             if let suggestions = assistant?.suggestions, !suggestions.isEmpty {
                 graph = suggestions.preview(in: session.engine)
                 suggested = Set(suggestions.drawableTopics(in: graph).keys)
+            } else if let preview = assistant?.boundaryPreview() {
+                // Suggest Groups moves topics, so the preview is the map after Accept.
+                graph = preview.state
+                suggestedBoundaries = preview.boundaries
             }
-            let startOver = needsFullLayout || lastPassHadSuggestions || !suggested.isEmpty
+            let hasPreview = !suggested.isEmpty || !suggestedBoundaries.isEmpty
+            let startOver = needsFullLayout || lastPassHadSuggestions || hasPreview
             let pass = CanvasLayoutPass(
                 graph: graph,
                 previous: startOver ? nil : scene.layout,
@@ -186,11 +196,12 @@ final class CanvasModel {
                 options: layoutOptions,
                 suggestions: suggested,
                 tagSuggestions: assistant?.tagSuggestionChips ?? [:],
+                boundarySuggestions: suggestedBoundaries,
                 calloutDraft: session.calloutEditorTarget
             )
             pendingChanges = []
             needsFullLayout = false
-            lastPassHadSuggestions = !suggested.isEmpty
+            lastPassHadSuggestions = hasPreview
             let output = await pass.runInBackground()
             if generation == specsGeneration { measures = output.measures }
             apply(output.scene)
@@ -357,6 +368,10 @@ final class CanvasModel {
             commitEditing()
             session.selectConnection(connection)
             assistant?.selectedSuggestion = nil
+        } else if let boundary = boundary(at: viewPoint) {
+            commitEditing()
+            session.selectBoundary(boundary)
+            assistant?.selectedSuggestion = nil
         } else {
             commitEditing()
             session.selection = nil
@@ -372,6 +387,12 @@ final class CanvasModel {
             commitEditing()
             session.selectConnection(connection)
             editingConnectionLabel = connection
+            return
+        }
+        if let boundary = boundary(at: viewPoint) {
+            commitEditing()
+            session.selectBoundary(boundary)
+            editingBoundaryTitle = boundary
             return
         }
         guard session.canAddFloatingTopic, let position = position(at: viewport.toCanvas(viewPoint)) else { return }
@@ -420,6 +441,18 @@ final class CanvasModel {
     func connection(at viewPoint: CGPoint) -> EdgeID? {
         let tolerance = Metrics.minimumHitTarget / 2 / max(viewport.scale, .ulpOfOne)
         return scene.connection(at: viewport.toCanvas(viewPoint), tolerance: tolerance)
+    }
+
+    func boundary(at viewPoint: CGPoint) -> GroupID? {
+        let tolerance = Metrics.minimumHitTarget / 2 / max(viewport.scale, .ulpOfOne)
+        return scene.boundary(at: viewport.toCanvas(viewPoint), tolerance: tolerance)
+    }
+
+    /// Where a boundary's title field goes, in view points: over its title band.
+    func boundaryTitleAnchor(_ id: GroupID) -> CGPoint? {
+        guard let boundary = scene.boundaries.first(where: { $0.id == id }) else { return nil }
+        let band = boundary.titleBand
+        return viewport.toView(CGPoint(x: band.minX + CanvasMetrics.boundaryTitleMaxWidth / 2, y: band.midY))
     }
 
     /// Where a connection's label field goes, in view points.
@@ -477,6 +510,11 @@ final class CanvasModel {
     /// Space on the canvas, or the Rename Topic menu item.
     @discardableResult
     func beginEditingSelection() -> Bool {
+        // Space on a selected boundary renames it.
+        if editingID == nil, let boundary = session.activeBoundary {
+            editingBoundaryTitle = boundary
+            return true
+        }
         guard editingID == nil, let id = session.selection, scene.topic(id) != nil else { return false }
         beginEditing(id)
         return true

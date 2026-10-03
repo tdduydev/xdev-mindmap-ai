@@ -154,6 +154,23 @@ nonisolated struct ConnectionLook: Hashable, Sendable {
     var hasStartArrow: Bool { arrowHeads == .start || arrowHeads == .both }
 }
 
+/// One boundary as the canvas draws it, outermost first in `CanvasScene.boundaries`.
+nonisolated struct CanvasBoundary: Identifiable, Equatable, Sendable {
+    let id: GroupID
+    let frame: CGRect
+    let title: String?
+    /// Nil is graphite.
+    let color: TopicColor?
+    /// An AI preview (Suggest Groups, Summarize Boundary), drawn in the AI style.
+    let isSuggestion: Bool
+
+    /// The title capsule's box: the top band of the frame, from its leading corner.
+    var titleBand: CGRect {
+        CGRect(x: frame.minX, y: frame.minY,
+            width: min(frame.width, CanvasMetrics.boundaryTitleMaxWidth), height: CanvasMetrics.boundaryTitleHeight)
+    }
+}
+
 /// Everything the canvas draws for one state of the map: the layout and the
 /// visible topics in reading order. Built off the main actor; culling queries
 /// it every frame.
@@ -172,16 +189,19 @@ nonisolated struct CanvasScene: Sendable {
     private(set) var topics: [CanvasTopic]
     private var index: [NodeID: Int]
     private(set) var crossLinkLooks: [EdgeID: ConnectionLook]
+    /// Larger frames first, so nested ones draw on top and are hit first.
+    private(set) var boundaries: [CanvasBoundary]
     /// Hierarchy connectors, keyed by the child they lead to.
     private let connectorCurves: [Curve<NodeID>]
     private let crossLinkCurves: [Curve<EdgeID>]
 
     static let empty = CanvasScene(layout: nil, topics: [], crossLinkLooks: [:])
 
-    init(layout: MapLayout?, topics: [CanvasTopic], crossLinkLooks: [EdgeID: ConnectionLook]) {
+    init(layout: MapLayout?, topics: [CanvasTopic], crossLinkLooks: [EdgeID: ConnectionLook], boundaries: [CanvasBoundary] = []) {
         self.layout = layout
         self.topics = topics
         self.crossLinkLooks = crossLinkLooks
+        self.boundaries = boundaries.sorted { $0.frame.width * $0.frame.height > $1.frame.width * $1.frame.height }
         var index: [NodeID: Int] = [:]
         index.reserveCapacity(topics.count)
         for (position, topic) in topics.enumerated() { index[topic.id] = position }
@@ -278,6 +298,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
     var suggestions: Set<NodeID> = []
     /// Suggested tag names per topic, drawn as AI chips.
     var tagSuggestions: [NodeID: [(id: String, name: String)]] = [:]
+    /// Boundaries of `graph` that are AI previews (Suggest Groups, Summarize Boundary).
+    var boundarySuggestions: Set<GroupID> = []
     /// A topic whose bubble is open for typing: it gets a bubble even before
     /// it has callout text, so the room is there while the person types.
     var calloutDraft: NodeID?
@@ -369,7 +391,8 @@ nonisolated struct CanvasLayoutPass: Sendable {
             engine.layout(graph, sizes: sizes, callouts: callouts, options: options)
         }
         let scene = Self.scene(
-            outline: outline, graph: graph, layout: layout, suggestions: suggestions, chips: chips, tags: tags,
+            outline: outline, graph: graph, layout: layout, suggestions: suggestions,
+            boundarySuggestions: boundarySuggestions, chips: chips, tags: tags,
             colors: colors, marks: marks, callouts: calloutTexts, progress: progress, today: today
         )
         return Output(scene: scene, measures: measures)
@@ -402,6 +425,7 @@ nonisolated struct CanvasLayoutPass: Sendable {
         graph: GraphState,
         layout: MapLayout,
         suggestions: Set<NodeID>,
+        boundarySuggestions: Set<GroupID>,
         chips: [NodeID: [TopicChip]],
         tags: [NodeID: [MindTag]],
         colors: [NodeID: (own: TopicColor?, drawn: TopicColor?)],
@@ -453,7 +477,12 @@ nonisolated struct CanvasLayoutPass: Sendable {
             guard let edge = graph.edges[id] else { return }
             looks[id] = ConnectionLook(edge, isRerouted: layout.reroutedCrossLinks.contains(id))
         }
-        return CanvasScene(layout: layout, topics: topics, crossLinkLooks: looks)
+        let boundaries = layout.boundaries.compactMap { id, frame -> CanvasBoundary? in
+            guard let group = graph.group(id) else { return nil }
+            return CanvasBoundary(id: id, frame: frame, title: group.title, color: group.color,
+                isSuggestion: boundarySuggestions.contains(id))
+        }
+        return CanvasScene(layout: layout, topics: topics, crossLinkLooks: looks, boundaries: boundaries)
     }
 
     /// One pass over the edges rather than a scan per topic.

@@ -52,6 +52,10 @@ struct AIActionsMenu: View {
             .disabled(!assistant.canRun(.findMissingTopics, on: nodeID))
         Button("Suggest Tags", systemImage: "tag") { assistant.suggestTags(nodeID) }
             .disabled(!assistant.canRun(.suggestTags, on: nodeID))
+        Button("Suggest Groups", systemImage: "rectangle.dashed") { assistant.suggestGroups(nodeID) }
+            .disabled(!assistant.canRun(.suggestGroups, on: nodeID))
+        Button("Summarize Boundary", systemImage: "character.cursor.ibeam") { assistant.summarizeBoundary() }
+            .disabled(!assistant.canRun(.summarizeBoundary))
     }
 }
 
@@ -99,6 +103,8 @@ extension AIFeature {
         case .summarize: String(localized: "Summarizing the branch…")
         case .findMissingTopics: String(localized: "Looking for missing topics…")
         case .suggestTags: String(localized: "Suggesting tags…")
+        case .suggestGroups: String(localized: "Suggesting groups…")
+        case .summarizeBoundary: String(localized: "Summarizing the boundary…")
         }
     }
 
@@ -111,6 +117,8 @@ extension AIFeature {
         case .brainstorm: String(localized: "Ideas")
         case .findMissingTopics: String(localized: "Possible missing topics")
         case .suggestTags: String(localized: "Suggested tags")
+        case .suggestGroups: String(localized: "Suggested groups")
+        case .summarizeBoundary: String(localized: "Suggested boundary title")
         case .rewrite, .summarize: String(localized: "Suggestions")
         }
     }

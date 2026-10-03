@@ -9,6 +9,7 @@ extension GraphChangeSet {
     /// A topic whose tag links or image changed is included: its tag chips
     /// and its picture are part of its measured size. Renaming a tag changes chips without touching a link,
     /// so the caller compares measured sizes too.
+    /// A boundary change marks its parent, whose children make room for it.
     ///
     /// Topic sizes are the caller's input; a topic whose measured size changed
     /// for another reason (Dynamic Type, font) must be added by the caller.
@@ -26,6 +27,11 @@ extension GraphChangeSet {
         for change in images.values {
             if let nodeID = change.before?.nodeID { result.insert(nodeID) }
             if let nodeID = change.after?.nodeID { result.insert(nodeID) }
+        }
+        // A boundary's padding and title room are part of its parent's block.
+        for change in groups.values {
+            if let parentID = change.before?.parentNodeID { result.insert(parentID) }
+            if let parentID = change.after?.parentNodeID { result.insert(parentID) }
         }
         return result
     }

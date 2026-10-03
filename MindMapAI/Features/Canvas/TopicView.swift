@@ -598,6 +598,10 @@ struct TopicAccessibility: ViewModifier {
         Button(topic.link == nil ? "Add Link…" : "Edit Link…") { model.editLink(topic.id) }
         Button("Add Connection…") { model.addConnection(from: topic.id) }
         Button("Add Tag…") { model.addTag(to: topic.id) }
+        if !isRoot, !topic.isFloating {
+            // A selected run of siblings that includes this topic is framed whole.
+            Button("Add Boundary") { model.performFromContextMenu(on: topic.id) { $0.addBoundary() } }
+        }
         Button(topic.taskState == nil ? "Make Task" : "Remove Task") { model.session.toggleTask(topic.id) }
         if topic.taskState != nil {
             Button(topic.taskState?.isDone == true ? "Mark as Not Done" : "Mark as Done") { model.session.toggleDone(topic.id) }

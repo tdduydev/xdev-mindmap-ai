@@ -10,6 +10,8 @@ public enum AIFeature: String, Hashable, Sendable, CaseIterable, Codable {
     case summarize
     case findMissingTopics
     case suggestTags
+    case suggestGroups
+    case summarizeBoundary
 }
 
 /// Whether an AI feature can run right now, and if not, why. The UI maps each

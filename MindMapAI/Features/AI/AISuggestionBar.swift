@@ -53,15 +53,34 @@ struct AISuggestionBar: View {
             } else {
                 Text(activity.feature.progressTitle)
             }
-        } else if let feature = assistant.hasTagSuggestions ? AIFeature.suggestTags : assistant.suggestions?.feature {
+        } else if let feature = suggestionFeature {
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 Text(feature.suggestionsTitle)
                     .font(.headline)
-                Text("\(assistant.suggestionCount) suggestions")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Group {
+                    if feature == .summarizeBoundary, let title = assistant.boundarySuggestions?.groups.first?.title {
+                        Text(verbatim: title)
+                    } else if feature == .suggestGroups, assistant.boundarySuggestionMoves > 0 {
+                        HStack(spacing: Spacing.xs) {
+                            Text("\(assistant.suggestionCount) suggestions")
+                            Text("\(assistant.boundarySuggestionMoves) topics move")
+                        }
+                    } else {
+                        Text("\(assistant.suggestionCount) suggestions")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
         }
+    }
+
+    private var suggestionFeature: AIFeature? {
+        if assistant.hasTagSuggestions { return .suggestTags }
+        if let boundaries = assistant.boundarySuggestions, !boundaries.isEmpty {
+            return boundaries.kind == .title ? .summarizeBoundary : .suggestGroups
+        }
+        return assistant.suggestions?.feature
     }
 
     @ViewBuilder
@@ -83,6 +102,8 @@ struct AISuggestionBar: View {
                 .popover(isPresented: $isReviewing) {
                     if assistant.hasTagSuggestions {
                         AITagSuggestionList(assistant: assistant)
+                    } else if assistant.hasBoundarySuggestions {
+                        AIBoundarySuggestionList(assistant: assistant)
                     } else {
                         AISuggestionList(assistant: assistant)
                     }

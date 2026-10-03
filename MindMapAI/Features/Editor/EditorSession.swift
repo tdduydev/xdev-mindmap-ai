@@ -84,6 +84,9 @@ final class EditorSession {
     /// A connection clicked on the canvas; selecting a topic clears it. Read
     /// `activeConnection`, which also drops one that undo took away.
     private(set) var selectedConnection: EdgeID?
+    /// A boundary clicked on the canvas; selecting a topic or a connection
+    /// clears it. Read `activeBoundary`, which also drops one undo took away.
+    var selectedBoundary: GroupID?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false
@@ -354,6 +357,11 @@ final class EditorSession {
     /// Deletes the selected branches as one undo step (FR-EDT-04); the root
     /// stays, the map itself is deleted from the library.
     func deleteSelection() {
+        // Delete on a selected boundary removes it; its topics stay.
+        if movableBranchRoots.isEmpty, let boundary = activeBoundary {
+            removeBoundary(boundary)
+            return
+        }
         // Delete on a selected connection removes it, as on a topic.
         if movableBranchRoots.isEmpty, let connection = activeConnection {
             removeConnection(connection)
@@ -366,6 +374,7 @@ final class EditorSession {
     /// Selects one connection and no topic.
     func selectConnection(_ id: EdgeID?) {
         if id != nil { setSelection([], primary: nil) }
+        selectedBoundary = nil
         selectedConnection = id
     }
 
@@ -840,7 +849,10 @@ final class EditorSession {
     func setSelection(_ ids: Set<NodeID>, primary: NodeID?) {
         var ids = ids
         if let primary { ids.insert(primary) }
-        if !ids.isEmpty { selectedConnection = nil }
+        if !ids.isEmpty {
+            selectedConnection = nil
+            selectedBoundary = nil
+        }
         selectedIDs = ids
         primarySelection = primary ?? inOutlineOrder(ids).first
     }

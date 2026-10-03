@@ -211,6 +211,15 @@ struct MapCommands: Commands {
                 .keyboardShortcut("k", modifiers: [.command, .option, .shift])
                 .disabled(editor?.canEditSelectionTask != true)
             Divider()
+            // ⌥⌘B (MM-30): ⌘G stays Find Next. Acts on a selected boundary first.
+            Button(editor?.boundaryToRemove != nil ? "Remove Boundary" : "Add Boundary") { editor?.toggleBoundary() }
+                .keyboardShortcut("b", modifiers: [.command, .option])
+                .disabled(editor?.boundaryToRemove == nil && editor?.canAddBoundary != true)
+            Button("Rename Boundary") {
+                if let id = editor?.activeBoundary { canvas?.editingBoundaryTitle = id }
+            }
+            .disabled(canvas == nil || editor?.activeBoundary == nil)
+            Divider()
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
@@ -270,6 +279,7 @@ struct MapCommands: Commands {
             }
             .disabled(editor?.selectedImage == nil)
             ConnectionFormatMenu(editor: editor, canvas: canvas)
+            BoundaryFormatMenu(editor: editor)
         }
 
         // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.
@@ -336,6 +346,13 @@ struct MapCommands: Commands {
         Button("Suggest Tags") { assistant?.suggestTags() }
             .keyboardShortcut("t", modifiers: [.command, .control])
             .disabled(assistant?.canRun(.suggestTags) != true)
+        // ⌃⌘O and ⌃⌘Y (MM-30), beside the other AI keys.
+        Button("Suggest Groups") { assistant?.suggestGroups() }
+            .keyboardShortcut("o", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.suggestGroups) != true)
+        Button("Summarize Boundary") { assistant?.summarizeBoundary() }
+            .keyboardShortcut("y", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.summarizeBoundary) != true)
         Divider()
         // ⌃⌘A: free beside the other AI keys (⌃⌘G, E, B, U, M, T) and not a
         // standard macOS shortcut; approved 2026-10-02.
