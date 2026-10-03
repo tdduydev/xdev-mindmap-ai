@@ -141,6 +141,13 @@ final class LibraryModel {
         hasLoaded = true
     }
 
+    /// Reloads and says whether the person has any map, Recently Deleted
+    /// included; a library that did not load is not known to be empty (MM-120).
+    func reloadHasAnyMap() async -> Bool {
+        await load()
+        return failure != nil || !maps.isEmpty || !deletedMaps.isEmpty
+    }
+
     /// Keeps this window's list current for as long as its view is on screen,
     /// without polling. Every window shares one repository, so an edit in one
     /// window reaches the others here; writes from outside the repository

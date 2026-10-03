@@ -104,15 +104,19 @@ final class CloudSyncMonitor {
 
     /// Also when the app comes back: the person may have signed in meanwhile.
     func refreshAccount() {
-        guard case .privateDatabase(let identifier) = storeSync else { return }
-        Task {
-            do {
-                let status = try await CKContainer(identifier: identifier).accountStatus()
-                account = Self.account(for: status)
-            } catch {
-                Log.persistence.error("Reading the iCloud account failed: \(error.localizedDescription, privacy: .public)")
-                account = .unknown
-            }
+        guard storeSync != .off else { return }
+        let sync = storeSync
+        Task { account = await Self.account(for: sync) }
+    }
+
+    /// The account behind `sync`; `.unknown` when the store stays on the device.
+    static func account(for sync: PersistenceController.Sync) async -> CloudAccount {
+        guard case .privateDatabase(let identifier) = sync else { return .unknown }
+        do {
+            return account(for: try await CKContainer(identifier: identifier).accountStatus())
+        } catch {
+            Log.persistence.error("Reading the iCloud account failed: \(error.localizedDescription, privacy: .public)")
+            return .unknown
         }
     }
 

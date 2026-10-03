@@ -18,6 +18,10 @@ final class AppEnvironment {
     let aiApps: AIAppsHost
     /// Coordinates the first launch across main windows in this process.
     var isPreparingOnboarding = false
+    /// How the store mirrors to iCloud this launch; the first run waits for
+    /// iCloud before it calls an empty library new (MM-120).
+    let storeSync: PersistenceController.Sync
+    let firstImport: FirstCloudImport
     /// Writes the UI test fixture; nil outside the UI test mode.
     private let seeding: Task<Void, Never>?
 
@@ -26,6 +30,8 @@ final class AppEnvironment {
         spotlightIndex: any MapSearchIndex = SpotlightMapIndex(),
         openRequests: MapOpenRequests = MapOpenRequests(),
         aiAppClients: any AIAppClientStore = InMemoryAIAppClientStore(),
+        storeSync: PersistenceController.Sync = .off,
+        firstImport: FirstCloudImport = FirstCloudImport(observing: false),
         seeding: Task<Void, Never>? = nil
     ) {
         self.repository = repository
@@ -37,6 +43,8 @@ final class AppEnvironment {
             queries: MapQueries(repository: repository, graphs: OpenMapsGraphSource(openMaps: openMaps, repository: repository)),
             store: aiAppClients
         )
+        self.storeSync = storeSync
+        self.firstImport = firstImport
         self.seeding = seeding
     }
 
@@ -49,9 +57,13 @@ final class AppEnvironment {
             #if DEBUG
             initializeCloudKitSchemaIfAsked(sync: sync)
             #endif
+            // Listening before the store opens, which starts the mirroring.
+            let firstImport = FirstCloudImport(observing: sync != .off)
             return .ready(AppEnvironment(
                 repository: try PersistenceController.makeRepository(at: storeLocation, sync: sync),
-                aiAppClients: KeychainAIAppClientStore()
+                aiAppClients: KeychainAIAppClientStore(),
+                storeSync: sync,
+                firstImport: firstImport
             ))
         } catch {
             Log.persistence.fault("The store did not open: \(error.localizedDescription, privacy: .public)")
