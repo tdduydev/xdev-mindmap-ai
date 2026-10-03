@@ -88,7 +88,9 @@ final class AppStoreScreenshotUITests: XCTestCase {
     /// float over the window. Each is answered with its refusing button.
     @MainActor
     private func dismissSystemPrompts() {
-        let agents = ["com.apple.UserNotificationCenter", "com.apple.CoreServicesUIAgent"]
+        // CoreServicesUIAgent is left out: XCUIApplication raises when that agent
+        // is not running, which ends the whole capture (3/10 on macOS 27).
+        let agents = ["com.apple.UserNotificationCenter"]
         let refusals = NSPredicate(format: "title IN %@ OR label IN %@",
                                    ["Don’t Allow", "Don't Allow", "Deny", "Ignore"],
                                    ["Don’t Allow", "Don't Allow", "Deny", "Ignore"])
