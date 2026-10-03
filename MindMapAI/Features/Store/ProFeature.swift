@@ -4,10 +4,12 @@ import Foundation
 /// asks `ProEntitlement.allows(_:)` before running; anything not listed here is
 /// free and must never ask. Only features the app has belong here: the paywall
 /// lists every case, and promising one that is not built breaks App Review
-/// 2.3.1 (OPML waits until FR-IO-06 is built).
+/// 2.3.1.
 enum ProFeature: CaseIterable, Identifiable {
     case vectorPDFExport
     case highResolutionPNGExport
+    /// OPML export (FR-IO-06); importing OPML stays free (FR-IO-13).
+    case opmlExport
     case extraThemes
     case generateMapFromDescription
     case summarizeWholeMap
@@ -23,7 +25,7 @@ enum ProFeature: CaseIterable, Identifiable {
     var needsOnDeviceModel: Bool {
         switch self {
         case .generateMapFromDescription, .summarizeWholeMap, .findMissingIdeas, .askLibrary: true
-        case .vectorPDFExport, .highResolutionPNGExport, .extraThemes, .voiceInput: false
+        case .vectorPDFExport, .highResolutionPNGExport, .opmlExport, .extraThemes, .voiceInput: false
         }
     }
 
@@ -37,6 +39,7 @@ enum ProFeature: CaseIterable, Identifiable {
         switch self {
         case .vectorPDFExport: "Multi-Page Vector PDF Export"
         case .highResolutionPNGExport: "High-Resolution PNG Export"
+        case .opmlExport: "OPML Export"
         case .extraThemes: "More Themes"
         case .generateMapFromDescription: "Generate a Map from a Long Description"
         case .summarizeWholeMap: "Summarize a Whole Map"
@@ -50,6 +53,7 @@ enum ProFeature: CaseIterable, Identifiable {
         switch self {
         case .vectorPDFExport: "doc.richtext"
         case .highResolutionPNGExport: "photo"
+        case .opmlExport: "list.bullet.indent"
         case .extraThemes: "paintpalette"
         case .generateMapFromDescription: "text.badge.plus"
         case .summarizeWholeMap: "text.append"

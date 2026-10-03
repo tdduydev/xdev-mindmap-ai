@@ -92,6 +92,7 @@ nonisolated enum AccessibilityID {
         static let format = "export.format"
         static let export = "export.export"
         static let cancel = "export.cancel"
+        static let showPaywall = "export.showPaywall"
     }
 
     /// Elements only the UI test mode shows.

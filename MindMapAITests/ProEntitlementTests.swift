@@ -299,7 +299,7 @@ struct ProFeatureTests {
     /// docs/pricing.md: advanced export, extra themes, advanced AI, voice input.
     @Test func listMatchesThePricingDecision() {
         #expect(ProFeature.allCases == [
-            .vectorPDFExport, .highResolutionPNGExport,
+            .vectorPDFExport, .highResolutionPNGExport, .opmlExport,
             .extraThemes,
             .generateMapFromDescription, .summarizeWholeMap, .findMissingIdeas,
             .voiceInput,

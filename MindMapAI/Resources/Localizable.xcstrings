@@ -7477,22 +7477,6 @@
         }
       }
     },
-    "MindMap AI imports Markdown (.md) and plain text (.txt) files, and its own backups (.json)." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、およびMindMap AIのバックアップ (.json) です。"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt) và bản sao lưu của chính ứng dụng (.json)."
-          }
-        }
-      }
-    },
     "MindMap AI keeps your maps on your devices. There is no account and no tracking." : {
       "localizations" : {
         "ja" : {
@@ -14180,6 +14164,364 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "MindMap AI imports Markdown (.md), plain text (.txt) and OPML (.opml) files, and its own backups (.json)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI imports Markdown (.md), plain text (.txt) and OPML (.opml) files, and its own backups (.json)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AIで読み込めるのは、Markdown (.md) ファイル、プレーンテキスト (.txt) ファイル、OPML (.opml) ファイル、およびMindMap AIのバックアップ (.json) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI nhập tệp Markdown (.md), văn bản thuần (.txt), OPML (.opml) và bản sao lưu của chính ứng dụng (.json)."
+          }
+        }
+      }
+    },
+    "The file isn’t an OPML outline. MindMap AI imports OPML files from outliners and other mind map apps, Markdown (.md) and plain text (.txt)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t an OPML outline. MindMap AI imports OPML files from outliners and other mind map apps, Markdown (.md) and plain text (.txt)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルはOPMLのアウトラインではありません。MindMap AIで読み込めるのは、アウトライナーやほかのマインドマップAppのOPMLファイル、Markdown (.md)、プレーンテキスト (.txt) です。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không phải dàn ý OPML. MindMap AI nhập tệp OPML từ ứng dụng dàn ý và ứng dụng sơ đồ tư duy khác, Markdown (.md) và văn bản thuần (.txt)."
+          }
+        }
+      }
+    },
+    "The file is damaged and can’t be read. Check that it opens in the app that made it, then try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is damaged and can’t be read. Check that it opens in the app that made it, then try again."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルが破損していて読み込めません。作成したAppで開けることを確認してから、もう一度お試しください。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp bị hỏng và không đọc được. Hãy kiểm tra tệp mở được trong ứng dụng đã tạo ra nó, rồi thử lại."
+          }
+        }
+      }
+    },
+    "The file has no topics in it." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file has no topics in it."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルにトピックがありません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp không có chủ đề nào."
+          }
+        }
+      }
+    },
+    "A file from another app becomes a map of its own. Choose File ▸ Import… to open it as a new map." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A file from another app becomes a map of its own. Choose File ▸ Import… to open it as a new map."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ほかのAppのファイルは1つのマップとして読み込まれます。「ファイル」▸「読み込む…」を選択すると、新しいマップとして開けます。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp từ ứng dụng khác được nhập thành một sơ đồ riêng. Chọn Tệp ▸ Nhập… để mở nó thành sơ đồ mới."
+          }
+        }
+      }
+    },
+    "Imported “%@”" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imported “%@”"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」を読み込みました"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã nhập “%@”"
+          }
+        }
+      }
+    },
+    "Every topic was imported." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every topic was imported."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのトピックを読み込みました。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mọi chủ đề đều đã được nhập."
+          }
+        }
+      }
+    },
+    "%lld linked outlines weren’t downloaded. Their links are on the topics." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld linked outline wasn’t downloaded. Its link is on the topic."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld linked outlines weren’t downloaded. Their links are on the topics."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "リンクされた%lld件のアウトラインはダウンロードされていません。リンクはトピックに残っています。"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld dàn ý liên kết không được tải về. Liên kết nằm trên chủ đề."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld images couldn’t be imported." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld image couldn’t be imported."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld images couldn’t be imported."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld件の画像を読み込めませんでした。"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld ảnh không nhập được."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld attached files couldn’t be imported." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld attached file couldn’t be imported."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld attached files couldn’t be imported."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld件の添付ファイルを読み込めませんでした。"
+                }
+              }
+            }
+          }
+        },
+        "vi" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tệp đính kèm không nhập được."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "OPML" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPML"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPML"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPML"
+          }
+        }
+      }
+    },
+    "OPML Export" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPML Export"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPMLの書き出し"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xuất OPML"
+          }
+        }
+      }
+    },
+    "OPML opens in outliners and other mind map apps. Titles, notes, links and the tree are kept." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPML opens in outliners and other mind map apps. Titles, notes, links and the tree are kept."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPMLはアウトライナーやほかのマインドマップAppで開けます。タイトル、メモ、リンク、ツリー構造が保たれます。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPML mở được trong ứng dụng dàn ý và ứng dụng sơ đồ tư duy khác. Giữ tiêu đề, ghi chú, liên kết và cấu trúc cây."
           }
         }
       }
