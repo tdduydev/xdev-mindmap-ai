@@ -10,7 +10,7 @@ if [[ -z "${DEVELOPER_DIR:-}" && "$(xcode-select -p)" == *CommandLineTools* ]]; 
   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 fi
 out=docs/research/ai-evaluations
-mkdir -p "$out"
+mkdir -p "$out" scripts/out
 models=("$@")
 [[ ${#models[@]} -eq 0 ]] && models=(mlx-community/Qwen3-1.7B-4bit)
 port=8089
@@ -20,7 +20,7 @@ tool=Packages/MindMapCore/.build/release/mindmap-ai-eval
 
 for model in "${models[@]}"; do
   name=$(basename "$model")
-  uv run --python 3.12 --with mlx-lm python -m mlx_lm server --model "$model" --port "$port" > "$out/$name.server.log" 2>&1 &
+  uv run --python 3.12 --with mlx-lm python -m mlx_lm server --model "$model" --port "$port" > "scripts/out/$name.server.log" 2>&1 &
   server=$!
   until curl -s "http://127.0.0.1:$port/v1/models" > /dev/null; do sleep 2; done
   # uv starts python as a child; sample the python process, not uv.
