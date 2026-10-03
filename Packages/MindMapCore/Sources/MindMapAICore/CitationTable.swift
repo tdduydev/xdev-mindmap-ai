@@ -14,8 +14,15 @@ public struct CitationTable: Hashable, Sendable {
         var title: String
     }
 
+    /// By map and topic: across the library two maps may share a node ID
+    /// (a duplicated or imported map), and each topic needs its own handle.
+    private struct Key: Hashable, Sendable {
+        let mapID: MapID
+        let nodeID: NodeID
+    }
+
     private var entries: [String: Entry] = [:]
-    private var handles: [NodeID: String] = [:]
+    private var handles: [Key: String] = [:]
     private var lastNumber = 0
 
     public init() {}
@@ -26,7 +33,7 @@ public struct CitationTable: Hashable, Sendable {
         for citation in history.flatMap(\.citations) {
             guard let number = Self.number(of: citation.handle), entries[citation.handle] == nil else { continue }
             entries[citation.handle] = Entry(mapID: citation.mapID, nodeID: citation.nodeID, title: citation.title)
-            handles[citation.nodeID] = citation.handle
+            handles[Key(mapID: citation.mapID, nodeID: citation.nodeID)] = citation.handle
             lastNumber = max(lastNumber, number)
         }
     }
@@ -35,14 +42,15 @@ public struct CitationTable: Hashable, Sendable {
 
     /// The topic's handle, the same one each time it comes up.
     public mutating func handle(for nodeID: NodeID, in mapID: MapID, title: String) -> String {
-        if let handle = handles[nodeID] {
+        let key = Key(mapID: mapID, nodeID: nodeID)
+        if let handle = handles[key] {
             entries[handle]?.title = title
             return handle
         }
         lastNumber += 1
         let handle = "T\(lastNumber)"
         entries[handle] = Entry(mapID: mapID, nodeID: nodeID, title: title)
-        handles[nodeID] = handle
+        handles[key] = handle
         return handle
     }
 
@@ -95,7 +103,9 @@ public struct CitationTable: Hashable, Sendable {
     }
 
     nonisolated(unsafe) private static let handlePattern = /[Tt]\s?\d+/
-    nonisolated(unsafe) private static let citationGroup = /\[\s*[Tt]\s?\d+(?:\s*[,;]\s*[Tt]\s?\d+)*\s*\]/
-    nonisolated(unsafe) private static let spacedCitationGroup = /[ \t]*\[\s*[Tt]\s?\d+(?:\s*[,;]\s*[Tt]\s?\d+)*\s*\]/
-    nonisolated(unsafe) private static let trailingPartialGroup = /[ \t]*\[\s*(?:[Tt]\s?\d*(?:\s*[,;]\s*(?:[Tt]\s?\d*)?)*)?$/
+    nonisolated(unsafe) private static let citationGroup = /\[\s*[TtMm]\s?\d+(?:\s*[,;]\s*[TtMm]\s?\d+)*\s*\]/
+    // Display also strips map handles (M1…), which the library's listMaps
+    // returns: they are never citations, but the model may still cite one.
+    nonisolated(unsafe) private static let spacedCitationGroup = /[ \t]*\[\s*[TtMm]\s?\d+(?:\s*[,;]\s*[TtMm]\s?\d+)*\s*\]/
+    nonisolated(unsafe) private static let trailingPartialGroup = /[ \t]*\[\s*(?:[TtMm]\s?\d*(?:\s*[,;]\s*(?:[TtMm]\s?\d*)?)*)?$/
 }

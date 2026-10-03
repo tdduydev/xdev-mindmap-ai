@@ -8,6 +8,9 @@ import MindMapDomain
 public enum ChatScope: Hashable, Sendable, Codable {
     /// Ask in one map (C1): its live graph, from the editor.
     case map(MapID)
+    /// Ask across the library (C3, Pro): every live map, never Recently
+    /// Deleted. Read-only, with no edit tool, and not saved with any map.
+    case library
 }
 
 /// The branch a question is limited to (MM-78): the topic it starts from,

@@ -5,7 +5,9 @@ import Synchronization
 
 // The chat's tools for one map (docs/chat.md, Tools). Three, within the three
 // to five Apple advises per request; `suggestTopics` joins them in MM-51.
-// Each forwards to `ChatMapReader`, which holds the logic tests check.
+// Across the library (C3) `listMaps` joins the three read tools instead, and
+// their descriptions say "library". Each forwards to `ChatMapReader`, which
+// holds the logic tests check.
 
 /// Tells the conversation a tool ran: its name and the tokens its result costs.
 final class ChatToolEvents: Sendable {
@@ -19,6 +21,21 @@ final class ChatToolEvents: Sendable {
         let current = handler.withLock { $0 }
         current?(toolName, TokenEstimator.estimate(output))
     }
+}
+
+@Generable
+struct ListMapsArguments {
+    @Guide(description: "Words from a map title, or an empty string for every map")
+    var query: String
+}
+
+@Generable
+struct ReadMapBranchArguments {
+    @Guide(description: "The handle of a map, such as M1, for its whole outline, or of a topic, such as T3")
+    var handle: String
+
+    @Guide(description: "How many levels of subtopics to read", .range(1...3))
+    var depth: Int
 }
 
 @Generable
@@ -44,7 +61,7 @@ struct ReadBranchArguments {
 
 struct SearchTopicsTool: Tool {
     let name = "searchTopics"
-    let description = "Finds topics in the map whose title or note contains the words. Returns handles, titles and paths."
+    var description = "Finds topics in the map whose title or note contains the words. Returns handles, titles and paths."
     let reader: ChatMapReader
     let events: ChatToolEvents
 
@@ -58,7 +75,7 @@ struct SearchTopicsTool: Tool {
 
 struct ReadTopicTool: Tool {
     let name = "readTopic"
-    let description = "Reads one topic by handle: its note, path, subtopics, tags, task state and links."
+    var description = "Reads one topic by handle: its note, path, subtopics, tags, task state and links."
     let reader: ChatMapReader
     let events: ChatToolEvents
 
@@ -72,12 +89,41 @@ struct ReadTopicTool: Tool {
 
 struct ReadBranchTool: Tool {
     let name = "readBranch"
-    let description = "Reads the outline under a topic, with handles and notes, a few levels deep."
+    var description = "Reads the outline under a topic, with handles and notes, a few levels deep."
     let reader: ChatMapReader
     let events: ChatToolEvents
 
     @concurrent
     func call(arguments: ReadBranchArguments) async throws -> String {
+        let output = await reader.readBranch(arguments.handle, depth: arguments.depth)
+        events.report(name, output: output)
+        return output
+    }
+}
+
+struct ListMapsTool: Tool {
+    let name = "listMaps"
+    let description = "Lists the maps in the library with handles such as M1, most recently edited first."
+    let reader: ChatMapReader
+    let events: ChatToolEvents
+
+    @concurrent
+    func call(arguments: ListMapsArguments) async throws -> String {
+        let output = await reader.listMaps(arguments.query)
+        events.report(name, output: output)
+        return output
+    }
+}
+
+/// readBranch across the library: a map handle reads the whole map.
+struct ReadMapBranchTool: Tool {
+    let name = "readBranch"
+    let description = "Reads the outline of a map (handle M1) or under a topic (handle T3), with handles and notes."
+    let reader: ChatMapReader
+    let events: ChatToolEvents
+
+    @concurrent
+    func call(arguments: ReadMapBranchArguments) async throws -> String {
         let output = await reader.readBranch(arguments.handle, depth: arguments.depth)
         events.report(name, output: output)
         return output

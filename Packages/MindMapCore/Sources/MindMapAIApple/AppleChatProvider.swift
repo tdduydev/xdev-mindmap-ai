@@ -49,8 +49,9 @@ final class AppleChatConversation: ChatConversation {
     init(scope: ChatScope, queries: MapQueries, catalog: PromptCatalog, history: [ChatTurn]) {
         self.scope = scope
         self.catalog = catalog
-        let mapID: MapID = switch scope {
+        let mapID: MapID? = switch scope {
         case .map(let id): id
+        case .library: nil
         }
         // The window is known only once capabilities are read; each question
         // sets the reader's limit from it.
@@ -91,10 +92,16 @@ final class AppleChatConversation: ChatConversation {
         reader.setToolOutput(budget.toolOutput)
         reader.setBranch(message.branch?.nodeID)
 
-        let mapTitle = await reader.mapTitle()
-        let prompt = catalog.chatPrompt(question: message.text, mapTitle: mapTitle, language: message.language, branchTitle: message.branch?.title)
+        let prompt: String
+        switch scope {
+        case .map:
+            let mapTitle = await reader.mapTitle()
+            prompt = catalog.chatPrompt(question: message.text, mapTitle: mapTitle, language: message.language, branchTitle: message.branch?.title)
+        case .library:
+            prompt = catalog.libraryChatPrompt(question: message.text, language: message.language)
+        }
         let questionCost = TokenEstimator.estimate(prompt)
-        let tools = Self.tools(reader: reader, events: events)
+        let tools = Self.tools(for: scope, reader: reader, events: events)
 
         // Rebuilt before asking when the turns so far leave no room, and
         // once more, from the last turn alone, if the model still runs out.
@@ -199,7 +206,10 @@ final class AppleChatConversation: ChatConversation {
     }
 
     private func rebuiltSession(keepingLast count: Int, tools: [any Tool], locale: String) -> LanguageModelSession {
-        let instructions = catalog.chatInstructions(userLocaleIdentifier: locale)
+        let instructions = switch scope {
+        case .map: catalog.chatInstructions(userLocaleIdentifier: locale)
+        case .library: catalog.libraryChatInstructions(userLocaleIdentifier: locale)
+        }
         return state.withLock { current in
             let kept = Array(current.turns.suffix(count))
             var entries: [Transcript.Entry] = [
@@ -220,8 +230,20 @@ final class AppleChatConversation: ChatConversation {
         }
     }
 
-    private static func tools(reader: ChatMapReader, events: ChatToolEvents) -> [any Tool] {
-        [
+    private static func tools(for scope: ChatScope, reader: ChatMapReader, events: ChatToolEvents) -> [any Tool] {
+        if case .library = scope {
+            // No edit tool: the library scope only reads (docs/chat.md, Editing).
+            return [
+                ListMapsTool(reader: reader, events: events),
+                SearchTopicsTool(
+                    description: "Finds topics in every map whose title or note contains the words. Returns handles, titles, maps and paths.",
+                    reader: reader, events: events
+                ),
+                ReadTopicTool(reader: reader, events: events),
+                ReadMapBranchTool(reader: reader, events: events),
+            ]
+        }
+        return [
             SearchTopicsTool(reader: reader, events: events),
             ReadTopicTool(reader: reader, events: events),
             ReadBranchTool(reader: reader, events: events),
