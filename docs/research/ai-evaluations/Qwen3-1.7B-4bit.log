@@ -1,0 +1,32 @@
+model: ready languages: ["en", "ja", "vi"]
+PASS generateMap.en 38.8s 
+PASS expandTopic.en 3.7s 
+PASS brainstorm.en 3.6s 
+PASS findMissingTopics.en 4.3s 
+PASS rewrite.en 2.9s 
+PASS summarize.en 2.7s 
+FAIL suggestTags.en 55.1s error: invalidResponse(MindMapAICore.ProposalError.empty)
+FAIL suggestGroups.en 14.2s error: invalidResponse(MindMapAICore.ProposalError.empty)
+PASS summarizeBoundary.en 1.3s 
+PASS chat.en 4.4s 
+PASS generateMap.vi 37.1s 
+PASS expandTopic.vi 3.8s 
+PASS brainstorm.vi 4.4s 
+PASS findMissingTopics.vi 3.4s 
+PASS rewrite.vi 1.5s 
+PASS summarize.vi 3.6s 
+PASS suggestTags.vi 19.6s 
+PASS suggestGroups.vi 6.6s 
+PASS summarizeBoundary.vi 1.0s 
+PASS chat.vi 1.4s 
+PASS generateMap.ja 28.3s 
+PASS expandTopic.ja 4.3s 
+PASS brainstorm.ja 3.7s 
+PASS findMissingTopics.ja 1.6s 
+PASS rewrite.ja 1.5s 
+FAIL summarize.ja 1.6s missing fact 150万
+PASS suggestTags.ja 16.0s 
+PASS suggestGroups.ja 3.6s 
+PASS summarizeBoundary.ja 0.7s 
+PASS chat.ja 1.3s 
+EVAL DONE 27/30
