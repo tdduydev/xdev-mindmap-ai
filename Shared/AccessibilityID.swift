@@ -147,6 +147,13 @@ nonisolated enum AccessibilityID {
         static let cancelVoice = "chat.cancelVoice"
     }
 
+    /// Ask across the library (MM-52). Inside the panel the controls keep
+    /// the `Chat` identifiers, so one page object reads both panels.
+    enum LibraryChat {
+        static let panel = "libraryChat.panel"
+        static let toolbar = "libraryChat.toolbar"
+    }
+
     enum ScreenshotAI {
         static let menu = "screenshot.ai.menu"
     }

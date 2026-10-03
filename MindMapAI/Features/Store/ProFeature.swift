@@ -13,6 +13,8 @@ enum ProFeature: CaseIterable, Identifiable {
     case summarizeWholeMap
     case findMissingIdeas
     case voiceInput
+    /// Ask across the library (MM-52, decided 2026-10-02); Ask in a map is free.
+    case askLibrary
 
     var id: Self { self }
 
@@ -20,7 +22,7 @@ enum ProFeature: CaseIterable, Identifiable {
     /// never run Apple Intelligence (an Intel Mac, MM-21).
     var needsOnDeviceModel: Bool {
         switch self {
-        case .generateMapFromDescription, .summarizeWholeMap, .findMissingIdeas: true
+        case .generateMapFromDescription, .summarizeWholeMap, .findMissingIdeas, .askLibrary: true
         case .vectorPDFExport, .highResolutionPNGExport, .extraThemes, .voiceInput: false
         }
     }
@@ -40,6 +42,7 @@ enum ProFeature: CaseIterable, Identifiable {
         case .summarizeWholeMap: "Summarize a Whole Map"
         case .findMissingIdeas: "Find Missing Topics"
         case .voiceInput: "Voice Input"
+        case .askLibrary: "Ask About Library"
         }
     }
 
@@ -52,6 +55,7 @@ enum ProFeature: CaseIterable, Identifiable {
         case .summarizeWholeMap: "text.append"
         case .findMissingIdeas: "lightbulb"
         case .voiceInput: "mic"
+        case .askLibrary: "books.vertical"
         }
     }
 }

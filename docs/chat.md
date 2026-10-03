@@ -216,6 +216,29 @@ Chosen by the product owner on 2026-10-03 (FR-AI-27; speech as FR-AI-21; Pro as 
 - **Menu bar:** AI ▸ Ask by Voice (Stop Asking by Voice while listening) opens the panel and toggles the microphone; disabled where the chat is hidden or a step is under way. No shortcut: none is approved yet.
 - **Tests:** `ChatDictationTests` with `FakeVoiceTranscriber` (draft, appended to typed text, Cancel, edit while listening, paywall, Settings language, denied permission, download). UI test mode uses `UITestVoiceTranscriber`.
 
+## What C3 built (MM-52)
+
+Ask across the library, 2026-10-03. Pro, as decided on 2026-10-02.
+
+| Type | Where | Role |
+| --- | --- | --- |
+| `ChatScope.library` | `MindMapAICore/Chat.swift` | Every live map, never Recently Deleted |
+| `CitationTable` | `MindMapAICore` | Handles keyed by map and topic, so the same node ID in two maps (a duplicated map) gets two handles. Display text also strips map handles (`[M2]`); they never become citations |
+| `ChatMapReader(mapID: nil)` | `MindMapAIApple` | `listMaps(query)` gives `M1`, `M2`… with title and topic count (20 at most, then the budget). `searchTopics` searches every map and names the map of each hit. `readTopic` reads in the cited topic's own map. `readBranch` takes a map handle for the whole map or a topic handle; an empty handle asks for one |
+| `ListMapsTool`, `ReadMapBranchTool` | `MindMapAIApple/ChatTools.swift` | Four tools for the library: `listMaps`, `searchTopics`, `readTopic`, `readBranch`. No edit tool |
+| `PromptCatalog.libraryChatInstructions`, `libraryChatPrompt` | `MindMapAIApple` | Own fixed instructions (under half the instructions reserve, as for a map); the prompt says "Scope: every map in the library." instead of a map title |
+| `ProFeature.askLibrary` | `MindMapAI/Features/Store` | "Ask About Library" in the paywall; an AI feature, so not offered where AI cannot run |
+| `LibraryChat` | `MindMapAI/Features/Chat` | One per library window (`RootView`). Asks `allows(.askLibrary)` before the panel opens and before each question; without Pro it opens the paywall (`PendingProChoice`), which carries on if Pro is unlocked there. Shows the on-device notice itself (same `ai.privacyNoticeKey`, `AIPrivacyNotice`) |
+| `LibraryChatPanel` | `MindMapAI/Features/Chat` | `.inspector` on the library list column (a sheet on iPhone): suggested questions, Copy and Ask Again, citation chips. No scope picker, microphone or Add to Note |
+| `OpenMaps.showTopic(_:in:)` | `MindMapAI/Features/Editor` | A citation opens its map in the window (or brings forward the window that shows it) and selects the topic, revealing it as Find does; if the map is still loading, the topic is shown when it opens |
+
+Differences from the design above:
+
+- **Not saved.** The library conversation belongs to no map (MM-55 saves per map), so it lives as long as the window; Clear Chat clears it without asking first, since nothing stored is lost [Đề xuất].
+- **Menu:** AI ▸ Ask About Library… with no shortcut: ⌃⌘A stays Ask About This Map, since a library window also shows a map and one key cannot mean both [Đề xuất]. Without Pro it stays enabled and opens the paywall. Clear Chat, Copy Answer and Ask Again act on the map's chat when a map shows, else on the library's; Cancel AI Request (⌘.) also stops a library answer.
+- **Citations** do not check renames: a chip shows the title the tool returned. A topic or map gone since is found when clicked; the chip is then struck through and says "Topic no longer exists".
+- **Suggested questions** [Đề xuất]: "What are my maps about?", "Which maps have topics in common?", "What should I work on next?" in en, vi and ja.
+
 ## Testing
 
 - `MindMapAICoreTests`: citation table (unknown handles dropped, deleted topics), budget cutting, scope rules (no edit tool in the library).
@@ -232,5 +255,5 @@ Q1 (the query layer) is in [mcp.md](mcp.md#proposed-tasks).
 | --- | --- | --- | --- |
 | C1 | Ask in a map | `ChatProvider`, Apple provider with the read tools, citations that open topics, the panel on Mac, iPad and iPhone, AI menu items and ⌃⌘A, availability states, en and vi, unit, app and UI tests | Q1, MM-8 (done) |
 | C2 | Suggestions from the chat | `suggestTopics` into `SuggestionState`, Accept as one command with undo and redo tests, honest answer text | C1 |
-| C3 | Ask across the library | Library window panel, `listMaps`, Pro gate if the product owner agrees, tests | C1, MM-13 (done) |
+| C3 | Ask across the library (MM-52, built: [What C3 built](#what-c3-built-mm-52)) | Library window panel, `listMaps`, Pro gate, tests | C1, MM-13 (done) |
 | C4 | Chat evaluations | Evaluations suite of en and vi questions on fixture maps (answer found, citations correct, says "not found"), run on 26.4 and 27 prompts | C1 |

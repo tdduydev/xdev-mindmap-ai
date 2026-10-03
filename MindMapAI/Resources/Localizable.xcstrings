@@ -13201,6 +13201,134 @@
           }
         }
       }
+    },
+    "Ask About Library" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリについて質問"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về thư viện"
+          }
+        }
+      }
+    },
+    "Ask About Library…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリについて質問…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về thư viện…"
+          }
+        }
+      }
+    },
+    "Ask a question about all your maps. Answers come from their topics and name the ones they use." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのマップについて質問できます。回答はマップのトピックに基づき、使用したトピックが示されます。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đặt câu hỏi về mọi sơ đồ của bạn. Câu trả lời lấy từ các chủ đề của chúng và ghi rõ chủ đề đã dùng."
+          }
+        }
+      }
+    },
+    "Ask about your maps" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップについて質問"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hỏi về các sơ đồ của bạn"
+          }
+        }
+      }
+    },
+    "Reading your maps…" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを読み取り中…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang đọc các sơ đồ…"
+          }
+        }
+      }
+    },
+    "What are my maps about?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップには何が書かれている？"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các sơ đồ của tôi nói về gì?"
+          }
+        }
+      }
+    },
+    "Which maps have topics in common?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共通のトピックがあるマップは？"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Những sơ đồ nào có chủ đề chung?"
+          }
+        }
+      }
+    },
+    "What should I work on next?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次に取り組むべきことは？"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tôi nên làm gì tiếp theo?"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
