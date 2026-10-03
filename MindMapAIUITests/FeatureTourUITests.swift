@@ -197,7 +197,8 @@ final class FeatureTourUITests: XCTestCase {
             tour.scrollTo(field)
             field.waitToExist().tapOrClick()
             field.typeText("launch\n")
-            app.app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "launch")).firstMatch.waitToExist()
+            // The Mac keeps a static text's text in its value, iOS in its label.
+            app.app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", "launch", "launch")).firstMatch.waitToExist()
         }
         tour.step("26-inspector-theme") { app in
             let theme = app.app.descendants(matching: .any)[AccessibilityID.Inspector.theme].firstMatch
@@ -329,7 +330,12 @@ final class FeatureTourUITests: XCTestCase {
             // The inline picker's rows, in `MindMapTheme` order: pick the second.
             // On iOS the identifier lands on the picker's "Theme" label and its
             // rows are the form's cells below it, not its children.
+            #if os(macOS)
+            // An inline picker on the Mac is a group of radio buttons.
+            let options = theme.radioButtons.count > 1 ? theme.radioButtons : app.app.radioButtons
+            #else
             let options = theme.buttons
+            #endif
             if options.count > 1 {
                 options.element(boundBy: 1).tapOrClick()
             } else {
@@ -512,7 +518,8 @@ final class Tour {
 
     /// The toolbar's AI menu, from the toolbar or its More menu on iPhone.
     func openAIMenu() {
-        let button = xcApp.buttons[AccessibilityID.Editor.ai].firstMatch
+        // A toolbar Menu is a menu button, not a button, on the Mac.
+        let button = xcApp.descendants(matching: .any)[AccessibilityID.Editor.ai].firstMatch
         if button.waitForExistence(timeout: MindMapApp.timeout / 6) {
             button.tapOrClick()
             return
