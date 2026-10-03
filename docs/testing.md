@@ -144,6 +144,7 @@ Identifiers live in one enum, `AccessibilityID` (`Shared/AccessibilityID.swift`)
 | `FindUITests` | Find in map: match count, Next and Previous, no results, folding, Done, Vietnamese | macOS, iOS |
 | `SettingsUITests` | Opening Settings (⌘, or the sidebar button), panes, Appearance kept across a reopen, Vietnamese | macOS, iOS |
 | `PaywallUITests` | Settings ▸ Pro ▸ See What’s in Pro… shows the purchase button with its price, English and Vietnamese (skips when the device already owns Pro) | macOS, iOS |
+| `DataSettingsUITests` | Settings present one dialog and keep Settings open: Empty Recently Deleted asks first, Export All Maps opens the folder picker (iOS); Add App opens one sheet (macOS) | macOS, iOS |
 | `MenuShortcutUITests` | Menu items disabled without a map, ⌘N, ⌘1/⌘2, ⇧⌘Return with ⌘Z and ⇧⌘Z, ⌘F/⌘G/⇧⌘G/Esc, ⌘, | macOS only |
 
 Menu bar items have no accessibility identifier (SwiftUI `Commands` do not pass one on), so `MenuShortcutUITests` finds them by their English titles and runs in English only. On iPhone the editor toolbar moves what does not fit into an overflow menu; its items lose their identifiers, so `EditorPage.tap(_:)` opens the menu and finds the item by its SF Symbol name, which is not translated.
