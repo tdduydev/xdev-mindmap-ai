@@ -237,4 +237,6 @@ private struct OneShotProvider: AIProvider {
     func summarize(_ request: SummarizeRequest) async throws -> AISummary { throw AIError.generationFailed }
     func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal { proposal }
     func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions { throw AIError.generationFailed }
+    func suggestGroups(_ request: SuggestGroupsRequest) async throws -> AIGroupSuggestions { throw AIError.generationFailed }
+    func summarizeBoundary(_ request: SummarizeBoundaryRequest) async throws -> AIBoundaryTitle { throw AIError.generationFailed }
 }

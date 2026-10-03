@@ -1,8 +1,10 @@
 import Foundation
+import MindMapAICore
 import MindMapDomain
 import MindMapGraph
 import MindMapPersistence
 import Observation
+import OSLog
 
 /// A window, as `OpenMaps` knows it. Made by the window's root view, which
 /// registers how to bring the window to the front.
@@ -21,11 +23,11 @@ final class OpenMap {
     /// map shows the same chat (docs/chat.md).
     let chat: MapChat
 
-    init(session: EditorSession, assistant: AIAssistant) {
+    init(session: EditorSession, assistant: AIAssistant, chatHistory: [ChatTurn] = []) {
         self.session = session
         self.assistant = assistant
         canvas = CanvasModel(session: session, assistant: assistant)
-        chat = MapChat(session: session, assistant: assistant)
+        chat = MapChat(session: session, assistant: assistant, history: chatHistory)
     }
 }
 
@@ -158,7 +160,16 @@ final class OpenMaps {
             }
             switch opened {
             case .ready(let session):
-                return .ready(OpenMap(session: session, assistant: AIAssistant(session: session, service: service)))
+                let history: [ChatTurn]
+                do {
+                    history = try await repository.chatTurns(for: mapID)
+                } catch {
+                    // The map still opens; its chat starts empty this time.
+                    Log.persistence.error("Loading the chat failed: \(error.localizedDescription, privacy: .public)")
+                    history = []
+                }
+                let assistant = AIAssistant(session: session, service: service)
+                return .ready(OpenMap(session: session, assistant: assistant, chatHistory: history))
             case .missing: return .missing
             case .recentlyDeleted: return .recentlyDeleted
             case .failed: return .failed

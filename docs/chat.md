@@ -9,7 +9,7 @@ Design for MM-39, 2026-10-02. Ask in a map (C1) is built in MM-41; [What C1 buil
 - **Two scopes:** Ask in one map (from the editor, free) and Ask across the library (from the library, Pro; decided 2026-10-02).
 - **Citations:** each answer names the topics it used; clicking one opens the map at that topic.
 - **Edits are suggestions:** in a map, the chat can suggest topics; they appear as AI suggestions on the canvas and Accept is one command, one undo step.
-- **Saved per map (decided 2026-10-02, MM-55):** each map keeps its conversation in the store, deleted with the map and when the person clears it; it is map content, so it is never logged and syncs only with the map. The first chat release (MM-41) may keep it in memory until MM-55 lands.
+- **Saved per map (decided 2026-10-02, built in MM-55):** each map keeps its conversation in the store, deleted with the map and when the person clears it; it is map content, so it is never logged and syncs only with the map. See [Saving the conversation](#saving-the-conversation).
 - **Hidden where AI is hidden:** same `AICapabilities` as the other AI features, so an Intel Mac or an ineligible device never shows it (MM-21).
 
 ## Model and context
@@ -74,14 +74,16 @@ The chat cannot rename, move or delete topics. Rewrite and Summary stay the exis
 
 ## Saving the conversation
 
-[Đề xuất] Not saved in the first version:
+Decided by the product owner on 2026-10-02 (replacing the earlier proposal not to save); built in MM-55. Storage is in [data-model.md](data-model.md#schema-v3-mm-55).
 
-- No schema change (a saved chat needs `SchemaV3` and a migration, [data-model.md](data-model.md)), nothing extra to sync, nothing extra to delete.
-- The small window drops older turns anyway, so a saved conversation could not be continued as the model saw it *[Inference]*.
-- The chat stays while the map's window is open (with `OpenMap`, so a second window on the same map sees the same chat) and is gone when the map closes. Clear Chat empties it.
-- Copy an answer, or Add Answer to Note on a topic (one command), keeps what matters.
-
-Saving, if wanted later, is a separate decision.
+- **Per map, in the store:** one `ChatTurnRecord` per finished question and answer, in `SchemaV3`, by `mapID`. Opening the map loads them (`OpenMaps` reads `chatTurns(for:)` before it makes the `MapChat`), so the panel shows the conversation again and every window on the map shares it.
+- **The model sees what fits:** the saved turns go to `conversation(in:history:)`; `AppleChatProvider` keeps the latest that fit the budget above and says "Earlier messages were left out to make room" once. Citations of saved turns keep resolving, and a cited topic deleted since shows "Topic no longer exists".
+- **Limit:** 100 turns, 200 messages, per map [Đề xuất]; the oldest go first.
+- **Clear Chat** (panel toolbar and AI menu) asks first ("Clear the chat for this map?"), then deletes the map's turns. It is not an undo step: the chat is not part of the map's graph.
+- **Deleted with the map:** Delete Permanently and the Recently Deleted purge delete the turns; a map in Recently Deleted keeps its chat until then.
+- **Sync:** the turns mirror with the map when iCloud is on. *[Unverified]* A turn asked on another device appears when the map is opened again; an open panel does not reload on a change from outside.
+- **Privacy:** questions and answers are never logged; a failed save logs only the error description.
+- Stopped and failed answers are not saved.
 
 ## Availability
 
@@ -104,7 +106,7 @@ The product owner decides; the split lives in `ProFeature` only.
 ## Languages
 
 - Instructions in English, fixed, versioned in `PromptCatalog`, ending with the answer language. The answer follows the language of the question (`NLLanguageRecognizer`), else the app's language, so a Vietnamese question gets a Vietnamese answer even in a map written in English.
-- The search tools fold case and Vietnamese marks, so a model that drops diacritics ("ke hoach") still finds "Kế hoạch".
+- The search tools fold case and Vietnamese marks, so a model that drops diacritics ("ke hoach") still finds "Kế hoạch". They also fold full and half width ("ｶﾞｲﾄﾞ" finds "ガイド") but keep Japanese voiced marks ("か" is not "が") and keep hiragana apart from katakana (MM-94).
 - Every string in the panel goes into `Localizable.xcstrings` in en and vi.
 
 ## Guardrails and acceptable use
@@ -155,7 +157,7 @@ Errors map through `AIFailure`. Logs carry the scope, tool names, token counts a
 
 ## What C1 built
 
-MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51), the library scope (C3, MM-52) and saving (MM-55) are not built.
+MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51) and the library scope (C3, MM-52) are not built. Saving came with MM-55 ([Saving the conversation](#saving-the-conversation)).
 
 | Type | Where | Role |
 | --- | --- | --- |
@@ -169,6 +171,7 @@ MM-41, 2026-10-02. Ask in a map, read-only; suggestions (C2, MM-51), the library
 | `MockChatProvider` | `MindMapTestSupport` | Scripted answers, failures and a hang |
 | `MapChat` | `MindMapAI/Features/Chat` | One per `OpenMap`, so every window on the map shares it. Asks after the AI privacy notice, stops, clears, opens citations through `EditorSession.showTopic` (Reveal Topic as in Find) |
 | `ChatPanel` | `MindMapAI/Features/Chat` | Shares the editor's `.inspector` with the topic inspector (one or the other); on iPhone `.inspector` is a sheet, which closes when a citation is opened |
+| `ChatBranch`, `ChatMessage.branch`, `ChatTurn.branch` | `MindMapAICore/Chat.swift` | The scope of one question (MM-78, [Suggested questions and scope](#suggested-questions-and-scope-mm-78)) |
 | `AppEnvironment.mapQueries` | `MindMapAI/Features/Chat/AppEnvironment+Chat.swift` | The chat's `MapQueries` over the AI apps' `OpenMapsGraphSource` (`AIAppsHost.swift`, MM-46): open maps read from the editor's live graph, the rest from the store |
 
 Differences from the design above:
@@ -178,6 +181,40 @@ Differences from the design above:
 - **Menu:** AI ▸ Ask About This Map… (⌃⌘A, approved 2026-10-02) and Clear Chat; Cancel AI Request (⌘.) stops a chat answer too, so the chat has no Stop item of its own. Toolbar: Ask About This Map, beside the AI menu.
 - **Use AI Features** (MM-44): the chat is hidden exactly where the other AI controls are (`AIService.showsControls`: an ineligible device, or the switch off in Settings), and when the app has no store. A panel already open when the switch goes off keeps its answers but cannot ask again.
 - **UI test mode:** `-uitest-ai ready|ineligible` puts a scripted model in place of Apple Intelligence (Debug only, `UITestAIService.swift`): the chat cites the first topic whose title matches a word of the question.
+
+## Suggested questions and scope (MM-78)
+
+Chosen by the product owner on 2026-10-03 (FR-AI-09, FR-AI-11).
+
+- **Suggested questions:** an empty chat shows three buttons under the intro: "Summarize this map", "What is missing?", "What are the next steps?" (vi: "Tóm tắt sơ đồ này", "Còn thiếu gì?", "Các bước tiếp theo là gì?"). Tapping one asks it at once and leaves the draft alone; they are disabled while an answer comes or the model is not ready. When the scope is a branch they ask about the branch instead ("Summarize this branch", "What is missing in this branch?", "What are the next steps for this branch?") [Đề xuất]. They are in the app's language, so the answer is too.
+- **Scope picker** above the question field (a standard menu `Picker`): **Whole Map** (default) or **Selected Branch: <title>**. The branch is offered only while exactly one topic other than the central one is selected (the central topic's branch is the map). The choice holds only while that topic stays selected: selecting nothing or another topic goes back to the whole map, and selecting the topic again does not bring it back quietly (`MapChat.branchChoice`, `selectionChanged()`).
+- **Per question, not per conversation:** the scope rides on `ChatMessage.branch` (`ChatBranch`: node and title), taken when the question is asked (before the privacy notice), so one conversation can mix whole-map and branch questions.
+- **Tools inside the branch:** `ChatMapReader.setBranch` before each question. `searchTopics` searches only the branch (`MapQueries.search(_:in:under:limit:)`); `readTopic` and `readBranch` refuse a handle outside it, including one an earlier whole-map turn handed out ("Topic T5 is outside the branch this question is about…"); `readBranch` with an empty handle starts at the branch topic. Every handle a tool hands out is therefore in the branch, and so is every citation.
+- **The answer says so:** the prompt gets "Scope: only the branch “…”. The tools read only this branch. Begin the answer by saying it covers this branch." The instructions stay fixed; the title is map content and goes in the prompt only. The panel also shows "Branch: <title>" above the answer, so the scope is stated even if the model leaves it out.
+- **Saved with the turn, no schema change:** `ChatTurn.branch`, kept in the existing `citationsData` of `ChatTurnRecord` (SchemaV3 unchanged). A whole-map turn still stores MM-55's plain citation array; a branch turn stores `{ "citations": […], "branch": { "nodeID", "title" } }` (`SavedCitations`). A build that reads only the array keeps the turn and loses that turn's chips.
+- **Menu bar:** no new command. The picker and the suggestions are controls in the panel, like the question field; the scope follows the canvas selection.
+- **Not built here:** asking by voice came with MM-80 ([Ask by voice](#ask-by-voice-mm-80)). Buttons on an answer came with MM-79 ([Buttons on an answer](#buttons-on-an-answer-mm-79)).
+
+## Buttons on an answer (MM-79)
+
+Chosen by the product owner on 2026-10-03 (FR-AI-10, FR-EDT-13). Under each answer, in `ChatPanel`, borderless buttons with `Metrics.minimumHitTarget`:
+
+- **Copy** (finished answers): puts `displayAnswer` on the pasteboard as plain text, so `[T3]` handles are left out (`Clipboard.copy`). VoiceOver hears "Answer copied". It never changes the map.
+- **Add to Note** (finished answers): appends the answer to a topic's note, after a blank line when the note has text, as one `UpdateNodeCommand(.note)` named "Add Answer to Note": one undo step, redo restores it. The topic is the selected one; with nothing selected, the first cited topic still in the map [Đề xuất]; with several topics selected, or no selection and no citation, the button is disabled (its help says "Select one topic to add the answer to its note"). The help names the topic that will get it. The text is the plain answer, without handles.
+- **Ask Again** (the last question only, once its answer is finished, stopped or failed; disabled while the model is not ready): asks the same question with the same scope (`branch`) in place of that answer. The conversation is rebuilt from the turns before it, so the model does not see the answer it replaces. The old saved turn is deleted at once (`ChatHistoryStore.deleteChatTurn`, no schema change) and the new answer is saved as a new turn when it finishes, so a retry that stops or fails leaves no stale answer in the store. An earlier question has later turns built on it, so it has no Ask Again.
+- **Menu bar:** AI ▸ Copy Answer, Add Answer to Note, Ask Again act on the last answer and are disabled when it does not allow them. No shortcuts: none is approved yet, and ⌘C must stay Copy for the canvas and text.
+- **Not here:** Create Topics from Answer belongs to MM-51 (suggestions from the chat).
+
+## Ask by voice (MM-80)
+
+Chosen by the product owner on 2026-10-03 (FR-AI-27; speech as FR-AI-21; Pro as FR-STO-01). A microphone button in the question field, between the field and Ask.
+
+- **Same speech stack as Add Topics by Voice:** `ChatDictation` (one per window, like `VoiceInput`, since the microphone is not shared) uses the same `VoiceTranscribing` (`AppleSpeechTranscriber`: DictationTranscriber for vi, SpeechTranscriber for en) and reads Settings ▸ Voice Input Language through `VoiceInput.language(in:)` each time it starts. The first time, the system asks for the microphone and speech recognition, as for Add Topics by Voice. A missing speech model waits for Download Speech Model (App Review 4.2.3). Speech stays on the device and is never logged.
+- **Into the draft, never asked on its own [Đề xuất]:** the words go after what was typed (one space), the volatile guess shows as it is heard, and Ask stays the person's step. Stop Listening (the filled mic) keeps the words; the last ones still arrive. Cancel, in the line above the field, or Escape while listening, puts the draft back as it was before listening, unless the person edited the field meanwhile: their edit is kept, and later words follow it. Asking stops listening first, so no late words start the next question. Closing the panel stops listening and keeps the draft.
+- **Pro:** gated by `ProEntitlement.allows(.voiceInput)`. Without Pro the microphone opens the paywall (`PendingProChoice`), and listening starts if Pro is unlocked there. Shown only where the chat can ask (`MapChat.showsEntryPoints`).
+- **States:** "Getting ready…" and "Listening…" with Cancel in one footnote line above the field; download prompt and progress; a failure (permission denied, no microphone, unsupported language) as one line, announced to VoiceOver. The mic button's VoiceOver hint says the words go into the question field.
+- **Menu bar:** AI ▸ Ask by Voice (Stop Asking by Voice while listening) opens the panel and toggles the microphone; disabled where the chat is hidden or a step is under way. No shortcut: none is approved yet.
+- **Tests:** `ChatDictationTests` with `FakeVoiceTranscriber` (draft, appended to typed text, Cancel, edit while listening, paywall, Settings language, denied permission, download). UI test mode uses `UITestVoiceTranscriber`.
 
 ## Testing
 

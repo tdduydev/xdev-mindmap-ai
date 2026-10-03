@@ -10,6 +10,7 @@ struct MapEditorView: View {
     @Bindable var assistant: AIAssistant
     @Bindable var chat: MapChat
     @Bindable var voice: VoiceInput
+    let dictation: ChatDictation
     @Environment(\.undoManager) private var undoManager
     @State private var showsKeyboardShortcuts = false
     @Environment(FileTransfer.self) private var transfer: FileTransfer?
@@ -53,7 +54,7 @@ struct MapEditorView: View {
         // on iPhone); showing one hides the other.
         .inspector(isPresented: trailingPanelBinding) {
             if chat.isPresented {
-                ChatPanel(chat: chat)
+                ChatPanel(chat: chat, dictation: dictation)
             } else {
                 MapInspectorView(session: session)
             }
@@ -69,9 +70,15 @@ struct MapEditorView: View {
                 TopicLinkSheet(session: session, nodeID: target)
             }
         }
+        .modifier(AttachFloatingTopicSheetPresenter(session: session))
+        .modifier(ConnectionPickerPresenter(session: session))
+        .modifier(TopicImagePicker(session: session))
+        .modifier(TopicSymbolPickerPresenter(session: session))
         .sheet(isPresented: $session.isManagingTags) {
             TagManagerView(session: session)
         }
+        // Here rather than in the inspector, so View ▸ Theme can open it with the inspector closed.
+        .proChoicePaywall($session.pendingThemeChoice)
         // A tag typed in the inspector that cannot be a name; Manage Tags shows its own.
         .alert(
             Text("Couldn’t Change the Tag"),
@@ -111,6 +118,7 @@ struct MapEditorView: View {
         .focusedSceneValue(\.keyboardShortcutsAction, KeyboardShortcutsAction { showsKeyboardShortcuts = true })
         .sheet(isPresented: $showsKeyboardShortcuts) { KeyboardShortcutsView() }
         .focusedSceneValue(\.voiceInput, voice)
+        .focusedSceneValue(\.chatDictation, dictation)
         .onAppear { session.undoManager = undoManager }
         .onChange(of: undoManager) { _, manager in session.undoManager = manager }
     }
@@ -191,10 +199,12 @@ struct MapEditorView: View {
                 Label("Add Topics by Voice", systemImage: "mic")
             }
             .help(Text("Add Topics by Voice"))
+            .accessibilityIdentifier(AccessibilityID.Editor.voice)
         }
         if assistant.service.showsControls {
             ToolbarItem(placement: .primaryAction) {
                 AIToolbarMenu(assistant: assistant)
+                    .accessibilityIdentifier(AccessibilityID.Editor.ai)
             }
         }
         if chat.showsEntryPoints {
@@ -215,7 +225,20 @@ struct MapEditorView: View {
                 } label: {
                     Label("Export…", systemImage: "square.and.arrow.up")
                 }
+                .accessibilityIdentifier(AccessibilityID.Editor.export)
             }
+            #if os(iOS)
+            // The Mac and an iPad with a keyboard reach it in File ▸ Import into Map…;
+            // an iPhone has no menu bar, and the library's Import… is a screen away.
+            ToolbarItem(placement: .secondaryAction) {
+                Button {
+                    transfer.beginImport(.openMap(session))
+                } label: {
+                    Label("Import into Map…", systemImage: "square.and.arrow.down")
+                }
+                .accessibilityIdentifier(AccessibilityID.Editor.importIntoMap)
+            }
+            #endif
         }
         // After the primary actions, so it sits at the trailing edge above the inspector.
         ToolbarItem(placement: .primaryAction) {

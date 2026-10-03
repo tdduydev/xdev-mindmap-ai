@@ -1,0 +1,23 @@
+{
+  "en": {
+    "01-canvas": "Ideas grow into a clear plan",
+    "02-ai-suggestions": "Make room for fresh ideas",
+    "03-outline": "Every detail, in its place",
+    "04-ask-map": "Ask your map what matters",
+    "05-privacy": "Your ideas stay yours"
+  },
+  "vi": {
+    "01-canvas": "Biến ý tưởng thành kế hoạch",
+    "02-ai-suggestions": "Khơi mở ý tưởng mới",
+    "03-outline": "Mọi chi tiết đúng chỗ",
+    "04-ask-map": "Hỏi sơ đồ điều bạn cần",
+    "05-privacy": "Ý tưởng luôn thuộc về bạn"
+  },
+  "ja": {
+    "01-canvas": "アイデアを明確なプランに",
+    "02-ai-suggestions": "新しいアイデアを広げよう",
+    "03-outline": "細部まで、あるべき場所に",
+    "04-ask-map": "大切なことはマップに聞こう",
+    "05-privacy": "アイデアはあなただけのもの"
+  }
+}

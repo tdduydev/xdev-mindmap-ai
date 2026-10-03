@@ -55,6 +55,70 @@ struct CanvasModelTests {
         #expect(canvas.viewport.toView(CGPoint(x: root.frame.midX, y: root.frame.midY)) == CGPoint(x: 500, y: 350))
     }
 
+    /// A map with `count` long main topics, wider and taller than `viewSize` at actual size.
+    private func wideMap(_ count: Int = 24) throws -> GraphState {
+        var engine = try GraphEngine(state: .newMap(title: "Plan"))
+        let rootID = try #require(engine.state.map.rootNodeID)
+        for index in 0..<count {
+            let main = NodeID()
+            _ = try engine.execute(AddNodeCommand(nodeID: main, .child(of: rootID), title: "A fairly long main topic \(index)"))
+            _ = try engine.execute(AddNodeCommand(nodeID: NodeID(), .child(of: main), title: "A subtopic with a long title \(index)"))
+        }
+        return engine.state
+    }
+
+    @Test func firstViewFitsTheWholeMap() async throws {
+        let canvas = try await open(wideMap())
+
+        #expect(canvas.scene.bounds.width > Self.viewSize.width || canvas.scene.bounds.height > Self.viewSize.height)
+        #expect(canvas.viewport.scale < 1)
+        #expect(canvas.viewport.visibleRect.contains(canvas.scene.bounds))
+    }
+
+    @Test func firstViewOfASmallMapStaysAtActualSize() async throws {
+        var engine = try GraphEngine(state: .newMap(title: "Plan"))
+        let rootID = try #require(engine.state.map.rootNodeID)
+        for index in 0..<3 {
+            _ = try engine.execute(AddNodeCommand(nodeID: NodeID(), .child(of: rootID), title: "Topic \(index)"))
+        }
+        let canvas = try await open(engine.state)
+
+        #expect(canvas.viewport.scale == 1)
+        #expect(canvas.viewport.visibleRect.contains(canvas.scene.bounds))
+    }
+
+    @Test func firstViewFollowsTheViewSettlingToAnotherSize() async throws {
+        let canvas = try await open(wideMap())
+
+        // The window settles smaller, or the inspector takes width.
+        canvas.setViewSize(CGSize(width: 600, height: 500))
+        #expect(canvas.viewport.visibleRect.contains(canvas.scene.bounds))
+        canvas.setViewSize(CGSize(width: 1400, height: 900))
+        #expect(canvas.viewport.visibleRect.contains(canvas.scene.bounds))
+    }
+
+    @Test func viewSizeChangesStopRefittingOnceTheCameraMoved() async throws {
+        let canvas = try await open(wideMap())
+        canvas.pan(by: CGSize(width: 40, height: 0))
+        let scale = canvas.viewport.scale
+
+        canvas.setViewSize(CGSize(width: 600, height: 500))
+        #expect(canvas.viewport.scale == scale)
+    }
+
+    @Test func viewSizeChangesStopRefittingAfterAnEdit() async throws {
+        let canvas = try await open(wideMap())
+        let scale = canvas.viewport.scale
+        let bounds = canvas.scene.bounds
+        canvas.session.collapseAll()
+        await canvas.layoutSettled()
+        #expect(canvas.scene.bounds != bounds)
+        #expect(canvas.viewport.scale == scale)
+
+        canvas.setViewSize(CGSize(width: 600, height: 500))
+        #expect(canvas.viewport.scale == scale)
+    }
+
     @Test func iPhonePlacementFitsTheFirstLevelToTheWidth() async throws {
         var graph = GraphState.newMap(title: "Plan")
         let rootID = try #require(graph.map.rootNodeID)
@@ -127,6 +191,53 @@ struct CanvasModelTests {
 
         #expect(measurer.size(of: "", level: 1) == measurer.size(of: String(localized: "Untitled Topic"), level: 1))
         #expect(measurer.size(of: "", level: 1).width >= CanvasMetrics.main.minimumWidth)
+    }
+
+    /// A picture sits above the title inside the box (MM-63), sized from the
+    /// stored pixel size before its bytes load.
+    @Test func aTopicWithAnImageIsMeasuredWithIt() {
+        let specs = TopicTextSpecs.designSizes()
+        let measurer = TopicMeasurer(specs: specs)
+        var noChips: [TopicChip] = []
+        let plain = measurer.size(of: "Plan", level: 1)
+        let photo = MindImage(mapID: MapID(), nodeID: NodeID(), pixelWidth: 400, pixelHeight: 300)
+
+        let frame = measurer.imageSize(of: photo, level: 1)
+        let withImage = measurer.size(of: "Plan", level: 1, chips: &noChips, image: frame)
+
+        #expect(frame == CGSize(width: CanvasMetrics.imageWidthMedium, height: CanvasMetrics.imageWidthMedium * 0.75))
+        #expect(withImage.height == plain.height + frame.height + CanvasMetrics.imageGap)
+        #expect(withImage.width == frame.width + 2 * CanvasMetrics.main.horizontalPadding)
+
+        // Large on a sub-topic shrinks to the box; a tall picture is cropped to the maximum aspect.
+        var tall = photo
+        tall.displayWidth = CanvasMetrics.imageWidthLarge
+        tall.pixelHeight = 4_000
+        let sub = CanvasMetrics.sub
+        let tallFrame = measurer.imageSize(of: tall, level: 2)
+        #expect(tallFrame.width == sub.maximumWidth - 2 * sub.horizontalPadding)
+        #expect(abs(Double(tallFrame.height) - Double(tallFrame.width) * CanvasMetrics.imageMaxAspect) < 1)
+        #expect(measurer.size(of: "Plan", level: 2, chips: &noChips, image: tallFrame).width <= sub.maximumWidth)
+    }
+
+    @Test func addingAnImageMeasuresTheTopicAgain() throws {
+        var engine = try GraphEngine(state: .newMap(title: "Plan"))
+        let rootID = try #require(engine.state.map.rootNodeID)
+        let specs = TopicTextSpecs.designSizes()
+        let first = CanvasLayoutPass(graph: engine.state, previous: nil, measures: [:], changed: [], specs: specs, options: LayoutOptions()).run()
+
+        let image = MindImage(mapID: engine.state.map.id, nodeID: rootID, data: Data([1]), pixelWidth: 100, pixelHeight: 100)
+        let changes = try engine.execute(SetNodeImageCommand(nodeID: rootID, image: image))
+        #expect(changes.layoutInvalidation.contains(rootID))
+        let second = CanvasLayoutPass(
+            graph: engine.state, previous: nil, measures: first.measures, changed: changes.layoutInvalidation,
+            specs: specs, options: LayoutOptions()
+        ).run()
+
+        let before = try #require(first.measures[rootID]?.size)
+        let after = try #require(second.measures[rootID]?.size)
+        #expect(after.height > before.height)
+        #expect(second.measures[rootID]?.imageSize != nil)
     }
 
     // MARK: Selection and editing
@@ -551,6 +662,7 @@ struct CanvasModelTests {
 
     @Test func belowTheDetailZoomTopicsAreDrawnAsShapes() async throws {
         let canvas = try await open(Self.largeMap(count: 200))
+        canvas.zoomToActualSize()
         #expect(CanvasDrawing.make(model: canvas, colorScheme: .light, contrast: .standard).fills.isEmpty)
 
         canvas.zoomToFit()

@@ -21,19 +21,30 @@ enum UITestAIService {
     }
 }
 
-/// Reports the mode's capabilities; the suggestion features are not
-/// scripted yet, so each one fails the way a bad answer would.
+/// Reports the mode's capabilities. Suggest Subtopics answers with
+/// `UITestAI.subtopics(languageCode:)` under the focus topic, so a test can accept and
+/// discard them and screenshots never depend on an installed model; the
+/// other features are not scripted yet, so each one fails the way a bad
+/// answer would.
 private struct UITestAIProvider: AIProvider {
     let current: AICapabilities
 
     func capabilities() async -> AICapabilities { current }
     func generateMap(_ request: GenerateMapRequest) async throws -> AIProposal { throw AIError.generationFailed }
-    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal { throw AIError.generationFailed }
+    func expandTopic(_ request: ExpandTopicRequest) async throws -> AIProposal {
+        let language = Locale.preferredLanguages.first ?? "en"
+        let topics = UITestAI.subtopics(languageCode: language).enumerated().map { index, title in
+            ProposedTopic(temporaryID: "t\(index)", title: title)
+        }
+        return AIProposal(feature: .expandTopic, anchor: .node(request.context.focus.nodeID), topics: topics)
+    }
     func brainstorm(_ request: BrainstormRequest) async throws -> AIProposal { throw AIError.generationFailed }
     func rewrite(_ request: RewriteRequest) async throws -> AIRewrite { throw AIError.generationFailed }
     func summarize(_ request: SummarizeRequest) async throws -> AISummary { throw AIError.generationFailed }
     func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal { throw AIError.generationFailed }
     func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions { throw AIError.generationFailed }
+    func suggestGroups(_ request: SuggestGroupsRequest) async throws -> AIGroupSuggestions { throw AIError.generationFailed }
+    func summarizeBoundary(_ request: SummarizeBoundaryRequest) async throws -> AIBoundaryTitle { throw AIError.generationFailed }
 }
 
 /// Answers by searching the map for each word of the question, through the
@@ -66,15 +77,48 @@ private struct UITestChatProvider: ChatProvider {
                     continuation.yield(ChatUpdate(isReadingMap: true))
                     var table = CitationTable()
                     var hit: TopicHit?
-                    for word in message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber }) where hit == nil {
-                        hit = try? await queries.search(String(word), in: mapID, limit: 1).first
+                    // Longest words first, so "Design" wins over "is", which "Discover" also holds.
+                    // Japanese has no spaces; its particles are hiragana, so the
+                    // katakana and kanji runs between them are the words.
+                    let isHiragana: (Character) -> Bool = { $0.unicodeScalars.allSatisfy { (0x3041...0x309F).contains($0.value) } }
+                    let spaced = message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init)
+                    let runs = message.text.split(whereSeparator: { !$0.isLetter && !$0.isNumber || isHiragana($0) })
+                        .map(String.init).filter { !spaced.contains($0) }
+                    let words = (spaced + runs).sorted { $0.count > $1.count }
+                    for word in words where hit == nil {
+                        hit = try? await queries.search(word, in: mapID, under: message.branch?.nodeID, limit: 1).first
                     }
+                    let language = message.language
                     let text: String
                     if let hit {
                         let handle = table.handle(for: hit.ref.nodeID, in: mapID, title: hit.title)
-                        text = "\(hit.title) is in the map [\(handle)]."
+                        let children = (try? await queries.topic(hit.ref))?.children ?? []
+                        let cited = children.map { child in
+                            "\(child.title) [\(table.handle(for: child.nodeID, in: mapID, title: child.title))]"
+                        }
+                        // The screenshots show this answer, so it reads like one about the topic's branch.
+                        if cited.isEmpty {
+                            text = switch language {
+                            case .vietnamese: "\(hit.title) có trong sơ đồ [\(handle)]."
+                            case .japanese: "\(hit.title)はマップにあります [\(handle)]。"
+                            case .english: "\(hit.title) is in the map [\(handle)]."
+                            }
+                        } else if language == .japanese {
+                            text = "\(hit.title) [\(handle)] には\(cited.joined(separator: "、"))があります。"
+                        } else {
+                            let vietnamese = language == .vietnamese
+                            let last = cited.count > 1 ? (vietnamese ? " và " : " and ") + cited[cited.count - 1] : ""
+                            let list = cited.dropLast(cited.count > 1 ? 1 : 0).joined(separator: ", ") + last
+                            text = vietnamese
+                                ? "\(hit.title) [\(handle)] gồm \(list)."
+                                : "\(hit.title) is in the map [\(handle)]. It covers \(list)."
+                        }
                     } else {
-                        text = "The map does not seem to cover that."
+                        text = switch language {
+                        case .vietnamese: "Sơ đồ có vẻ không nói tới điều này."
+                        case .japanese: "マップにはこの内容が見つかりません。"
+                        case .english: "The map does not seem to cover that."
+                        }
                     }
                     continuation.yield(ChatUpdate(text: text, citations: table.citations(in: text), isComplete: true))
                     continuation.finish()

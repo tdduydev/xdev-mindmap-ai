@@ -101,6 +101,8 @@ Used for: the `sparkles` symbol on AI buttons and menu items, the dashed outline
 
 Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with one `OFL.txt` holding both families' copyright lines (the synchronized group copies resources flat into the bundle, so two files named `OFL.txt` would collide). `BrandFont.registerAll()` registers them with CoreText for the process when the app starts, on iOS and macOS alike: the generated Info.plist cannot hold the `UIAppFonts` array, and one code path is easier to test than two plist keys. Space Grotesk ships as a static SemiBold file (`SpaceGrotesk-SemiBold.ttf`, an instance of the variable font) so its PostScript name is fixed: upstream publishes static Light, Regular, Medium and Bold only, so this file is `SpaceGrotesk[wght].ttf` instanced at `wght` 600 with fontTools' `varLib.instancer`, named `Space Grotesk` / `SemiBold`. PostScript names: `BeVietnamPro-Regular`, `BeVietnamPro-Medium`, `BeVietnamPro-SemiBold`, `SpaceGrotesk-SemiBold`.
 
+**Japanese (MM-96, NFR-L10N).** Neither family has kana or kanji. `ContentFont` gives each brand face a CoreText cascade list: Hiragino Sans first (W3 beside Be Vietnam Pro Regular, W6 beside Medium, SemiBold and Space Grotesk; iOS has only W3, W6 and W7), then the system's cascade for Japanese. Without it, a Mac or iPhone set to English or Vietnamese draws kana in Hiragino Sans but kanji and 、。「」 in PingFang SC, so one title mixes Chinese and Japanese glyph forms. Someone whose languages list Chinese before Japanese keeps the system cascade. The canvas (topic titles, marks, tag chips, callouts, the title editor) draws with `ContentFont.font` at the size it already scaled for Dynamic Type, and `TopicMeasurer` measures with the same `CTFont`. On macOS every content style uses it too; on iOS `ContentStyle.font` keeps `relativeTo` (a `CTFont` cannot follow Dynamic Type), so outside the canvas kanji fall back by the system's languages. SwiftUI sets each line at least as tall as the brand face and adds the brand face's leading, never Hiragino's 0.5 em, so the measurer does the same (`JapaneseTypographyTests`).
+
 Content styles (canvas points at 100% zoom). On iOS and iPadOS each is `Font.custom(_:size:relativeTo:)`, so it scales with Dynamic Type; macOS has no Dynamic Type and uses the size as is.
 
 | Role | Family, weight | Size / line | Relative to | Used for |
@@ -160,6 +162,9 @@ Edges are drawn under topics and never cross a topic's box; the layout engine (M
 | Drop target | Accent dashed outline (2 pt) on the new parent, or a 3 pt accent bar where it will be inserted |
 | Collapsed | Badge with the number of hidden topics (`badgeFill`, `badge` text) |
 | Has note | `note.text` symbol, 11 pt, `topicTextSecondary`, after the title |
+| Topic colour (MM-32) | The token's `BranchColors` replace the branch colour for the topic and its descendants without their own; the central topic keeps its card |
+| Topic symbol (MM-32) | Before the title on its first baseline, in the title's font and `topicText`; box 1.25 × title size (`CanvasMetrics.topicSymbolWidthFactor`), 4 pt gap (`topicMarkGap`) |
+| Colour shape (MM-32) | With Differentiate Without Color, and always in export: the colour's shape (`TopicColor.shapeSymbol`), 9 pt (`topicColorShapeSize`), in the line colour, before the symbol |
 | Search match | `searchMatchFill` behind the title, `searchMatchBorder` outline; the current match also gets the selection ring |
 | AI suggestion | Canvas-coloured fill, dashed AI-gradient outline, `sparkles` in the gradient on the top-leading corner, title in `topicTextSecondary`; Accept and Discard buttons under the topic on hover or selection. MM-8 put the symbol on the corner rather than before the title so the title keeps the measured width of a plain topic |
 | Accepted AI topic | Looks like any topic (its origin is kept in `metadata.origin`) |
@@ -195,6 +200,12 @@ Ratios computed with the WCAG formula from the hex values above. Reusing `crossL
 | `summaryBracketDepth` | 10 pt | How far the bracket's tip stands out |
 | `summaryBracketWidth` | 1.5 pt (2 pt with Increase Contrast) | Bracket stroke, round caps |
 | `floatingTopicNudge` | 24 pt [Đề xuất] | Step when Add Floating Topic looks for a free spot |
+| `boundaryPadding` | 8 pt | From the members to the frame; reserved by the layout |
+| `boundaryTitleHeight` | 20 pt | Title room above a titled boundary's members; the title capsule is centred in it |
+| `boundaryCornerRadius` | 12 pt | Frame |
+| `boundaryStrokeWidth` | 1.5 pt (2 pt with Increase Contrast) | Frame and title capsule stroke |
+| `boundaryTitlePadding` | 6 × 2 pt | Inside the title capsule |
+| `boundaryTitleMaxWidth` | 200 pt | The title capsule truncates past it; also the in-place title field's width |
 
 ### How each draws
 
@@ -204,6 +215,7 @@ Ratios computed with the WCAG formula from the hex values above. Reusing `crossL
 | Image | Above the title inside the card, `imageGap` to the title, `imageCornerRadius`; card padding as for the level. Below the detail zoom: a rectangle in the card's stroke colour at 30% |
 | Callout | Rounded bubble (`calloutCornerRadius`, `calloutPadding`) above the card, `calloutGap` away, `calloutFill`, 1 pt `calloutStroke` (2 pt with Increase Contrast), tail toward the card; text in the sub-topic content font, `topicText`, wraps at the topic's maximum width. Selected: the selection ring around the bubble |
 | Summary bracket | A curly bracket path along the run's outer edge, `summaryBracketGap` away, tip `summaryBracketDepth` toward the summary topic; `summaryBracket` colour, `summaryBracketWidth`. Solid, like boundaries: dashed stays for AI and drop targets. Selected: drawn in `selectionRing` |
+| Boundary (MM-37) | Rounded rectangle (`boundaryCornerRadius`) under every edge and topic: fill = the colour's sub-topic fill (`BranchColors.subFill`, so dark and Increase Contrast come with it), solid `boundaryStrokeWidth` stroke in its line colour; graphite when it has no colour. Title: `badge` text in a `canvasBackground` capsule with the same stroke, `boundaryPadding` from the leading edge, in the title room. Selected: the selection ring `selectionRingGap` outside the frame. AI preview (Suggest Groups, Summarize Boundary): `canvasBackground` fill and the AI dashed stroke on frame and capsule |
 | Summary topic | Drawn as a topic one level below the run's parent (so a summary over main topics looks like a main topic) |
 | Floating topic | Main-topic style (level 1), next branch colour after the main topics; no connector to the tree |
 
@@ -307,7 +319,7 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 
 - A debug-only `DesignSystemGallery` view shows every token and topic state in both modes for review and screenshots.
 - Colour sets are named after their token (`CanvasBackground`, `TopicText`…), each with Any, Dark, and High Contrast variants.
-- Tests: WCAG contrast of every text and graphic pair in the four variants; `TopicStyle` resolution per level and theme; the fonts load on both platforms.
+- Tests: WCAG contrast of every text and graphic pair in the four variants; `TopicStyle` resolution per level and theme; the fonts load on both platforms; Japanese falls back to Hiragino Sans and a Japanese title is drawn as tall as measured (`JapaneseTypographyTests`).
 
 ## Not decided yet
 

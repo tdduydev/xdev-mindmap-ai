@@ -18,6 +18,8 @@ public protocol AIProvider: Sendable {
     func summarize(_ request: SummarizeRequest) async throws -> AISummary
     func findMissingTopics(_ request: MissingTopicsRequest) async throws -> AIProposal
     func suggestTags(_ request: SuggestTagsRequest) async throws -> AITagSuggestions
+    func suggestGroups(_ request: SuggestGroupsRequest) async throws -> AIGroupSuggestions
+    func summarizeBoundary(_ request: SummarizeBoundaryRequest) async throws -> AIBoundaryTitle
 
     /// The answer to a suggestion request as it is written, so the preview can
     /// show the first topics within seconds (NFR-PERF-07). The last snapshot is

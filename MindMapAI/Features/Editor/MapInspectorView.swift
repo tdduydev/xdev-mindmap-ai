@@ -7,6 +7,7 @@ import SwiftUI
 /// shows it as a sheet.
 struct MapInspectorView: View {
     let session: EditorSession
+    @Environment(ProEntitlement.self) private var pro
 
     var body: some View {
         Form {
@@ -21,6 +22,22 @@ struct MapInspectorView: View {
                     TopicLinkInspectorField(session: session, nodeID: node.id, link: node.link)
                         .id(node.id)
                 }
+                if session.selectedIDs.count == 1 {
+                    Section("Image") {
+                        if let image = session.selectedImage {
+                            TopicImageInspector(session: session, image: image)
+                                .id(image.id)
+                        } else {
+                            Button("Add Image…") { session.imagePickerTarget = node.id }
+                        }
+                    }
+                }
+                Section("Style") {
+                    TopicStyleInspector(session: session)
+                }
+                if session.selectedIDs.count == 1 {
+                    ConnectionsInspectorSection(session: session, nodeID: node.id)
+                }
                 Section {
                     TagField(session: session)
                 } header: {
@@ -30,9 +47,21 @@ struct MapInspectorView: View {
                         Text("Tags")
                     }
                 }
+                Section {
+                    TaskInspectorSection(session: session, node: node)
+                } header: {
+                    if session.selectedIDs.count > 1 {
+                        Text("Task of \(session.selectedIDs.count) Topics")
+                    } else {
+                        Text("Task")
+                    }
+                }
                 Section("Topic") {
                     TopicDetails(session: session, node: node)
                 }
+            } else if let boundary = session.activeBoundary {
+                BoundaryInspectorSection(session: session, groupID: boundary)
+                    .id(boundary)
             } else {
                 Section("Topic") {
                     Text("Select a topic to see its note.")
@@ -43,21 +72,23 @@ struct MapInspectorView: View {
                 Picker("Theme", selection: themeBinding) {
                     ForEach(MindMapTheme.allCases) { theme in
                         HStack(spacing: Spacing.sm) {
-                            Text(theme.title)
+                            ProChoiceLabel(title: theme.title, isLocked: theme.requiresPro && !pro.allows(.extraThemes))
                             ThemeSwatch(theme: theme)
                         }
                         .tag(theme)
                     }
                 }
                 .pickerStyle(.inline)
+                .accessibilityIdentifier(AccessibilityID.Inspector.theme)
             }
         }
         .formStyle(.grouped)
     }
 
-    /// Every pick goes through the session, so it is one "Change Theme" undo step.
+    /// Every pick goes through the session, so it is one "Change Theme" undo
+    /// step, and a Pro theme without Pro opens the paywall instead.
     private var themeBinding: Binding<MindMapTheme> {
-        Binding(get: { session.map.theme }, set: { session.changeTheme(to: $0) })
+        Binding(get: { session.map.theme }, set: { session.chooseTheme($0, entitlements: pro) })
     }
 }
 
@@ -98,6 +129,7 @@ struct TopicNoteEditor: View {
                 }
             }
             .accessibilityLabel(Text("Note"))
+            .accessibilityIdentifier(AccessibilityID.Inspector.note)
             // Undo, redo or an AI summary changed the note; show it unless the user is typing.
             .onChange(of: note) { _, note in
                 if !isFocused { draft = note ?? "" }

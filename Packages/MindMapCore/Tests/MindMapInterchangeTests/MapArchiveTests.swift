@@ -20,6 +20,63 @@ struct MapArchiveTests {
         #expect(restored.tags == graph.tags)
         #expect(restored.nodeTags == graph.nodeTags)
         #expect(restored.groups == graph.groups)
+        #expect(restored.images == graph.images)
+    }
+
+    /// MM-66: a callout survives export, decode and import onto new IDs.
+    @Test func calloutSurvivesExportAndImport() async throws {
+        let graph = ArchiveFixture.everyField()
+        let withCallout = try #require(graph.nodes.values.first { $0.callout != nil })
+
+        let archive = try await MapArchive.decode(try await MapArchive.exportData(graph))
+        #expect(archive.graph.node(withCallout.id)?.callout == withCallout.callout)
+
+        let (imported, _) = archive.imported()
+        let copies = imported.nodes.values.filter { $0.callout == withCallout.callout }
+        #expect(copies.count == 1)
+        #expect(copies.first?.title == withCallout.title)
+        #expect(copies.first?.id != withCallout.id)
+    }
+
+    /// Image bytes travel base64 inside the JSON and come back as they went.
+    @Test func imageBytesSurviveARoundTrip() async throws {
+        let graph = ArchiveFixture.everyField()
+        let imageData = ArchiveFixture.imageData(for: graph)
+
+        let data = try await MapArchive.exportData(graph, imageData: imageData)
+        let archive = try await MapArchive.decode(data)
+
+        #expect(archive.imageData == imageData)
+        #expect(archive.graph.images == graph.images)
+        #expect(archive.graph.images.values.allSatisfy { $0.data == nil })
+        let text = try #require(String(data: data, encoding: .utf8))
+        #expect(text.contains(ArchiveFixture.imageBytes.base64EncodedString()))
+    }
+
+    /// A map without images writes no `images` key, as before MM-63.
+    @Test func aMapWithoutImagesWritesNoImagesKey() async throws {
+        let graph = ArchiveFixture.everyField()
+        let plain = GraphState(
+            map: graph.map, nodes: Array(graph.nodes.values), edges: Array(graph.edges.values),
+            tags: Array(graph.tags.values), nodeTags: Array(graph.nodeTags.values), groups: Array(graph.groups.values)
+        )
+        let text = try #require(String(data: try await MapArchive.exportData(plain), encoding: .utf8))
+        #expect(!text.contains("\"images\""))
+        #expect(try await MapArchive.decode(Data(text.utf8)).images == nil)
+    }
+
+    @Test func importingGivesTheBytesUnderTheNewImageIDs() throws {
+        let graph = ArchiveFixture.everyField()
+        let archive = MapArchive(graph, imageData: ArchiveFixture.imageData(for: graph))
+
+        let (imported, imageData) = archive.imported()
+
+        let image = try #require(imported.images.values.first)
+        #expect(!graph.images.keys.contains(image.id))
+        #expect(imageData == [image.id: ArchiveFixture.imageBytes])
+        #expect(imported.node(image.nodeID)?.title == "Goals")
+        #expect(image.data == nil)
+        #expect(GraphValidator.validate(imported).isEmpty)
     }
 
     @Test func theSameMapWritesTheSameBytes() async throws {
@@ -59,7 +116,7 @@ struct MapArchiveTests {
         let graph = GraphState(
             map: deleted, nodes: Array(original.nodes.values), edges: Array(original.edges.values),
             tags: Array(original.tags.values), nodeTags: Array(original.nodeTags.values),
-            groups: Array(original.groups.values)
+            groups: Array(original.groups.values), images: Array(original.images.values)
         )
 
         let imported = try await MapArchive.decode(MapArchive.exportData(graph)).importedGraph()
@@ -105,6 +162,12 @@ struct MapArchiveTests {
                 #expect(try fields(of: linkCopy, without: linkKeys) == fields(of: link, without: linkKeys))
             }
         }
+        let image = try #require(graph.images.values.first)
+        let imageCopy = try #require(imported.images.values.first)
+        #expect(imported.node(imageCopy.nodeID)?.title == graph.node(image.nodeID)?.title)
+        let imageKeys: Set = ["id", "mapID", "nodeID"]
+        #expect(try fields(of: imageCopy, without: imageKeys) == fields(of: image, without: imageKeys))
+
         // The library has no tag named "Shared", so it becomes the new map's tag.
         #expect(imported.tags.values.allSatisfy { $0.mapID == imported.map.id })
     }
@@ -215,6 +278,12 @@ struct MapArchiveTests {
 }
 
 enum ArchiveFixture {
+    static let imageBytes = Data((0..<600).map { UInt8(truncatingIfNeeded: $0 &* 7) })
+
+    static func imageData(for graph: GraphState) -> [ImageID: Data] {
+        Dictionary(uniqueKeysWithValues: graph.images.keys.map { ($0, imageBytes) })
+    }
+
     /// A map that sets every stored field to something other than its default.
     static func everyField() -> GraphState {
         let mapID = MapID()
@@ -258,9 +327,13 @@ enum ArchiveFixture {
             mapID: mapID, kind: .boundary, parentNodeID: rootID, firstNodeID: goals.id, lastNodeID: risks.id,
             title: "Scope", color: .rose, origin: .ai, createdAt: created, updatedAt: edited
         )
+        let image = MindImage(
+            mapID: mapID, nodeID: goals.id, uniformType: "public.png", pixelWidth: 640, pixelHeight: 480,
+            byteCount: imageBytes.count, displayWidth: 96, altText: "Whiteboard sketch", createdAt: created, updatedAt: edited
+        )
         return GraphState(
             map: map, nodes: [root, goals, risks, detail, aside], edges: [edge],
-            tags: [mapTag, sharedTag], nodeTags: links, groups: [group]
+            tags: [mapTag, sharedTag], nodeTags: links, groups: [group], images: [image]
         )
     }
 

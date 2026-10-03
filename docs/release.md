@@ -10,7 +10,7 @@ How a build of MindMap AI reaches TestFlight and the Mac App Store. Set up on 20
 | Platforms | macOS first; iOS is added to the same app later (universal purchase, ADR 0006) |
 | Bundle ID | `asia.xdev.mindmapai`, registered as UNIVERSAL so iOS can share it. Capabilities: In-App Purchase, Push Notifications, iCloud (CloudKit, container `iCloud.asia.xdev.mindmapai`), App Groups (`group.asia.xdev.mindmapai`); the Share Extension `asia.xdev.mindmapai.share` has App Groups. Set on 2026-10-02 |
 | Team ID | `M6C7NX9MUZ`, passed as `DEVELOPMENT_TEAM` by `scripts/upload-testflight.sh` only; the project leaves it empty so `scripts/ci.sh` builds on machines without a signing certificate |
-| Version | 0.x for TestFlight while in beta, 1.0.0 for the public release; the build number is the upload time (`YYYYMMDDHHmm`) |
+| Version | 0.1.0 for the TestFlight beta; `MARKETING_VERSION` is 1.0.0 from 2026-10-03, the first public release. The build number is the upload time (`YYYYMMDDHHmm`) |
 
 ## What lives outside the repo
 
@@ -21,7 +21,7 @@ Nothing below is ever committed or written to Hive. If the machine is replaced, 
 | `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8` | App Store Connect API key "MindMap AI CI", role App Manager | 600 |
 | `~/.appstoreconnect/mindmap.env` | `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH` | 600 |
 | `~/.appstoreconnect/signing/` | Private keys of the two distribution certificates, the keychain password | 700 / 600 |
-| `~/Library/Keychains/mindmap-build.keychain-db` | Keychain with the Apple Distribution and Mac Installer Distribution identities and the Apple WWDR G3 intermediate | — |
+| `~/Library/Keychains/mindmap-build.keychain-db` | Keychain with the Apple Distribution and Mac Installer Distribution identities, the Apple Development identity (created through the API on 2026-10-03 for `scripts/init-cloudkit-schema.sh`, expires 2027-10-02; the Mac mini is registered as device "hc-duytd20-macmini") and the Apple WWDR G3 intermediate | — |
 | `~/Library/Developer/Xcode/UserData/Provisioning Profiles/` | Profiles "MindMap AI Mac App Store" (app) and "MindMap AI Share Mac App Store" (Share Extension, bundle ID `asia.xdev.mindmapai.share`, created 2026-10-02 with the same Apple Distribution certificate as the app, expires 2027-10-02), both MAC_APP_STORE | — |
 
 The API key has the App Manager role, which cannot use Xcode's cloud-managed distribution certificates. So the certificates were created through the API from locally generated keys, and the export signs manually. A key with the Admin role would allow cloud signing instead; it was not created, to keep the key's rights small.
@@ -30,7 +30,7 @@ The certificates and the profile expire on 2027-10-02.
 
 ## iCloud before it can ship
 
-The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). Two steps remain before `MINDMAP_ICLOUD=YES` can go into the upload script, and both need a Mac signed in to iCloud (the Mac mini is not):
+The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). MM-45 added the iCloud key-value store identifier to the app's iCloud entitlements for theme and export preferences; confirm the app profile permits it before an iCloud-signed archive. Two steps remain before `MINDMAP_ICLOUD=YES` can go into the upload script, and both need a Mac signed in to iCloud (the Mac mini is not):
 
 1. Run `scripts/init-cloudkit-schema.sh` (a Debug build with `MINDMAP_ICLOUD=YES`, launched once with `-InitializeCloudKitSchema`; docs/cloudkit-sync.md) after the node-type fields of MM-59 are on `main`, check the record types in CloudKit Console, then **Deploy Schema Changes** to production. TestFlight and App Store builds use only the production schema.
 2. Test two devices as in docs/cloudkit-sync.md *Testing*.
@@ -51,11 +51,18 @@ Every upload adds a row here with the commit it was archived from, so whether a 
 | 202610021704 | 0.1.0 | 2026-10-02 10:07 | not recorded | V1 |
 | 202610021725 | 0.1.0 | 2026-10-02 10:31 | not recorded | V1 |
 | 202610021848 | 0.1.0 | 2026-10-02 11:51 | `a9f7028` | V1 |
+| 202610030024 | 0.1.0 (macOS) | 2026-10-02 17:30 | `a2b8ef3` | V2 (node types) |
+| 202610030030 (iOS, iPhone and iPad) | 0.1.0 | 2026-10-02 17:34 | `a2b8ef3` | V2 (node types) |
+| 202610031203 (macOS) | 1.0.0 | 2026-10-03 05:05 | `a5e2508` | V3 (chat history) |
+| 202610031207 (iOS, iPhone and iPad) | 1.0.0 | 2026-10-03 05:09 | `a5e2508` | V3 (chat history) |
 
-All four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02. None contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
+The first four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02, and none contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
+
+From 202610030024 on, SchemaV2 has shipped to testers, and from the 1.0.0 builds 202610031203 and 202610031207 SchemaV3: a schema change now needs SchemaV4 and a migration stage ([data-model.md](data-model.md)). The iOS platform was added to the same app record on 2026-10-03 (universal purchase, ADR 0006). On 2026-10-03 the product owner chose to submit 1.0.0 for Mac, iPhone and iPad together, released as soon as App Review approves it (release type `AFTER_APPROVAL`). Internal testers are in the TestFlight group "xDev Internal", which gets every build.
 
 ```bash
-scripts/upload-testflight.sh
+scripts/upload-testflight.sh        # Mac
+scripts/upload-testflight.sh ios    # iPhone and iPad
 ```
 
 It unlocks the build keychain, archives the Release configuration for macOS with the API key, and exports with `destination upload`. The build shows up in TestFlight once Apple finishes processing it (usually 10–30 minutes). Set `BUILD_NUMBER` to override the time-based number.

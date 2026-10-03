@@ -2,6 +2,7 @@ import AppIntents
 import MindMapAIApple
 import MindMapAICore
 import MindMapDomain
+import MindMapPersistence
 import SwiftUI
 #if os(iOS)
 import UIKit
@@ -20,6 +21,7 @@ struct MindMapAIApp: App {
     /// Shared by every window and Settings; the model itself loads on first use.
     @State private var ai: AIService
     @State private var sync: CloudSyncMonitor
+    @State private var preferenceSync: PreferenceCloudSync
     @AppStorage(AppearancePreference.storageKey, store: AppDefaults.store) private var appearance = AppearancePreference.system
     @Environment(\.scenePhase) private var scenePhase
 
@@ -33,6 +35,7 @@ struct MindMapAIApp: App {
         _pro = State(initialValue: pro)
         let sync = CloudSyncMonitor()
         _sync = State(initialValue: sync)
+        _preferenceSync = State(initialValue: PreferenceCloudSync(isEnabled: sync.storeSync != .off))
         let launch = AppEnvironment.live(sync: sync.storeSync)
         _launch = State(initialValue: launch)
         // The AI's Pro features ask the same entitlement as every other Pro
@@ -83,6 +86,7 @@ struct MindMapAIApp: App {
             .environment(ai)
             .environment(sync)
             .task { sync.start() }
+            .task { preferenceSync.start() }
             #if os(macOS)
             // A Mac window can stay in the active phase while another app is
             // in front, so coming back is caught from the app itself too.
@@ -101,6 +105,7 @@ struct MindMapAIApp: App {
             // Show/Hide Inspector (⌃⌘I) in the View menu, driving each window's `.inspector`.
             InspectorCommands()
             FileTransferCommands()
+            RedeemCodeCommands(pro: pro)
             #if os(iOS)
             SettingsCommands()
             #endif
@@ -129,6 +134,7 @@ struct MindMapAIApp: App {
             .environment(sync)
             // A restored map window can be the only window at launch.
             .task { sync.start() }
+            .task { preferenceSync.start() }
         }
         #if os(macOS)
         .defaultSize(width: 980, height: 700)
@@ -136,12 +142,18 @@ struct MindMapAIApp: App {
 
         #if os(macOS)
         Settings {
-            SettingsView()
+            SettingsView(environment: {
+                if case .ready(let environment) = launch { return environment }
+                return nil
+            }(), showRecentlyDeleted: {
+                NotificationCenter.default.post(name: .showRecentlyDeleted, object: nil)
+            })
                 .preferredColorScheme(appearance.colorScheme)
                 .environment(pro)
                 .environment(ai)
                 .environment(sync)
                 .environment(aiApps)
+                .task { preferenceSync.start() }
         }
         #endif
 

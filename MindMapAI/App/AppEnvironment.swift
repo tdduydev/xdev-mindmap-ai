@@ -69,7 +69,9 @@ final class AppEnvironment {
             try PersistenceController.initializeCloudKitSchema(containerIdentifier: identifier)
             Log.persistence.notice("CloudKit development schema initialized")
         } catch {
-            Log.persistence.error("Initializing the CloudKit schema failed: \(error.localizedDescription, privacy: .public)")
+            // A schema error names entities and attributes, never map content, so
+            // the whole error is logged: the description alone says only "Core Data error".
+            Log.persistence.error("Initializing the CloudKit schema failed: \(String(describing: error), privacy: .public)")
         }
     }
     #endif
@@ -105,6 +107,9 @@ final class AppEnvironment {
     /// An in-memory store, so UI tests never see or touch the person's maps,
     /// and no Spotlight index, so fixture maps never show in the Mac's search.
     private static func uiTest(_ mode: UITestMode) throws -> AppEnvironment {
+        if ProcessInfo.processInfo.arguments.contains(UITestLaunch.imageClipboard) {
+            SystemImageClipboard.seedForUITests()
+        }
         let repository = try PersistenceController.makeRepository(at: .inMemory)
         let maps = try mode.fixture.makeMaps()
         let seeding = Task {

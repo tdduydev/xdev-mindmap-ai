@@ -23,8 +23,8 @@ final class ChatUITests: XCTestCase {
         chat.ask("Where are the interviews?")
 
         let citation = chat.citation(titled: UITestFixture.Title.interviews).waitToExist()
-        XCTAssertTrue(chat.answers.firstMatch.label.contains(UITestFixture.Title.interviews))
-        citation.tap()
+        XCTAssertTrue(chat.answers.firstMatch.shownText.contains(UITestFixture.Title.interviews))
+        citation.tapOrClick()
         #if os(macOS)
         // Beside the map on the Mac, the panel stays while the topic is shown.
         XCTAssertTrue(chat.field.exists)
@@ -40,8 +40,51 @@ final class ChatUITests: XCTestCase {
         chat.ask("Weather?")
 
         let answer = chat.answers.firstMatch.waitToExist()
-        XCTAssertEqual(answer.label, "The map does not seem to cover that.")
+        XCTAssertEqual(answer.shownText, "The map does not seem to cover that.")
         XCTAssertFalse(chat.citations.firstMatch.exists)
+        // MM-82: reading the question's label crashed the Mac app (an
+        // accessibility recursion between SwiftUI and AppKit).
+        XCTAssertTrue(chat.question(containing: "Weather?").exists)
+    }
+
+    /// MM-78: an empty chat offers questions that ask at once, and the scope
+    /// starts at the whole map.
+    @MainActor
+    func testASuggestedQuestionAsksAtOnce() {
+        let app = openPlan()
+        let chat = ChatPage(app: app.app)
+
+        chat.open()
+        XCTAssertTrue(chat.scope.waitToExist().exists)
+        let suggestion = chat.suggestions.firstMatch.waitToExist()
+        XCTAssertEqual(chat.suggestions.count, 3)
+        suggestion.tapOrClick()
+
+        chat.answers.firstMatch.waitToExist()
+        XCTAssertFalse(chat.suggestions.firstMatch.exists, "suggestions are for an empty chat")
+    }
+
+    /// Ask by voice (MM-80): the words land in the field and nothing is asked.
+    /// Pro is a StoreKit purchase the Simulator may or may not keep, so a
+    /// locked run checks the paywall instead.
+    @MainActor
+    func testAskByVoiceFillsTheFieldWithoutAsking() {
+        let app = openPlan()
+        let chat = ChatPage(app: app.app)
+
+        chat.open()
+        chat.microphone.waitToExist().tapOrClick()
+
+        let close = app.app.buttons[AccessibilityID.Paywall.close].firstMatch
+        let heard = NSPredicate(format: "value CONTAINS %@", UITestVoice.topics[0])
+        let filled = chat.field.waitForExistence(timeout: MindMapApp.timeout / 3)
+            && XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: heard, object: chat.field)], timeout: MindMapApp.timeout / 3) == .completed
+        if filled {
+            XCTAssertEqual(chat.answers.count, 0, "voice never asks on its own")
+            app.app.buttons[AccessibilityID.Chat.cancelVoice].firstMatch.waitToExist().tapOrClick()
+        } else {
+            XCTAssertTrue(close.waitForExistence(timeout: MindMapApp.timeout / 3), "without Pro the microphone opens the paywall")
+        }
     }
 
     @MainActor
@@ -83,6 +126,16 @@ struct ChatPage {
     var sendButton: XCUIElement { app.buttons[AccessibilityID.Chat.send].firstMatch }
     var answers: XCUIElementQuery { app.staticTexts.matching(identifier: AccessibilityID.Chat.answer) }
     var citations: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.citation) }
+    var suggestions: XCUIElementQuery { app.buttons.matching(identifier: AccessibilityID.Chat.suggestion) }
+    var scope: XCUIElement { app.descendants(matching: .any)[AccessibilityID.Chat.scope].firstMatch }
+    var microphone: XCUIElement { app.buttons[AccessibilityID.Chat.microphone].firstMatch }
+
+    /// A question bubble, which VoiceOver reads as "You asked: …". The Mac
+    /// puts that text in `value`, iOS in `label`.
+    func question(containing text: String) -> XCUIElement {
+        let asked = "You asked: \(text)"
+        return app.staticTexts.matching(NSPredicate(format: "label == %@ OR value == %@", asked, asked)).firstMatch
+    }
 
     func citation(titled title: String) -> XCUIElement {
         citations.matching(NSPredicate(format: "label CONTAINS %@", title)).firstMatch
@@ -95,27 +148,27 @@ struct ChatPage {
         if toolbarButton.waitForExistence(timeout: timeout) { return toolbarButton }
         let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
         guard overflow.count > 0 else { return nil }
-        overflow.element(boundBy: overflow.count - 1).tap()
+        overflow.element(boundBy: overflow.count - 1).tapOrClick()
         let item = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
         if item.waitForExistence(timeout: timeout) { return item }
         // Close the menu again, so the test sees the editor as it was.
-        app.tap()
+        app.tapOrClick()
         return nil
     }
 
-    func open(file: StaticString = #filePath, line: UInt = #line) {
-        guard let entry = entryPoint() else {
+    func open(label: String = "Ask About This Map", file: StaticString = #filePath, line: UInt = #line) {
+        guard let entry = entryPoint(label: label) else {
             XCTFail("No Ask About This Map button", file: file, line: line)
             return
         }
-        entry.tap()
+        entry.tapOrClick()
         field.waitToExist(file: file, line: line)
     }
 
     func ask(_ question: String, file: StaticString = #filePath, line: UInt = #line) {
         let field = field.waitToExist(file: file, line: line)
-        field.tap()
-        field.typeText(question)
-        sendButton.waitToExist(file: file, line: line).tap()
+        field.tapOrClick()
+        field.enterText(question)
+        sendButton.waitToExist(file: file, line: line).tapOrClick()
     }
 }

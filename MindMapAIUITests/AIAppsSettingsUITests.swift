@@ -9,31 +9,41 @@ final class AIAppsSettingsUITests: XCTestCase {
         // A port of its own, so a MindMap AI running on this Mac does not hold it.
         let mindMap = MindMapApp.launch(arguments: ["-mcp.port", "52480"])
         let app = mindMap.app
-        app.typeKey(",", modifierFlags: .command)
-
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("aiApps")].waitToExist().click()
+        let settings = mindMap.openSettings().show(.aiApps)
         let toggle = app.checkBoxes[AccessibilityID.Settings.aiAppsSwitch].firstMatch.exists
             ? app.checkBoxes[AccessibilityID.Settings.aiAppsSwitch].firstMatch
             : app.switches[AccessibilityID.Settings.aiAppsSwitch].firstMatch
         toggle.waitToExist()
         XCTAssertEqual(toggle.value as? Int, 0, "AI Apps must be off by default")
-        let status = app.staticTexts[AccessibilityID.Settings.aiAppsStatus]
-        XCTAssertEqual(status.waitToExist().label, "Off")
+        let status = app.staticTexts[AccessibilityID.Settings.aiAppsStatus].firstMatch
+        status.waitToExist()
+        waitForStatus("Off", of: status)
 
         toggle.click()
-        XCTAssertTrue(
-            app.staticTexts.matching(identifier: AccessibilityID.Settings.aiAppsStatus).matching(NSPredicate(format: "label == 'Ready'")).firstMatch
-                .waitForExistence(timeout: MindMapApp.timeout),
-            "the port did not open"
-        )
+        waitForStatus("Ready", of: status, "the port did not open")
 
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].click()
+        settings.show(.privacy)
         let privacy = app.descendants(matching: .any)[AccessibilityID.Settings.aiAppsPrivacy].waitToExist()
         XCTAssertTrue(String(describing: privacy.value ?? privacy.label).contains("On"), "Privacy does not say AI Apps is on")
 
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("aiApps")].click()
+        settings.show(.aiApps)
         toggle.click()
-        XCTAssertEqual(status.waitToExist().label, "Off")
+        waitForStatus("Off", of: status, "the port did not close")
+    }
+
+    /// The identified element itself must say the current status: VoiceOver
+    /// reads it, not a text inside it (MM-89).
+    @MainActor
+    private func waitForStatus(
+        _ text: String,
+        of status: XCUIElement,
+        _ message: String = "",
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let shown = NSPredicate { _, _ in status.exists && status.shownText == text }
+        let result = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: nil)], timeout: MindMapApp.timeout)
+        XCTAssertEqual(result, .completed, "status is not \(text). \(message)", file: file, line: line)
     }
     #else
     @MainActor
@@ -43,12 +53,12 @@ final class AIAppsSettingsUITests: XCTestCase {
         let settings = app.buttons[AccessibilityID.Sidebar.settings]
         // On iPhone the library is pushed over the sidebar, which has the button.
         if !settings.waitForExistence(timeout: MindMapApp.timeout / 3) {
-            app.navigationBars.buttons.firstMatch.tap()
+            app.navigationBars.buttons.firstMatch.tapOrClick()
         }
-        settings.waitToExist().tap()
+        settings.waitToExist().tapOrClick()
         app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].waitToExist()
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Settings.pane("aiApps")].exists)
-        app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].tap()
+        app.descendants(matching: .any)[AccessibilityID.Settings.pane("privacy")].tapOrClick()
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Settings.aiAppsPrivacy].waitForExistence(timeout: 2))
     }
     #endif

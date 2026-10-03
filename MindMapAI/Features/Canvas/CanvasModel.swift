@@ -11,8 +11,8 @@ import SwiftUI
 @Observable
 final class CanvasModel {
     enum InitialPlacement {
-        /// Actual size with the central topic in the middle (Mac, iPad).
-        case centralTopic
+        /// The whole map fitted to the view, never above actual size (Mac, iPad).
+        case wholeMap
         /// The central topic and its children fitted to the width (iPhone).
         case firstLevelWidth
         /// The central topic and its children fitted to the view, at
@@ -24,11 +24,19 @@ final class CanvasModel {
     /// AI suggestions to draw with the map; nil where AI is not offered.
     let assistant: AIAssistant?
     private(set) var scene: CanvasScene = .empty
-    private(set) var viewport = CanvasViewport()
+    private(set) var viewport = CanvasViewport() {
+        didSet {
+            if !isPlacingInitially, viewport != oldValue { keepsInitialPlacement = false }
+        }
+    }
     /// The topic whose title is being edited in place.
     private(set) var editingID: NodeID? {
         didSet { reportKeyboardFocus() }
     }
+    /// The connection whose label is being edited in place (double-click).
+    var editingConnectionLabel: EdgeID?
+    /// The boundary whose title is being edited in place (double-click, Space).
+    var editingBoundaryTitle: GroupID?
     /// Whether the canvas itself holds keyboard focus. Set by the view.
     var hasKeyboardFocus = false {
         didSet { reportKeyboardFocus() }
@@ -47,8 +55,14 @@ final class CanvasModel {
     /// The topic under the pointer, for its + buttons (MM-57).
     private(set) var hoveredID: NodeID?
 
-    @ObservationIgnored var initialPlacement = InitialPlacement.centralTopic
+    @ObservationIgnored var initialPlacement = InitialPlacement.wholeMap
     @ObservationIgnored private var needsInitialPlacement = true
+    /// Until the person moves the camera or edits the map, the first view is
+    /// placed again when the view or the layout changes: a window opens at one
+    /// size and settles at another, an inspector takes width, Dynamic Type
+    /// remeasures. Otherwise the map fitted to the first size ends up cut off.
+    @ObservationIgnored private var keepsInitialPlacement = false
+    @ObservationIgnored private var isPlacingInitially = false
     @ObservationIgnored private var specs: TopicTextSpecs?
     /// Bumped when the text settings change, so a pass started with the old
     /// ones does not store its sizes.
@@ -74,7 +88,12 @@ final class CanvasModel {
     /// Shared with export, so a picture of the map has the canvas's layout.
     static let layoutOptions = LayoutOptions(
         horizontalSpacing: CanvasMetrics.layoutParentGap,
-        verticalSpacing: CanvasMetrics.layoutSiblingGap
+        verticalSpacing: CanvasMetrics.layoutSiblingGap,
+        calloutSpacing: CanvasMetrics.calloutSpacing,
+        boundaryPadding: CanvasMetrics.boundaryPadding,
+        boundaryTitleHeight: CanvasMetrics.boundaryTitleHeight,
+        summaryBracketGap: CanvasMetrics.summaryBracketGap,
+        summaryBracketWidth: CanvasMetrics.summaryBracketWidth
     )
 
     init(session: EditorSession, assistant: AIAssistant? = nil) {
@@ -85,6 +104,9 @@ final class CanvasModel {
         }
         assistant?.onSuggestionsChange = { [weak self] in
             self?.suggestionsDidChange()
+        }
+        session.floatingTopicPlacement = { [weak self] in
+            self?.freeFloatingSpot()
         }
     }
 
@@ -130,6 +152,8 @@ final class CanvasModel {
     }
 
     private func graphDidChange(_ changes: GraphChangeSet) {
+        // Refitting after an edit would zoom away from what was just changed.
+        keepsInitialPlacement = false
         pendingChanges.formUnion(changes.layoutInvalidation)
         if let map = changes.map, map.before?.theme != map.after?.theme { styles = [:] }
         scheduleLayout()
@@ -154,11 +178,17 @@ final class CanvasModel {
             // take their place in the tree without being part of the map.
             var graph = session.engine.state
             var suggested: Set<NodeID> = []
+            var suggestedBoundaries: Set<GroupID> = []
             if let suggestions = assistant?.suggestions, !suggestions.isEmpty {
                 graph = suggestions.preview(in: session.engine)
                 suggested = Set(suggestions.drawableTopics(in: graph).keys)
+            } else if let preview = assistant?.boundaryPreview() {
+                // Suggest Groups moves topics, so the preview is the map after Accept.
+                graph = preview.state
+                suggestedBoundaries = preview.boundaries
             }
-            let startOver = needsFullLayout || lastPassHadSuggestions || !suggested.isEmpty
+            let hasPreview = !suggested.isEmpty || !suggestedBoundaries.isEmpty
+            let startOver = needsFullLayout || lastPassHadSuggestions || hasPreview
             let pass = CanvasLayoutPass(
                 graph: graph,
                 previous: startOver ? nil : scene.layout,
@@ -167,11 +197,13 @@ final class CanvasModel {
                 specs: specs,
                 options: layoutOptions,
                 suggestions: suggested,
-                tagSuggestions: assistant?.tagSuggestionChips ?? [:]
+                tagSuggestions: assistant?.tagSuggestionChips ?? [:],
+                boundarySuggestions: suggestedBoundaries,
+                calloutDraft: session.calloutEditorTarget
             )
             pendingChanges = []
             needsFullLayout = false
-            lastPassHadSuggestions = !suggested.isEmpty
+            lastPassHadSuggestions = hasPreview
             let output = await pass.runInBackground()
             if generation == specsGeneration { measures = output.measures }
             apply(output.scene)
@@ -195,6 +227,10 @@ final class CanvasModel {
     // MARK: Camera
 
     func setViewSize(_ size: CGSize) {
+        if keepsInitialPlacement {
+            placeInitially { $0.size = size }
+            return
+        }
         if viewport.size == .zero {
             viewport.size = size
         } else {
@@ -203,15 +239,25 @@ final class CanvasModel {
         placeInitiallyIfNeeded()
     }
 
-    /// FR-CNV-01: the first time the map shows, the central topic is in the middle.
+    /// FR-CNV-01: the first time the map shows, the whole map is in view (MM-84).
     private func placeInitiallyIfNeeded() {
-        guard needsInitialPlacement, viewport.size.width > 0, viewport.size.height > 0,
-              let root = session.rootID.flatMap(scene.topic) else { return }
+        if keepsInitialPlacement {
+            placeInitially()
+            return
+        }
+        guard needsInitialPlacement, viewport.size.width > 0, viewport.size.height > 0, !scene.isEmpty else { return }
         needsInitialPlacement = false
+        keepsInitialPlacement = true
+        placeInitially()
+    }
+
+    private func placeInitially(adjusting change: (inout CanvasViewport) -> Void = { _ in }) {
+        isPlacingInitially = true
+        defer { isPlacingInitially = false }
+        change(&viewport)
         switch initialPlacement {
-        case .centralTopic:
-            viewport.scale = 1
-            viewport.center(on: CGPoint(x: root.frame.midX, y: root.frame.midY))
+        case .wholeMap:
+            viewport.fit(scene.bounds, padding: CanvasMetrics.fitPadding, limits: CanvasMetrics.fitZoomLimits)
         case .firstLevelWidth:
             viewport.fitWidth(scene.firstLevelBounds, padding: CanvasMetrics.revealMargin, limits: CanvasMetrics.fitZoomLimits)
         case .firstLevel:
@@ -252,7 +298,8 @@ final class CanvasModel {
     /// Scrolls a topic into view, for the VoiceOver rotor and new topics.
     func reveal(_ id: NodeID) {
         guard let topic = scene.topic(id) else { return }
-        viewport.reveal(topic.frame, margin: CanvasMetrics.revealMargin)
+        let frame = topic.calloutFrame.map { topic.frame.union($0) } ?? topic.frame
+        viewport.reveal(frame, margin: CanvasMetrics.revealMargin)
     }
 
     // MARK: Selection and editing
@@ -277,6 +324,9 @@ final class CanvasModel {
 
     /// The canvas's chip settings, once it has its text settings.
     var chipSpec: TopicChipSpec? { specs?.chip }
+    var markSpec: TopicMarkSpec? { specs?.mark }
+    /// The callout bubble's text settings, once the canvas has them.
+    var calloutSpec: TopicCalloutSpec? { specs?.callout }
 
     /// What a topic's context menu tags: the selection when the topic is in
     /// it, else the topic alone, as `performFromContextMenu` decides.
@@ -316,6 +366,14 @@ final class CanvasModel {
     func tap(at viewPoint: CGPoint) {
         if let topic = topic(at: viewPoint) {
             select(topic.id)
+        } else if let connection = connection(at: viewPoint) {
+            commitEditing()
+            session.selectConnection(connection)
+            assistant?.selectedSuggestion = nil
+        } else if let boundary = boundary(at: viewPoint) {
+            commitEditing()
+            session.selectBoundary(boundary)
+            assistant?.selectedSuggestion = nil
         } else {
             commitEditing()
             session.selection = nil
@@ -323,11 +381,87 @@ final class CanvasModel {
         }
     }
 
+    /// On a topic it edits the title; on empty canvas it makes a floating
+    /// topic centred there and opens its title (FR-ORG-27).
     func doubleTap(at viewPoint: CGPoint) {
-        if let topic = topic(at: viewPoint) { beginEditing(topic.id) }
+        if let topic = topic(at: viewPoint) { return beginEditing(topic.id) }
+        if let connection = connection(at: viewPoint) {
+            commitEditing()
+            session.selectConnection(connection)
+            editingConnectionLabel = connection
+            return
+        }
+        if let boundary = boundary(at: viewPoint) {
+            commitEditing()
+            session.selectBoundary(boundary)
+            editingBoundaryTitle = boundary
+            return
+        }
+        guard session.canAddFloatingTopic, let position = position(at: viewport.toCanvas(viewPoint)) else { return }
+        commitEditing()
+        session.addFloatingTopic(at: position)
+    }
+
+    // MARK: Floating topics
+
+    /// A stored position is relative to the central topic's centre (ADR 0010),
+    /// so this needs the central topic laid out.
+    func position(at canvasPoint: CGPoint) -> TopicPosition? {
+        guard let root = session.rootID.flatMap(scene.topic) else { return nil }
+        return TopicPosition(x: Double(canvasPoint.x - root.frame.midX), y: Double(canvasPoint.y - root.frame.midY))
+    }
+
+    /// Where Add Floating Topic puts a topic: the middle of the view, moved
+    /// down a step at a time until a new main topic there overlaps no topic.
+    func freeFloatingSpot() -> TopicPosition? {
+        guard let specs, viewport.size.width > 0 else { return nil }
+        let size = TopicMeasurer(specs: specs).size(of: "", level: 1)
+        var centre = viewport.toCanvas(CGPoint(x: viewport.size.width / 2, y: viewport.size.height / 2))
+        let gap = layoutOptions.verticalSpacing / 2
+        for _ in 0..<CanvasMetrics.floatingTopicNudgeLimit {
+            let frame = CGRect(x: centre.x - size.width / 2, y: centre.y - size.height / 2, width: size.width, height: size.height)
+                .insetBy(dx: -gap, dy: -gap)
+            if !scene.topics(in: frame).contains(where: { $0.frame.intersects(frame) }) { break }
+            centre.y += CanvasMetrics.floatingTopicNudge
+        }
+        return position(at: centre)
+    }
+
+    /// The menu's Add Floating Topic, and the empty canvas's context menu.
+    func addFloatingTopic() {
+        commitEditing()
+        session.addFloatingTopic()
+    }
+
+    /// The context menu's and VoiceOver's Detach Topic.
+    func detach(_ id: NodeID) {
+        performFromContextMenu(on: id) { $0.selection = id; $0.detachSelection() }
     }
 
     /// The topic drawn under a view point; the last drawn wins, as on screen.
+    /// Hit width `Metrics.minimumHitTarget` on screen, whatever the zoom.
+    func connection(at viewPoint: CGPoint) -> EdgeID? {
+        let tolerance = Metrics.minimumHitTarget / 2 / max(viewport.scale, .ulpOfOne)
+        return scene.connection(at: viewport.toCanvas(viewPoint), tolerance: tolerance)
+    }
+
+    func boundary(at viewPoint: CGPoint) -> GroupID? {
+        let tolerance = Metrics.minimumHitTarget / 2 / max(viewport.scale, .ulpOfOne)
+        return scene.boundary(at: viewport.toCanvas(viewPoint), tolerance: tolerance)
+    }
+
+    /// Where a boundary's title field goes, in view points: over its title band.
+    func boundaryTitleAnchor(_ id: GroupID) -> CGPoint? {
+        guard let boundary = scene.boundaries.first(where: { $0.id == id }) else { return nil }
+        let band = boundary.titleBand
+        return viewport.toView(CGPoint(x: band.minX + CanvasMetrics.boundaryTitleMaxWidth / 2, y: band.midY))
+    }
+
+    /// Where a connection's label field goes, in view points.
+    func connectionLabelAnchor(_ id: EdgeID) -> CGPoint? {
+        scene.crossLinkPath(id).map { viewport.toView($0.midpoint) }
+    }
+
     func topic(at viewPoint: CGPoint) -> CanvasTopic? {
         let point = viewport.toCanvas(viewPoint)
         return scene.topics(in: CGRect(origin: point, size: .zero).insetBy(dx: -1, dy: -1)).last { $0.frame.contains(point) }
@@ -378,6 +512,11 @@ final class CanvasModel {
     /// Space on the canvas, or the Rename Topic menu item.
     @discardableResult
     func beginEditingSelection() -> Bool {
+        // Space on a selected boundary renames it.
+        if editingID == nil, let boundary = session.activeBoundary {
+            editingBoundaryTitle = boundary
+            return true
+        }
         guard editingID == nil, let id = session.selection, scene.topic(id) != nil else { return false }
         beginEditing(id)
         return true
@@ -498,7 +637,7 @@ final class CanvasModel {
         guard isDetailed, !topic.isSuggestion, drag == nil, marquee == nil, topic.id != editingID,
               topic.id == hoveredID || topic.id == session.selection else { return nil }
         let isRoot = topic.id == session.rootID
-        return AddButtons(childEdge: topic.side == .left ? .leading : .trailing, showsSibling: !isRoot)
+        return AddButtons(childEdge: topic.side == .left ? .leading : .trailing, showsSibling: !isRoot && !topic.isFloating)
     }
 
     /// A + button: the same command as Add Child Topic or Add Sibling Topic,
@@ -515,6 +654,14 @@ final class CanvasModel {
         session.editSelectionNote()
     }
 
+    /// Always the picker: the context menu and VoiceOver name one topic, so a
+    /// second selected topic must not become the target unasked.
+    func addConnection(from id: NodeID) {
+        commitEditing()
+        session.selection = id
+        session.beginAddingConnection()
+    }
+
     func editLink(_ id: NodeID) {
         performFromContextMenu(on: id) { $0.selection = id; $0.beginEditingSelectionLink() }
     }
@@ -522,6 +669,27 @@ final class CanvasModel {
     func removeLink(_ id: NodeID) {
         commitEditing()
         session.removeLink(from: id)
+    }
+
+    // MARK: Callouts
+
+    func editCallout(_ id: NodeID) {
+        performFromContextMenu(on: id) { $0.selection = id; $0.beginEditingSelectionCallout() }
+    }
+
+    func removeCallout(_ id: NodeID) {
+        commitEditing()
+        session.removeCallout(from: id)
+    }
+
+    /// A bubble opened or closed for typing: it takes or gives back room in
+    /// the layout, and an opened one scrolls into view.
+    func calloutEditingDidChange() {
+        if let id = session.calloutEditorTarget {
+            commitEditing()
+            pendingReveal = (id, false)
+        }
+        scheduleLayout()
     }
 
     // MARK: Multi-selection
@@ -678,20 +846,42 @@ final class CanvasModel {
         guard var drag else { return }
         drag.location = viewPoint
         (drag.drop, drag.isRefused) = dropTarget(at: viewPoint, moving: drag.ids)
+        // A floating topic moved a little is still over its own branch; that
+        // is a move, not a drop into itself.
+        if drag.isRefused, movesFreely(drag) { drag.isRefused = false }
         self.drag = drag
     }
 
+    /// One floating topic dragged alone goes wherever it is dropped.
+    private func movesFreely(_ drag: TopicDrag) -> Bool {
+        drag.ids == [drag.leadID] && session.isFloating(drag.leadID)
+    }
+
     /// Drops where the indicator shows. A refused drop moves nothing and plays
-    /// feedback (FR-KBD-04).
-    func endDrag() {
+    /// feedback (FR-KBD-04). On empty canvas a floating topic moves there, and
+    /// with `detaching` (⌥ on the Mac) a branch of the tree becomes floating
+    /// there; otherwise a drop on empty canvas is cancelled, as before MM-62.
+    func endDrag(detaching: Bool = false) {
         guard let drag else { return }
         self.drag = nil
         if let drop = drag.drop {
             session.move(drag.ids, to: drop)
+        } else if !drag.isRefused, drag.ids == [drag.leadID], let position = dropPosition(of: drag) {
+            if session.isFloating(drag.leadID) {
+                session.moveFloatingTopic(drag.leadID, to: position)
+            } else if detaching {
+                session.detach(drag.leadID, to: position)
+            }
         } else if drag.isRefused {
             refusedDrops += 1
             AccessibilityNotification.Announcement(String(localized: "A topic can’t move into its own branch.")).post()
         }
+    }
+
+    /// Where the dragged topic's centre is, as a stored position.
+    private func dropPosition(of drag: TopicDrag) -> TopicPosition? {
+        let centre = CGPoint(x: drag.location.x - drag.grabOffset.width, y: drag.location.y - drag.grabOffset.height)
+        return position(at: viewport.toCanvas(centre))
     }
 
     /// The drop under a view point, or whether it is refused.
@@ -740,17 +930,22 @@ final class CanvasModel {
     private struct StyleKey: Hashable {
         let level: Int
         let branch: Int
+        let color: TopicColor?
         let variant: ColorVariant
     }
 
     /// Resolved once per level, branch and appearance rather than per topic per frame.
     func style(for topic: CanvasTopic, colorScheme: ColorScheme, contrast: ColorSchemeContrast) -> TopicStyle {
         // Levels past 3 look like level 3.
-        let key = StyleKey(level: min(topic.level, 3), branch: topic.branch, variant: ColorVariant(colorScheme: colorScheme, contrast: contrast))
+        let key = StyleKey(
+            level: min(topic.level, 3), branch: topic.branch, color: topic.color,
+            variant: ColorVariant(colorScheme: colorScheme, contrast: contrast)
+        )
         if let style = styles[key] { return style }
         let style = TopicStyle.resolve(
             level: key.level,
             branch: key.branch,
+            color: key.color,
             theme: MapTheme(session.map.theme),
             colorScheme: colorScheme,
             contrast: contrast

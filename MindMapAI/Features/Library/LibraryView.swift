@@ -40,6 +40,7 @@ struct LibraryView: View {
                                 Label("Delete", systemImage: "trash")
                             }
                         }
+                        .accessibilityIdentifier(AccessibilityID.Library.delete)
                     }
                     .swipeActions(edge: .leading) {
                         if showsDeletedMaps {
@@ -85,8 +86,14 @@ struct LibraryView: View {
                     } label: {
                         Label("Import…", systemImage: "square.and.arrow.down")
                     }
+                    .accessibilityIdentifier(AccessibilityID.Library.importMap)
                 }
             }
+            #if os(macOS)
+            ToolbarItem {
+                SettingsButton(accessibilityID: AccessibilityID.Library.settings)
+            }
+            #endif
         }
         .focusedSceneValue(\.newMapAction, NewMapAction(perform: create))
         #if os(macOS)

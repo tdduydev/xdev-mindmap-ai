@@ -21,11 +21,43 @@ final class OutlineUITests: XCTestCase {
         editor.renameOutlineTopic(UITestFixture.Title.design, to: "Prototype")
         editor.outlineTopic(titled: "Prototype").waitToExist()
 
-        editor.undoButton.tap()
+        editor.undoButton.tapOrClick()
         editor.outlineTopic(titled: UITestFixture.Title.design).waitToExist()
-        editor.redoButton.tap()
+        editor.redoButton.tapOrClick()
         editor.outlineTopic(titled: "Prototype").waitToExist()
     }
+
+    #if os(macOS)
+    /// One click on a row edits its title; arrow keys only select, and Return
+    /// opens the selected title (MM-89).
+    @MainActor
+    func testClickAndReturnFocusTitle() {
+        let editor = openPlan()
+        let design = editor.selectOutlineTopic(UITestFixture.Title.design)
+        waitForKeyboardFocus(design, true, "one click did not focus the title")
+        editor.app.typeKey(.return, modifierFlags: [])
+        waitForKeyboardFocus(design, false, "Return did not end editing")
+
+        let marketing = editor.outlineTopic(titled: UITestFixture.Title.marketing)
+        editor.app.typeKey(.downArrow, modifierFlags: [])
+        waitForKeyboardFocus(marketing, false, "the Down Arrow opened the title")
+        editor.app.typeKey(.return, modifierFlags: [])
+        waitForKeyboardFocus(marketing, true, "Return did not open the selected title")
+    }
+
+    @MainActor
+    private func waitForKeyboardFocus(
+        _ field: XCUIElement,
+        _ focused: Bool,
+        _ message: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let predicate = NSPredicate { _, _ in (field.value(forKey: "hasKeyboardFocus") as? Bool) == focused }
+        let result = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: nil)], timeout: MindMapApp.timeout / 3)
+        XCTAssertEqual(result, .completed, message, file: file, line: line)
+    }
+    #endif
 
     @MainActor
     func testAddSiblingUndoRedo() {
@@ -34,9 +66,9 @@ final class OutlineUITests: XCTestCase {
 
         editor.tap(.addSibling)
         editor.outlineTopics.waitForCount(Self.planRowCount + 1)
-        editor.undoButton.tap()
+        editor.undoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount)
-        editor.redoButton.tap()
+        editor.redoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount + 1)
     }
 
@@ -48,10 +80,10 @@ final class OutlineUITests: XCTestCase {
         // Research goes with Interviews below it.
         editor.tap(.delete)
         editor.outlineTopics.waitForCount(Self.planRowCount - 2)
-        editor.undoButton.tap()
+        editor.undoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount)
         editor.outlineTopic(titled: UITestFixture.Title.interviews).waitToExist()
-        editor.redoButton.tap()
+        editor.redoButton.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount - 2)
     }
 
@@ -62,10 +94,10 @@ final class OutlineUITests: XCTestCase {
         editor.outlineDisclosures.waitForCount(2)
         let research = editor.outlineDisclosures.element(boundBy: 1)
 
-        research.tap()
+        research.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount - 1)
         XCTAssertFalse(editor.outlineTopic(titled: UITestFixture.Title.interviews).exists)
-        research.tap()
+        research.tapOrClick()
         editor.outlineTopics.waitForCount(Self.planRowCount)
         editor.outlineTopic(titled: UITestFixture.Title.interviews).waitToExist()
     }

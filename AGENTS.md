@@ -39,7 +39,7 @@ App **MindMap AI by xDev** cho macOS, iPadOS, iOS: Swift, SwiftUI, SwiftData, kh
 - Mọi thay đổi graph đi qua một `GraphCommand` chạy bằng `GraphEngine`. View không sửa `GraphState`, không đụng record SwiftData. AI chỉ đề xuất; đề xuất được chấp nhận mới thành command ([[graph-engine]]).
 - Phân cấp chỉ nằm ở `MindNode.parentID`; `MindEdge` là liên kết chéo ([[adr-0004]]).
 - Schema SwiftData đã phát hành thì không sửa: thêm `SchemaV2`, một migration stage và test mở store V1 ([[data-model]]).
-- Chữ trên giao diện vào `MindMapAI/Resources/Localizable.xcstrings`, đủ `en` và `vi`.
+- Chữ trên giao diện vào `MindMapAI/Resources/Localizable.xcstrings`, đủ `en`, `vi` và `ja` (tiếng Nhật thêm theo product owner 2026-10-03).
 - Màu, chữ, khoảng cách, chuyển động lấy từ `MindMapAI/DesignSystem/`, không đặt số lẻ trong View.
 - Khác biệt nền tảng để trong View (`#if os(macOS)` cho một modifier, file riêng khi cả view khác); model, session và package lõi không rẽ nhánh theo nền tảng.
 - Undo đi qua `UndoManager` của cửa sổ (menu Edit, ⌘Z); `EditorSession` đặt tên thao tác cho mọi command.

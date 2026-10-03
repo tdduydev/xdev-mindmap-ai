@@ -37,8 +37,10 @@ enum Metrics {
     /// Room for "400%" in the canvas controls, so the cluster does not resize while zooming.
     static let zoomLabelWidth: CGFloat = 48
 
-    /// Width of the Mac Settings window.
-    static let settingsWidth: CGFloat = 480
+    /// Width of the Mac Settings window: wide enough for all eight pane tabs
+    /// in Vietnamese, the longest titles, or Privacy and About fall into the
+    /// toolbar's overflow menu (MM-93).
+    static let settingsWidth: CGFloat = 560
 
     /// Width of the paywall sheet on the Mac.
     static let paywallWidth: CGFloat = 420
@@ -60,9 +62,18 @@ enum Metrics {
     /// Room for a few lines of note in the inspector before it grows.
     static let noteEditorMinHeight: CGFloat = 120
 
+    /// The progress bar in the inspector's Task section, beside its "3 of 5 done".
+    static let taskProgressBarWidth: CGFloat = 80
+
     /// Room for a typical URL in the Add Link sheet.
     static let linkSheetMinWidth: CGFloat = 420
+    /// The Add Connection target picker on the Mac: room for a topic path.
+    static let connectionPickerSize = CGSize(width: 420, height: 480)
 
     /// Topic ▸ Tags ▸ Manage Tags… on the Mac.
     static let tagManagerSize = CGSize(width: 440, height: 480)
+
+    /// Format ▸ Topic Symbol ▸ Choose Symbol… on the Mac: eight symbols a row.
+    static let symbolPickerWidth: CGFloat = 460
+    static let symbolPickerHeight: CGFloat = 520
 }

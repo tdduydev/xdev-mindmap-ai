@@ -2,6 +2,7 @@ import Foundation
 import MindMapAICore
 import MindMapDomain
 import MindMapGraph
+import MindMapPersistence
 import Observation
 import OSLog
 import SwiftUI
@@ -11,8 +12,9 @@ import SwiftUI
 /// It sends questions to the chat provider, which reads the map through
 /// tools, and shows the answers with their citations. It never edits the map:
 /// opening a citation selects the topic, and only revealing a collapsed one is
-/// an undo step, as in Find. The conversation is kept in memory while the map
-/// is open; `turns` is what MM-55 will save with the map.
+/// an undo step, as in Find. Each finished turn is saved with the map (MM-55),
+/// so opening the map again shows the conversation and the model sees as much
+/// of it as fits. The chat is map content: it is never logged.
 @Observable
 final class MapChat {
     /// One question and its answer, as the panel shows them.
@@ -30,6 +32,8 @@ final class MapChat {
         /// The answer as written, handles included.
         var answer: String
         var citations: [ChatCitation]
+        /// The branch the question was limited to; nil for the whole map.
+        var branch: ChatBranch? = nil
         var state: State
 
         var displayAnswer: String { CitationTable.displayText(answer) }
@@ -52,16 +56,34 @@ final class MapChat {
     var focusRequest = false
     /// "Earlier messages were left out", said once per conversation.
     private(set) var showsLeftOutNotice = false
+    /// Clear Chat asks first: the saved conversation cannot be undone.
+    var isConfirmingClear = false
+    /// The topic the person limited the questions to (MM-78). It holds only
+    /// while that topic stays selected: selecting nothing or another topic
+    /// goes back to the whole map, so a question never reads a branch the
+    /// person no longer sees as chosen.
+    private(set) var branchChoice: NodeID?
 
     @ObservationIgnored private var conversation: (any ChatConversation)?
-    @ObservationIgnored private var task: Task<Void, Never>?
+    /// Observed: `isAnswering` reads it, and the composer swaps Stop back to Ask when it ends.
+    private var task: Task<Void, Never>?
     @ObservationIgnored private var hasNoticedLeftOut = false
     @ObservationIgnored private let locale: Locale
+    /// Copy on an answer; tests pass their own so they leave the pasteboard alone.
+    @ObservationIgnored private let copyText: @MainActor (String) -> Void
+    /// Saves and clears in order, so a clear cannot overtake the save before it.
+    @ObservationIgnored private var lastWrite: Task<Void, Never>?
 
-    init(session: EditorSession, assistant: AIAssistant, locale: Locale = .current) {
+    /// `history` is the map's saved chat, oldest first.
+    init(session: EditorSession, assistant: AIAssistant, history: [ChatTurn] = [], locale: Locale = .current,
+         copyText: @escaping @MainActor (String) -> Void = Clipboard.copy) {
         self.session = session
         self.assistant = assistant
         self.locale = locale
+        self.copyText = copyText
+        entries = history.map { turn in
+            Entry(id: turn.id, question: turn.question, answer: turn.answer, citations: turn.citations, branch: turn.branch, state: .complete)
+        }
     }
 
     var service: AIService { assistant.service }
@@ -79,9 +101,63 @@ final class MapChat {
     var isAnswering: Bool { task != nil }
 
     var canAsk: Bool {
-        showsEntryPoints && !isAnswering && modelAvailability.isReady
-            && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        canAskSuggestion && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+
+    /// A suggested question needs no draft.
+    var canAskSuggestion: Bool {
+        showsEntryPoints && !isAnswering && modelAvailability.isReady
+    }
+
+    // MARK: Scope
+
+    /// The branch the scope picker offers: the one selected topic, unless it
+    /// is the central topic, whose branch is the whole map anyway.
+    var selectableBranch: ChatBranch? {
+        guard session.selectedIDs.count == 1, let id = session.selection, id != session.rootID,
+              let node = session.engine.state.node(id) else { return nil }
+        let title = node.title.split(whereSeparator: \.isNewline).joined(separator: " ")
+        return ChatBranch(nodeID: id, title: title.isEmpty ? String(localized: "Untitled Topic") : title)
+    }
+
+    /// What the next question reads: the chosen branch while it is still the
+    /// selection, else the whole map (nil).
+    var branch: ChatBranch? {
+        guard let branchChoice, let selectable = selectableBranch, selectable.nodeID == branchChoice else { return nil }
+        return selectable
+    }
+
+    /// The scope picker: true limits the questions to the selected branch.
+    var asksAboutSelectedBranch: Bool {
+        get { branch != nil }
+        set { branchChoice = newValue ? selectableBranch?.nodeID : nil }
+    }
+
+    /// Drops a branch choice the selection has left, so selecting the topic
+    /// again later does not quietly bring it back.
+    func selectionChanged() {
+        if branch == nil { branchChoice = nil }
+    }
+
+    /// Questions to start with, as buttons in an empty chat (FR-AI-09): about
+    /// the branch when the scope is one, else about the map. Asked as written,
+    /// so the answer is in the app's language.
+    var suggestedQuestions: [String] {
+        if branch != nil {
+            [
+                String(localized: "Summarize this branch"),
+                String(localized: "What is missing in this branch?"),
+                String(localized: "What are the next steps for this branch?"),
+            ]
+        } else {
+            [
+                String(localized: "Summarize this map"),
+                String(localized: "What is missing?"),
+                String(localized: "What are the next steps?"),
+            ]
+        }
+    }
+
 
     var canClear: Bool { !entries.isEmpty }
 
@@ -89,7 +165,7 @@ final class MapChat {
     var turns: [ChatTurn] {
         entries.compactMap { entry in
             guard entry.state == .complete else { return nil }
-            return ChatTurn(id: entry.id, question: entry.question, answer: entry.answer, citations: entry.citations)
+            return ChatTurn(id: entry.id, question: entry.question, answer: entry.answer, citations: entry.citations, branch: entry.branch)
         }
     }
 
@@ -103,6 +179,99 @@ final class MapChat {
         session.engine.state.node(citation.nodeID)?.title ?? citation.title
     }
 
+    // MARK: Answer actions
+
+    /// The last finished answer, for the AI menu's answer items.
+    var lastAnswer: Entry? {
+        entries.last.flatMap { $0.state == .complete ? $0 : nil }
+    }
+
+    func canCopy(_ entry: Entry) -> Bool {
+        entry.state == .complete && !entry.displayAnswer.isEmpty
+    }
+
+    /// Copy (FR-AI-10): the answer as plain text, citation handles left out.
+    func copy(_ entry: Entry) {
+        guard canCopy(entry) else { return }
+        copyText(entry.displayAnswer)
+        AccessibilityNotification.Announcement(String(localized: "Answer copied")).post()
+    }
+
+    /// The topic Add to Note writes to: the selected one, else the first cited
+    /// topic still in the map [Đề xuất]. With several topics selected the
+    /// answer goes to none of them rather than to a guess.
+    func noteTarget(for entry: Entry) -> NodeID? {
+        if !session.selectedIDs.isEmpty {
+            guard session.selectedIDs.count == 1, let id = session.selection,
+                  session.engine.state.node(id) != nil else { return nil }
+            return id
+        }
+        return entry.citations.first(where: exists)?.nodeID
+    }
+
+    /// The note's topic, by its current title, for the button's help.
+    func noteTargetTitle(for entry: Entry) -> String? {
+        noteTarget(for: entry).flatMap { session.engine.state.node($0)?.title }
+    }
+
+    func canAddToNote(_ entry: Entry) -> Bool {
+        canCopy(entry) && noteTarget(for: entry) != nil
+    }
+
+    /// Add to Note (FR-EDT-13): appends the answer to the topic's note after a
+    /// blank line, as one "Add Answer to Note" undo step. The answer is the
+    /// person's to keep from here, so it is plain text without handles.
+    @discardableResult
+    func addToNote(_ entry: Entry) -> Bool {
+        guard canAddToNote(entry), let id = noteTarget(for: entry),
+              let node = session.engine.state.node(id) else { return false }
+        let answer = entry.displayAnswer
+        let note = node.hasNote
+            ? (node.note ?? "").trimmingCharacters(in: .whitespacesAndNewlines) + "\n\n" + answer
+            : answer
+        guard session.perform(UpdateNodeCommand(nodeID: id, .note(note)), named: String(localized: "Add Answer to Note")) else { return false }
+        AccessibilityNotification.Announcement(String(localized: "Answer added to the note")).post()
+        return true
+    }
+
+    /// Ask Again is offered on the last question only, once its answer has
+    /// stopped coming: it replaces that answer, and a turn in the middle has
+    /// later turns built on it.
+    func canAskAgain(_ entry: Entry) -> Bool {
+        entry.id == entries.last?.id && !entry.isAnswering && canAskSuggestion
+    }
+
+    /// Ask Again: asks the last question once more, with its scope, in place
+    /// of its answer. The model starts from the turns before it, so it does
+    /// not see the answer it is replacing; the new answer is saved under the
+    /// same turn, and the old one is deleted at once so a retry that stops or
+    /// fails leaves nothing stale in the store.
+    func askAgain(_ entry: Entry) {
+        guard canAskAgain(entry), let provider = service.chatProvider else { return }
+        assistant.afterPrivacyNoticeShown { [weak self] in
+            guard let self, self.canAskAgain(entry) else { return }
+            self.entries.removeLast()
+            self.conversation = nil
+            let mapID = self.session.map.id
+            if entry.state == .complete {
+                self.write { repository in try await repository.deleteChatTurn(entry.id, from: mapID) }
+            }
+            self.send(entry.question, about: entry.branch, clearsDraft: false, with: provider)
+        }
+    }
+
+    var canCopyLastAnswer: Bool { lastAnswer.map(canCopy) ?? false }
+    var canAddLastAnswerToNote: Bool { lastAnswer.map(canAddToNote) ?? false }
+    var canAskLastQuestionAgain: Bool { entries.last.map(canAskAgain) ?? false }
+
+    func copyLastAnswer() { lastAnswer.map(copy) }
+
+    func addLastAnswerToNote() {
+        if let lastAnswer { addToNote(lastAnswer) }
+    }
+
+    func askLastQuestionAgain() { entries.last.map(askAgain) }
+
     // MARK: Intents
 
     /// AI ▸ Ask About This Map… (⌃⌘A): shows the panel with the field focused.
@@ -113,9 +282,23 @@ final class MapChat {
 
     func ask() {
         let question = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard canAsk, let provider = service.chatProvider else { return }
+        guard canAsk else { return }
+        ask(question, clearsDraft: true)
+    }
+
+    /// A suggested question: asked at once, the draft left as it is.
+    func ask(suggestion: String) {
+        guard canAskSuggestion else { return }
+        ask(suggestion, clearsDraft: false)
+    }
+
+    private func ask(_ question: String, clearsDraft: Bool) {
+        guard let provider = service.chatProvider else { return }
+        // The scope is taken now: the person may select something else
+        // while the privacy notice is up.
+        let branch = branch
         assistant.afterPrivacyNoticeShown { [weak self] in
-            self?.send(question, with: provider)
+            self?.send(question, about: branch, clearsDraft: clearsDraft, with: provider)
         }
     }
 
@@ -129,13 +312,22 @@ final class MapChat {
         }
     }
 
-    /// AI ▸ Clear Chat: empties the panel and starts a new conversation.
+    /// AI ▸ Clear Chat: shows the panel and asks before clearing.
+    func requestClear() {
+        guard canClear else { return }
+        isPresented = true
+        isConfirmingClear = true
+    }
+
+    /// Empties the panel, deletes the saved chat and starts a new conversation.
     func clear() {
         stop()
         entries = []
         conversation = nil
         showsLeftOutNotice = false
         hasNoticedLeftOut = false
+        let mapID = session.map.id
+        write { repository in try await repository.clearChat(for: mapID) }
     }
 
     /// Opens a cited topic: selects it, reveals it if collapsed, and scrolls
@@ -146,24 +338,26 @@ final class MapChat {
         return session.showTopic(citation.nodeID)
     }
 
-    /// Waits for the answer in flight, for tests.
+    /// Waits for the answer in flight and the writes it queued, for tests.
     func answerSettled() async {
         await task?.value
+        await lastWrite?.value
     }
 
     // MARK: Sending
 
-    private func send(_ question: String, with provider: any ChatProvider) {
+    private func send(_ question: String, about branch: ChatBranch?, clearsDraft: Bool, with provider: any ChatProvider) {
         guard !isAnswering else { return }
-        draft = ""
+        if clearsDraft { draft = "" }
         let conversation = self.conversation ?? provider.conversation(in: .map(session.map.id), history: turns)
         self.conversation = conversation
-        let entry = Entry(id: UUID(), question: question, answer: "", citations: [], state: .answering(isReadingMap: false))
+        let entry = Entry(id: UUID(), question: question, answer: "", citations: [], branch: branch, state: .answering(isReadingMap: false))
         entries.append(entry)
         let message = ChatMessage(
             text: question,
             language: AILanguage.dominant(in: question, fallback: AILanguage(preferredFor: locale)),
-            userLocaleIdentifier: locale.identifier
+            userLocaleIdentifier: locale.identifier,
+            branch: branch
         )
         task = Task { [weak self] in
             do {
@@ -196,8 +390,27 @@ final class MapChat {
         task = nil
         guard let index = entries.firstIndex(where: { $0.id == id }) else { return }
         if entries[index].isAnswering { entries[index].state = .complete }
+        let entry = entries[index]
+        let turn = ChatTurn(id: entry.id, question: entry.question, answer: entry.answer, citations: entry.citations, branch: entry.branch)
+        let mapID = session.map.id
+        write { repository in try await repository.appendChatTurn(turn, to: mapID, at: .now) }
         // VoiceOver hears the whole answer once, not each streamed word.
         AccessibilityNotification.Announcement(entries[index].displayAnswer).post()
+    }
+
+    /// A failed write leaves the panel as it is; the turn is only missing
+    /// next time the map opens. The error, never the chat, is logged.
+    private func write(_ body: @escaping @Sendable (any MapRepository) async throws -> Void) {
+        let previous = lastWrite
+        let repository = session.repository
+        lastWrite = Task {
+            await previous?.value
+            do {
+                try await body(repository)
+            } catch {
+                Log.persistence.error("Saving the chat failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }
     }
 
     private func fail(_ id: UUID, _ error: any Error) {

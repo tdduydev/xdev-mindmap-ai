@@ -16,6 +16,8 @@ extension FocusedValues {
     @Entry var keyboardShortcutsAction: KeyboardShortcutsAction?
     /// Voice input for the frontmost map (FR-AI-21).
     @Entry var voiceInput: VoiceInput?
+    /// The chat's microphone in the frontmost map window (MM-80).
+    @Entry var chatDictation: ChatDictation?
     /// The map selected in the library, to show in a window of its own.
     @Entry var openInNewWindowAction: OpenInNewWindowAction?
     /// The map selected in the focused library list, for File ▸ Delete Map and the Recently Deleted commands.
@@ -54,6 +56,7 @@ struct MapCommands: Commands {
     @FocusedValue(\.canvasModel) private var canvas
     @FocusedValue(\.keyboardShortcutsAction) private var keyboardShortcuts
     @FocusedValue(\.voiceInput) private var voice
+    @FocusedValue(\.chatDictation) private var dictation
     @FocusedValue(\.openInNewWindowAction) private var openInNewWindow
     @FocusedValue(\.libraryMapActions) private var libraryMap
     @Environment(\.openWindow) private var openWindow
@@ -110,7 +113,8 @@ struct MapCommands: Commands {
             Divider()
             Picker("Theme", selection: themeBinding) {
                 ForEach(MindMapTheme.allCases) { theme in
-                    Text(theme.title).tag(theme)
+                    ProChoiceLabel(title: theme.title, isLocked: theme.requiresPro && !ai.entitlements.allows(.extraThemes))
+                        .tag(theme)
                 }
             }
             .disabled(editor == nil)
@@ -124,6 +128,12 @@ struct MapCommands: Commands {
             Button("Add Child Topic") { editor?.addChild() }
                 .keyboardShortcut(.return, modifiers: [.command, .shift])
                 .disabled(editor == nil)
+            // ⌥⌘↩ next to the other Add keys (MM-58); free in the standard menus.
+            Button("Add Floating Topic") {
+                if let canvas { canvas.addFloatingTopic() } else { editor?.addFloatingTopic() }
+            }
+            .keyboardShortcut(.return, modifiers: [.command, .option])
+            .disabled(editor?.canAddFloatingTopic != true)
             // Space opens the title on the canvas (Return adds a sibling there,
             // FR-KBD-01). Neither is a menu key equivalent: a bare key in the menu
             // would never reach text fields. Help ▸ Keyboard Shortcuts lists them.
@@ -146,6 +156,30 @@ struct MapCommands: Commands {
                 if let editor, let id = editor.selection { editor.removeLink(from: id) }
             }
             .disabled(editor?.selectionHasLink != true)
+            // ⌘L as in MindNode (product owner, 2026-10-02); with two topics
+            // selected it connects them without the picker.
+            Button("Add Connection…") { editor?.beginAddingConnection() }
+                .keyboardShortcut("l")
+                .disabled(editor?.canAddConnection != true)
+            Button(editor?.selectedImage == nil ? "Add Image…" : "Replace Image…") {
+                editor?.imagePickerTarget = editor?.selection
+            }
+            .keyboardShortcut("i", modifiers: [.command, .option])
+            .disabled(editor?.canEditSelectionImage != true)
+            Button("Remove Image") {
+                if let editor, let id = editor.selection { Task { await editor.removeImage(from: id) } }
+            }
+            .disabled(editor?.selectedImage == nil)
+            // ⌥⇧⌘↩ beside the other Add keys (MM-58); free in the standard menus.
+            Button(editor?.selectionHasCallout == true ? "Edit Callout" : "Add Callout") {
+                editor?.beginEditingSelectionCallout()
+            }
+            .keyboardShortcut(.return, modifiers: [.command, .option, .shift])
+            .disabled(editor?.canEditSelectionCallout != true)
+            Button("Remove Callout") {
+                if let editor, let id = editor.selection { editor.removeCallout(from: id) }
+            }
+            .disabled(editor?.selectionHasCallout != true)
             // ⇧⌘T and ⌥⇧⌘T: free in the menus; this app has no Fonts panel (⌘T).
             Button("Add Tag…") { editor?.beginAddingTag() }
                 .keyboardShortcut("t", modifiers: [.command, .shift])
@@ -159,6 +193,37 @@ struct MapCommands: Commands {
             Button("Manage Tags…") { editor?.isManagingTags = true }
                 .keyboardShortcut("t", modifiers: [.command, .option, .shift])
                 .disabled(editor == nil)
+            Divider()
+            // ⇧⌘K, ⌥⌘K, ⌥⌘1–3 and ⌥⇧⌘K (MM-30): free in the standard menus; ⌘K stays Add Link.
+            Button(editor?.areAllTasks() == true ? "Remove Task" : "Make Task") { editor?.toggleTask() }
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+                .disabled(editor?.canEditSelectionTask != true)
+            Button(editor?.areTasksDone() == true ? "Mark as Not Done" : "Mark as Done") { editor?.toggleDone() }
+                .keyboardShortcut("k", modifiers: [.command, .option])
+                .disabled(editor?.hasTask() != true)
+            if let editor {
+                PriorityPicker(session: editor, showsShortcuts: true)
+            } else {
+                Menu("Priority") {}
+                    .disabled(true)
+            }
+            Button("Set Task Dates…") { editor?.beginSettingTaskDates() }
+                .keyboardShortcut("k", modifiers: [.command, .option, .shift])
+                .disabled(editor?.canEditSelectionTask != true)
+            Divider()
+            // ⌥⌘B (MM-30): ⌘G stays Find Next. Acts on a selected boundary first.
+            Button(editor?.boundaryToRemove != nil ? "Remove Boundary" : "Add Boundary") { editor?.toggleBoundary() }
+                .keyboardShortcut("b", modifiers: [.command, .option])
+                .disabled(editor?.boundaryToRemove == nil && editor?.canAddBoundary != true)
+            Button("Rename Boundary") {
+                if let id = editor?.activeBoundary { canvas?.editingBoundaryTitle = id }
+            }
+            .disabled(canvas == nil || editor?.activeBoundary == nil)
+            // ⌥⌘] (MM-58): the bracket's shape. Acts on a selected summary topic first.
+            Button(editor?.summaryToRemove != nil ? "Remove Summary" : "Add Summary") { editor?.toggleSummary() }
+                .keyboardShortcut("]", modifiers: [.command, .option])
+                .disabled(editor?.summaryToRemove == nil && editor?.canAddSummary != true)
+            Divider()
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)
@@ -167,6 +232,12 @@ struct MapCommands: Commands {
                 .disabled(voice == nil || voice?.isPresented == true)
             Divider()
             // ⇧Tab promotes on the canvas, for the same reason as Space above.
+            Button("Detach Topic") { editor?.detachSelection() }
+                .disabled(editor?.canDetachSelection != true)
+            Button("Attach to Topic…") {
+                if let id = editor?.selection { editor?.beginAttaching(id) }
+            }
+            .disabled(editor?.canAttachSelection != true)
             Button("Promote Topic") { editor?.promoteSelection() }
                 .disabled(editor?.canPromoteSelection != true)
             Button("Demote Topic") { editor?.demoteSelection() }
@@ -180,6 +251,39 @@ struct MapCommands: Commands {
             Button("Delete Topic") { editor?.deleteSelection() }
                 .keyboardShortcut(deleteTopicShortcut)
                 .disabled(editor?.canDeleteSelection != true)
+        }
+
+        CommandMenu("Format") {
+            if let editor {
+                TopicColorMenu(title: "Topic Color", session: editor)
+                TopicSymbolMenu(title: "Topic Symbol", session: editor)
+            } else {
+                Menu("Topic Color") {}
+                    .disabled(true)
+                Menu("Topic Symbol") {}
+                    .disabled(true)
+            }
+            Divider()
+            Menu("Image Size") {
+                Button("Small") {
+                    if let editor, let image = editor.selectedImage {
+                        editor.setImageSize(CanvasMetrics.imageWidthSmall, for: image.id)
+                    }
+                }
+                Button("Medium") {
+                    if let editor, let image = editor.selectedImage {
+                        editor.setImageSize(CanvasMetrics.imageWidthMedium, for: image.id)
+                    }
+                }
+                Button("Large") {
+                    if let editor, let image = editor.selectedImage {
+                        editor.setImageSize(CanvasMetrics.imageWidthLarge, for: image.id)
+                    }
+                }
+            }
+            .disabled(editor?.selectedImage == nil)
+            ConnectionFormatMenu(editor: editor, canvas: canvas)
+            BoundaryFormatMenu(editor: editor)
         }
 
         // Edit ▸ Find, as in other Mac apps; the window has no Find menu of its own.
@@ -246,14 +350,37 @@ struct MapCommands: Commands {
         Button("Suggest Tags") { assistant?.suggestTags() }
             .keyboardShortcut("t", modifiers: [.command, .control])
             .disabled(assistant?.canRun(.suggestTags) != true)
+        // ⌃⌘O and ⌃⌘Y (MM-30), beside the other AI keys.
+        Button("Suggest Groups") { assistant?.suggestGroups() }
+            .keyboardShortcut("o", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.suggestGroups) != true)
+        Button("Summarize Boundary") { assistant?.summarizeBoundary() }
+            .keyboardShortcut("y", modifiers: [.command, .control])
+            .disabled(assistant?.canRun(.summarizeBoundary) != true)
         Divider()
         // ⌃⌘A: free beside the other AI keys (⌃⌘G, E, B, U, M, T) and not a
         // standard macOS shortcut; approved 2026-10-02.
         Button("Ask About This Map…") { chat?.present() }
             .keyboardShortcut("a", modifiers: [.command, .control])
             .disabled(chat?.showsEntryPoints != true)
-        Button("Clear Chat") { chat?.clear() }
+        // The chat's microphone (MM-80). No key yet: none has been approved.
+        Button {
+            chat?.present()
+            dictation?.toggle()
+        } label: {
+            dictation?.isListening == true ? Text("Stop Asking by Voice") : Text("Ask by Voice")
+        }
+        .disabled(dictation?.canToggle != true)
+        Button("Clear Chat") { chat?.requestClear() }
             .disabled(chat?.canClear != true)
+        // The answer buttons on the last answer (MM-79). No keys yet: none
+        // has been approved, and ⌘C would steal Copy from the canvas.
+        Button("Copy Answer") { chat?.copyLastAnswer() }
+            .disabled(chat?.canCopyLastAnswer != true)
+        Button("Add Answer to Note") { chat?.addLastAnswerToNote() }
+            .disabled(chat?.canAddLastAnswerToNote != true)
+        Button("Ask Again") { chat?.askLastQuestionAgain() }
+            .disabled(chat?.canAskLastQuestionAgain != true)
         Divider()
         Button("Accept All Suggestions") { assistant?.acceptAll() }
             .keyboardShortcut(.return, modifiers: [.command, .control])
@@ -281,7 +408,7 @@ struct MapCommands: Commands {
     private var themeBinding: Binding<MindMapTheme> {
         Binding(
             get: { editor?.map.theme ?? .standard },
-            set: { editor?.changeTheme(to: $0) }
+            set: { editor?.chooseTheme($0, entitlements: ai.entitlements) }
         )
     }
 

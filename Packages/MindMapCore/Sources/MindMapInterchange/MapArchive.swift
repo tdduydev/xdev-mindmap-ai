@@ -6,7 +6,7 @@ import MindMapGraph
 ///
 /// Markdown keeps titles and notes only, so it is not a backup. This is the
 /// domain values as they are stored, so nothing the map holds is dropped:
-/// theme, colours, symbols, tasks, tags, links and boundaries included.
+/// theme, colours, symbols, tasks, tags, links, boundaries and images included.
 /// See "Map archive" in docs/interchange.md.
 public struct MapArchive: Hashable, Sendable, Codable {
     /// Marks the file as ours, so a JSON file of another app is refused
@@ -27,10 +27,18 @@ public struct MapArchive: Hashable, Sendable, Codable {
     public var tags: [MindTag]
     public var nodeTags: [MindNodeTag]
     public var groups: [MindGroup]
+    /// With their bytes, base64 in the JSON (MM-63): one file stays one file,
+    /// so Export, Import and the share sheet need no folder or package type.
+    /// Nil when the map has none, so such a file is byte for byte what a
+    /// build before images wrote.
+    public var images: [MindImage]?
 
     /// Records sorted by ID, so the same map always writes the same bytes and
     /// two backups can be compared with `diff`.
-    public init(_ graph: GraphState) {
+    /// - Parameter imageData: The bytes of the map's images, which the graph
+    ///   does not hold (`MapRepository.imageData(for:)`). An image missing
+    ///   here is written without them and comes back as a record with no file.
+    public init(_ graph: GraphState, imageData: [ImageID: Data] = [:]) {
         let usedTags = Set(graph.nodeTags.values.map(\.tagID))
         format = Self.formatName
         version = Self.currentVersion
@@ -43,11 +51,27 @@ public struct MapArchive: Hashable, Sendable, Codable {
             .sorted { $0.id < $1.id }
         nodeTags = graph.nodeTags.values.sorted { $0.id < $1.id }
         groups = graph.groups.values.sorted { $0.id < $1.id }
+        let images = graph.images.values.sorted { $0.id < $1.id }.map { image in
+            var image = image
+            image.data = imageData[image.id]
+            return image
+        }
+        self.images = images.isEmpty ? nil : images
     }
 
-    /// The map exactly as it was written, same IDs.
+    /// The map exactly as it was written, same IDs, images without bytes
+    /// (as a graph holds them; `imageData` has the bytes).
     public var graph: GraphState {
-        GraphState(map: map, nodes: nodes, edges: edges, tags: tags, nodeTags: nodeTags, groups: groups)
+        GraphState(map: map, nodes: nodes, edges: edges, tags: tags, nodeTags: nodeTags, groups: groups, images: images ?? [])
+    }
+
+    /// The bytes of the archive's images, by image ID.
+    public var imageData: [ImageID: Data] {
+        var result: [ImageID: Data] = [:]
+        for image in images ?? [] {
+            if let data = image.data { result[image.id] = data }
+        }
+        return result
     }
 }
 
@@ -55,8 +79,8 @@ public struct MapArchive: Hashable, Sendable, Codable {
 
 extension MapArchive {
     @concurrent
-    public static func exportData(_ graph: GraphState) async throws -> Data {
-        try encoder.encode(MapArchive(graph))
+    public static func exportData(_ graph: GraphState, imageData: [ImageID: Data] = [:]) async throws -> Data {
+        try encoder.encode(MapArchive(graph, imageData: imageData))
     }
 
     /// Reads a file of any version up to `currentVersion`.
@@ -123,6 +147,12 @@ extension MapArchive {
     ///   not have becomes a tag of the new map, since this map cannot create
     ///   library tags (they are library actions, not map records).
     public func importedGraph(sharedTags: [MindTag] = []) -> GraphState {
+        imported(sharedTags: sharedTags).graph
+    }
+
+    /// `importedGraph(sharedTags:)` with the images' bytes under their new
+    /// IDs, for `MapRepository.create(_:imageData:)`.
+    public func imported(sharedTags: [MindTag] = []) -> (graph: GraphState, imageData: [ImageID: Data]) {
         let mapID = MapID()
         var nodeIDs: [NodeID: NodeID] = [:]
         for node in nodes { nodeIDs[node.id] = NodeID() }
@@ -197,9 +227,21 @@ extension MapArchive {
                 summaryNodeID: group.summaryNodeID.map { nodeIDs[$0] ?? NodeID() }
             )
         }
-        return GraphState(
+        var newImageData: [ImageID: Data] = [:]
+        let newImages = (images ?? []).map { image in
+            let copy = MindImage(
+                mapID: mapID, nodeID: nodeIDs[image.nodeID] ?? NodeID(),
+                uniformType: image.uniformType, pixelWidth: image.pixelWidth, pixelHeight: image.pixelHeight,
+                byteCount: image.byteCount, displayWidth: image.displayWidth, altText: image.altText,
+                createdAt: image.createdAt, updatedAt: image.updatedAt
+            )
+            newImageData[copy.id] = image.data
+            return copy
+        }
+        let graph = GraphState(
             map: newMap, nodes: newNodes, edges: newEdges,
-            tags: newTags, nodeTags: newNodeTags, groups: newGroups
+            tags: newTags, nodeTags: newNodeTags, groups: newGroups, images: newImages
         )
+        return (graph, newImageData)
     }
 }

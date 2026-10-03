@@ -10,6 +10,18 @@ public enum ChatScope: Hashable, Sendable, Codable {
     case map(MapID)
 }
 
+/// The branch a question is limited to (MM-78): the topic it starts from,
+/// with its title when asked, so a saved turn can still say what it covered.
+public struct ChatBranch: Hashable, Sendable, Codable {
+    public let nodeID: NodeID
+    public let title: String
+
+    public init(nodeID: NodeID, title: String) {
+        self.nodeID = nodeID
+        self.title = title
+    }
+}
+
 /// A topic an answer used, resolved from a handle a tool returned.
 public struct ChatCitation: Hashable, Sendable, Codable, Identifiable {
     /// The short name the model saw, such as T3.
@@ -38,12 +50,15 @@ public struct ChatTurn: Hashable, Sendable, Codable, Identifiable {
     /// The answer as the model wrote it, handles in brackets included.
     public var answer: String
     public var citations: [ChatCitation]
+    /// The branch the question was limited to; nil for the whole map.
+    public var branch: ChatBranch?
 
-    public init(id: UUID = UUID(), question: String, answer: String, citations: [ChatCitation]) {
+    public init(id: UUID = UUID(), question: String, answer: String, citations: [ChatCitation], branch: ChatBranch? = nil) {
         self.id = id
         self.question = question
         self.answer = answer
         self.citations = citations
+        self.branch = branch
     }
 
     /// The answer as the panel shows it: no handles, which become chips.
@@ -56,11 +71,16 @@ public struct ChatMessage: Hashable, Sendable {
     /// The language to answer in: the question's own, else the app's.
     public var language: AILanguage
     public var userLocaleIdentifier: String
+    /// Limits the tools to this branch for this question; nil reads the whole
+    /// map. Per question, not per conversation, since the person can change
+    /// the scope between questions without losing the conversation.
+    public var branch: ChatBranch?
 
-    public init(text: String, language: AILanguage, userLocaleIdentifier: String) {
+    public init(text: String, language: AILanguage, userLocaleIdentifier: String, branch: ChatBranch? = nil) {
         self.text = text
         self.language = language
         self.userLocaleIdentifier = userLocaleIdentifier
+        self.branch = branch
     }
 }
 

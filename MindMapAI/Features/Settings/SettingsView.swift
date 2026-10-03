@@ -5,6 +5,8 @@ import SwiftUI
 /// Settings: a window of panes on the Mac (⌘,), a list with one page per pane
 /// on iPad and iPhone, the way the system Settings app reads (docs/settings.md).
 struct SettingsView: View {
+    let environment: AppEnvironment?
+    let showRecentlyDeleted: (() -> Void)?
     @Environment(AIService.self) private var ai
     #if os(macOS)
     @AppStorage(SettingsPane.storageKey, store: AppDefaults.store) private var storedPane = SettingsPane.general
@@ -12,6 +14,11 @@ struct SettingsView: View {
     @Environment(ProEntitlement.self) private var pro
     @Environment(\.dismiss) private var dismiss
     #endif
+
+    init(environment: AppEnvironment? = nil, showRecentlyDeleted: (() -> Void)? = nil) {
+        self.environment = environment
+        self.showRecentlyDeleted = showRecentlyDeleted
+    }
 
     private var panes: [SettingsPane] {
         #if os(macOS)
@@ -28,7 +35,7 @@ struct SettingsView: View {
         TabView(selection: Binding(get: { storedPane.resolved(in: panes) }, set: { storedPane = $0 })) {
             ForEach(panes) { pane in
                 Tab(value: pane) {
-                    SettingsPaneView(pane: pane)
+                    SettingsPaneView(pane: pane, environment: environment, showRecentlyDeleted: showRecentlyDeleted)
                 } label: {
                     Label { Text(pane.title) } icon: { Image(systemName: pane.systemImage) }
                 }
@@ -49,7 +56,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationDestination(for: SettingsPane.self) { pane in
-                SettingsPaneView(pane: pane)
+                SettingsPaneView(pane: pane, environment: environment, showRecentlyDeleted: showRecentlyDeleted)
                     .navigationTitle(Text(pane.title))
             }
             .toolbar {
@@ -79,6 +86,8 @@ struct SettingsView: View {
 /// One pane, the same view on every platform; only its container differs.
 struct SettingsPaneView: View {
     let pane: SettingsPane
+    var environment: AppEnvironment?
+    var showRecentlyDeleted: (() -> Void)?
     @Environment(AIService.self) private var ai
 
     var body: some View {
@@ -90,7 +99,11 @@ struct SettingsPaneView: View {
                 if !ai.showsEntryPoints { VoiceInputSettingsSection() }
             case .export: ExportSettingsSection()
             case .ai: AISettingsSection()
-            case .data: CloudSyncSettingsSection()
+            case .data:
+                CloudSyncSettingsSection()
+                if let environment {
+                    DataSettingsSection(environment: environment, showRecentlyDeleted: showRecentlyDeleted)
+                }
             case .aiApps:
                 #if os(macOS)
                 AIAppsSettingsSection()
@@ -175,6 +188,9 @@ struct GeneralSettingsSection: View {
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Settings.appearance)
+            // On one row: on the Section, each row would present its own paywall
+            // on one binding (MM-90, MM-92).
+            .proChoicePaywall($paywall)
             Picker("Theme for New Maps", selection: Binding(get: { newMapTheme }, set: choose)) {
                 ForEach(MindMapTheme.allCases) { theme in
                     ProChoiceLabel(title: theme.title, isLocked: theme.requiresPro && themesLocked)
@@ -189,7 +205,6 @@ struct GeneralSettingsSection: View {
                 Text("Each map keeps its own theme, which you can change while the map is open.")
             }
         }
-        .proChoicePaywall($paywall)
     }
 
     private func choose(_ theme: MindMapTheme) {

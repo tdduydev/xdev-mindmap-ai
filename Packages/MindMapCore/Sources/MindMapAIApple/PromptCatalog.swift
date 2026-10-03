@@ -77,6 +77,13 @@ public struct PromptCatalog: Hashable, Sendable {
             When an existing tag fits, use its name exactly as written. Do not repeat a tag a topic already has.
             Give a topic no tag rather than a vague one.
             """
+        case .suggestGroups:
+            """
+            Sort the listed topics into groups of related topics, and give each group a short title.
+            A group holds two or more topics, by their references. A topic is in one group at most; leave a topic out when no group fits it.
+            """
+        case .summarizeBoundary:
+            "Give the listed group of topics one short title that names what they have in common. Do not add facts that are not in the map."
         }
     }
 
@@ -109,12 +116,16 @@ public struct PromptCatalog: Hashable, Sendable {
 
     /// The question as the model sees it. The map title tells it what the
     /// tools read; the language line keeps the answer in the question's language.
-    public func chatPrompt(question: String, mapTitle: String, language: AILanguage) -> String {
-        """
-        Map: \(mapTitle)
-        Question: \(question)
-        You MUST respond in \(language.englishName).
-        """
+    /// `branchTitle` is the branch the tools are limited to (MM-78); the
+    /// answer says so, since it may miss what lies outside.
+    public func chatPrompt(question: String, mapTitle: String, language: AILanguage, branchTitle: String? = nil) -> String {
+        var lines = ["Map: \(mapTitle)"]
+        if let branchTitle {
+            lines.append("Scope: only the branch \u{201C}\(branchTitle.split(whereSeparator: \.isNewline).joined(separator: " "))\u{201D}. The tools read only this branch. Begin the answer by saying it covers this branch.")
+        }
+        lines.append("Question: \(question)")
+        lines.append("You MUST respond in \(language.englishName).")
+        return lines.joined(separator: "\n")
     }
 
     // MARK: Prompts
@@ -151,6 +162,7 @@ public struct PromptCatalog: Hashable, Sendable {
         case .technical: "Use precise technical wording."
         case .vietnamese: "Translate it into Vietnamese."
         case .english: "Translate it into English."
+        case .japanese: "Translate it into Japanese."
         }
         return render(request.context)
             + "\nGive up to \(AIProposalLimits.maximumRewriteSuggestions) alternative titles for the focus topic. \(task)"
@@ -178,6 +190,30 @@ public struct PromptCatalog: Hashable, Sendable {
             lines.append(line)
         }
         lines.append("Suggest up to \(AIProposalLimits.maximumTagsPerTopic) tags for each topic, by its reference.")
+        return lines.joined(separator: "\n")
+    }
+
+    public func prompt(for request: SuggestGroupsRequest) -> String {
+        var lines = ["Map: \(request.mapTitle)"]
+        if !request.path.isEmpty { lines.append("Path: " + request.path.joined(separator: " > ")) }
+        lines.append("Parent topic: \(request.parentTitle)")
+        lines.append("Topics under it:")
+        for child in request.children {
+            lines.append("- \(child.reference): \(child.title)")
+        }
+        lines.append("Suggest up to \(AIProposalLimits.maximumSuggestedGroups) groups.")
+        return lines.joined(separator: "\n")
+    }
+
+    public func prompt(for request: SummarizeBoundaryRequest) -> String {
+        var lines = ["Map: \(request.mapTitle)", "Parent topic: \(request.parentTitle)", "Topics in the group:"]
+        for line in request.outline {
+            lines.append(String(repeating: "  ", count: line.depth) + "- " + line.title)
+        }
+        if request.omittedCount > 0 {
+            lines.append("(\(request.omittedCount) more subtopics are not shown.)")
+        }
+        lines.append("Write a title for this group.")
         return lines.joined(separator: "\n")
     }
 

@@ -60,12 +60,24 @@ fail_on_missing_dependency "$logs/core-tests.log"
 # MindMapCapture and MindMapAICore as missing dependencies they do declare
 # whenever MindMapTestSupport is built for the app tests (MM-67).
 step "App tests on macOS"
-xcodebuild test -quiet \
-  -project MindMapAI.xcodeproj -scheme MindMapAI \
-  -destination 'platform=macOS,arch=arm64' \
-  -derivedDataPath "$derived" \
-  -only-testing:MindMapAITests \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+app_tests() {
+  xcodebuild test -quiet \
+    -project MindMapAI.xcodeproj -scheme MindMapAI \
+    -destination 'platform=macOS,arch=arm64' \
+    -derivedDataPath "$derived" \
+    -only-testing:MindMapAITests \
+    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES 2>&1 | tee "$logs/app-tests.log"
+}
+if ! app_tests; then
+  # After a merge that changes a core package's API, Xcode sometimes compiles the
+  # app against the old module left in DerivedData ("has no member" for code that
+  # swift test has just built). One rebuild from a clean DerivedData tells that
+  # apart from a real failure; a test failure is not retried.
+  grep -q "Testing cancelled because the build failed" "$logs/app-tests.log" || exit 1
+  echo "The app build failed; rebuilding once from a clean DerivedData" >&2
+  rm -rf "$derived" && mkdir -p "$derived"
+  app_tests
+fi
 
 step "Universal macOS Release build"
 xcodebuild build -quiet \

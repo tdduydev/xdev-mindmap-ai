@@ -8,15 +8,38 @@ nonisolated enum UITestLaunch {
     /// Followed by a `UITestAI` raw value: a scripted model in place of Apple
     /// Intelligence, so AI screens can be tested on any machine.
     static let ai = "-uitest-ai"
+    /// Seeds the app's pasteboard in its own process for image-paste UI tests.
+    static let imageClipboard = "-uitest-image-clipboard"
 }
 
 /// How the scripted model of the UI test mode behaves.
 nonisolated enum UITestAI: String, CaseIterable {
-    /// Ready in English and Vietnamese. The chat answers with the first topic
+    /// Ready in English, Vietnamese and Japanese. The chat answers with the first topic
     /// whose title matches a word of the question, and cites it.
     case ready
     /// A device that can never run Apple Intelligence: every AI entry point is hidden.
     case ineligible
+
+    /// What Suggest Subtopics proposes in the `ready` mode, in this order.
+    static let subtopics = ["Budget", "Timeline", "Risks"]
+    static let subtopicsVi = ["Ngân sách", "Lịch trình", "Rủi ro"]
+    static let subtopicsJa = ["予算", "スケジュール", "リスク"]
+
+    /// Follows the app language (`-AppleLanguages`), not the topic's, so a test
+    /// knows the titles from how it launched: the Vietnamese and Japanese
+    /// screenshots show suggestions in their language while the counts stay the same.
+    static func subtopics(languageCode: String) -> [String] {
+        if languageCode.hasPrefix("vi") { return subtopicsVi }
+        if languageCode.hasPrefix("ja") { return subtopicsJa }
+        return subtopics
+    }
+}
+
+/// What voice input hears in the UI test mode, where the Simulator has no
+/// speech model: one topic per sentence, then nothing more.
+nonisolated enum UITestVoice {
+    static let heard = "Call the venue. Book the flights."
+    static let topics = ["Call the venue", "Book the flights"]
 }
 
 /// The maps a UI test can start with. Titles are data, not interface text,
@@ -28,6 +51,10 @@ nonisolated enum UITestFixture: String, CaseIterable {
     case sample
     /// One map with a central topic and 999 topics below it, for scrolling and performance.
     case large
+    /// Localized, fictional launch plan for App Store screenshots.
+    case showcaseEn
+    case showcaseVi
+    case showcaseJa
 
     enum Title {
         static let plan = "Product Launch"
@@ -37,6 +64,13 @@ nonisolated enum UITestFixture: String, CaseIterable {
         static let marketing = "Marketing"
         static let favorite = "Reading List"
         static let large = "Large Map"
+        static func showcase(_ language: String) -> String {
+            switch language {
+            case "vi": "Ra mắt ứng dụng sáng tạo"
+            case "ja": "クリエイティブアプリの発売"
+            default: "Creative App Launch"
+            }
+        }
     }
 
     static let largeTopicCount = 1_000

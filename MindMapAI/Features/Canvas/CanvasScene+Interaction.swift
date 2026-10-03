@@ -59,4 +59,47 @@ extension CanvasScene {
         if point.y > topic.frame.maxY - edge { return (topic, .after) }
         return (topic, .inside)
     }
+
+    /// The boundary whose title band or outline is within `tolerance` of a
+    /// canvas point; the innermost when several are. Inside a frame, away
+    /// from its edge, the point belongs to the topics and the canvas.
+    nonisolated func boundary(at point: CGPoint, tolerance: CGFloat) -> GroupID? {
+        boundaries.last { boundary in
+            let outer = boundary.frame.insetBy(dx: -tolerance, dy: -tolerance)
+            let inner = boundary.frame.insetBy(dx: tolerance, dy: tolerance)
+            guard outer.contains(point) else { return false }
+            if boundary.title != nil, boundary.titleBand.contains(point) { return true }
+            return inner.isNull || !inner.contains(point)
+        }?.id
+    }
+
+    /// The connection whose curve passes within `tolerance` of a canvas point,
+    /// the nearest when several do. Sampled: a cubic has no closed-form distance.
+    nonisolated func connection(at point: CGPoint, tolerance: CGFloat) -> EdgeID? {
+        let probe = CGRect(origin: point, size: .zero).insetBy(dx: -tolerance, dy: -tolerance)
+        var best: (id: EdgeID, distance: CGFloat)?
+        for (id, path) in crossLinks(in: probe) {
+            let distance = path.distance(to: point, samples: 32)
+            if distance <= tolerance, distance < best?.distance ?? .infinity { best = (id, distance) }
+        }
+        return best?.id
+    }
+}
+
+extension EdgePath {
+    nonisolated func point(at t: CGFloat) -> CGPoint {
+        let u = 1 - t
+        let a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t
+        return CGPoint(
+            x: a * start.x + b * control1.x + c * control2.x + d * end.x,
+            y: a * start.y + b * control1.y + c * control2.y + d * end.y
+        )
+    }
+
+    nonisolated func distance(to target: CGPoint, samples: Int) -> CGFloat {
+        (0...samples).map { index in
+            let point = point(at: CGFloat(index) / CGFloat(samples))
+            return hypot(point.x - target.x, point.y - target.y)
+        }.min() ?? .infinity
+    }
 }

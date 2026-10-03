@@ -19,6 +19,9 @@ final class EditorSession {
         let hasChildren: Bool
         /// The topic's tags, as the outline row shows them.
         var tags: [MindTag] = []
+        var topicImage: MindImage?
+        /// Done over total for the leaf tasks below (MM-35), computed per read.
+        var progress: TaskProgress?
         var id: NodeID { node.id }
     }
 
@@ -50,16 +53,40 @@ final class EditorSession {
     var noteFocusRequest: NodeID?
     /// The topic whose link sheet shows (Topic ▸ Add Link…, FR-ORG-26).
     var linkEditorTarget: NodeID?
+    /// The topic whose callout bubble is open for typing on the canvas
+    /// (Topic ▸ Add Callout, FR-ORG-30).
+    var calloutEditorTarget: NodeID?
+    var imagePickerTarget: NodeID?
+    var imageFailure: String?
     /// Asks the inspector's tag field to take focus (Topic ▸ Add Tag…).
     var tagFieldFocusRequest = false
     /// Whether Manage Tags shows.
     var isManagingTags = false
+    /// The topics the symbol picker sets a symbol on (Format ▸ Topic Symbol ▸ Choose Symbol…).
+    var symbolPickerTargets: [NodeID]?
     /// Why the last tag action changed nothing, for an alert.
     var tagFailure: TagFailure?
+    /// A Pro theme picked without Pro: the window shows the paywall and the
+    /// theme changes only if Pro is unlocked there (FR-THM-02).
+    var pendingThemeChoice: PendingProChoice?
 
     /// Called with every change the map goes through (command, undo, redo),
     /// so the canvas lays out only what changed.
     @ObservationIgnored var onGraphChange: ((GraphChangeSet) -> Void)?
+    /// Where the canvas would put a floating topic made without a pointer
+    /// (Add Floating Topic, Detach Topic from the menu). Set by the canvas.
+    @ObservationIgnored var floatingTopicPlacement: (() -> TopicPosition?)?
+    /// Floating topic whose new parent is being chosen in the editor sheet.
+    var attachTarget: NodeID?
+    /// The topic a new connection starts from while its target is picked
+    /// (Topic ▸ Add Connection…).
+    var connectionSource: NodeID?
+    /// A connection clicked on the canvas; selecting a topic clears it. Read
+    /// `activeConnection`, which also drops one that undo took away.
+    private(set) var selectedConnection: EdgeID?
+    /// A boundary clicked on the canvas; selecting a topic or a connection
+    /// clears it. Read `activeBoundary`, which also drops one undo took away.
+    var selectedBoundary: GroupID?
 
     /// Whether the find bar shows.
     private(set) var isFinding = false
@@ -163,11 +190,20 @@ final class EditorSession {
 
     var selectedNode: MindNode? { selection.flatMap { engine.state.node($0) } }
 
+    func cacheImageData(_ data: Data, for id: ImageID) {
+        engine.imageData[id] = data
+    }
+
     /// A bare Delete in the menu bar is matched before the focused view sees
     /// the key, so it is the Delete Topic shortcut only while the editor holds
     /// focus outside a text field: otherwise it would eat Delete in a title
     /// being typed, or delete a topic while the library list is focused.
     var deleteKeyDeletesTopic: Bool { keyboardFocus == .content && canDeleteSelection }
+
+    var activeConnection: EdgeID? {
+        guard selectedIDs.isEmpty, let selectedConnection, engine.state.edges[selectedConnection] != nil else { return nil }
+        return selectedConnection
+    }
 
     /// The display name of the map, also the editor's window title.
     var displayTitle: String {
@@ -191,13 +227,18 @@ final class EditorSession {
         selection.flatMap { engine.state.node($0)?.isCollapsed } ?? false
     }
 
-    /// The root has no siblings, so it cannot be copied next to itself.
-    var canDuplicateSelection: Bool { !movableBranchRoots.isEmpty }
+    /// The root and floating topics have no siblings, so they cannot be
+    /// copied next to themselves.
+    var canDuplicateSelection: Bool { !duplicableBranchRoots.isEmpty }
+
+    private var duplicableBranchRoots: [NodeID] {
+        movableBranchRoots.filter { !isFloating($0) }
+    }
 
     var canCopySelection: Bool { !selectedBranchRoots.isEmpty }
     /// Cut deletes, so it follows Delete: the central topic stays.
     var canCutSelection: Bool { canDeleteSelection }
-    var canPaste: Bool { (selection ?? rootID) != nil && clipboard.hasText }
+    var canPaste: Bool { (selection ?? rootID) != nil && (clipboard.hasText || SystemImageClipboard.hasImage) }
 
     func isSelected(_ id: NodeID) -> Bool { selectedIDs.contains(id) }
 
@@ -238,9 +279,12 @@ final class EditorSession {
     var rows: [Row] {
         let state = engine.state
         let tags = state.tagsByNode()
+        let progress = state.taskProgressByNode()
         return state.visibleOutline().compactMap { item in
             state.node(item.nodeID).map {
-                Row(node: $0, depth: item.depth, hasChildren: item.hasChildren, tags: tags[item.nodeID] ?? [])
+                Row(node: $0, depth: item.depth, hasChildren: item.hasChildren,
+                    tags: tags[item.nodeID] ?? [], topicImage: state.image(of: item.nodeID),
+                    progress: progress[item.nodeID])
             }
         }
     }
@@ -267,9 +311,11 @@ final class EditorSession {
         }
     }
 
-    /// The root has no siblings, so on the root this adds a child instead.
+    /// The root and floating topics have no siblings, so on them this adds a
+    /// child instead; so does a summary topic, which stands apart from its
+    /// parent's column.
     func addSibling() {
-        guard let anchor = selection, anchor != rootID else { return addChild() }
+        guard let anchor = selection, anchor != rootID, !isFloating(anchor), !isSummaryTopic(anchor) else { return addChild() }
         let id = NodeID()
         if perform(AddNodeCommand(nodeID: id, .sibling(after: anchor), title: ""), named: String(localized: "Add Topic")) {
             select(id, focus: true)
@@ -312,7 +358,25 @@ final class EditorSession {
     /// Deletes the selected branches as one undo step (FR-EDT-04); the root
     /// stays, the map itself is deleted from the library.
     func deleteSelection() {
+        // Delete on a selected boundary removes it; its topics stay.
+        if movableBranchRoots.isEmpty, let boundary = activeBoundary {
+            removeBoundary(boundary)
+            return
+        }
+        // Delete on a selected connection removes it, as on a topic.
+        if movableBranchRoots.isEmpty, let connection = activeConnection {
+            removeConnection(connection)
+            selectedConnection = nil
+            return
+        }
         deleteSelection(named: nil)
+    }
+
+    /// Selects one connection and no topic.
+    func selectConnection(_ id: EdgeID?) {
+        if id != nil { setSelection([], primary: nil) }
+        selectedBoundary = nil
+        selectedConnection = id
     }
 
     private func deleteSelection(named name: String?) {
@@ -320,22 +384,46 @@ final class EditorSession {
         guard let first = targets.first else { return }
         let fallbacks = [neighbour(replacing: first)].compactMap { $0 } + engine.state.ancestors(of: first)
         let name = name ?? (targets.count == 1 ? String(localized: "Delete Topic") : String(localized: "Delete Topics"))
-        if perform(DeleteNodeCommand(nodeIDs: targets), named: name) {
-            selection = fallbacks.first { engine.state.node($0) != nil } ?? rootID
+        let images = engine.state.images(inBranchesOf: targets)
+        if images.isEmpty {
+            if perform(DeleteNodeCommand(nodeIDs: targets), named: name) {
+                selection = fallbacks.first { engine.state.node($0) != nil } ?? rootID
+            }
+            return
+        }
+        Task {
+            do {
+                try await loadImageBytes(images)
+                if perform(DeleteNodeCommand(nodeIDs: targets), named: name) {
+                    selection = fallbacks.first { engine.state.node($0) != nil } ?? rootID
+                }
+            } catch {
+                imageFailure = String(localized: "Couldn’t load the image")
+            }
         }
     }
 
     /// Copies each selected branch right after itself and selects the copies,
     /// as one undo step.
     func duplicateSelection() {
-        let originals = movableBranchRoots
+        let originals = duplicableBranchRoots
         guard !originals.isEmpty else { return }
         let copies = originals.map { (original: $0, copy: NodeID()) }
         let command = BatchCommand(copies.map { DuplicateBranchCommand(nodeID: $0.original, copyID: $0.copy) })
         let name = originals.count == 1 ? String(localized: "Duplicate Topic") : String(localized: "Duplicate Topics")
-        if perform(command, named: name) {
-            let primary = copies.first { $0.original == primarySelection }?.copy ?? copies[0].copy
-            setSelection(Set(copies.map(\.copy)), primary: primary)
+        let primary = copies.first { $0.original == primarySelection }?.copy ?? copies[0].copy
+        let images = engine.state.images(inBranchesOf: originals)
+        if images.isEmpty {
+            if perform(command, named: name) { setSelection(Set(copies.map(\.copy)), primary: primary) }
+            return
+        }
+        Task {
+            do {
+                try await loadImageBytes(images)
+                if perform(command, named: name) { setSelection(Set(copies.map(\.copy)), primary: primary) }
+            } catch {
+                imageFailure = String(localized: "Couldn’t load the image")
+            }
         }
     }
 
@@ -433,8 +521,9 @@ final class EditorSession {
     }
 
     func paste() {
-        guard let text = clipboard.text else { return }
-        paste(text)
+        if let text = clipboard.text { paste(text); return }
+        guard let parent = selection ?? rootID, let data = SystemImageClipboard.imageData else { return }
+        Task { await addImage(data, to: parent) }
     }
 
     /// Text on the clipboard becomes children of the selected topic: Markdown
@@ -472,8 +561,20 @@ final class EditorSession {
     /// Takes IDs because multi-selection arrives later (MM-5).
     func merge(_ ids: [NodeID]) {
         guard let survivor = ids.first, ids.count > 1 else { return }
-        if perform(MergeNodesCommand(into: survivor, merging: Array(ids.dropFirst())), named: String(localized: "Merge Topics")) {
-            selection = survivor
+        let command = MergeNodesCommand(into: survivor, merging: Array(ids.dropFirst()))
+        let name = String(localized: "Merge Topics")
+        let images = engine.state.images(inBranchesOf: ids)
+        if images.isEmpty {
+            if perform(command, named: name) { selection = survivor }
+            return
+        }
+        Task {
+            do {
+                try await loadImageBytes(images)
+                if perform(command, named: name) { selection = survivor }
+            } catch {
+                imageFailure = String(localized: "Couldn’t load the image")
+            }
         }
     }
 
@@ -505,6 +606,19 @@ final class EditorSession {
     /// Only branch colours change, so the layout and selection stay as they are (FR-THM-03).
     func changeTheme(to theme: MindMapTheme) {
         perform(ChangeThemeCommand(theme: theme), named: String(localized: "Change Theme"))
+    }
+
+    /// What the theme pickers call. Only the choice is locked: a map that
+    /// already has a Pro theme keeps showing it after a refund or on a device
+    /// without Pro, as the paywall must never take away what a map looks like.
+    func chooseTheme(_ theme: MindMapTheme, entitlements: any ProEntitlements) {
+        guard theme.requiresPro, !entitlements.allows(.extraThemes) else {
+            changeTheme(to: theme)
+            return
+        }
+        pendingThemeChoice = PendingProChoice(feature: .extraThemes) { [weak self] in
+            self?.changeTheme(to: theme)
+        }
     }
 
     /// Adds an imported file under the selected topic (the central topic when
@@ -736,6 +850,10 @@ final class EditorSession {
     func setSelection(_ ids: Set<NodeID>, primary: NodeID?) {
         var ids = ids
         if let primary { ids.insert(primary) }
+        if !ids.isEmpty {
+            selectedConnection = nil
+            selectedBoundary = nil
+        }
         selectedIDs = ids
         primarySelection = primary ?? inOutlineOrder(ids).first
     }
@@ -795,12 +913,13 @@ final class EditorSession {
     }
 
     /// Topics in outline (pre-order) order, hidden ones included.
-    private func inOutlineOrder(_ ids: Set<NodeID>) -> [NodeID] {
+    func inOutlineOrder(_ ids: Set<NodeID>) -> [NodeID] {
         guard ids.count > 1 else { return Array(ids) }
-        guard let rootID else { return ids.sorted() }
+        guard rootID != nil else { return ids.sorted() }
         let state = engine.state
         var result: [NodeID] = []
-        var stack = [rootID]
+        // The main tree, then each floating branch, as the outline lists them.
+        var stack = Array(state.topLevelIDs.reversed())
         while let id = stack.popLast(), result.count < ids.count {
             if ids.contains(id) { result.append(id) }
             stack.append(contentsOf: state.childIDs(of: id).reversed())

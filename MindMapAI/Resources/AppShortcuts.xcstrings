@@ -3,6 +3,12 @@
   "strings" : {
     "Add an idea to ${applicationName}" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName}にアイデアを追加"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -13,6 +19,12 @@
     },
     "Make a ${applicationName} map from the clipboard" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードから${applicationName}のマップを作成"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -23,6 +35,12 @@
     },
     "New map in ${applicationName}" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName}で新規マップ"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -33,6 +51,12 @@
     },
     "Open my recent ${applicationName} map" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName}で最近のマップを開く"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -43,6 +67,12 @@
     },
     "Start a ${applicationName} map" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "${applicationName}でマップを始める"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",

@@ -49,8 +49,33 @@ enum CanvasMetrics {
     static let selectionRingGap: CGFloat = 2
 
     static let crossLinkWidth: CGFloat = 1.5
+
+    /// Boundaries (MM-37): the layout reserves the padding around a run and the
+    /// title's room above a titled one; solid, since dashes mean AI or drop.
+    static let boundaryPadding: CGFloat = 8
+    nonisolated static let boundaryTitleHeight: CGFloat = 20
+    static let boundaryCornerRadius: CGFloat = 12
+    static let boundaryStrokeWidth: CGFloat = 1.5
+    static let boundaryStrokeWidthHighContrast: CGFloat = 2
+    static let boundaryTitlePadding = CGSize(width: 6, height: 2)
+    /// The title capsule wraps past this width.
+    nonisolated static let boundaryTitleMaxWidth: CGFloat = 200
+
+    /// Summaries (MM-65): the bracket's gap from the run's outermost edge and
+    /// its depth from back to tip. It takes the summary topic's line colour and width.
+    static let summaryBracketGap: CGFloat = 8
+    static let summaryBracketWidth: CGFloat = 12
     static let crossLinkDash: [CGFloat] = [4, 3]
-    /// Arrowhead of a `reference` cross-link: side length and half-angle (radians).
+    static let crossLinkDot: [CGFloat] = [0.1, 3]
+    /// A connection drawn to a visible ancestor because an end is hidden.
+    static let reroutedCrossLinkOpacity: Double = 0.6
+    /// The connection label capsule wraps past this width.
+    static let connectionLabelMaxWidth: CGFloat = 160
+    static let connectionLabelPadding = CGSize(width: 6, height: 2)
+    /// The badge of connections hidden below a topic, on its top-leading corner.
+    static let connectionBadgeSymbol = "point.topleft.down.to.point.bottomright.curvepath"
+    static let connectionBadgePadding = CGSize(width: 5, height: 2)
+    /// Arrowhead of a connection: side length and half-angle (radians).
     static let crossLinkArrowLength: CGFloat = 8
     static let crossLinkArrowAngle: CGFloat = .pi / 7
     static let suggestionEdgeWidth: CGFloat = 1.5
@@ -70,11 +95,26 @@ enum CanvasMetrics {
     /// On touch, a hold on empty canvas before a drag draws a selection rectangle.
     static let marqueeHoldDuration: Double = 0.4
 
+    /// Floating topics (FR-ORG-27): the step Add Floating Topic moves down
+    /// from the middle of the view until the new topic overlaps none.
+    static let floatingTopicNudge: CGFloat = 24
+    /// Steps tried before it gives up and overlaps.
+    static let floatingTopicNudgeLimit = 40
+    /// Below the central topic, when no canvas has laid the map out.
+    static let floatingTopicFallbackOffset: CGFloat = 160
+
     /// Size of the note symbol after a title.
     static let noteSymbolSize: CGFloat = 11
 
     /// The link symbol on a topic (FR-ORG-26), the size of the note mark.
     static let linkSymbolSize: CGFloat = noteSymbolSize
+
+    /// Before a coloured topic's title with Differentiate Without Color (FR-ORG-02).
+    static let topicColorShapeSize: CGFloat = 9
+    /// After the colour shape and after the symbol, before the title (MM-32).
+    static let topicMarkGap: CGFloat = 4
+    /// A topic's symbol box, in title point sizes: an emoji is about 1.2 em wide.
+    static let topicSymbolWidthFactor: CGFloat = 1.25
 
     /// Tag chips in a row under the title (MM-34), measured with it.
     static let tagChipHeight: CGFloat = 16
@@ -88,6 +128,36 @@ enum CanvasMetrics {
     /// Tags shown on a topic before "+n". Read off the main actor by the
     /// layout pass, hence `nonisolated`.
     nonisolated static let maximumTopicTagChips = 3
+    /// The progress ring in a task chip (MM-35): stroke, and the unfilled track's opacity.
+    static let taskRingWidth: CGFloat = 1.5
+    static let taskRingTrackOpacity: Double = 0.3
+
+    /// A picture on a topic (MM-63), above the title: its widths for Image
+    /// Size ▸ Small, Medium (the default, `MindImage.defaultDisplayWidth`)
+    /// and Large, never wider than the box's content.
+    static let imageWidthSmall: Double = 96
+    static let imageWidthMedium: Double = 160
+    static let imageWidthLarge: Double = 240
+    /// Height ÷ width; a taller picture is cropped to fill.
+    static let imageMaxAspect: Double = 1.5
+    /// Between the picture and the title.
+    static let imageGap: CGFloat = 8
+    static let imageCornerRadius: CGFloat = Radius.sm
+    static let imagePlaceholderOpacity: Double = 0.3
+
+    /// A callout bubble above its topic (FR-ORG-30). The layout reserves
+    /// the bubble, its tail and `calloutGap`, so it covers no other topic.
+    static let calloutGap: CGFloat = Spacing.sm
+    static let calloutHorizontalPadding: CGFloat = 8
+    static let calloutVerticalPadding: CGFloat = 6
+    // Read by `CalloutBubbleShape`, which draws off the main actor.
+    nonisolated static let calloutCornerRadius: CGFloat = 8 // Radius.md
+    nonisolated static let calloutTailWidth: CGFloat = 8
+    nonisolated static let calloutTailHeight: CGFloat = 6
+    static let calloutStrokeWidth: CGFloat = 1
+    static let calloutStrokeWidthHighContrast: CGFloat = 2
+    /// From the bubble's bottom edge to the card: what `LayoutOptions.calloutSpacing` gets.
+    static let calloutSpacing: CGFloat = calloutTailHeight + calloutGap
 
     /// The pointer hit area is the visual box, at least this tall.
     static let minimumPointerHeight: CGFloat = 28

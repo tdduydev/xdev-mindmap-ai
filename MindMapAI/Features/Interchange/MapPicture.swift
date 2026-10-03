@@ -18,6 +18,7 @@ struct MapPicture {
     let scene: CanvasScene
     let theme: MapTheme
     let specs: TopicTextSpecs
+    let imageData: [ImageID: Data]
 
     /// The map's bounds with room around it, in canvas points.
     var frame: CGRect {
@@ -28,8 +29,11 @@ struct MapPicture {
     var size: CGSize { frame.size }
 
     /// Measures and lays out off the main actor, like a canvas pass.
-    static func make(_ graph: GraphState) async -> MapPicture {
-        let specs = TopicTextSpecs.designSizes()
+    ///
+    /// Coloured topics always carry their colour's shape: the file is for
+    /// other people, who may need it whatever this device's settings are.
+    static func make(_ graph: GraphState, imageData: [ImageID: Data] = [:]) async -> MapPicture {
+        let specs = TopicTextSpecs.designSizes(showsColorShapes: true)
         let pass = CanvasLayoutPass(
             graph: graph,
             previous: nil,
@@ -39,7 +43,7 @@ struct MapPicture {
             options: CanvasModel.layoutOptions
         )
         let output = await pass.runInBackground()
-        return MapPicture(scene: output.scene, theme: MapTheme(graph.map.theme), specs: specs)
+        return MapPicture(scene: output.scene, theme: MapTheme(graph.map.theme), specs: specs, imageData: imageData)
     }
 }
 
@@ -123,6 +127,7 @@ struct MapPictureView: View {
             rect: frame,
             shapes: nil,
             selection: nil,
+            variant: ColorVariant(colorScheme: colorScheme, contrast: .standard),
             style: styles.style(for:)
         )
         ZStack(alignment: .topLeading) {
@@ -139,9 +144,20 @@ struct MapPictureView: View {
                     style: styles.style(for: topic),
                     spec: picture.specs.spec(level: topic.level),
                     chipSpec: picture.specs.chip,
+                    markSpec: picture.specs.mark,
+                    imageData: topic.topicImage.flatMap { picture.imageData[$0.id] },
                     variant: ColorVariant(colorScheme: colorScheme, contrast: .standard)
                 )
                     .position(x: topic.frame.midX - frame.minX, y: topic.frame.midY - frame.minY)
+            }
+            // Callouts are part of the picture (FR-ORG-30); Markdown and text leave them out.
+            ForEach(picture.scene.topics.filter { $0.calloutFrame != nil }) { topic in
+                if let bubble = topic.calloutFrame, let callout = topic.callout {
+                    CalloutBubble(bubble: bubble, card: topic.frame) {
+                        CalloutText(text: callout, spec: picture.specs.callout)
+                    }
+                    .position(x: bubble.midX - frame.minX, y: bubble.midY + CanvasMetrics.calloutTailHeight / 2 - frame.minY)
+                }
             }
         }
         .frame(width: frame.width, height: frame.height)
@@ -155,6 +171,8 @@ private struct StaticTopicCard: View {
     let style: TopicStyle
     let spec: TopicTextSpec
     let chipSpec: TopicChipSpec
+    let markSpec: TopicMarkSpec
+    let imageData: Data?
     let variant: ColorVariant
 
     var body: some View {
@@ -164,16 +182,28 @@ private struct StaticTopicCard: View {
             if let stroke = style.stroke {
                 shape.strokeBorder(stroke.color, lineWidth: style.strokeWidth)
             }
-            TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
-                TopicTitleText(
-                    title: topic.title,
-                    spec: spec,
-                    color: style.textColor.color,
-                    placeholderColor: style.secondaryTextColor.color,
-                    width: max(topic.frame.width - 2 * spec.horizontalPadding, 0)
-                )
-            } chip: { chip in
-                TopicChipLabel(chip: chip, spec: chipSpec, variant: variant)
+            VStack(spacing: topic.topicImage == nil ? 0 : CanvasMetrics.imageGap) {
+                if let image = topic.topicImage {
+                    TopicImageView(image: image, level: topic.level, spec: spec, data: imageData)
+                }
+                TopicTitleWithChips(chips: topic.chips, spec: chipSpec) {
+                    TopicTitleRow(
+                        marks: topic.marks, markSpec: markSpec, spec: spec,
+                        width: max(topic.frame.width - 2 * spec.horizontalPadding, 0),
+                        textColor: style.textColor.color, shapeColor: style.edgeColor.color
+                    ) { width, hugsText in
+                        TopicTitleText(
+                            title: topic.title,
+                            spec: spec,
+                            color: style.textColor.color,
+                            placeholderColor: style.secondaryTextColor.color,
+                            width: width,
+                            hugsText: hugsText
+                        )
+                    }
+                } chip: { chip in
+                    TopicChipLabel(chip: chip, spec: chipSpec, variant: variant)
+                }
             }
         }
         .frame(width: topic.frame.width, height: topic.frame.height)
@@ -206,6 +236,7 @@ private final class TopicStyleCache {
     private struct Key: Hashable {
         let level: Int
         let branch: Int
+        let color: TopicColor?
     }
 
     init(theme: MapTheme, colorScheme: ColorScheme) {
@@ -215,9 +246,11 @@ private final class TopicStyleCache {
 
     func style(for topic: CanvasTopic) -> TopicStyle {
         // Levels past 3 look like level 3, as on the canvas.
-        let key = Key(level: min(topic.level, 3), branch: topic.branch)
+        let key = Key(level: min(topic.level, 3), branch: topic.branch, color: topic.color)
         if let style = styles[key] { return style }
-        let style = TopicStyle.resolve(level: key.level, branch: key.branch, theme: theme, colorScheme: colorScheme, contrast: .standard)
+        let style = TopicStyle.resolve(
+            level: key.level, branch: key.branch, color: key.color, theme: theme, colorScheme: colorScheme, contrast: .standard
+        )
         styles[key] = style
         return style
     }

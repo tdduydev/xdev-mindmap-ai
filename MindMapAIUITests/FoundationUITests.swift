@@ -36,13 +36,13 @@ final class FoundationUITests: XCTestCase {
             .show(.outline)
         // Product Launch with Research (holding Interviews), Design and Marketing.
         editor.outlineTopics.waitForCount(5)
-        editor.outlineTopic(titled: UITestFixture.Title.design).waitToExist().tap()
+        editor.outlineTopic(titled: UITestFixture.Title.design).waitToExist().tapOrClick()
 
         editor.tap(.addChild)
         editor.outlineTopics.waitForCount(6)
-        editor.undoButton.tap()
+        editor.undoButton.tapOrClick()
         editor.outlineTopics.waitForCount(5)
-        editor.redoButton.tap()
+        editor.redoButton.tapOrClick()
         editor.outlineTopics.waitForCount(6)
     }
 

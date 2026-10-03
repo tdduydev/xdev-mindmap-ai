@@ -61,6 +61,11 @@ struct EditorStructureCommandTests {
             ("Merge Topics", { session.merge([first, second]) }),
             ("Split Topic", { session.rename(first, to: "One\nTwo"); session.selection = first; session.splitSelection() }),
             ("Add Connection", { _ = session.connect(first, to: second) }),
+            ("Edit Connection", { session.setConnectionLabel("depends on", for: link) }),
+            ("Change Connection Style", { session.setConnectionLineStyle(.solid, for: link) }),
+            ("Change Connection Style", { session.setConnectionArrowHeads(.both, for: link) }),
+            ("Change Connection Style", { session.setConnectionColor(.teal, for: link) }),
+            ("Reverse Connection", { session.reverseConnection(link) }),
             ("Remove Connection", { session.removeConnection(link) }),
             ("Collapse All", { session.collapseAll() }),
             // Something has to be collapsed for Expand All to change anything.

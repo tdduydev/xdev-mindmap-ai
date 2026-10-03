@@ -24,17 +24,19 @@ let package = Package(
         .library(name: "MindMapCapture", targets: ["MindMapCapture"]),
         .library(name: "MindMapQuery", targets: ["MindMapQuery"]),
         .library(name: "MindMapMCP", targets: ["MindMapMCP"]),
+        .library(name: "MindMapImages", targets: ["MindMapImages"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
         .target(name: "MindMapGraph", dependencies: ["MindMapDomain"]),
-        .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph"]),
+        // AICore for the chat's values, which each map saves (MM-55).
+        .target(name: "MindMapPersistence", dependencies: ["MindMapDomain", "MindMapGraph", "MindMapAICore"]),
         .target(name: "MindMapLayout", dependencies: ["MindMapDomain", "MindMapGraph"]),
         .testTarget(name: "MindMapDomainTests", dependencies: ["MindMapDomain"]),
         .testTarget(name: "MindMapGraphTests", dependencies: ["MindMapGraph", "MindMapDomain"]),
         .testTarget(
             name: "MindMapPersistenceTests",
-            dependencies: ["MindMapPersistence", "MindMapDomain", "MindMapGraph"],
+            dependencies: ["MindMapPersistence", "MindMapDomain", "MindMapGraph", "MindMapAICore"],
             resources: [.copy("Fixtures")]
         ),
         .testTarget(name: "MindMapLayoutTests", dependencies: ["MindMapLayout", "MindMapDomain", "MindMapGraph"]),
@@ -104,6 +106,10 @@ let package = Package(
             dependencies: ["MindMapMCP", "MindMapDomain", "MindMapGraph", "MindMapPersistence", "MindMapQuery"],
             resources: [.copy("Fixtures")]
         ),
+        // Topic images (MM-63): ImageIO and Core Graphics only, so the same
+        // processing runs on every platform and in `swift test`.
+        .target(name: "MindMapImages", dependencies: ["MindMapDomain"]),
+        .testTarget(name: "MindMapImagesTests", dependencies: ["MindMapImages", "MindMapDomain"]),
         // A developer tool, not shipped: serves sample maps so the MCP Inspector
         // and real clients can be pointed at the server before the app hosts it.
         .executableTarget(

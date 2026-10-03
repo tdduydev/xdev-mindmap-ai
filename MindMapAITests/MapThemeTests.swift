@@ -71,6 +71,68 @@ struct MapThemeTests {
         #expect(session.selection == selected)
     }
 
+    // MARK: Pro (FR-THM-02)
+
+    @Test func aProThemeWithoutProOpensThePaywallAndKeepsTheMap() async throws {
+        let session = try await open(.newMap(title: "Plan"))
+        let undoManager = UndoManager()
+        session.undoManager = undoManager
+
+        session.chooseTheme(.graphite, entitlements: Entitlements(isPro: false))
+
+        #expect(session.map.theme == .standard)
+        #expect(!undoManager.canUndo)
+        #expect(session.pendingThemeChoice?.feature == .extraThemes)
+    }
+
+    @Test func standardNeverAsksForPro() async throws {
+        let session = try await open(.newMap(title: "Plan", theme: .xdevBlue))
+
+        session.chooseTheme(.standard, entitlements: Entitlements(isPro: false))
+
+        #expect(session.map.theme == .standard)
+        #expect(session.pendingThemeChoice == nil)
+    }
+
+    /// Only the choice is locked: a map made with Pro keeps its theme without it.
+    @Test func aMapWithAProThemeKeepsItWithoutPro() async throws {
+        let session = try await open(.newMap(title: "Plan", theme: .graphite))
+
+        session.chooseTheme(.graphite, entitlements: Entitlements(isPro: false))
+
+        #expect(session.map.theme == .graphite)
+    }
+
+    /// Unlocking Pro on the paywall applies the theme as one "Change Theme" step.
+    @Test func theThemeChangesOnceProIsUnlocked() async throws {
+        let session = try await open(.newMap(title: "Plan"))
+        let undoManager = UndoManager()
+        undoManager.groupsByEvent = false
+        session.undoManager = undoManager
+        session.chooseTheme(.xdevBlue, entitlements: Entitlements(isPro: false))
+        let pending = try #require(session.pendingThemeChoice)
+
+        undoManager.beginUndoGrouping()
+        pending.apply()
+        undoManager.endUndoGrouping()
+        #expect(session.map.theme == .xdevBlue)
+        #expect(undoManager.undoActionName == String(localized: "Change Theme"))
+
+        undoManager.undo()
+        #expect(session.map.theme == .standard)
+        undoManager.redo()
+        #expect(session.map.theme == .xdevBlue)
+    }
+
+    @Test func withProAThemeChangesStraightAway() async throws {
+        let session = try await open(.newMap(title: "Plan"))
+
+        session.chooseTheme(.graphite, entitlements: Entitlements(isPro: true))
+
+        #expect(session.map.theme == .graphite)
+        #expect(session.pendingThemeChoice == nil)
+    }
+
     // MARK: Resolving colours
 
     @Test func storedThemesResolveToTheirPalettes() {
@@ -139,4 +201,9 @@ struct MapThemeTests {
     }
 
     private struct OpenFailed: Error {}
+}
+
+private struct Entitlements: ProEntitlements {
+    let isPro: Bool
+    func allows(_ feature: ProFeature) -> Bool { isPro }
 }

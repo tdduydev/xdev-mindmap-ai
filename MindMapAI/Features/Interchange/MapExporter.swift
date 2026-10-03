@@ -11,15 +11,25 @@ import UniformTypeIdentifiers
 enum MapExporter {
     /// - Parameter colorScheme: The appearance a picture takes when its
     ///   background matches the appearance.
-    static func data(for graph: GraphState, options: ExportOptions, colorScheme: ColorScheme) async throws -> Data {
+    /// - Parameter imageData: The bytes of the map's images, which only a
+    ///   backup writes (`MapRepository.imageData(of:)`).
+    static func data(
+        for graph: GraphState,
+        options: ExportOptions,
+        colorScheme: ColorScheme,
+        imageData: [ImageID: Data] = [:]
+    ) async throws -> Data {
         if let format = options.format.interchange {
-            return try await format.exportData(graph, branch: options.branch, includeNotes: options.includeNotes)
+            // A file keeps the connections; copy (EditorSession.markdown) leaves
+            // them out, since paste makes new topics they could not point to.
+            return try await format.exportData(graph, branch: options.branch, includeNotes: options.includeNotes,
+                connectionsTitle: String(localized: "Connections:"))
         }
         // The whole map whatever the sheet's branch says: a backup is the map.
         if options.format == .backup {
-            return try await MapArchive.exportData(graph)
+            return try await MapArchive.exportData(graph, imageData: imageData)
         }
-        let picture = await MapPicture.make(graph)
+        let picture = await MapPicture.make(graph, imageData: imageData)
         switch options.format {
         case .png:
             return try MapRenderer.png(

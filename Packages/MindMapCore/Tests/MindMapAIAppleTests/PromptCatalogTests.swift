@@ -32,6 +32,20 @@ struct PromptCatalogTests {
 
         let english = catalog.instructions(for: feature, language: .english, userLocaleIdentifier: "en_US")
         #expect(english.hasSuffix("You MUST respond in English."))
+
+        let japanese = catalog.instructions(for: feature, language: .japanese, userLocaleIdentifier: "ja_JP")
+        #expect(japanese.contains("The person's locale is ja_JP."))
+        #expect(japanese.hasSuffix("You MUST respond in Japanese."))
+    }
+
+    @Test func japaneseChatAndRewriteNameJapanese() throws {
+        let chat = catalog.chatPrompt(question: "発売日はいつ？", mapTitle: "製品発売", language: .japanese)
+        #expect(chat.contains("Map: 製品発売"))
+        #expect(chat.contains("Question: 発売日はいつ？"))
+        #expect(chat.hasSuffix("You MUST respond in Japanese."))
+
+        let rewrite = catalog.prompt(for: RewriteRequest(context: try context(), style: .japanese))
+        #expect(rewrite.hasSuffix("Translate it into Japanese."))
     }
 
     @Test func thePersonsTextGoesInThePromptKeptAsWritten() throws {

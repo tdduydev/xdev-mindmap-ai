@@ -2,6 +2,7 @@ import Foundation
 import OSLog
 import MindMapDomain
 import MindMapGraph
+import MindMapPersistence
 import SwiftUI
 
 /// File ▸ Export…: the format and its options, then the save panel. The file
@@ -45,6 +46,7 @@ struct ExportSheet: View {
                             Text(format.title).tag(format)
                         }
                     }
+                    .accessibilityIdentifier(AccessibilityID.Export.format)
                 }
                 switch options.format {
                 case .markdown, .plainText:
@@ -64,10 +66,12 @@ struct ExportSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel", action: onClose)
+                        .accessibilityIdentifier(AccessibilityID.Export.cancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Export…", action: prepare)
                         .disabled(isPreparing || lockedFeature != nil)
+                        .accessibilityIdentifier(AccessibilityID.Export.export)
                 }
             }
         }
@@ -162,11 +166,15 @@ struct ExportSheet: View {
         var options = options
         options.branch = scope == .selectedBranch ? selectedBranch : nil
         let graph = session.engine.state
+        let repository = session.repository
         isPreparing = true
         Task {
             defer { isPreparing = false }
             do {
-                file = ExportedFile(data: try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme))
+                await session.flush()
+                let imageData = [ExportFormat.backup, .png, .pdf].contains(options.format)
+                    ? try await repository.imageData(of: graph) : [:]
+                file = ExportedFile(data: try await MapExporter.data(for: graph, options: options, colorScheme: colorScheme, imageData: imageData))
             } catch {
                 Log.interchange.error("Making an export failed: \(String(describing: error), privacy: .private)")
                 failed = true

@@ -1,4 +1,7 @@
 import XCTest
+#if os(macOS)
+import AppKit
+#endif
 
 /// The app under test, launched in the UI test mode (docs/testing.md): an
 /// in-memory store holding `fixture`, throwaway preferences, no animation,
@@ -8,11 +11,13 @@ struct MindMapApp {
     enum Language: String {
         case english = "en"
         case vietnamese = "vi"
+        case japanese = "ja"
 
         var locale: String {
             switch self {
             case .english: "en_US"
             case .vietnamese: "vi_VN"
+            case .japanese: "ja_JP"
             }
         }
     }
@@ -85,5 +90,49 @@ extension XCUIElementQuery {
         let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "count == %d", count), object: self)
         let result = XCTWaiter().wait(for: [expectation], timeout: timeout)
         XCTAssertEqual(result, .completed, "expected \(count) elements, found \(self.count)", file: file, line: line)
+    }
+}
+
+@MainActor
+extension XCUIElement {
+    /// Taps on iOS, clicks on macOS. On macOS 27 with Xcode 27, `tap()` is
+    /// played back as a touch through a virtual HID device that WindowServer
+    /// refuses to create for testmanagerd (missing the
+    /// `com.apple.private.hid.client.event-dispatch` entitlement), so the tap
+    /// never lands and XCTest only times out after 5 s; `click()` sends a mouse event.
+    func tapOrClick() {
+        #if os(macOS)
+        click()
+        #else
+        tap()
+        #endif
+    }
+
+    /// Types `text` into the focused field. On macOS, XCTest synthesizes
+    /// typing through the current keyboard layout, and a character the layout
+    /// cannot produce (Vietnamese "ế", "ữ") stalls until "Timed out while
+    /// synthesizing event", so such text is pasted instead and the previous
+    /// clipboard is put back, since the Mac is shared with its user.
+    func enterText(_ text: String) {
+        #if os(macOS)
+        guard !text.allSatisfy(\.isASCII) else {
+            typeText(text)
+            return
+        }
+        let pasteboard = NSPasteboard.general
+        let previous = pasteboard.string(forType: .string)
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        typeKey("v", modifierFlags: .command)
+        pasteboard.clearContents()
+        if let previous { pasteboard.setString(previous, forType: .string) }
+        #else
+        typeText(text)
+        #endif
+    }
+
+    /// The text a static text shows: its label on iOS, its value on macOS.
+    var shownText: String {
+        label.isEmpty ? (value as? String ?? "") : label
     }
 }

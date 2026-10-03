@@ -135,8 +135,9 @@ public struct MapQueries: Sendable {
     /// Topics whose title or note holds every word of `text`, with the same
     /// folding as Find. Title matches come first, then note matches; within
     /// each, maps go most recently edited first and topics in reading order.
-    /// `mapID` nil searches every live map.
-    public func search(_ text: String, in mapID: MapID? = nil, limit: Int) async throws -> [TopicHit] {
+    /// `mapID` nil searches every live map. `branch` keeps only that topic and
+    /// the topics under it, in the maps searched.
+    public func search(_ text: String, in mapID: MapID? = nil, under branch: NodeID? = nil, limit: Int) async throws -> [TopicHit] {
         let query = SearchQuery(text)
         guard limit > 0, !query.isEmpty else { return [] }
 
@@ -153,6 +154,7 @@ public struct MapQueries: Sendable {
             }
             for id in MapFind.matches(query, in: state) {
                 guard let node = state.node(id) else { continue }
+                if let branch, id != branch, !state.ancestors(of: id).contains(branch) { continue }
                 let ref = TopicRef(mapID: candidate, nodeID: id)
                 let path = state.ancestors(of: id).reversed().compactMap { state.node($0).map { Self.singleLine($0.title) } }
                 if query.matches(node.title) {

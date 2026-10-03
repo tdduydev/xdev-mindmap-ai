@@ -13,7 +13,17 @@ public protocol MindMapLayoutEngine: Sendable {
     ///
     /// - Parameter sizes: The measured size of each topic. A topic missing from
     ///   the table gets `options.defaultNodeSize`.
-    func layout(_ graph: GraphState, sizes: [NodeID: CGSize], options: LayoutOptions) -> MapLayout
+    /// - Parameter callouts: The measured bubble of each topic with a callout
+    ///   (FR-ORG-30). The bubble sits above the card and its room is reserved,
+    ///   so it never covers another topic. A topic whose bubble changed for a
+    ///   reason other than a command (a bubble opened for typing) must be in
+    ///   `changed` on `update`, as for sizes.
+    func layout(
+        _ graph: GraphState,
+        sizes: [NodeID: CGSize],
+        callouts: [NodeID: CGSize],
+        options: LayoutOptions
+    ) -> MapLayout
 
     /// Lays out the graph again after an edit, reusing `previous` for the
     /// branches the edit did not touch.
@@ -26,6 +36,7 @@ public protocol MindMapLayoutEngine: Sendable {
         _ previous: MapLayout,
         graph: GraphState,
         sizes: [NodeID: CGSize],
+        callouts: [NodeID: CGSize],
         options: LayoutOptions,
         changed: Set<NodeID>
     ) -> MapLayout
@@ -37,10 +48,27 @@ extension MindMapLayoutEngine {
         _ previous: MapLayout,
         graph: GraphState,
         sizes: [NodeID: CGSize],
+        callouts: [NodeID: CGSize],
         options: LayoutOptions,
         changed: Set<NodeID>
     ) -> MapLayout {
-        layout(graph, sizes: sizes, options: options)
+        layout(graph, sizes: sizes, callouts: callouts, options: options)
+    }
+
+    /// A map without callouts.
+    public func layout(_ graph: GraphState, sizes: [NodeID: CGSize], options: LayoutOptions) -> MapLayout {
+        layout(graph, sizes: sizes, callouts: [:], options: options)
+    }
+
+    /// A map without callouts.
+    public func update(
+        _ previous: MapLayout,
+        graph: GraphState,
+        sizes: [NodeID: CGSize],
+        options: LayoutOptions,
+        changed: Set<NodeID>
+    ) -> MapLayout {
+        update(previous, graph: graph, sizes: sizes, callouts: [:], options: options, changed: changed)
     }
 }
 
@@ -55,17 +83,38 @@ public struct LayoutOptions: Equatable, Sendable {
     public var verticalSpacing: CGFloat
     /// Used for a topic the caller has not measured yet.
     public var defaultNodeSize: CGSize
+    /// From a callout bubble's bottom edge to its card's top: the tail and the
+    /// gap past it.
+    public var calloutSpacing: CGFloat
+    /// From a boundary's members to its frame, reserved above and below the run.
+    public var boundaryPadding: CGFloat
+    /// Room reserved above a titled boundary's members for its title capsule.
+    public var boundaryTitleHeight: CGFloat
+    /// From the outermost edge of a summary's run to its bracket.
+    public var summaryBracketGap: CGFloat
+    /// How far a summary bracket reaches from its back to its tip.
+    public var summaryBracketWidth: CGFloat
 
     public init(
         sides: BranchSides = .balanced,
         horizontalSpacing: CGFloat = 48,
         verticalSpacing: CGFloat = 16,
-        defaultNodeSize: CGSize = CGSize(width: 120, height: 36)
+        defaultNodeSize: CGSize = CGSize(width: 120, height: 36),
+        calloutSpacing: CGFloat = 14,
+        boundaryPadding: CGFloat = 8,
+        boundaryTitleHeight: CGFloat = 20,
+        summaryBracketGap: CGFloat = 8,
+        summaryBracketWidth: CGFloat = 12
     ) {
         self.sides = sides
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
         self.defaultNodeSize = defaultNodeSize
+        self.calloutSpacing = calloutSpacing
+        self.boundaryPadding = boundaryPadding
+        self.boundaryTitleHeight = boundaryTitleHeight
+        self.summaryBracketGap = summaryBracketGap
+        self.summaryBracketWidth = summaryBracketWidth
     }
 }
 

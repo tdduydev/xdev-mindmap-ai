@@ -44,12 +44,12 @@ struct LibraryPage {
             #if os(iOS)
             if !sidebar.exists {
                 // An open map on iPhone: back to the list, which is below it in the stack.
-                app.navigationBars.buttons.element(boundBy: 0).tap()
+                app.navigationBars.buttons.element(boundBy: 0).tapOrClick()
             }
             #endif
             if !list.waitForExistence(timeout: MindMapApp.timeout / 3) {
                 sidebar.waitToExist(file: file, line: line)
-                sidebar.cells.firstMatch.tap()
+                sidebar.cells.firstMatch.tapOrClick()
             }
         }
         list.waitToExist(file: file, line: line)
@@ -62,7 +62,7 @@ struct LibraryPage {
         #if os(iOS)
         // On iPhone the sidebar is the screen below the list.
         if !sectionRow(section).waitForExistence(timeout: MindMapApp.timeout / 3) {
-            app.navigationBars.buttons.element(boundBy: 0).tap()
+            app.navigationBars.buttons.element(boundBy: 0).tapOrClick()
         }
         #endif
         return sectionRow(section).waitToExist(file: file, line: line)
@@ -71,26 +71,51 @@ struct LibraryPage {
     /// Picks a section in the sidebar and waits for its list.
     @discardableResult
     func select(_ section: Section, file: StaticString = #filePath, line: UInt = #line) -> LibraryPage {
-        showSectionRow(section, file: file, line: line).tap()
+        showSectionRow(section, file: file, line: line).tapOrClick()
         list.waitToExist(file: file, line: line)
         return self
     }
 
     func createMap(file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
-        newMapButton.waitToExist(file: file, line: line).tap()
+        newMapButton.waitToExist(file: file, line: line).tapOrClick()
         return EditorPage(app: app).waitUntilOpen(file: file, line: line)
     }
 
+    /// Taps Import…. On iPhone it is in the toolbar's More menu, whose items
+    /// lose their identifiers, so there it is found by its symbol.
+    func tapImport(file: StaticString = #filePath, line: UInt = #line) {
+        let button = app.buttons[AccessibilityID.Library.importMap].firstMatch
+        #if os(iOS)
+        if !button.waitForExistence(timeout: MindMapApp.timeout / 6) {
+            let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
+            overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist(file: file, line: line).tapOrClick()
+            app.collectionViews.buttons.containing(.image, identifier: "square.and.arrow.down").firstMatch
+                .waitToExist(file: file, line: line).tapOrClick()
+            return
+        }
+        #endif
+        button.waitToExist(file: file, line: line).tapOrClick()
+    }
+
     func open(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
-        map(titled: title).waitToExist(file: file, line: line).tap()
-        return EditorPage(app: app).waitUntilOpen(file: file, line: line)
+        let row = map(titled: title).waitToExist(file: file, line: line)
+        let editor = EditorPage(app: app)
+        row.tapOrClick()
+        #if os(macOS)
+        // The first click on a Mac sometimes only brings the window forward,
+        // when a system prompt or another app held the focus at launch.
+        if !editor.presentationPicker.waitForExistence(timeout: MindMapApp.timeout / 3) {
+            row.tapOrClick()
+        }
+        #endif
+        return editor.waitUntilOpen(file: file, line: line)
     }
 
     /// Types into the search field; the list then shows the matching maps.
     @discardableResult
     func search(_ text: String, file: StaticString = #filePath, line: UInt = #line) -> LibraryPage {
         let field = searchField.waitToExist(file: file, line: line)
-        field.tap()
+        field.tapOrClick()
         field.typeText(text)
         return self
     }

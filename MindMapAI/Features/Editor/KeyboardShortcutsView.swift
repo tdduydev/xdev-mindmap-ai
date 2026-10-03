@@ -46,11 +46,23 @@ struct KeyboardShortcutsView: View {
         ShortcutGroup(title: "Topics", shortcuts: [
             Shortcut(keys: "⌘↩", action: "Add Sibling Topic"),
             Shortcut(keys: "⇧⌘↩", action: "Add Child Topic"),
+            Shortcut(keys: "⌥⌘↩", action: "Add Floating Topic"),
             Shortcut(keys: "⇧⌘E", action: "Edit Note"),
             Shortcut(keys: "⌘K", action: "Add Link…"),
             Shortcut(keys: "⇧⌘O", action: "Open Link"),
+            Shortcut(keys: "⌘L", action: "Add Connection…"),
+            Shortcut(keys: "⌥⌘I", action: "Add Image…"),
+            Shortcut(keys: "⌥⇧⌘↩", action: "Add Callout"),
             Shortcut(keys: "⇧⌘T", action: "Add Tag…"),
             Shortcut(keys: "⌥⇧⌘T", action: "Manage Tags…"),
+            Shortcut(keys: "⇧⌘K", action: "Make Task"),
+            Shortcut(keys: "⌥⌘K", action: "Mark as Done"),
+            Shortcut(keys: "⌥⌘1", action: "High Priority"),
+            Shortcut(keys: "⌥⌘2", action: "Medium Priority"),
+            Shortcut(keys: "⌥⌘3", action: "Low Priority"),
+            Shortcut(keys: "⌥⇧⌘K", action: "Set Task Dates…"),
+            Shortcut(keys: "⌥⌘B", action: "Add Boundary"),
+            Shortcut(keys: "⌥⌘]", action: "Add Summary"),
             Shortcut(keys: "⌘D", action: "Duplicate Topic"),
             Shortcut(keys: "⌫", action: "Delete Topic"),
         ]),
@@ -80,12 +92,15 @@ struct KeyboardShortcutsView: View {
         Shortcut(words: "⌘-drag", action: "Select topics in a rectangle"),
         Shortcut(words: "⇧-drag", action: "Add topics in a rectangle"),
         Shortcut(words: "Drag a topic", action: "Move it, or drop it on another topic"),
+        Shortcut(words: "Double-click empty canvas", action: "Add Floating Topic"),
+        Shortcut(words: "⌥-drag a topic to empty canvas", action: "Detach Topic"),
     ]
     #else
     // Gestures on iOS read no modifier keys; touch has its own ways.
     private static let pointerShortcuts = [
         Shortcut(words: "Hold, then drag", action: "Select topics in a rectangle"),
         Shortcut(words: "Drag a topic", action: "Move it, or drop it on another topic"),
+        Shortcut(words: "Double-tap empty canvas", action: "Add Floating Topic"),
     ]
     #endif
 

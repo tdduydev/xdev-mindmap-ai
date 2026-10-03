@@ -43,6 +43,12 @@ Only the view knows how a title wraps, so the canvas measures. Each level has a 
 - Below 30% (`CanvasMetrics.detailZoomThreshold`) titles are under 4 pt and unreadable; topics become filled shapes in the edge layer, so a zoomed-out large map draws one `Canvas`, not hundreds of views. A tap there selects the topic under it; a double tap edits it and zooms back to 100%.
 - Zoom to Fit stops at 10%, so a tall map does not always fit: the 1,000-topic test map is 2,487 × 15,812 pt and shows about 680 topics in a 1000 × 700 view.
 
+### First view (FR-CNV-01, MM-84)
+
+- On Mac and iPad a map opens as Zoom to Fit does: the whole map in view with `CanvasMetrics.fitPadding` around it, never above 100%, so a small map opens at actual size in the middle and a large one is not cut off. Only a map that needs less than 10% still overflows (see above).
+- On iPhone (compact width) the central topic and its children are fitted to the width, and at accessibility text sizes to the view (`CanvasModel.InitialPlacement`), since the whole map would be too small to read there.
+- Until the camera moves (pan, zoom, reveal, editing a title) or the map is edited, the first view is placed again whenever the view size or the layout changes. The window settling at its restored size, the inspector opening or Dynamic Type remeasuring would otherwise leave a map fitted to a size the view no longer has. `viewport`'s `didSet` notices any other camera change and stops this.
+
 ### Measured (Mac M1)
 
 `timingsForAThousandTopics` and `frameWorkForAThousandTopics` print these; they do not fail on time. The release column comes from running those two tests with `-configuration Release ENABLE_TESTABILITY=YES ENABLE_HARDENED_RUNTIME=NO` (the hardened runtime refuses to load the test bundle into a Release app).
@@ -87,14 +93,24 @@ The Mac's scroll events reach SwiftUI's hosting view rather than a background vi
 - **Clipboard.** Copy writes the selected branches as a nested Markdown list (`MarkdownOutline.export` with no heading levels, one branch after another), notes as indented paragraphs; paste reads Markdown lists, headings or any indented lines with `InterchangeFormat.markdown.parse` and adds them under the selected topic with one `InsertOutlineCommand` (origin `.user`), then selects the new top-level topics (FR-EDT-14). See [[interchange]]. On the Mac the canvas answers Edit ▸ Cut, Copy, Paste and Select All (`onCopyCommand`, `onCutCommand`, `onPasteCommand`, `onCommand(selectAll:)`); SwiftUI's `copyable`/`pasteDestination` need iOS 27, so on iOS the keys come through `onKeyPress` and the context menu. The session writes through `TextClipboard` (`SystemClipboard` per platform, `MemoryClipboard` in tests), so it does not branch by platform.
 - **Context menu** on each topic (FR-KBD-03): Add Child, Add Sibling, Rename, Duplicate, Cut, Copy, Paste, Collapse/Expand, Delete. Opened on a selected topic it acts on the selection, otherwise on that topic alone; Paste goes under the topic it opened on. The AI actions (MM-8) follow; a suggestion keeps its own menu (Accept, Edit, Discard), is selected alone, and is neither dragged nor a drop target.
 
+## Floating topics (MM-62)
+
+The rules are in [[node-organization]] *Floating topics*; the commands are MindMapGraph's (MM-61), named in `EditorSession+FloatingTopics`.
+
+- **Add.** A double-click or double-tap on empty canvas (`CanvasModel.doubleTap`) makes an empty floating topic centred there and opens its title. Topic ▸ Add Floating Topic (⌥⌘↩) and the empty canvas's context menu (Mac only: on touch a hold on empty canvas is the selection rectangle) ask `CanvasModel.freeFloatingSpot()`, handed to the session as `floatingTopicPlacement`: the middle of the view, moved down by `CanvasMetrics.floatingTopicNudge` until a level-1 card there overlaps no topic (at most `floatingTopicNudgeLimit` steps). With no canvas laid out (outline only) it goes `floatingTopicFallbackOffset` below the central topic.
+- **Move and detach.** A floating topic dragged alone and dropped on empty canvas stores its new centre ("Move Topic"); a drop over its own branch is not refused for it. Dropped on a topic it attaches there with the MM-5 drop rules. A tree branch dropped on empty canvas with ⌥ held at the drop becomes floating there ("Detach Topic"); without ⌥ the drop stays cancelled. Topic ▸ Detach Topic places it with the Add rule.
+- **Attach to Topic…** (Topic menu, context menu, VoiceOver action) opens `AttachFloatingTopicSheet`, listing the outline rows the topic may move under (`canMove`), indented by depth.
+- **Disabled on a floating topic:** Add Sibling Topic (adds a child, as on the central topic), Duplicate, Promote, Demote, Detach. The + button for a sibling is not shown.
+- **Outline.** Floating branches come after the main tree under a "Floating Topics" section; their rows read "Floating topic" to VoiceOver.
+
 ## Accessibility
 
-Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does), actions Collapse/Expand, Add Child Topic, Add Sibling Topic (not on the central topic), Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. At accessibility text sizes (iOS, iPadOS) the canvas opens with the central topic and its children fitted to the view. The outline stays the full alternative (FR-EDT-16).
+Each topic in view is one element: label the title, value "Level n, m subtopics" (levels count as the outline does; "Floating topic, m subtopics" for a floating topic), actions Collapse/Expand, Add Child Topic, Add Sibling Topic and Detach Topic (not on the central topic or a floating topic), Attach to Topic… (floating topics only), Rename Topic, Delete Topic. A Topics rotor lists every visible topic of the map, floating branches after the main tree, and scrolls to the one chosen. Adding a topic posts an announcement. Below the detail zoom, empty frames keep the same elements. At accessibility text sizes (iOS, iPadOS) the canvas opens with the central topic and its children fitted to the view (see First view). The outline stays the full alternative (FR-EDT-16).
 
 ## Not done yet
 
 - Camera and relayout animation (`Motion.camera`, `Motion.relayout`): the edge layer is not animatable yet, so topics would move while their edges jump. Everything moves at once for now; only the selection ring animates (`Motion.selection`).
 - A frame-rate measurement with Instruments on a Mac and an iPad at 1,000 topics, including the empty VoiceOver frames kept below the detail zoom.
 - Per-level gaps: `LayoutOptions` takes one horizontal and one vertical gap, so the canvas uses the sub-topic gaps (40, 10) for every level.
-- Cross-link labels and cross-links in each topic's accessibility custom content, and links whose end is collapsed (not drawn today): designed in [[node-organization]] for MM-33.
+- Connections (MM-33, [[node-organization]] *Connections*): built except the connect mode (pointer crosshair), Space on a selected connection and a Connections rotor.
 - Auto-scrolling while a drag nears the edge of the view, and moving topics with the keyboard (no shortcut for Move Up/Down yet).

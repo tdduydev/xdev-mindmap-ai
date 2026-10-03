@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SidebarView: View {
     @Binding var selection: LibrarySection?
+    var environment: AppEnvironment? = nil
     #if os(iOS)
     @State private var isShowingSettings = false
     #endif
@@ -16,14 +17,24 @@ struct SidebarView: View {
             .accessibilityIdentifier(AccessibilityID.Sidebar.section(section.rawValue))
         }
         .accessibilityIdentifier(AccessibilityID.Sidebar.list)
-        .safeAreaInset(edge: .bottom, spacing: 0) { CloudSyncStatusLine() }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 0) {
+                CloudSyncStatusLine()
+                #if os(macOS)
+                SettingsButton(accessibilityID: AccessibilityID.Sidebar.settings)
+                    .buttonStyle(.borderless)
+                    .frame(maxWidth: .infinity, minHeight: Metrics.minimumHitTarget, alignment: .leading)
+                    .padding(.horizontal, Spacing.lg)
+                #endif
+            }
+        }
         #if os(macOS)
         // No title here: on the Mac it can end up as the window title, and the
         // HIG asks for the content's name there, not the app's.
         .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         #else
         .navigationTitle("MindMap AI")
-        // The Mac opens Settings from the app menu (⌘,); iPad and iPhone need a button.
+        // The Mac has ⌘, and the footer button above; iPad and iPhone show a sheet.
         .toolbar {
             ToolbarItem {
                 Button {
@@ -35,7 +46,10 @@ struct SidebarView: View {
             }
         }
         .sheet(isPresented: $isShowingSettings) {
-            SettingsView()
+            SettingsView(environment: environment, showRecentlyDeleted: {
+                selection = .recentlyDeleted
+                isShowingSettings = false
+            })
         }
         .focusedSceneValue(\.showSettingsAction, ShowSettingsAction { isShowingSettings = true })
         #endif

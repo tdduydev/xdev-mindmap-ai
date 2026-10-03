@@ -15,6 +15,8 @@ struct CanvasView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// Adds the colour's shape before a coloured topic's title (FR-ORG-02).
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -36,6 +38,7 @@ struct CanvasView: View {
             )
                 .allowsHitTesting(false)
             if model.isDetailed {
+                callouts
                 topics
                 addButtons
             } else {
@@ -43,6 +46,14 @@ struct CanvasView: View {
             }
             CanvasDragLayer(model: model, colorScheme: colorScheme, contrast: contrast)
                 .allowsHitTesting(false)
+            if let id = model.editingConnectionLabel, let anchor = model.connectionLabelAnchor(id) {
+                ConnectionLabelField(model: model, edgeID: id)
+                    .position(anchor)
+            }
+            if let id = model.editingBoundaryTitle, let anchor = model.boundaryTitleAnchor(id) {
+                BoundaryTitleField(model: model, groupID: id)
+                    .position(anchor)
+            }
         }
         .coordinateSpace(.named(Self.coordinateSpace))
         .clipped()
@@ -94,6 +105,8 @@ struct CanvasView: View {
         }
         .onChange(of: isFocused) { _, focused in model.hasKeyboardFocus = focused }
         .onChange(of: dynamicTypeSize) { model.setTextSpecs(textSpecs) }
+        .onChange(of: differentiateWithoutColor) { model.setTextSpecs(textSpecs) }
+        .onChange(of: session.calloutEditorTarget) { model.calloutEditingDidChange() }
         .onChange(of: session.focusRequest) { model.takeFocusRequest() }
         .onChange(of: session.selection) {
             if model.editingID == nil { isFocused = true }
@@ -116,6 +129,7 @@ struct CanvasView: View {
             .gesture(pan)
             .simultaneousGesture(holdThenMarquee)
             #endif
+            // On a topic shape it edits; on empty canvas it adds a floating topic there.
             .onTapGesture(count: 2) { model.doubleTap(at: $0) }
             .simultaneousGesture(SpatialTapGesture().onEnded { value in
                 model.tap(at: value.location)
@@ -123,6 +137,12 @@ struct CanvasView: View {
             })
             #if os(macOS)
             .pointerStyle(model.isPanning ? .grabActive : .grabIdle)
+            // Touch keeps the hold on empty canvas for the selection rectangle;
+            // it adds floating topics by double-tap and the Topic menu.
+            .contextMenu {
+                Button("Add Floating Topic", action: model.addFloatingTopic)
+                    .disabled(!session.canAddFloatingTopic)
+            }
             #endif
             .accessibilityHidden(true)
     }
@@ -169,6 +189,24 @@ struct CanvasView: View {
                     .onHover { model.setHovering(topic.id, part: .addSibling, $0) }
                     .position(CanvasAddButtonPlacement.center(for: topic, viewport: model.viewport, sibling: true))
                 }
+            }
+        }
+    }
+
+    /// Callout bubbles above their topics (FR-ORG-30). Their room is reserved
+    /// in the layout, so they cover no topic.
+    private var callouts: some View {
+        let editing = session.calloutEditorTarget
+        return ForEach(model.visibleTopics.filter { $0.calloutFrame != nil }) { topic in
+            if let bubble = topic.calloutFrame, let spec = model.calloutSpec {
+                CanvasCalloutView(topic: topic, bubble: bubble, spec: spec, isEditing: topic.id == editing, model: model)
+                    .id(topic.id == editing)
+                    .scaleEffect(model.viewport.scale)
+                    // The view is the bubble plus its tail below it.
+                    .position(model.viewport.toView(CGPoint(
+                        x: bubble.midX,
+                        y: bubble.midY + CanvasMetrics.calloutTailHeight / 2
+                    )))
             }
         }
     }
@@ -269,11 +307,11 @@ struct CanvasView: View {
     private var textSpecs: TopicTextSpecs {
         #if os(iOS)
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(dynamicTypeSize))
-        return .make { style in
+        return .make(showsColorShapes: differentiateWithoutColor) { style in
             UIFontMetrics(forTextStyle: style.textStyle.uiTextStyle).scaledValue(for: style.size, compatibleWith: traits)
         }
         #else
-        return .designSizes()
+        return .designSizes(showsColorShapes: differentiateWithoutColor)
         #endif
     }
 }

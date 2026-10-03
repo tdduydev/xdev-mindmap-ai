@@ -17,9 +17,9 @@ final class FindUITests: XCTestCase {
         editor.waitForFindStatus("1 of 2")
         XCTAssertTrue(editor.findNextButton.isEnabled)
 
-        editor.findNextButton.tap()
+        editor.findNextButton.tapOrClick()
         editor.waitForFindStatus("2 of 2")
-        editor.findPreviousButton.tap()
+        editor.findPreviousButton.tapOrClick()
         editor.waitForFindStatus("1 of 2")
     }
 
@@ -41,7 +41,7 @@ final class FindUITests: XCTestCase {
     func testDoneClosesTheFindBar() {
         let editor = openPlan().find("Design")
         editor.waitForFindStatus("1 of 1")
-        editor.findDoneButton.tap()
+        editor.findDoneButton.tapOrClick()
         XCTAssertTrue(editor.findField.waitForNonExistence(timeout: MindMapApp.timeout))
     }
 

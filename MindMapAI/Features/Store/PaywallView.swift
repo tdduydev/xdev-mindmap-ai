@@ -14,6 +14,7 @@ struct PaywallView: View {
     @Environment(AIService.self) private var ai: AIService?
     @Environment(\.purchase) private var purchase
     @Environment(\.dismiss) private var dismiss
+    @State private var isRedeeming = false
 
     var body: some View {
         NavigationStack {
@@ -24,9 +25,9 @@ struct PaywallView: View {
                             .font(Typography.paywallTitle)
                         Group {
                             if includesAI {
-                                Text("Pro adds extra export formats, themes, AI tools and voice input. Maps, topics, sync and everything else stay free.")
+                                Text("Pro adds extra export formats, themes, AI tools and voice input. Maps, topics and everything else stay free.")
                             } else {
-                                Text("Pro adds extra export formats, themes and voice input. Maps, topics, sync and everything else stay free.")
+                                Text("Pro adds extra export formats, themes and voice input. Maps, topics and everything else stay free.")
                             }
                         }
                         .foregroundStyle(.secondary)
@@ -51,6 +52,9 @@ struct PaywallView: View {
                         Task { await store.restorePurchases() }
                     }
                     .disabled(store.restoreState == .restoring)
+                    if !store.isUnlocked {
+                        Button("Redeem Code…") { isRedeeming = true }
+                    }
                 } footer: {
                     Text("A one-time purchase, not a subscription. Payment is charged to your Apple Account.")
                 }
@@ -63,9 +67,11 @@ struct PaywallView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(store.isUnlocked ? "Done" : "Not Now") { dismiss() }
+                        .accessibilityIdentifier(AccessibilityID.Paywall.close)
                 }
             }
             .restoreResultAlert(store)
+            .redeemCodeSheet(isPresented: $isRedeeming)
         }
         #if os(macOS)
         .frame(width: Metrics.paywallWidth)
@@ -111,6 +117,7 @@ struct PaywallView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(store.purchaseState == .purchasing)
+                .accessibilityIdentifier(AccessibilityID.Paywall.purchase)
 
                 switch store.purchaseState {
                 case .pending:
@@ -127,31 +134,41 @@ struct PaywallView: View {
     }
 }
 
-/// Settings ▸ MindMap AI Pro: status, the paywall and Restore Purchases (App Review 3.1.1).
+/// Settings ▸ MindMap AI Pro: status, the paywall, Restore Purchases (App Review 3.1.1)
+/// and Redeem Code for a Pro gift code.
 struct ProSettingsSection: View {
     @Environment(ProEntitlement.self) private var store
     @State private var isShowingPaywall = false
+    @State private var isRedeeming = false
 
     var body: some View {
         Section {
             LabeledContent("Status", value: store.isUnlocked ? String(localized: "Unlocked") : String(localized: "Not unlocked"))
+                // On the one row that is always there: a modifier on a Section
+                // goes to each of its rows, and one paywall sheet per row on one
+                // binding made iOS close Settings instead of showing it (MM-90).
+                .redeemCodeSheet(isPresented: $isRedeeming)
+                .sheet(isPresented: $isShowingPaywall) {
+                    PaywallView()
+                }
+                // The paywall shows its own result while it is open; one alert at a time.
+                .restoreResultAlert(store, isActive: !isShowingPaywall)
             if !store.isUnlocked {
                 Button("See What’s in Pro…") { isShowingPaywall = true }
+                    .accessibilityIdentifier(AccessibilityID.Settings.showPaywall)
             }
             Button("Restore Purchases") {
                 Task { await store.restorePurchases() }
             }
             .disabled(store.restoreState == .restoring)
+            if !store.isUnlocked {
+                Button("Redeem Code…") { isRedeeming = true }
+            }
         } header: {
             Text("MindMap AI Pro")
         } footer: {
             Text("Bought Pro before, or on another device? Restore Purchases unlocks it here.")
         }
-        .sheet(isPresented: $isShowingPaywall) {
-            PaywallView()
-        }
-        // The paywall shows its own result while it is open; one alert at a time.
-        .restoreResultAlert(store, isActive: !isShowingPaywall)
     }
 }
 

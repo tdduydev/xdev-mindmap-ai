@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Archives the Mac app and uploads it to App Store Connect for TestFlight.
+# Archives the app and uploads it to App Store Connect for TestFlight:
+#
+#   scripts/upload-testflight.sh          # the Mac app
+#   scripts/upload-testflight.sh ios      # iPhone and iPad, same app record
+#
 # The API key lives outside the repo: ~/.appstoreconnect/mindmap.env names it
 # (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH) and the .p8 stays in
 # ~/.appstoreconnect/private_keys with mode 600. The key has the App Manager role,
@@ -7,10 +11,27 @@
 # with an Apple Distribution and a Mac Installer Distribution certificate kept in a
 # separate keychain (~/Library/Keychains/mindmap-build.keychain-db, password in
 # ~/.appstoreconnect/signing/keychain.pass) and the "MindMap AI Mac App Store"
-# provisioning profiles of the app and of the Share Extension. docs/release.md
-# explains how they were made.
+# provisioning profiles of the app and of the Share Extension ("... iOS App Store"
+# for iOS). The archive itself is signed with the Apple Development identity in
+# the same keychain, since the App Group entitlement cannot be signed ad hoc.
+# docs/release.md explains how they were made.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+platform=${1:-macos}
+case "$platform" in
+  macos)
+    destination='generic/platform=macOS'
+    platform_settings=(MINDMAP_MAC_APP_GROUP=YES)
+    profile_suffix='Mac App Store'
+    ;;
+  ios)
+    destination='generic/platform=iOS'
+    platform_settings=()
+    profile_suffix='iOS App Store'
+    ;;
+  *) echo "usage: $0 [macos|ios]" >&2; exit 64 ;;
+esac
 
 if [[ -z "${DEVELOPER_DIR:-}" && "$(xcode-select -p)" == *CommandLineTools* ]]; then
   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
@@ -30,7 +51,7 @@ security unlock-keychain -p "$(cat "$pass_file")" "$keychain"
 
 # App Store Connect refuses a build number it has seen, so each upload takes the time.
 build_number="${BUILD_NUMBER:-$(date +%Y%m%d%H%M)}"
-out=scripts/out/testflight
+out=scripts/out/testflight-$platform
 archive="$out/MindMapAI.xcarchive"
 rm -rf "$out" && mkdir -p "$out"
 
@@ -39,14 +60,15 @@ auth=(-allowProvisioningUpdates
   -authenticationKeyID "$ASC_KEY_ID"
   -authenticationKeyIssuerID "$ASC_ISSUER_ID")
 
-printf '\n==> Archive (build %s)\n' "$build_number"
+printf '\n==> Archive %s (build %s, commit %s)\n' "$platform" "$build_number" "$(git rev-parse --short HEAD)"
 xcodebuild archive -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI -configuration Release \
-  -destination 'generic/platform=macOS' \
+  -destination "$destination" \
   -archivePath "$archive" \
   CURRENT_PROJECT_VERSION="$build_number" \
   DEVELOPMENT_TEAM=M6C7NX9MUZ \
-  MINDMAP_MAC_APP_GROUP=YES \
+  CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY="Apple Development" \
+  ${platform_settings[@]+"${platform_settings[@]}"} \
   "${auth[@]}"
 
 cat > "$out/ExportOptions.plist" <<PLIST
@@ -59,11 +81,11 @@ cat > "$out/ExportOptions.plist" <<PLIST
   <key>signingStyle</key><string>manual</string>
   <key>teamID</key><string>M6C7NX9MUZ</string>
   <key>signingCertificate</key><string>Apple Distribution</string>
-  <key>installerSigningCertificate</key><string>3rd Party Mac Developer Installer</string>
+$( [[ $platform == macos ]] && echo '  <key>installerSigningCertificate</key><string>3rd Party Mac Developer Installer</string>' || true)
   <key>provisioningProfiles</key>
   <dict>
-    <key>asia.xdev.mindmapai</key><string>MindMap AI Mac App Store</string>
-    <key>asia.xdev.mindmapai.share</key><string>MindMap AI Share Mac App Store</string>
+    <key>asia.xdev.mindmapai</key><string>MindMap AI $profile_suffix</string>
+    <key>asia.xdev.mindmapai.share</key><string>MindMap AI Share $profile_suffix</string>
   </dict>
   <key>uploadSymbols</key><true/>
   <key>manageAppVersionAndBuildNumber</key><false/>
@@ -78,4 +100,4 @@ xcodebuild -exportArchive \
   -exportPath "$out/export" \
   "${auth[@]}"
 
-printf '\nUploaded build %s. It appears in TestFlight after Apple finishes processing.\n' "$build_number"
+printf '\nUploaded %s build %s from %s. It appears in TestFlight after Apple finishes processing;\nadd a row to the Uploads table in docs/release.md.\n' "$platform" "$build_number" "$(git rev-parse --short HEAD)"

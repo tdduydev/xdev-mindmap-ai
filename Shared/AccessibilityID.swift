@@ -17,7 +17,12 @@ nonisolated enum AccessibilityID {
     enum Library {
         static let list = "library.list"
         static let map = "library.map"
+        /// The Mac toolbar's Settings button; the sidebar footer's is `Sidebar.settings`.
+        static let settings = "library.settings"
         static let newMap = "library.newMap"
+        static let importMap = "library.importMap"
+        /// The swipe action that moves a map to Recently Deleted.
+        static let delete = "library.delete"
     }
 
     enum Editor {
@@ -29,6 +34,51 @@ nonisolated enum AccessibilityID {
         static let delete = "editor.delete"
         static let find = "editor.find"
         static let inspector = "editor.inspector"
+        static let voice = "editor.voice"
+        static let ai = "editor.ai"
+        static let export = "editor.export"
+        /// iOS only; the Mac has File ▸ Import into Map….
+        static let importIntoMap = "editor.importIntoMap"
+    }
+
+    /// The topic and map settings beside an open map.
+    enum Inspector {
+        static let note = "inspector.note"
+        static let tagField = "inspector.tagField"
+        static let theme = "inspector.theme"
+        static let topicColor = "inspector.topicColor"
+        static let topicSymbol = "inspector.topicSymbol"
+    }
+
+    /// Choose Symbol… (MM-32).
+    enum SymbolPicker {
+        static let emoji = "symbolPicker.emoji"
+    }
+
+    /// AI suggestions waiting for Accept or Discard (FR-AI-10).
+    enum Suggestions {
+        static let review = "suggestions.review"
+        static let acceptAll = "suggestions.acceptAll"
+        static let discardAll = "suggestions.discardAll"
+        /// One per suggested topic in the Review list.
+        static let accept = "suggestions.accept"
+        static let discard = "suggestions.discard"
+    }
+
+    enum Export {
+        static let format = "export.format"
+        static let export = "export.export"
+        static let cancel = "export.cancel"
+    }
+
+    enum Voice {
+        static let listen = "voice.listen"
+        static let addTopics = "voice.addTopics"
+    }
+
+    enum Paywall {
+        static let purchase = "paywall.purchase"
+        static let close = "paywall.close"
     }
 
     /// Find in the open map (the bar above the canvas or the outline).
@@ -52,6 +102,13 @@ nonisolated enum AccessibilityID {
         static let canvas = "canvas"
         static let topic = "canvas.topic"
         static let addCentralTopic = "canvas.addCentralTopic"
+        static let zoomIn = "canvas.zoomIn"
+        static let zoomOut = "canvas.zoomOut"
+        static let zoomToFit = "canvas.zoomToFit"
+        /// The zoom level; its value is the scale, such as "100%".
+        static let actualSize = "canvas.actualSize"
+        /// The field of a callout bubble open for typing (FR-ORG-30).
+        static let calloutField = "canvas.calloutField"
     }
 
     /// A topic's URL link (FR-ORG-26).
@@ -64,6 +121,14 @@ nonisolated enum AccessibilityID {
         static let open = "link.open"
     }
 
+    enum Task {
+        static let isTask = "task.isTask"
+        static let done = "task.done"
+        static let priority = "task.priority"
+        static let overdue = "task.overdue"
+        static let checkbox = "task.checkbox"
+    }
+
     enum Chat {
         static let panel = "chat.panel"
         static let field = "chat.field"
@@ -72,6 +137,18 @@ nonisolated enum AccessibilityID {
         static let answer = "chat.answer"
         static let citation = "chat.citation"
         static let toolbar = "chat.toolbar"
+        static let scope = "chat.scope"
+        static let suggestion = "chat.suggestion"
+        static let answerScope = "chat.answerScope"
+        static let copy = "chat.copy"
+        static let addToNote = "chat.addToNote"
+        static let askAgain = "chat.askAgain"
+        static let microphone = "chat.microphone"
+        static let cancelVoice = "chat.cancelVoice"
+    }
+
+    enum ScreenshotAI {
+        static let menu = "screenshot.ai.menu"
     }
 
     enum Settings {
@@ -85,6 +162,7 @@ nonisolated enum AccessibilityID {
         /// The Mac tab or the iPad and iPhone row of a pane, by `SettingsPane` raw value.
         static func pane(_ name: String) -> String { "settings.pane.\(name)" }
         static let done = "settings.done"
+        static let showPaywall = "settings.showPaywall"
         static let iCloudSync = "settings.iCloudSync"
         static let iCloudStatus = "settings.iCloudStatus"
         static let aiStatus = "settings.aiStatus"
@@ -97,5 +175,7 @@ nonisolated enum AccessibilityID {
         static let aiAppsPort = "settings.aiApps.port"
         static let aiAppsAdd = "settings.aiApps.add"
         static let aiAppsPrivacy = "settings.aiApps.privacy"
+        static let emptyRecentlyDeleted = "settings.data.emptyRecentlyDeleted"
+        static let exportAllMaps = "settings.data.exportAll"
     }
 }

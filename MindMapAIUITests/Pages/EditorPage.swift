@@ -49,7 +49,14 @@ struct EditorPage {
     @discardableResult
     func selectOutlineTopic(_ title: String, file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
         let field = outlineTopic(titled: title).waitToExist(file: file, line: line)
-        field.tap()
+        field.tapOrClick()
+        // The Mac's outline List spends the first click selecting the row and
+        // a busy iPad simulator sometimes drops it; typing then fails with
+        // "no keyboard focus" and ends the test, so click once more.
+        let focused = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hasKeyboardFocus == true"), object: field)
+        if XCTWaiter().wait(for: [focused], timeout: MindMapApp.timeout / 15) != .completed {
+            field.tapOrClick()
+        }
         return field
     }
 
@@ -67,7 +74,7 @@ struct EditorPage {
 
     /// Editor toolbar buttons a test taps, with the symbol each shows.
     enum ToolbarAction {
-        case find, addChild, addSibling, delete, inspector
+        case find, addChild, addSibling, delete, inspector, voice, export, importIntoMap
 
         var identifier: String {
             switch self {
@@ -76,6 +83,9 @@ struct EditorPage {
             case .addSibling: AccessibilityID.Editor.addSibling
             case .delete: AccessibilityID.Editor.delete
             case .inspector: AccessibilityID.Editor.inspector
+            case .voice: AccessibilityID.Editor.voice
+            case .export: AccessibilityID.Editor.export
+            case .importIntoMap: AccessibilityID.Editor.importIntoMap
             }
         }
 
@@ -87,6 +97,9 @@ struct EditorPage {
             case .addSibling: "plus"
             case .delete: "trash"
             case .inspector: "sidebar.trailing"
+            case .voice: "mic"
+            case .export: "square.and.arrow.up"
+            case .importIntoMap: "square.and.arrow.down"
             }
         }
     }
@@ -98,14 +111,16 @@ struct EditorPage {
         let button = app.buttons[action.identifier].firstMatch
         #if os(iOS)
         if !button.waitForExistence(timeout: MindMapApp.timeout / 6) {
-            // UIKit's identifier for the navigation bar's More button.
-            app.buttons["OverflowBarButtonItem"].firstMatch.waitToExist(file: file, line: line).tap()
+            // UIKit's identifier for the navigation bar's More button; with the
+            // keyboard up its shortcuts bar has one too, before the toolbar's.
+            let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
+            overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist(file: file, line: line).tapOrClick()
             app.collectionViews.buttons.containing(.image, identifier: action.symbol).firstMatch
-                .waitToExist(file: file, line: line).tap()
+                .waitToExist(file: file, line: line).tapOrClick()
             return
         }
         #endif
-        button.waitToExist(file: file, line: line).tap()
+        button.waitToExist(file: file, line: line).tapOrClick()
     }
 
     /// Opens the find bar from the toolbar and types `text` into its field.
@@ -113,7 +128,7 @@ struct EditorPage {
     func find(_ text: String, file: StaticString = #filePath, line: UInt = #line) -> EditorPage {
         tap(.find, file: file, line: line)
         let field = findField.waitToExist(file: file, line: line)
-        field.tap()
+        field.tapOrClick()
         field.typeText(text)
         return self
     }
@@ -121,9 +136,10 @@ struct EditorPage {
     /// Waits until the find status reads `text`.
     func waitForFindStatus(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
         let status = findStatus.waitToExist(file: file, line: line)
-        let matches = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", text), object: status)
+        // A static text keeps its text in the label on iOS and in the value on macOS.
+        let matches = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@ OR value == %@", text, text), object: status)
         let result = XCTWaiter().wait(for: [matches], timeout: MindMapApp.timeout)
-        XCTAssertEqual(result, .completed, "find status is \"\(status.label)\", expected \"\(text)\"", file: file, line: line)
+        XCTAssertEqual(result, .completed, "find status is \"\(status.shownText)\", expected \"\(text)\"", file: file, line: line)
     }
 
     @discardableResult
@@ -143,12 +159,18 @@ struct EditorPage {
         #endif
         let segment = segments.element(boundBy: presentation.rawValue).waitToExist(file: file, line: line)
         let content = presentation == .canvas ? canvas : outline
-        segment.tap()
+        segment.tapOrClick()
         // A tap that lands while a busy machine is still settling the editor is
         // sometimes dropped (seen on the first test of a cold simulator); more
         // are harmless, since the segment only selects.
         for _ in 0..<2 where !content.waitForExistence(timeout: MindMapApp.timeout / 3) {
-            segment.tap()
+            #if os(iOS)
+            // On iOS 27 the glass segment can highlight on a tap yet keep its
+            // selection (MM-87, iPhone App Store capture); a short press selects.
+            segment.press(forDuration: 0.2)
+            #else
+            segment.tapOrClick()
+            #endif
         }
         content.waitToExist(file: file, line: line)
         return self
