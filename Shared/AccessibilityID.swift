@@ -26,6 +26,7 @@ nonisolated enum AccessibilityID {
         static let settings = "library.settings"
         static let newMap = "library.newMap"
         static let importMap = "library.importMap"
+        static let openMapLink = "library.openMapLink"
         /// The swipe action that moves a map to Recently Deleted.
         static let delete = "library.delete"
         /// The swipe action that brings a map back from Recently Deleted.
@@ -46,6 +47,7 @@ nonisolated enum AccessibilityID {
         static let voice = "editor.voice"
         static let ai = "editor.ai"
         static let export = "editor.export"
+        static let shareLink = "editor.shareLink"
         /// iOS only; the Mac has File ▸ Import into Map….
         static let importIntoMap = "editor.importIntoMap"
     }

@@ -114,6 +114,7 @@ struct MindMapAIApp: App {
             // Show/Hide Inspector (⌃⌘I) in the View menu, driving each window's `.inspector`.
             InspectorCommands()
             FileTransferCommands()
+            MapLinkCommands()
             RedeemCodeCommands(pro: pro)
             #if os(iOS)
             SettingsCommands()

@@ -67,6 +67,7 @@ struct FileTransferPresenter: ViewModifier {
             .overlay(alignment: .bottom) {
                 if let files = UITestFiles.shared { UITestExportReport(files: files) }
             }
+            .modifier(MapLinkPresenter(transfer: transfer))
             .environment(transfer)
             .focusedSceneValue(\.fileTransfer, transfer)
     }
