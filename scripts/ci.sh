@@ -3,6 +3,8 @@
 # this runs locally: core tests on the Mac, app tests on macOS, a universal
 # macOS Release build (Apple silicon and Intel), then an iOS Simulator build.
 # scripts/rosetta-tests.sh runs the tests as x86_64; it is slower and optional.
+# Warnings fail the build through the project and Package.swift settings, which
+# leave the remote packages (MLX, ADR 0011) to their own warning flags.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -65,7 +67,6 @@ app_test_options=(
   -destination 'platform=macOS,arch=arm64'
   -derivedDataPath "$derived"
   -only-testing:MindMapAITests
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
 )
 build_app_tests() {
   xcodebuild build-for-testing -quiet "${app_test_options[@]}" 2>&1 | tee "$logs/app-tests-build.log"
@@ -89,8 +90,7 @@ xcodebuild build -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI \
   -configuration Release \
   -destination 'generic/platform=macOS' \
-  -derivedDataPath "$derived" \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES 2>&1 | tee "$logs/macos-release.log"
+  -derivedDataPath "$derived" 2>&1 | tee "$logs/macos-release.log"
 fail_on_missing_dependency "$logs/macos-release.log"
 
 # Intel Macs get macOS 26 as their last release, so the shipped Mac app must
@@ -109,8 +109,7 @@ step "iOS Simulator build"
 xcodebuild build -quiet \
   -project MindMapAI.xcodeproj -scheme MindMapAI \
   -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath "$derived" \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES 2>&1 | tee "$logs/ios-simulator.log"
+  -derivedDataPath "$derived" 2>&1 | tee "$logs/ios-simulator.log"
 fail_on_missing_dependency "$logs/ios-simulator.log"
 
 printf '\nAll checks passed.\n'

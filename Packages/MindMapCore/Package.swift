@@ -26,6 +26,8 @@ let package = Package(
         .library(name: "MindMapMCP", targets: ["MindMapMCP"]),
         .library(name: "MindMapImages", targets: ["MindMapImages"]),
         .library(name: "MindMapAILocal", targets: ["MindMapAILocal"]),
+        // Only for the app tests that run the evaluations on the MLX engine (MM-119).
+        .library(name: "MindMapAIEvaluation", targets: ["MindMapAIEvaluation"]),
     ],
     targets: [
         .target(name: "MindMapDomain"),
@@ -138,3 +140,10 @@ let package = Package(
         ),
     ]
 )
+
+// Warnings are errors in our own code. Set here, not with
+// SWIFT_TREAT_WARNINGS_AS_ERRORS on the xcodebuild command line, which also
+// reaches remote packages and clashes with their -suppress-warnings (MM-119).
+for target in package.targets where target.type == .regular {
+    target.swiftSettings = (target.swiftSettings ?? []) + [.treatAllWarnings(as: .error)]
+}
