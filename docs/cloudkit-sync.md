@@ -1,6 +1,6 @@
 # iCloud sync
 
-Status: built in MM-6, switched off in every build until the iCloud container exists on the Apple Developer account and a build sets `MINDMAP_ICLOUD = YES` (see *Turning it on*). The schema is CloudKit-ready (see [data-model.md](data-model.md)).
+Status: built in MM-6; on from 1.1 (MM-100): `scripts/upload-testflight.sh` sets `MINDMAP_ICLOUD = YES` for macOS and iOS, while the project default stays `NO` so `scripts/ci.sh` builds without a certificate. 1.0.0 shipped with sync off. The schema is CloudKit-ready (see [data-model.md](data-model.md)); SchemaV3 is deployed to production.
 
 ## Goals
 
@@ -21,6 +21,14 @@ Status: built in MM-6, switched off in every build until the iCloud container ex
 ### Repair is shown, not saved
 
 `takeStored` repairs what it loaded but does not save the repair. A topic that arrives before its parent hangs under the root only until the parent arrives; saving the repair would move it there for good and send that move to every device. `EditorSession.open` still saves its repairs, as before MM-6 (see *Open questions*).
+
+## Maps from 1.0 (FR-SYN-08)
+
+1.0 kept the library in the App Group store with sync off. 1.1 opens the same file with `cloudKitDatabase: .private(…)`; nothing is copied or migrated.
+
+- What the mirroring needs is checked in `CloudUpgradeTests` against `Fixtures/V3.store` (written by 1.0): turning sync on points at the same file; the model CloudKit mirrors is compatible with the store's metadata, so no migration runs; the store opens with persistent history tracking (1.0 kept history on) and every record is there once; edits made while sync is off land in history.
+- *[Chưa kiểm chứng]* That `NSPersistentCloudKitContainer` (which SwiftData's mirroring uses) exports records that existed before mirroring was turned on. Apple's Core Data with CloudKit pages say to add the capability and container options to an app that already uses Core Data, but do not state what happens to existing rows; a CloudKit process cannot run in the unentitled test process. Checked by step 0 of *Testing on real devices*.
+- Duplicates. Each record has its own ID, so maps made on two devices are two maps, not a conflict. The one case that sends the same map ID up twice is a 1.0 library restored onto a second device (backup or device migration) before both turn sync on: each device exports its copy as its own CloudKit record. The library lists a map ID once (`SwiftDataMapRepository.fetchMaps` and `fetchDeletedMaps`, newest first) and the next save of that map folds the records into one (`mapRecord(for:)`); topics, links and other records were already folded per ID.
 
 ## Undo after a change from another device (FR-UND-05)
 
@@ -76,16 +84,17 @@ Not done by agents. In this order:
 1. **Container.** developer.apple.com ▸ Certificates, Identifiers & Profiles ▸ Identifiers ▸ iCloud Containers: create `iCloud.asia.xdev.mindmapai`. *[Unverified]* The App Store Connect API has no endpoint for iCloud containers, so this step is on the website.
 2. **Capability.** On the App ID `asia.xdev.mindmapai` enable iCloud (CloudKit, with the container above) and Push Notifications. The Share Extension (`asia.xdev.mindmapai.share`) needs neither: it writes to the shared store without mirroring, and the app sends those changes up.
 3. **Profiles.** Regenerate the development and "MindMap AI Mac App Store" profiles of the app after the capability change (App Store Connect API `POST /v1/profiles`, or the website) and install them on the Mac mini. iOS profiles when iOS ships.
-4. **Build setting.** Set `MINDMAP_ICLOUD = YES` (with `MINDMAP_MAC_APP_GROUP = YES`) for signed builds, for example in `scripts/upload-testflight.sh` beside `DEVELOPMENT_TEAM`. It picks `Entitlements/MindMapAI+iCloud-macOS.entitlements` or `-iOS.entitlements` (container, CloudKit, push, App Group) and compiles `MINDMAP_ICLOUD`. Leave the project default `NO`, so `scripts/ci.sh` keeps building without a certificate.
+4. **Build setting.** Done in MM-100: `scripts/upload-testflight.sh` passes `MINDMAP_ICLOUD=YES` for both platforms (with `MINDMAP_MAC_APP_GROUP=YES` on the Mac). It picks `Entitlements/MindMapAI+iCloud-macOS.entitlements` or `-iOS.entitlements` (container, CloudKit, push, App Group) and compiles `MINDMAP_ICLOUD`. Leave the project default `NO`, so `scripts/ci.sh` keeps building without a certificate.
 5. **Schema (FR-SYN-07).** `scripts/init-cloudkit-schema.sh` runs a Debug build signed for the container once with the launch argument `-InitializeCloudKitSchema` and waits for the result in the log (`PersistenceController.initializeCloudKitSchema`, Core Data's `initializeCloudKitSchema` on the same model, in a throwaway store). Check the record types in the CloudKit Console (development), then **Deploy Schema Changes** to production before the first TestFlight build with sync. Production only grows: never deploy a field before the schema that has it ships ([data-model.md](data-model.md)). SchemaV3 (MM-55) adds the `ChatTurnRecord` type. Done for V3 on 2026-10-03: created from a V3 build and deployed to production ([release.md](release.md), *iCloud before it can ship*).
 6. **Two-device test** (a person): the tests below.
 
-The `aps-environment` value in the entitlements files is `development`; distribution signing is expected to take the profile's value *[Unverified]*. Check the exported app with `codesign -d --entitlements - "MindMap AI.app"` on the first upload.
+The `aps-environment` value in the entitlements files is `development`; the App Store export takes the profile's value. `scripts/upload-testflight.sh` exports locally first and runs `scripts/check-icloud-entitlements.sh`, which reads the signed app with `codesign -d --entitlements` and stops the upload unless it has the container, CloudKit, `aps-environment` `production`, the key-value store and the App Group. `UPLOAD=NO scripts/upload-testflight.sh [ios]` runs only the archive, export and check. Both platforms passed on 2026-10-03 ([release.md](release.md), *iCloud*).
 
 ## Testing on real devices (a person)
 
-With two devices on the same Apple Account and a build from step 4:
+With two devices on the same Apple Account and a TestFlight build of 1.1:
 
+0. **Maps from 1.0.** On one device, install 1.0.0 (App Store) or a 1.0 TestFlight build, make two maps (one with a chat, one in Recently Deleted), then update to 1.1 signed in to iCloud → the maps are still there once each, and appear on the second device with their topics, tags, images and chat. Repeat with the 1.0 library on both devices (a restored backup): each map is listed once on both.
 1. Mac (or iPad) creates a map → the other device shows it without relaunching; the other edits a topic → the first shows the edit, and its undo menu no longer offers the step that touched that topic.
 2. Airplane mode on one device, edit on both, reconnect → both edits survive (different topics), last writer wins (same topic); the status line says Waiting for Network while offline, never an alert.
 3. Signed out of iCloud: the app opens and edits normally; Settings says Not Using iCloud.
