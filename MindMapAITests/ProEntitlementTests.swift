@@ -82,6 +82,23 @@ struct ProEntitlementTests {
         #expect(product.displayPrice.contains("14.99"))
     }
 
+    /// The paywall's purchase button needs the product in Vietnamese too (MM-90, FR-STO-04).
+    @Test func loadsTheProProductInVietnamese() async throws {
+        session.locale = Locale(identifier: "vi_VN")
+        session.storefront = "VNM"
+        defer {
+            session.locale = Locale(identifier: "en_US")
+            session.storefront = "USA"
+        }
+        let store = ProEntitlement()
+        await store.loadProduct()
+
+        let product = try #require(store.product)
+        #expect(product.id == ProEntitlement.productID)
+        #expect(!product.displayPrice.isEmpty)
+        #expect(product.description.contains("giọng nói"), "\(product.description)")
+    }
+
     @Test func lockedUntilBought() async {
         let store = ProEntitlement()
         await store.start()

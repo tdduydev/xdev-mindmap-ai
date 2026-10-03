@@ -144,6 +144,15 @@ struct ProSettingsSection: View {
     var body: some View {
         Section {
             LabeledContent("Status", value: store.isUnlocked ? String(localized: "Unlocked") : String(localized: "Not unlocked"))
+                // On the one row that is always there: a modifier on a Section
+                // goes to each of its rows, and one paywall sheet per row on one
+                // binding made iOS close Settings instead of showing it (MM-90).
+                .redeemCodeSheet(isPresented: $isRedeeming)
+                .sheet(isPresented: $isShowingPaywall) {
+                    PaywallView()
+                }
+                // The paywall shows its own result while it is open; one alert at a time.
+                .restoreResultAlert(store, isActive: !isShowingPaywall)
             if !store.isUnlocked {
                 Button("See What’s in Pro…") { isShowingPaywall = true }
                     .accessibilityIdentifier(AccessibilityID.Settings.showPaywall)
@@ -160,12 +169,6 @@ struct ProSettingsSection: View {
         } footer: {
             Text("Bought Pro before, or on another device? Restore Purchases unlocks it here.")
         }
-        .redeemCodeSheet(isPresented: $isRedeeming)
-        .sheet(isPresented: $isShowingPaywall) {
-            PaywallView()
-        }
-        // The paywall shows its own result while it is open; one alert at a time.
-        .restoreResultAlert(store, isActive: !isShowingPaywall)
     }
 }
 
