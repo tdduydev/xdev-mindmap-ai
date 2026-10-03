@@ -6,7 +6,7 @@ Source text for <https://xdev.asia/mindmap/privacy>, which the app opens from Se
 
 Every sentence must describe the app as shipped. Change this page, [privacy](../privacy.md), `PrivacyInfo.xcprivacy` and the App Privacy label together when any of these change:
 
-- iCloud sync ships (MM-6 built it; it is live once a build sets `MINDMAP_ICLOUD`): the iCloud section says sync is on while you are signed in to iCloud and how to turn it off; check it again after the account-change test in [cloudkit-sync](../cloudkit-sync.md), *Testing on real devices*.
+- iCloud sync: on from version 1.1 (MM-100). The iCloud section says sync is on while you are signed in to iCloud and how to turn it off; check it again after the account-change test in [cloudkit-sync](../cloudkit-sync.md), *Testing on real devices*, before 1.1 is released.
 - Voice input ships (MM-20): same for the voice section; it must stay on the device.
 - AI Apps (MCP, MM-46): the "AI apps you connect" section must match Settings ▸ AI Apps; change it when AI apps can write (M5) or when anything but loopback is served.
 - Analytics, crash reporting, cloud AI or any network call to xDev is added: rewrite the page before the build ships.
@@ -25,7 +25,7 @@ MindMap AI is built so that your maps stay yours. This policy explains what the 
 
 **What we collect.** Nothing. xDev does not run servers for MindMap AI, does not require an account, and does not include analytics, advertising or tracking. Your maps are never sent to xDev.
 
-**Where your maps are stored.** On your device. When iCloud sync is available in the app and you are signed in to iCloud, your maps are also stored in your own private iCloud account, under [Apple's privacy policy](https://www.apple.com/legal/privacy/), so they appear on your other devices. xDev cannot read your iCloud data. To stop syncing, turn off iCloud Sync in MindMap AI ▸ Settings ▸ Data on a Mac, or turn off iCloud for MindMap AI in the Settings app on iPhone and iPad; your maps stay on the device.
+**Where your maps are stored.** On your device. From version 1.1, while you are signed in to iCloud, your maps (with their notes, images and chats) are also stored in your own private iCloud account, under [Apple's privacy policy](https://www.apple.com/legal/privacy/), so they appear on your other devices. Only you can read them there: xDev cannot read your iCloud data and receives nothing from it. Maps you made in an earlier version go to iCloud too when you update. To stop syncing, turn off iCloud Sync in MindMap AI ▸ Settings ▸ Data on a Mac, or turn off iCloud for MindMap AI in the Settings app on iPhone and iPad; your maps stay on the device.
 
 **AI features.** AI features use Apple's on-device model (Apple Intelligence). Your text is processed on your device and is not sent to xDev. Questions and answers in Ask About This Map are saved with the map they are about, stored and synced like the map, and deleted with it or with Clear Chat. On devices without Apple Intelligence, the AI features are not shown.
 
@@ -57,7 +57,7 @@ MindMap AI được làm để sơ đồ của bạn luôn là của bạn. Chí
 
 **Chúng tôi thu thập gì.** Không gì cả. xDev không vận hành máy chủ nào cho MindMap AI, không yêu cầu tài khoản, không có thống kê, quảng cáo hay theo dõi. Sơ đồ của bạn không bao giờ được gửi tới xDev.
 
-**Sơ đồ được lưu ở đâu.** Trên thiết bị của bạn. Khi ứng dụng có đồng bộ iCloud và bạn đã đăng nhập iCloud, sơ đồ còn được lưu trong tài khoản iCloud riêng của bạn, theo [chính sách quyền riêng tư của Apple](https://www.apple.com/legal/privacy/), để có mặt trên các thiết bị khác của bạn. xDev không đọc được dữ liệu iCloud của bạn. Muốn ngừng đồng bộ, trên Mac hãy tắt Đồng bộ iCloud trong MindMap AI ▸ Cài đặt ▸ Dữ liệu, trên iPhone và iPad hãy tắt iCloud cho MindMap AI trong ứng dụng Cài đặt; sơ đồ vẫn nằm trên thiết bị.
+**Sơ đồ được lưu ở đâu.** Trên thiết bị của bạn. Từ phiên bản 1.1, khi bạn đã đăng nhập iCloud, sơ đồ (cùng ghi chú, ảnh và cuộc trò chuyện) còn được lưu trong tài khoản iCloud riêng của bạn, theo [chính sách quyền riêng tư của Apple](https://www.apple.com/legal/privacy/), để có mặt trên các thiết bị khác của bạn. Chỉ bạn đọc được chúng ở đó: xDev không đọc được dữ liệu iCloud của bạn và không nhận gì từ đó. Sơ đồ bạn tạo ở phiên bản trước cũng được đưa lên iCloud khi bạn cập nhật. Muốn ngừng đồng bộ, trên Mac hãy tắt Đồng bộ iCloud trong MindMap AI ▸ Cài đặt ▸ Dữ liệu, trên iPhone và iPad hãy tắt iCloud cho MindMap AI trong ứng dụng Cài đặt; sơ đồ vẫn nằm trên thiết bị.
 
 **Tính năng AI.** Tính năng AI dùng model chạy trên thiết bị của Apple (Apple Intelligence). Nội dung của bạn được xử lý trên thiết bị và không gửi tới xDev. Trên thiết bị không có Apple Intelligence, tính năng AI không hiện.
 

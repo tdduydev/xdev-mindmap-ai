@@ -17,6 +17,7 @@
 		4D4D410000000000000C8005 /* MindMapTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000C8006 /* MindMapTestSupport */; };
 		4D4D41150000000000000002 /* MindMapSearch in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41150000000000000001 /* MindMapSearch */; };
 		4D4D41640000000000000002 /* MindMapImages in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41640000000000000001 /* MindMapImages */; };
+		4D4D41690000000000000002 /* MindMapAILocal in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41690000000000000001 /* MindMapAILocal */; };
 		4D4D410000000000000B1101 /* MindMapIntents in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1102 /* MindMapIntents */; };
 		4D4D410000000000000B1110 /* MindMapShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4D4D410000000000000B1111 /* MindMapShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4D4D410000000000000B1120 /* MindMapDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D410000000000000B1121 /* MindMapDomain */; };
@@ -129,6 +130,7 @@
 				4D4D410000000000000C5001 /* MindMapInterchange in Frameworks */,
 				4D4D41150000000000000002 /* MindMapSearch in Frameworks */,
 				4D4D41640000000000000002 /* MindMapImages in Frameworks */,
+				4D4D41690000000000000002 /* MindMapAILocal in Frameworks */,
 				4D4D410000000000000B1101 /* MindMapIntents in Frameworks */,
 				4D4D410000000000000C2001 /* MindMapCapture in Frameworks */,
 				4D4D41460000000000000001 /* MindMapMCP in Frameworks */,
@@ -221,6 +223,7 @@
 				4D4D410000000000000C5002 /* MindMapInterchange */,
 				4D4D41150000000000000001 /* MindMapSearch */,
 				4D4D41640000000000000001 /* MindMapImages */,
+				4D4D41690000000000000001 /* MindMapAILocal */,
 				4D4D410000000000000B1102 /* MindMapIntents */,
 				4D4D410000000000000C2002 /* MindMapCapture */,
 				4D4D41460000000000000002 /* MindMapMCP */,
@@ -607,7 +610,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai;
 				PRODUCT_MODULE_NAME = MindMapAI;
 				PRODUCT_NAME = "MindMap AI";
@@ -672,7 +675,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai;
 				PRODUCT_MODULE_NAME = MindMapAI;
 				PRODUCT_NAME = "MindMap AI";
@@ -701,7 +704,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -726,7 +729,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -750,7 +753,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) -Xcc -Wno-deprecated-declarations";
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -773,7 +776,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) -Xcc -Wno-deprecated-declarations";
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -807,7 +810,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -841,7 +844,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -955,6 +958,10 @@
 		4D4D41640000000000000001 /* MindMapImages */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapImages;
+		};
+		4D4D41690000000000000001 /* MindMapAILocal */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapAILocal;
 		};
 		4D4D410000000000000B1102 /* MindMapIntents */ = {
 			isa = XCSwiftPackageProductDependency;

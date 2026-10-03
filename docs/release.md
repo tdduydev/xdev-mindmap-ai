@@ -11,7 +11,7 @@ How a build of MindMap AI reaches TestFlight and the Mac App Store. Set up on 20
 | Bundle ID | `asia.xdev.mindmapai`, registered as UNIVERSAL so iOS can share it. Capabilities: In-App Purchase, Push Notifications, iCloud (CloudKit, container `iCloud.asia.xdev.mindmapai`), App Groups (`group.asia.xdev.mindmapai`); the Share Extension `asia.xdev.mindmapai.share` has App Groups. Set on 2026-10-02 |
 | More bundle IDs (2026-10-03, ADR 0012) | App Clip `asia.xdev.mindmapai.Clip` (App Clip type, parent `asia.xdev.mindmapai`; App Groups `group.asia.xdev.mindmapai.clip`, Associated Domains, On Demand Install Capable); watch app `asia.xdev.mindmapai.watchkitapp` (iCloud with container `iCloud.asia.xdev.mindmapai`, Push Notifications); watch widgets `asia.xdev.mindmapai.watchkitapp.widgets`. The app itself gained Associated Domains and the second App Group `group.asia.xdev.mindmapai.clip` the same day |
 | Team ID | `M6C7NX9MUZ`, passed as `DEVELOPMENT_TEAM` by `scripts/upload-testflight.sh` only; the project leaves it empty so `scripts/ci.sh` builds on machines without a signing certificate |
-| Version | 0.1.0 for the TestFlight beta; `MARKETING_VERSION` is 1.0.0 from 2026-10-03, the first public release. The build number is the upload time (`YYYYMMDDHHmm`) |
+| Version | 0.1.0 for the TestFlight beta; 1.0.0 for the first public release (submitted 2026-10-03, tag `v1.0.0`); `main` is 1.1.0 from 2026-10-03. The build number is the upload time (`YYYYMMDDHHmm`) |
 
 ## What lives outside the repo
 
@@ -30,14 +30,16 @@ The API key has the App Manager role, which cannot use Xcode's cloud-managed dis
 
 The certificates and the profile expire on 2027-10-02.
 
-## iCloud before it can ship
+## iCloud
 
 The container and capabilities exist and both profiles carry them (recreated on 2026-10-02 after the capability change). MM-45 added the iCloud key-value store identifier to the app's iCloud entitlements for theme and export preferences; confirm the app profile permits it before an iCloud-signed archive. The product owner chose on 2026-10-03 to turn sync on in 1.1 (MM-100).
 
 1. Done on 2026-10-03: the development schema was created from a SchemaV3 build with `scripts/init-cloudkit-schema.sh` on the Mac mini (signed in to iCloud), and **Deploy Schema Changes** sent it to production: record types `CD_ChatTurnRecord`, `CD_EdgeRecord`, `CD_GroupRecord`, `CD_ImageRecord`, `CD_MapRecord`, `CD_NodeRecord`, `CD_NodeTagRecord`, `CD_TagRecord` with their indexes. Production only grows: a SchemaV4 runs the script again from a V4 build and deploys before the first upload that has it.
-2. Test two devices as in docs/cloudkit-sync.md *Testing* (the product owner, on a TestFlight build from MM-100).
+2. From MM-100 (1.1), `scripts/upload-testflight.sh` archives with `MINDMAP_ICLOUD=YES` on both platforms. The project default stays `NO`, so `scripts/ci.sh` and any build without the signing keychain have no iCloud entitlement and never open CloudKit.
+3. Before each upload the script exports locally and runs `scripts/check-icloud-entitlements.sh` on the export (`codesign -d --entitlements`): the container `iCloud.asia.xdev.mindmapai`, CloudKit, `aps-environment` `production` (`com.apple.developer.aps-environment` on the Mac), the key-value store `M6C7NX9MUZ.asia.xdev.mindmapai` and the App Group. A missing one stops the upload. `UPLOAD=NO scripts/upload-testflight.sh [ios]` stops after the check. Run on 2026-10-03 from `1b409dc` with `UPLOAD=NO` for macOS (`.pkg`) and iOS (`.ipa`): all five present in both, plus `com.apple.developer.icloud-container-environment` `Production`, which the export adds.
+4. Test two devices as in docs/cloudkit-sync.md *Testing on real devices* (the product owner, on the first 1.1 TestFlight build), including step 0, maps from 1.0.
 
-Until MM-100 lands, uploads keep iCloud off; the App Group is on.
+1.0.0 (builds 202610031203 and 202610031207) shipped with iCloud off.
 
 ## Upload a build
 
@@ -57,6 +59,8 @@ Every upload adds a row here with the commit it was archived from, so whether a 
 | 202610030030 (iOS, iPhone and iPad) | 0.1.0 | 2026-10-02 17:34 | `a2b8ef3` | V2 (node types) |
 | 202610031203 (macOS) | 1.0.0 | 2026-10-03 05:05 | `a5e2508` | V3 (chat history) |
 | 202610031207 (iOS, iPhone and iPad) | 1.0.0 | 2026-10-03 05:09 | `a5e2508` | V3 (chat history) |
+| 202610031802 (macOS) | 1.1.0 | 2026-10-03 11:09 | `116da74` | V3, first upload with iCloud sync on (MM-100) |
+| 202610031809 (iOS, iPhone and iPad) | 1.1.0 | 2026-10-03 11:16 | `116da74` | V3, iCloud sync on |
 
 The first four are processed (`VALID`) in App Store Connect, read through the API on 2026-10-02, and none contains SchemaV2: `SchemaV2.swift` first appears in `9766bc0`, committed at 11:54 UTC, after the last of them was archived (the build number is the archive time, UTC+7). A later upload stopped by hand while sending left no build.
 

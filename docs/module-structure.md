@@ -33,6 +33,8 @@ Packages/
 │  ├─ MindMapIntents          ✓ (MM-11): entities, queries, intents, AppIntentsPackage, Spotlight index; see [[system-integration]]
 │  ├─ MindMapAICore           ✓ (MM-7): AIProvider, requests, AIProposal, ContextBuilder, ProposalTranslator, AICapabilities
 │  ├─ MindMapAIApple          ✓ (MM-7): Foundation Models provider, @Generable types, prompts catalog; chat provider and tools over MindMapQuery (MM-41); Translation glue later
+│  ├─ MindMapAILocal          ✓ (MM-105): `LocalLLMProvider`, `LocalInferenceEngine`, JSON shapes and repair, `LocalDeviceEligibility`, `FallbackAIProvider`; no MLX (ADR 0011)
+│  ├─ MindMapAIEvaluation     ✓ (MM-105): en/vi/ja evaluation cases and checks; `mindmap-ai-eval` runs them (developer tool, not shipped)
 │  ├─ MindMapQuery            ✓ (MM-47): `MapQueries`, `TopicRef`, `GraphSource`, `TextLimit`; reads for MCP and the chat, see [[mcp]] and [[chat]]
 │  ├─ MindMapMCP              ✓ (MM-40): `MCPServer` (JSON-RPC, both eras, 4 read tools), `MCPListener` (loopback HTTP), `MCPAccess`; Mac only at run time, hosted by the app's `Features/AIApps` (MM-46), see [[mcp]]
 │  ├─ mindmap-mcp-dev         developer tool, not shipped (MM-40): serves sample maps for the MCP Inspector
@@ -41,7 +43,7 @@ Packages/
 ├─ MindMapUI/                 SwiftUI, no SwiftData
 │  ├─ MindMapDesignSystem     moved out of the app target when a second target needs it: the App Clip and the watch (ADR 0012)
 │  └─ MindMapCanvas           rendering, viewport, hit testing, gestures, PNG/PDF rendering; in the app target (Features/Canvas) until the App Clip needs it (MM-114, ADR 0012), see [[canvas]]
-└─ MindMapLocalModels/        optional, later: MLX or Core AI models
+└─ (MLX)                      linked by the app target only, behind `LocalInferenceEngine` (ADR 0011)
 ```
 
 ## Why each boundary

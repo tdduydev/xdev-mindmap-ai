@@ -3,6 +3,11 @@
 #
 #   scripts/upload-testflight.sh          # the Mac app
 #   scripts/upload-testflight.sh ios      # iPhone and iPad, same app record
+#   UPLOAD=NO scripts/upload-testflight.sh  # archive, export and check only
+#
+# Every upload has iCloud sync on (MINDMAP_ICLOUD=YES, from 1.1, MM-100); the
+# project default stays NO so scripts/ci.sh builds without a certificate. The
+# export is checked with scripts/check-icloud-entitlements.sh before it is sent.
 #
 # The API key lives outside the repo: ~/.appstoreconnect/mindmap.env names it
 # (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH) and the .p8 stays in
@@ -22,12 +27,12 @@ platform=${1:-macos}
 case "$platform" in
   macos)
     destination='generic/platform=macOS'
-    platform_settings=(MINDMAP_MAC_APP_GROUP=YES)
+    platform_settings=(MINDMAP_MAC_APP_GROUP=YES MINDMAP_ICLOUD=YES)
     profile_suffix='Mac App Store'
     ;;
   ios)
     destination='generic/platform=iOS'
-    platform_settings=()
+    platform_settings=(MINDMAP_ICLOUD=YES)
     profile_suffix='iOS App Store'
     ;;
   *) echo "usage: $0 [macos|ios]" >&2; exit 64 ;;
@@ -71,13 +76,16 @@ xcodebuild archive -quiet \
   ${platform_settings[@]+"${platform_settings[@]}"} \
   "${auth[@]}"
 
-cat > "$out/ExportOptions.plist" <<PLIST
+# One options file per destination: a local export to check the signed
+# entitlements, then the upload.
+export_options() {
+cat <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>method</key><string>app-store-connect</string>
-  <key>destination</key><string>upload</string>
+  <key>destination</key><string>$1</string>
   <key>signingStyle</key><string>manual</string>
   <key>teamID</key><string>M6C7NX9MUZ</string>
   <key>signingCertificate</key><string>Apple Distribution</string>
@@ -92,12 +100,28 @@ $( [[ $platform == macos ]] && echo '  <key>installerSigningCertificate</key><st
 </dict>
 </plist>
 PLIST
+}
+export_options export > "$out/ExportOptions-export.plist"
+export_options upload > "$out/ExportOptions.plist"
+
+printf '\n==> Export and check the iCloud entitlements\n'
+xcodebuild -exportArchive \
+  -archivePath "$archive" \
+  -exportOptionsPlist "$out/ExportOptions-export.plist" \
+  -exportPath "$out/export" \
+  "${auth[@]}"
+scripts/check-icloud-entitlements.sh "$out/export"
+
+if [[ ${UPLOAD:-YES} == NO ]]; then
+  printf '\nExported %s build %s to %s/export; not uploaded (UPLOAD=NO).\n' "$platform" "$build_number" "$out"
+  exit 0
+fi
 
 printf '\n==> Upload to App Store Connect\n'
 xcodebuild -exportArchive \
   -archivePath "$archive" \
   -exportOptionsPlist "$out/ExportOptions.plist" \
-  -exportPath "$out/export" \
+  -exportPath "$out/upload" \
   "${auth[@]}"
 
 printf '\nUploaded %s build %s from %s. It appears in TestFlight after Apple finishes processing;\nadd a row to the Uploads table in docs/release.md.\n' "$platform" "$build_number" "$(git rev-parse --short HEAD)"

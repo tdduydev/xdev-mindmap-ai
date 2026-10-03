@@ -45,7 +45,7 @@ final class PurchaseUITests: XCTestCase {
     func testPaywallShowsPriceAndWhatProIncludes() throws {
         let app = MindMapApp.launch(fixture: .sample)
         let settings = app.openSettings().show(.pro)
-        XCTAssertTrue(settings.proStatus.waitToExist().label.hasSuffix(Status.locked), settings.proStatus.label)
+        XCTAssertTrue(settings.proStatus.waitToExist().shownText.hasSuffix(Status.locked), settings.proStatus.shownText)
 
         // Already on the Pro pane: on iPhone the sidebar's Settings button is behind it.
         settings.showPaywall.waitToExist().tapOrClick()
@@ -91,7 +91,7 @@ final class PurchaseUITests: XCTestCase {
         // Pro holds across a launch: the app reads it back from StoreKit.
         app = MindMapApp.launch(fixture: .sample)
         let pro = app.openSettings().show(.pro)
-        XCTAssertTrue(pro.proStatus.waitToExist().label.hasSuffix(Status.unlocked), pro.proStatus.label)
+        XCTAssertTrue(pro.proStatus.waitToExist().shownText.hasSuffix(Status.unlocked), pro.proStatus.shownText)
         XCTAssertFalse(app.app.buttons[AccessibilityID.Settings.showPaywall].exists)
     }
 
@@ -106,10 +106,10 @@ final class PurchaseUITests: XCTestCase {
 
         pro.restorePurchases.waitToExist().tapOrClick()
 
-        let alert = app.app.alerts.firstMatch.waitToExist()
-        XCTAssertEqual(alert.label, "Purchases Restored")
-        alert.buttons.firstMatch.tapOrClick()
-        XCTAssertTrue(pro.proStatus.label.hasSuffix(Status.unlocked), pro.proStatus.label)
+        let alert = app.alert.waitToExist()
+        XCTAssertEqual(alert.title, "Purchases Restored")
+        alert.element.buttons.firstMatch.tapOrClick()
+        XCTAssertTrue(pro.proStatus.shownText.hasSuffix(Status.unlocked), pro.proStatus.shownText)
     }
 
     @MainActor
@@ -119,17 +119,40 @@ final class PurchaseUITests: XCTestCase {
 
         pro.restorePurchases.waitToExist().tapOrClick()
 
-        let alert = app.app.alerts.firstMatch.waitToExist()
-        XCTAssertEqual(alert.label, "Nothing to Restore")
-        alert.buttons.firstMatch.tapOrClick()
-        XCTAssertTrue(pro.proStatus.label.hasSuffix(Status.locked), pro.proStatus.label)
+        let alert = app.alert.waitToExist()
+        XCTAssertEqual(alert.title, "Nothing to Restore")
+        alert.element.buttons.firstMatch.tapOrClick()
+        XCTAssertTrue(pro.proStatus.shownText.hasSuffix(Status.locked), pro.proStatus.shownText)
     }
 }
 
-/// The end of the Pro pane's Status row, read as "Status, Unlocked".
+/// The end of the Pro pane's Status row: iOS reads the row as "Status, Unlocked",
+/// the Mac reads the status text alone, "Unlocked". Case keeps the two apart.
 private enum Status {
-    static let unlocked = ", Unlocked"
-    static let locked = ", Not unlocked"
+    static let unlocked = "Unlocked"
+    static let locked = "Not unlocked"
+}
+
+/// An alert the app shows. iOS presents it as an alert labelled with its title;
+/// on the Mac SwiftUI attaches it to the window as a sheet labelled "alert",
+/// whose first text is the title.
+@MainActor
+struct AlertPage {
+    let element: XCUIElement
+
+    var title: String {
+        #if os(macOS)
+        element.staticTexts.firstMatch.shownText
+        #else
+        element.label
+        #endif
+    }
+
+    @discardableResult
+    func waitToExist(file: StaticString = #filePath, line: UInt = #line) -> AlertPage {
+        element.waitToExist(file: file, line: line)
+        return self
+    }
 }
 
 /// `ProFeature` lives in the app: the paywall lists 5 features without AI, 9 with it.
@@ -176,6 +199,14 @@ extension SettingsPage {
 @MainActor
 extension MindMapApp {
     var paywall: PaywallPage { PaywallPage(app: app) }
+
+    var alert: AlertPage {
+        #if os(macOS)
+        AlertPage(element: app.sheets.firstMatch)
+        #else
+        AlertPage(element: app.alerts.firstMatch)
+        #endif
+    }
 
     /// Settings ▸ MindMap AI Pro ▸ See What’s in Pro…, waiting for the price.
     func openPaywallFromSettings(file: StaticString = #filePath, line: UInt = #line) -> PaywallPage {
