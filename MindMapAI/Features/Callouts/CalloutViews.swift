@@ -95,8 +95,8 @@ struct CanvasCalloutView: View {
         .transition(.opacity)
         // The topic element reads the callout as custom content; the bubble
         // is not a second element, except while its field is open.
+        // No identifier here: on a container it would replace the field's.
         .accessibilityHidden(!isEditing)
-        .accessibilityIdentifier(AccessibilityID.Canvas.callout)
     }
 }
 
