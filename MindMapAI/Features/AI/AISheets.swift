@@ -236,7 +236,7 @@ private struct AISummaryForm: View {
                 }
             }
             .formStyle(.grouped)
-            .navigationTitle(Text("Summary"))
+            .navigationTitle(Text("Branch Summary"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close", action: onClose)

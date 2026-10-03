@@ -84,6 +84,8 @@ struct SummaryCommandTests {
         #expect(throws: GraphError.groupsWouldCross(existing.group)) {
             try fixture.engine.execute(AddSummaryCommand(from: fixture["B"], to: fixture["D"]))
         }
+        #expect(!AddSummaryCommand.canSummarize(from: fixture["B"], to: fixture["D"], in: fixture.state))
+        #expect(AddSummaryCommand.canSummarize(from: fixture["D"], to: fixture["E"], in: fixture.state))
         // The summary topic is not a sibling a run can reach.
         #expect(throws: GraphError.notSiblings(existing.topic)) {
             try fixture.engine.execute(AddSummaryCommand(from: fixture["E"], to: existing.topic))

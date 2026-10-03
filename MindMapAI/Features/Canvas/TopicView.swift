@@ -553,6 +553,13 @@ struct TopicAccessibility: ViewModifier {
                 } else {
                     topicActions
                     suggestedTagActions
+                    if topic.summaryDescription != nil {
+                        Button("Remove Summary") {
+                            if let id = model.session.engine.state.summaries(naming: topic.id).first?.id {
+                                model.session.removeSummary(id)
+                            }
+                        }
+                    }
                 }
             }
             .modifier(TagCustomContent(names: topic.tagNames))
@@ -601,6 +608,11 @@ struct TopicAccessibility: ViewModifier {
         if !isRoot, !topic.isFloating {
             // A selected run of siblings that includes this topic is framed whole.
             Button("Add Boundary") { model.performFromContextMenu(on: topic.id) { $0.addBoundary() } }
+            if let summaryID = model.session.engine.state.summaries(naming: topic.id).first?.id {
+                Button("Remove Summary") { model.session.removeSummary(summaryID) }
+            } else {
+                Button("Add Summary") { model.performFromContextMenu(on: topic.id) { $0.addSummary() } }
+            }
         }
         Button(topic.taskState == nil ? "Make Task" : "Remove Task") { model.session.toggleTask(topic.id) }
         if topic.taskState != nil {
@@ -615,6 +627,7 @@ struct TopicAccessibility: ViewModifier {
     private var value: String {
         let level = isRoot ? String(localized: "Central Topic")
             : topic.isFloating ? String(localized: "Floating topic")
+            : topic.summaryDescription != nil ? topic.summaryDescription ?? ""
             : String(localized: "Level \(topic.level + 1)")
         let subtopics = String(localized: "\(topic.childCount) subtopics")
         var parts = [level, subtopics]

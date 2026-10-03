@@ -31,6 +31,11 @@ public struct AddSummaryCommand: GraphCommand {
         self.title = title
     }
 
+    /// Whether the command would accept this run, for enabling the menu item.
+    public static func canSummarize(from firstNodeID: NodeID, to lastNodeID: NodeID, in state: GraphState) -> Bool {
+        (try? AddGroupCommand.validRun(from: firstNodeID, to: lastNodeID, kind: .summary, in: state)) != nil
+    }
+
     public func execute(in transaction: inout GraphTransaction) throws {
         let run = try AddGroupCommand.validRun(from: firstNodeID, to: lastNodeID, kind: .summary, in: transaction.state)
         try AddNodeCommand(nodeID: nodeID, .child(of: run.parentID, at: .last), title: title).execute(in: &transaction)
