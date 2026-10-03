@@ -27,8 +27,7 @@ TEST_RUNNER_MINDMAP_RENDER_IAP_SCREENSHOT=1 scripts/storekit-lock.sh xcodebuild 
   -derivedDataPath "$derived" \
   -resultBundlePath "$results" \
   -only-testing:MindMapAITests/IAPReviewScreenshotTests \
-  -testLanguage en -testRegion US \
-  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+  -testLanguage en -testRegion US
 
 xcrun xcresulttool export attachments --path "$results" --output-path "$attachments" >/dev/null
 png=$(find "$attachments" -name '*.png' | head -n 1)
