@@ -242,7 +242,7 @@ Ask across the library, 2026-10-03. Pro, as decided on 2026-10-02.
 | `PromptCatalog.libraryChatInstructions`, `libraryChatPrompt` | `MindMapAIApple` | Own fixed instructions (under half the instructions reserve, as for a map); the prompt says "Scope: every map in the library." instead of a map title |
 | `ProFeature.askLibrary` | `MindMapAI/Features/Store` | "Ask About Library" in the paywall; an AI feature, so not offered where AI cannot run |
 | `LibraryChat` | `MindMapAI/Features/Chat` | One per library window (`RootView`). Asks `allows(.askLibrary)` before the panel opens and before each question; without Pro it opens the paywall (`PendingProChoice`), which carries on if Pro is unlocked there. Shows the on-device notice itself (same `ai.privacyNoticeKey`, `AIPrivacyNotice`) |
-| `LibraryChatPanel` | `MindMapAI/Features/Chat` | `.inspector` on the library list column (a sheet on iPhone): suggested questions, Copy and Ask Again, citation chips. No scope picker, microphone or Add to Note |
+| `LibraryChatPanel` | `MindMapAI/Features/Chat` | `.inspector` on the library list column on the Mac; a `.sheet` on iPhone and iPad, because the inspector there sent the library into an endless layout loop as soon as it listed maps (TestFlight 1.1.0 hung at launch, fixed 2026-10-03): suggested questions, Copy and Ask Again, citation chips. No scope picker, microphone or Add to Note |
 | `OpenMaps.showTopic(_:in:)` | `MindMapAI/Features/Editor` | A citation opens its map in the window (or brings forward the window that shows it) and selects the topic, revealing it as Find does; if the map is still loading, the topic is shown when it opens |
 
 Differences from the design above:

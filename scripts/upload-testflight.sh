@@ -4,6 +4,7 @@
 #   scripts/upload-testflight.sh          # the Mac app
 #   scripts/upload-testflight.sh ios      # iPhone and iPad, same app record
 #   UPLOAD=NO scripts/upload-testflight.sh  # archive, export and check only
+#   SKIP_SMOKE=YES scripts/upload-testflight.sh ios  # skip the iOS Simulator launch check
 #
 # Every upload has iCloud sync on (MINDMAP_ICLOUD=YES, from 1.1, MM-100); the
 # project default stays NO so scripts/ci.sh builds without a certificate. The
@@ -57,6 +58,14 @@ security unlock-keychain -p "$(cat "$pass_file")" "$keychain"
 # App Store Connect refuses a build number it has seen, so each upload takes the time.
 build_number="${BUILD_NUMBER:-$(date +%Y%m%d%H%M)}"
 out=scripts/out/testflight-$platform
+# A launch check on the iOS Simulator before every iOS upload: TestFlight 1.1.0
+# hung at launch on iPhone in an endless layout loop that ci.sh, which runs no
+# UI tests, and the Mac never showed. LibraryUITests open a library with maps.
+if [[ $platform == ios && ${SKIP_SMOKE:-NO} != YES ]]; then
+  printf '\n==> Smoke test: the library on the iOS Simulator\n'
+  scripts/ui-tests.sh ios -only-testing:MindMapAIUITests/LibraryUITests
+fi
+
 archive="$out/MindMapAI.xcarchive"
 rm -rf "$out" && mkdir -p "$out"
 

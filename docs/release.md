@@ -72,7 +72,7 @@ scripts/upload-testflight.sh        # Mac
 scripts/upload-testflight.sh ios    # iPhone and iPad
 ```
 
-It unlocks the build keychain, archives the Release configuration for macOS with the API key, and exports with `destination upload`. The build shows up in TestFlight once Apple finishes processing it (usually 10–30 minutes). Set `BUILD_NUMBER` to override the time-based number.
+Before an iOS upload it runs `LibraryUITests` on the iOS Simulator (a library with maps) and stops if they fail: TestFlight 1.1.0 build 202610031809 hung at launch on iPhone in an endless layout loop that `scripts/ci.sh` (no UI tests) and the Mac never showed. `SKIP_SMOKE=YES` skips the check. It unlocks the build keychain, archives the Release configuration for macOS with the API key, and exports with `destination upload`. The build shows up in TestFlight once Apple finishes processing it (usually 10–30 minutes). Set `BUILD_NUMBER` to override the time-based number.
 
 ## Recreating the signing setup
 

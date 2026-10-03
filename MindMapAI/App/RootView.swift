@@ -246,7 +246,7 @@ struct StartupFailureView: View {
     }
 }
 
-/// The library chat's panel beside the library list (a sheet on iPhone), its
+/// The library chat's panel: beside the library list on the Mac, a sheet on iPhone and iPad; its
 /// toolbar button, the paywall and the on-device notice. Nothing while the
 /// window has not made the chat yet.
 private struct LibraryChatPresenter: ViewModifier {
@@ -265,9 +265,19 @@ private struct LibraryChatPresenter: ViewModifier {
 
         func body(content: Content) -> some View {
             content
+                // An inspector on the library column of the split view sent
+                // iPhone and iPad into an endless layout loop as soon as the
+                // library listed maps (TestFlight 1.1.0 hung at launch), so
+                // iOS shows the chat as a sheet.
+                #if os(macOS)
                 .inspector(isPresented: $chat.isPresented) {
                     LibraryChatPanel(chat: chat)
                 }
+                #else
+                .sheet(isPresented: $chat.isPresented) {
+                    LibraryChatPanel(chat: chat)
+                }
+                #endif
                 .toolbar {
                     if chat.showsEntryPoints {
                         ToolbarItem {
