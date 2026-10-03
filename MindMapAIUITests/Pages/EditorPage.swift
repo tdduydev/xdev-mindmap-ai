@@ -115,7 +115,9 @@ struct EditorPage {
             // keyboard up its shortcuts bar has one too, before the toolbar's.
             let overflow = app.buttons.matching(identifier: "OverflowBarButtonItem")
             overflow.element(boundBy: max(overflow.count - 1, 0)).waitToExist(file: file, line: line).tapOrClick()
-            app.collectionViews.buttons.containing(.image, identifier: action.symbol).firstMatch
+            // iOS 27 names the "mic" symbol's image "microphone" in the menu.
+            let symbols = action == .voice ? [action.symbol, "microphone"] : [action.symbol]
+            app.collectionViews.buttons.containing(NSPredicate(format: "elementType == %d AND identifier IN %@", XCUIElement.ElementType.image.rawValue, symbols)).firstMatch
                 .waitToExist(file: file, line: line).tapOrClick()
             return
         }
