@@ -21,6 +21,18 @@
             }
           }
         },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld個の画像とPDFはマップと一緒に保存され、あとでMindMap AIが読み込みます。"
+                }
+              }
+            }
+          }
+        },
         "vi" : {
           "variations" : {
             "plural" : {
@@ -37,6 +49,12 @@
     },
     "Add To" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加先"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -47,6 +65,12 @@
     },
     "Cancel" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャンセル"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -57,6 +81,12 @@
     },
     "Can’t Save to MindMap AI" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AIに保存できません"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -67,6 +97,12 @@
     },
     "MindMap AI" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MindMap AI"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -77,6 +113,12 @@
     },
     "New Mind Map" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新規マインドマップ"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -87,6 +129,12 @@
     },
     "Nothing here can be added to a map." : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップに追加できるものがありません。"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -97,6 +145,12 @@
     },
     "Open MindMap AI First" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "先にMindMap AIを開いてください"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -107,6 +161,12 @@
     },
     "Open the app once so it can set up your maps, then share again." : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを準備するためにAppを一度開いてから、もう一度共有してください。"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -117,6 +177,12 @@
     },
     "Save" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -127,6 +193,12 @@
     },
     "Shared" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有された項目"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -137,6 +209,12 @@
     },
     "Title" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タイトル"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -147,6 +225,12 @@
     },
     "Untitled Map" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名称未設定マップ"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
@@ -157,6 +241,12 @@
     },
     "Your maps couldn’t be opened. Open MindMap AI and try again." : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マップを開けませんでした。MindMap AIを開いて、もう一度試してください。"
+          }
+        },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
