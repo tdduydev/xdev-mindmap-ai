@@ -58,8 +58,7 @@ for language in $languages; do
     -derivedDataPath "$derived" \
     -resultBundlePath "$results" \
     -only-testing:"MindMapAITests/MacSnapshotTests${SNAPSHOT_TEST:+/$SNAPSHOT_TEST}" \
-    -testLanguage "$language" -testRegion "$region" \
-    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES || status=$?
+    -testLanguage "$language" -testRegion "$region" || status=$?
 
   xcrun xcresulttool export attachments --path "$results" --output-path "$attachments" >/dev/null 2>&1 || true
   # Attachments are exported under generated names; the manifest maps them

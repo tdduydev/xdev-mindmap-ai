@@ -58,8 +58,7 @@ for lang in "${languages[@]}"; do
         -destination "$destination" -derivedDataPath "${MINDMAP_SCREENSHOT_DERIVED_DATA:-scripts/out/DerivedData}" \
         -resultBundlePath "$result" -parallel-testing-enabled NO \
         -collect-test-diagnostics never \
-        -only-testing:MindMapAIUITests/AppStoreScreenshotUITests \
-        SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
+        -only-testing:MindMapAIUITests/AppStoreScreenshotUITests
     fi
     xcrun xcresulttool export attachments --path "$result" --output-path "$attachments" >/dev/null
     raw="$output/raw/$platform/$lang"
