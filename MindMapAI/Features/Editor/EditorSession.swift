@@ -20,6 +20,8 @@ final class EditorSession {
         /// The topic's tags, as the outline row shows them.
         var tags: [MindTag] = []
         var topicImage: MindImage?
+        /// Done over total for the leaf tasks below (MM-35), computed per read.
+        var progress: TaskProgress?
         var id: NodeID { node.id }
     }
 
@@ -261,10 +263,12 @@ final class EditorSession {
     var rows: [Row] {
         let state = engine.state
         let tags = state.tagsByNode()
+        let progress = state.taskProgressByNode()
         return state.visibleOutline().compactMap { item in
             state.node(item.nodeID).map {
                 Row(node: $0, depth: item.depth, hasChildren: item.hasChildren,
-                    tags: tags[item.nodeID] ?? [], topicImage: state.image(of: item.nodeID))
+                    tags: tags[item.nodeID] ?? [], topicImage: state.image(of: item.nodeID),
+                    progress: progress[item.nodeID])
             }
         }
     }

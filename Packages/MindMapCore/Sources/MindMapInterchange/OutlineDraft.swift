@@ -14,12 +14,15 @@ public struct OutlineDraft: Hashable, Sendable {
         public var note: String?
         /// A Markdown title that was one inline link, or a plain-text `<url>` (FR-ORG-26).
         public var link: TopicLink?
+        /// A Markdown task box: `[ ]` open, `[x]` done (MM-35).
+        public var taskState: TaskState?
 
-        public init(depth: Int, title: String, note: String? = nil, link: TopicLink? = nil) {
+        public init(depth: Int, title: String, note: String? = nil, link: TopicLink? = nil, taskState: TaskState? = nil) {
             self.depth = depth
             self.title = title
             self.note = note
             self.link = link
+            self.taskState = taskState
         }
     }
 

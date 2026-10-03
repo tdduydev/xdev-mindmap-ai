@@ -41,6 +41,15 @@ struct MapInspectorView: View {
                         Text("Tags")
                     }
                 }
+                Section {
+                    TaskInspectorSection(session: session, node: node)
+                } header: {
+                    if session.selectedIDs.count > 1 {
+                        Text("Task of \(session.selectedIDs.count) Topics")
+                    } else {
+                        Text("Task")
+                    }
+                }
                 Section("Topic") {
                     TopicDetails(session: session, node: node)
                 }

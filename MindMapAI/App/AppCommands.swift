@@ -188,6 +188,24 @@ struct MapCommands: Commands {
             Button("Manage Tags…") { editor?.isManagingTags = true }
                 .keyboardShortcut("t", modifiers: [.command, .option, .shift])
                 .disabled(editor == nil)
+            Divider()
+            // ⇧⌘K, ⌥⌘K, ⌥⌘1–3 and ⌥⇧⌘K (MM-30): free in the standard menus; ⌘K stays Add Link.
+            Button(editor?.areAllTasks() == true ? "Remove Task" : "Make Task") { editor?.toggleTask() }
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+                .disabled(editor?.canEditSelectionTask != true)
+            Button(editor?.areTasksDone() == true ? "Mark as Not Done" : "Mark as Done") { editor?.toggleDone() }
+                .keyboardShortcut("k", modifiers: [.command, .option])
+                .disabled(editor?.hasTask() != true)
+            if let editor {
+                PriorityPicker(session: editor, showsShortcuts: true)
+            } else {
+                Menu("Priority") {}
+                    .disabled(true)
+            }
+            Button("Set Task Dates…") { editor?.beginSettingTaskDates() }
+                .keyboardShortcut("k", modifiers: [.command, .option, .shift])
+                .disabled(editor?.canEditSelectionTask != true)
+            Divider()
             Button("Duplicate Topic") { editor?.duplicateSelection() }
                 .keyboardShortcut("d")
                 .disabled(editor?.canDuplicateSelection != true)

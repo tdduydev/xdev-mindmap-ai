@@ -112,6 +112,14 @@ nonisolated enum AccessibilityID {
         static let open = "link.open"
     }
 
+    enum Task {
+        static let isTask = "task.isTask"
+        static let done = "task.done"
+        static let priority = "task.priority"
+        static let overdue = "task.overdue"
+        static let checkbox = "task.checkbox"
+    }
+
     enum Chat {
         static let panel = "chat.panel"
         static let field = "chat.field"

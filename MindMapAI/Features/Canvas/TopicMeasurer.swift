@@ -157,7 +157,7 @@ nonisolated final class TopicMeasurer {
         var rows = 1
         for index in chips.indices {
             let label = Self.measure(chips[index].label, font: font, lineSpacing: 0, wrapWidth: .greatestFiniteMagnitude / 4).width
-            let symbol = chips[index].isSuggestion ? chip.symbolWidth : 0
+            let symbol = chips[index].hasSymbol ? chip.symbolWidth : 0
             let width = min(wrapWidth, (label + Self.widthSlack + symbol + 2 * chip.horizontalPadding).rounded(.up))
             chips[index].width = width
             if rowWidth > 0, rowWidth + chip.spacing + width > wrapWidth {

@@ -96,6 +96,9 @@ enum CanvasMetrics {
     /// Tags shown on a topic before "+n". Read off the main actor by the
     /// layout pass, hence `nonisolated`.
     nonisolated static let maximumTopicTagChips = 3
+    /// The progress ring in a task chip (MM-35): stroke, and the unfilled track's opacity.
+    static let taskRingWidth: CGFloat = 1.5
+    static let taskRingTrackOpacity: Double = 0.3
 
     /// A picture on a topic (MM-63), above the title: its widths for Image
     /// Size ▸ Small, Medium (the default, `MindImage.defaultDisplayWidth`)

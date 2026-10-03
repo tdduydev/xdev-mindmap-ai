@@ -54,9 +54,9 @@ public enum MarkdownOutline {
             if let link { title = InlineLink.write(text: title, link: link) }
             let note = options.includeNotes ? TextLines.noteLines(node.note) : nil
             if depth < options.headingLevels {
-                writer.heading(level: depth + 1, title: title, note: note, escapingLink: looksLinked)
+                writer.heading(level: depth + 1, title: title, note: note, escapingLink: looksLinked, task: node.taskState)
             } else {
-                writer.listItem(indent: (depth - options.headingLevels) * 2, title: title, note: note, escapingLink: looksLinked)
+                writer.listItem(indent: (depth - options.headingLevels) * 2, title: title, note: note, escapingLink: looksLinked, task: node.taskState)
             }
         }
         return writer.text
@@ -119,13 +119,14 @@ private struct Parser {
         }
         defer { previousBlank = false }
 
-        if column <= 3, let (level, title) = Self.heading(content) {
+        if column <= 3, let (level, boxed) = Self.heading(content) {
+            let (task, title) = Self.taskBox(boxed.title, raw: boxed.raw)
             let (text, link) = Self.linkedTitle(title, raw: content)
             items.removeAll()
             inListText = false
             while let last = headings.last, last.level >= level { headings.removeLast() }
             let depth = headings.last.map { $0.depth + 1 } ?? 0
-            let index = builder.add(depth: depth, title: text, link: link)
+            let index = builder.add(depth: depth, title: text, link: link, taskState: task)
             headings.append(OpenHeading(level: level, depth: depth, index: index))
             return
         }
@@ -135,12 +136,12 @@ private struct Parser {
             return
         }
 
-        if let (markerWidth, title) = Self.listItem(content) {
+        if let (markerWidth, task, title) = Self.listItem(content) {
             // A sibling or a shallower item closes every item it does not reach into.
             while let last = items.last, column < last.contentColumn { items.removeLast() }
             let depth = items.last.map { $0.depth + 1 } ?? headings.last.map { $0.depth + 1 } ?? 0
             let (text, link) = Self.linkedTitle(title, raw: content)
-            let index = builder.add(depth: depth, title: text, link: link)
+            let index = builder.add(depth: depth, title: text, link: link, taskState: task)
             items.append(OpenItem(contentColumn: column + markerWidth, depth: depth, index: index))
             inListText = true
             return
@@ -185,7 +186,7 @@ private struct Parser {
 
     /// `#` to `######` followed by a space or nothing. An optional closing run
     /// of `#` is dropped, as in CommonMark.
-    static func heading(_ content: Substring) -> (Int, String)? {
+    static func heading(_ content: Substring) -> (Int, (title: String, raw: Substring))? {
         let hashes = content.prefix { $0 == "#" }.count
         guard (1...6).contains(hashes) else { return nil }
         var title = content.dropFirst(hashes)
@@ -199,13 +200,24 @@ private struct Parser {
                 title = beforeClosing.trimmingTrailingWhitespace()
             }
         }
-        return (hashes, unescaped(title, trailingHash: true))
+        return (hashes, (unescaped(title, trailingHash: true), title))
+    }
+
+    /// A heading that starts with a task box (`## [ ] Title`). Read from the
+    /// raw text, so an escaped box (`## \[ ] Title`) stays part of the title.
+    static func taskBox(_ title: String, raw: Substring) -> (TaskState?, String) {
+        guard let (state, length) = taskBoxPrefix(raw) else { return (nil, title) }
+        return (state, unescaped(raw.dropFirst(length), trailingHash: true))
+    }
+
+    static func taskBoxPrefix(_ text: Substring) -> (TaskState, Int)? {
+        TaskBox.prefix(text)
     }
 
     /// A bullet (`-`, `*`, `+`) or a number (`1.`, `1)`) followed by a space or
-    /// nothing. Returns the marker's width including one space, and the title
-    /// without a task box.
-    static func listItem(_ content: Substring) -> (Int, String)? {
+    /// nothing. Returns the marker's width including one space, the task box's
+    /// state, and the title without the box.
+    static func listItem(_ content: Substring) -> (Int, TaskState?, String)? {
         var markerLength: Int
         if let first = content.first, "-*+".contains(first) {
             markerLength = 1
@@ -220,10 +232,9 @@ private struct Parser {
         guard afterMarker.isEmpty || afterMarker.first == " " || afterMarker.first == "\t" else { return nil }
 
         var title = afterMarker.drop { $0 == " " || $0 == "\t" }
-        for box in ["[ ] ", "[x] ", "[X] "] where title.hasPrefix(box) {
-            title = title.dropFirst(box.count)
-        }
-        return (markerLength + 1, unescaped(title))
+        let task = taskBoxPrefix(title)
+        if let (_, length) = task { title = title.dropFirst(length) }
+        return (markerLength + 1, task?.0, unescaped(title))
     }
 
     /// Three or more `-`, `*` or `_`, optionally spaced.
@@ -281,9 +292,10 @@ private struct Writer {
 
     var text: String { lines.isEmpty ? "" : lines.joined(separator: "\n") + "\n" }
 
-    mutating func heading(level: Int, title: String, note: [Substring]?, escapingLink: Bool = false) {
+    mutating func heading(level: Int, title: String, note: [Substring]?, escapingLink: Bool = false, task: TaskState? = nil) {
         if last != .none { lines.append("") }
         var title = (escapingLink ? "\\" : "") + Self.escapedLine(title)
+        if let task { title = TaskBox.write(task) + title }
         // A closing `#` run would be read as decoration and dropped. The reader
         // takes one backslash off before a final `#`, so a title that already
         // has one there gets another.
@@ -300,10 +312,12 @@ private struct Writer {
         last = .headingNote
     }
 
-    mutating func listItem(indent: Int, title: String, note: [Substring]?, escapingLink: Bool = false) {
+    mutating func listItem(indent: Int, title: String, note: [Substring]?, escapingLink: Bool = false, task: TaskState? = nil) {
         if last == .heading || last == .headingNote { lines.append("") }
         let padding = String(repeating: " ", count: indent)
-        let title = (escapingLink ? "\\" : "") + Self.escapedTitle(title)
+        var title = (escapingLink ? "\\" : "") + Self.escapedTitle(title)
+        // The box goes before any escape, so `- [ ] \[ ] a` reads back as a task named `[ ] a`.
+        if let task { title = TaskBox.write(task) + title }
         lines.append(padding + "-" + (title.isEmpty ? "" : " " + title))
         last = .item
         guard let note else { return }
@@ -371,6 +385,8 @@ private struct Writer {
             || Parser.isThematicBreak(body)
             || Parser.fenceOpening(body) != nil
             || first == ">" || first == "\\"
+            // A heading that starts with a box would read back as a task.
+            || Parser.taskBoxPrefix(body) != nil
         return startsStructure && escapable.contains(first) ? leading + "\\" + body : line
     }
 }
