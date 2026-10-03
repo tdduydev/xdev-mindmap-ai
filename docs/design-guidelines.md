@@ -181,22 +181,23 @@ House style for the app:
 - **Title case** for buttons, menu items, window and section titles, tab names. **Sentence case** for descriptions, footers, alerts' messages and tips.
 - **One name per thing.** "Topic" for a node everywhere in the UI ("Add Child Topic" in the menu and the toolbar, not "Add Child" in one place), "map" for a mind map, "central topic" for the root.
 - **Vietnamese** follows the same structure with sentence case throughout, as Vietnamese UI usually does *[Inference]*; "chủ đề" for topic, "sơ đồ" for map. Decide the glossary once in `Localizable.xcstrings` comments.
+- **Japanese** (MM-95) uses Apple's own Japanese UI words (設定, 取り消す, やり直す, 書き出す, 読み込む, ウインドウ, "App" as Apple writes it), polite です/ます in messages, no 。 on buttons and titles, 「」 for quoted names. Terms match the App Store metadata (`docs/app-store/metadata-ja.json`) and xdev.asia/ja/mindmap: 採用 (Accept), 破棄 (Discard), 最近使った項目, 最近削除した項目, メモ (Note), ブランチ (Branch), 連携 for AI Apps but 接続 only for a Connection between topics. "Summary" (bracket) is 要約 like the AI summarize commands, because Japanese UI has no shorter distinct word in common use *[Inference]*. All ja text was written by AI: [Chưa kiểm chứng: cần người Nhật duyệt].
 
-Glossary (one name per thing, en / vi). Names approved by the product owner are marked; the others are [Đề xuất] from MM-58 until a translator or the product owner confirms them:
+Glossary (one name per thing, en / vi / ja). Names approved by the product owner are marked; the others are [Đề xuất] from MM-58 until a translator or the product owner confirms them:
 
-| Thing | English | Vietnamese | Note |
-| --- | --- | --- | --- |
-| A node | Topic | chủ đề | |
-| A mind map | Map | sơ đồ | |
-| The root | Central Topic | chủ đề trung tâm | |
-| A URL on a topic | Link | liên kết | Approved 2026-10-02. "Add Link…" / "Thêm liên kết…" ⌘K |
-| A cross-link between two topics | Connection | kết nối | Approved 2026-10-02. "Add Connection…" / "Thêm kết nối…" ⌘L. Code keeps `MindEdge` and "cross-link" |
-| A topic with no parent | Floating Topic | chủ đề tự do | |
-| A picture on a topic | Image | ảnh | |
-| A bracket over siblings and its topic | Summary | tổng hợp | Not "tóm tắt", which the AI Summarize commands use. The string catalog already has the key "Summary" = "Tóm tắt" (title of the AI summary sheet, `AISheets.swift`); MM-65 renames that title to "Branch Summary" / "Tóm tắt nhánh" so the key "Summary" can mean this one thing |
-| A note bubble above a topic | Callout | chú thích | Not "ghi chú", which is the topic's Note |
-| A frame around siblings | Boundary | khung | |
-| Category text on topics | Tag | thẻ | As built in MM-34; check the string catalog |
+| Thing | English | Vietnamese | Japanese | Note |
+| --- | --- | --- | --- | --- |
+| A node | Topic | chủ đề | トピック | |
+| A mind map | Map | sơ đồ | マップ | |
+| The root | Central Topic | chủ đề trung tâm | 中心トピック | |
+| A URL on a topic | Link | liên kết | リンク | Approved 2026-10-02. "Add Link…" / "Thêm liên kết…" ⌘K |
+| A cross-link between two topics | Connection | kết nối | 接続 | Approved 2026-10-02. "Add Connection…" / "Thêm kết nối…" ⌘L. Code keeps `MindEdge` and "cross-link" |
+| A topic with no parent | Floating Topic | chủ đề tự do | フローティングトピック | |
+| A picture on a topic | Image | ảnh | 画像 | |
+| A bracket over siblings and its topic | Summary | tổng hợp | 要約 | Not "tóm tắt", which the AI Summarize commands use. The string catalog already has the key "Summary" = "Tóm tắt" (title of the AI summary sheet, `AISheets.swift`); MM-65 renames that title to "Branch Summary" / "Tóm tắt nhánh" so the key "Summary" can mean this one thing |
+| A note bubble above a topic | Callout | chú thích | 吹き出し | Not "ghi chú", which is the topic's Note |
+| A frame around siblings | Boundary | khung | 囲み枠 | |
+| Category text on topics | Tag | thẻ | タグ | As built in MM-34; check the string catalog |
 - Errors use the categories in [architecture](architecture.md#error-handling): what happened, then what to do.
 
 ## AI-generated content

@@ -335,6 +335,7 @@
 			knownRegions = (
 				en,
 				vi,
+				ja,
 				Base,
 			);
 			mainGroup = 4D4D41000000000000000002;
