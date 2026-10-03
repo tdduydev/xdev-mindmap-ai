@@ -106,7 +106,7 @@ The product owner decides; the split lives in `ProFeature` only.
 ## Languages
 
 - Instructions in English, fixed, versioned in `PromptCatalog`, ending with the answer language. The answer follows the language of the question (`NLLanguageRecognizer`), else the app's language, so a Vietnamese question gets a Vietnamese answer even in a map written in English.
-- The search tools fold case and Vietnamese marks, so a model that drops diacritics ("ke hoach") still finds "Kế hoạch".
+- The search tools fold case and Vietnamese marks, so a model that drops diacritics ("ke hoach") still finds "Kế hoạch". They also fold full and half width ("ｶﾞｲﾄﾞ" finds "ガイド") but keep Japanese voiced marks ("か" is not "が") and keep hiragana apart from katakana (MM-94).
 - Every string in the panel goes into `Localizable.xcstrings` in en and vi.
 
 ## Guardrails and acceptable use

@@ -8,11 +8,13 @@ struct MindMapApp {
     enum Language: String {
         case english = "en"
         case vietnamese = "vi"
+        case japanese = "ja"
 
         var locale: String {
             switch self {
             case .english: "en_US"
             case .vietnamese: "vi_VN"
+            case .japanese: "ja_JP"
             }
         }
     }

@@ -14,7 +14,7 @@ nonisolated enum UITestLaunch {
 
 /// How the scripted model of the UI test mode behaves.
 nonisolated enum UITestAI: String, CaseIterable {
-    /// Ready in English and Vietnamese. The chat answers with the first topic
+    /// Ready in English, Vietnamese and Japanese. The chat answers with the first topic
     /// whose title matches a word of the question, and cites it.
     case ready
     /// A device that can never run Apple Intelligence: every AI entry point is hidden.
@@ -23,12 +23,15 @@ nonisolated enum UITestAI: String, CaseIterable {
     /// What Suggest Subtopics proposes in the `ready` mode, in this order.
     static let subtopics = ["Budget", "Timeline", "Risks"]
     static let subtopicsVi = ["Ngân sách", "Lịch trình", "Rủi ro"]
+    static let subtopicsJa = ["予算", "スケジュール", "リスク"]
 
     /// Follows the app language (`-AppleLanguages`), not the topic's, so a test
-    /// knows the titles from how it launched: the Vietnamese screenshots show
-    /// Vietnamese suggestions while the counts stay the same in both.
+    /// knows the titles from how it launched: the Vietnamese and Japanese
+    /// screenshots show suggestions in their language while the counts stay the same.
     static func subtopics(languageCode: String) -> [String] {
-        languageCode.hasPrefix("vi") ? subtopicsVi : subtopics
+        if languageCode.hasPrefix("vi") { return subtopicsVi }
+        if languageCode.hasPrefix("ja") { return subtopicsJa }
+        return subtopics
     }
 }
 
@@ -51,6 +54,7 @@ nonisolated enum UITestFixture: String, CaseIterable {
     /// Localized, fictional launch plan for App Store screenshots.
     case showcaseEn
     case showcaseVi
+    case showcaseJa
 
     enum Title {
         static let plan = "Product Launch"
@@ -61,7 +65,11 @@ nonisolated enum UITestFixture: String, CaseIterable {
         static let favorite = "Reading List"
         static let large = "Large Map"
         static func showcase(_ language: String) -> String {
-            language == "vi" ? "Ra mắt ứng dụng sáng tạo" : "Creative App Launch"
+            switch language {
+            case "vi": "Ra mắt ứng dụng sáng tạo"
+            case "ja": "クリエイティブアプリの発売"
+            default: "Creative App Launch"
+            }
         }
     }
 

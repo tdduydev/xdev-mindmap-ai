@@ -178,7 +178,7 @@ Built in MM-40 (M1), in `Packages/MindMapCore/Sources/MindMapMCP`. Protocol page
 | `MCPListener` | `NWListener` bound to `127.0.0.1` with `acceptLocalOnly`; HTTP/1.1 keep-alive, requests on a connection answered in order; `states` stream (`ready(port:)`, `failed`, `stopped`). A taken port is `failed`, never another port |
 | `MCPAccess`, `MCPTokenList`, `MCPClient` | Token → client. M2 backs `MCPAccess` with the Keychain; `MCPTokenList` (memory, constant-time compare) is for tests and the dev server. `makeToken()` = 32 bytes from `SecRandomCopyBytes`, base64url (43 characters) |
 | `MCPServer.Activity` | Client and tool name per call, for the last-read row and reading indicator (M2). No arguments |
-| `mindmap-mcp-dev` | Developer executable, not shipped: two sample maps in an in-memory store, prints the URL, token and `claude mcp add` line |
+| `mindmap-mcp-dev` | Developer executable, not shipped: three sample maps (en, vi, ja) in an in-memory store, prints the URL, token and `claude mcp add` line |
 
 **Order of checks** (each answers and stops): path not `/mcp` → 404; any `Origin` → 403; `Host` not `127.0.0.1`, `localhost` or `[::1]` → 403 (a DNS-rebinding page names its own host); not POST → 405 `Allow: POST` (no GET stream, no sessions to DELETE); bearer token missing or unknown → 401 `WWW-Authenticate: Bearer`; over the rate → 429 `Retry-After`; not `application/json` → 415; then JSON-RPC (-32700 parse, -32600 batch or not 2.0, `id` null).
 
