@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Snapshot tests of the Mac interface (MindMapAITests/Snapshots): each scene is
 # drawn in an off-screen window and compared with its reference PNG, in English
-# and in Vietnamese. Unlike the macOS UI tests, this runs while the Mac is locked.
+# Vietnamese and Japanese. Unlike the macOS UI tests, this runs while the Mac is locked.
 #
 #   scripts/snapshot-tests.sh            # compare with the references
 #   scripts/snapshot-tests.sh --record   # write new references, on purpose
-#   scripts/snapshot-tests.sh en         # one language: en or vi
+#   scripts/snapshot-tests.sh ja         # one language: en, vi or ja
 #   SNAPSHOT_TEST='paywall()' scripts/snapshot-tests.sh --record   # one scene
 #
 # A failed comparison leaves the image drawn and a diff (differing pixels in
@@ -18,12 +18,12 @@ if [[ -z "${DEVELOPER_DIR:-}" && "$(xcode-select -p)" == *CommandLineTools* ]]; 
 fi
 
 mode=compare
-languages="en vi"
+languages="en vi ja"
 for arg in "$@"; do
   case "$arg" in
     --record) mode=record ;;
-    en | vi) languages=$arg ;;
-    *) echo "usage: $0 [--record] [en|vi]" >&2; exit 64 ;;
+    en | vi | ja) languages=$arg ;;
+    *) echo "usage: $0 [--record] [en|vi|ja]" >&2; exit 64 ;;
   esac
 done
 
@@ -40,6 +40,9 @@ failed=0
 for language in $languages; do
   printf '\n==> Mac snapshots, %s (%s)\n' "$language" "$mode"
   results="$out/$language.xcresult"
+  # Japanese with its own region, so dates read as a person in Japan sees them.
+  region=US
+  if [[ $language == ja ]]; then region=JP; fi
   attachments="$out/$language"
   rm -rf "$results" "$attachments"
   mkdir -p "$attachments"
@@ -54,7 +57,7 @@ for language in $languages; do
     -derivedDataPath "$derived" \
     -resultBundlePath "$results" \
     -only-testing:"MindMapAITests/MacSnapshotTests${SNAPSHOT_TEST:+/$SNAPSHOT_TEST}" \
-    -testLanguage "$language" -testRegion US \
+    -testLanguage "$language" -testRegion "$region" \
     SWIFT_TREAT_WARNINGS_AS_ERRORS=YES || status=$?
 
   xcrun xcresulttool export attachments --path "$results" --output-path "$attachments" >/dev/null 2>&1 || true

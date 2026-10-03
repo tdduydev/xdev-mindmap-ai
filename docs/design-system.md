@@ -101,6 +101,8 @@ Used for: the `sparkles` symbol on AI buttons and menu items, the dashed outline
 
 Two typefaces, both under the SIL Open Font License 1.1 with Vietnamese glyphs (checked in `google/fonts`, `ofl/bevietnampro` and `ofl/spacegrotesk`): **Be Vietnam Pro** for topic text and **Space Grotesk** for the central topic and display headlines. They ship in `MindMapAI/Resources/Fonts/` with one `OFL.txt` holding both families' copyright lines (the synchronized group copies resources flat into the bundle, so two files named `OFL.txt` would collide). `BrandFont.registerAll()` registers them with CoreText for the process when the app starts, on iOS and macOS alike: the generated Info.plist cannot hold the `UIAppFonts` array, and one code path is easier to test than two plist keys. Space Grotesk ships as a static SemiBold file (`SpaceGrotesk-SemiBold.ttf`, an instance of the variable font) so its PostScript name is fixed: upstream publishes static Light, Regular, Medium and Bold only, so this file is `SpaceGrotesk[wght].ttf` instanced at `wght` 600 with fontTools' `varLib.instancer`, named `Space Grotesk` / `SemiBold`. PostScript names: `BeVietnamPro-Regular`, `BeVietnamPro-Medium`, `BeVietnamPro-SemiBold`, `SpaceGrotesk-SemiBold`.
 
+**Japanese (MM-96, NFR-L10N).** Neither family has kana or kanji. `ContentFont` gives each brand face a CoreText cascade list: Hiragino Sans first (W3 beside Be Vietnam Pro Regular, W6 beside Medium, SemiBold and Space Grotesk; iOS has only W3, W6 and W7), then the system's cascade for Japanese. Without it, a Mac or iPhone set to English or Vietnamese draws kana in Hiragino Sans but kanji and 、。「」 in PingFang SC, so one title mixes Chinese and Japanese glyph forms. Someone whose languages list Chinese before Japanese keeps the system cascade. The canvas (topic titles, marks, tag chips, callouts, the title editor) draws with `ContentFont.font` at the size it already scaled for Dynamic Type, and `TopicMeasurer` measures with the same `CTFont`. On macOS every content style uses it too; on iOS `ContentStyle.font` keeps `relativeTo` (a `CTFont` cannot follow Dynamic Type), so outside the canvas kanji fall back by the system's languages. SwiftUI sets each line at least as tall as the brand face and adds the brand face's leading, never Hiragino's 0.5 em, so the measurer does the same (`JapaneseTypographyTests`).
+
 Content styles (canvas points at 100% zoom). On iOS and iPadOS each is `Font.custom(_:size:relativeTo:)`, so it scales with Dynamic Type; macOS has no Dynamic Type and uses the size as is.
 
 | Role | Family, weight | Size / line | Relative to | Used for |
@@ -317,7 +319,7 @@ SF Symbols only, outline style in toolbars and menus. Names to verify in the SF 
 
 - A debug-only `DesignSystemGallery` view shows every token and topic state in both modes for review and screenshots.
 - Colour sets are named after their token (`CanvasBackground`, `TopicText`…), each with Any, Dark, and High Contrast variants.
-- Tests: WCAG contrast of every text and graphic pair in the four variants; `TopicStyle` resolution per level and theme; the fonts load on both platforms.
+- Tests: WCAG contrast of every text and graphic pair in the four variants; `TopicStyle` resolution per level and theme; the fonts load on both platforms; Japanese falls back to Hiragino Sans and a Japanese title is drawn as tall as measured (`JapaneseTypographyTests`).
 
 ## Not decided yet
 

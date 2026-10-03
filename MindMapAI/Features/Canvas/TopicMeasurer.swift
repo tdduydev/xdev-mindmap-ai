@@ -213,7 +213,8 @@ nonisolated final class TopicMeasurer {
     private func font(postScriptName: String, size: CGFloat) -> CTFont {
         let key = "\(postScriptName)@\(size)"
         if let font = fonts[key] { return font }
-        let font = CTFontCreateWithName(postScriptName as CFString, size, nil)
+        // With the Japanese cascade the view draws with (ContentFont).
+        let font = ContentFont.ctFont(postScriptName: postScriptName, size: size)
         fonts[key] = font
         return font
     }
@@ -236,13 +237,19 @@ nonisolated final class TopicMeasurer {
 
         var width: CGFloat = 0
         var height: CGFloat = 0
+        // SwiftUI sets every line at least as tall as the font it was given,
+        // and adds that font's leading, not a fallback's. A line of kana or
+        // kanji only holds Hiragino Sans runs: 0.12 em lower descent than the
+        // brand face, and 0.5 em of leading the drawn title never shows (MM-96).
+        let fontAscent = CTFontGetAscent(font)
+        let fontDescent = CTFontGetDescent(font)
+        let leading = CTFontGetLeading(font)
         for line in lines {
             var ascent: CGFloat = 0
             var descent: CGFloat = 0
-            var leading: CGFloat = 0
-            let lineWidth = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, &leading))
+            let lineWidth = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, nil))
             width = max(width, lineWidth - CGFloat(CTLineGetTrailingWhitespaceWidth(line)))
-            height += ascent + descent + leading
+            height += max(ascent, fontAscent) + max(descent, fontDescent) + leading
         }
         height += lineSpacing * CGFloat(max(lines.count - 1, 0))
         return CGSize(width: width, height: height)

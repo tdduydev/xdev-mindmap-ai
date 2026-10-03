@@ -14,8 +14,8 @@ import Testing
 
 /// The Mac's own interface, drawn off screen from the `sample` fixture of the
 /// UI test mode and compared with the references, in light, dark and Increase
-/// Contrast; `scripts/snapshot-tests.sh` runs it once in English and once in
-/// Vietnamese. It runs while the Mac is locked, which XCUITest cannot
+/// Contrast; `scripts/snapshot-tests.sh` runs it in English, Vietnamese and
+/// Japanese. It runs while the Mac is locked, which XCUITest cannot
 /// (docs/testing.md, Snapshot tests; NFR-TEST-02, NFR-TEST-03).
 @MainActor
 @Suite("Mac snapshots", .serialized, .enabled(if: Snapshot.mode != nil))
@@ -76,8 +76,9 @@ struct MacSnapshotTests {
             let scenes: [(String, AnyView, CGSize)] = [
                 ("sidebar", AnyView(SidebarView(selection: .constant(.all))), CGSize(width: 220, height: 400)),
                 // Room under the content, so the Form never scrolls: MM-64's
-                // Image section brought it within a few points of 900.
-                ("inspector", AnyView(MapInspectorView(session: map.session)), CGSize(width: 320, height: 1000)),
+                // Image section brought it within a few points of 900, and
+                // Connections and Task pushed Topic and Map below 1000 (MM-96).
+                ("inspector", AnyView(MapInspectorView(session: map.session)), CGSize(width: 320, height: 1400)),
             ]
             // ImageRenderer draws SwiftUI itself, glass included, where AppKit
             // draws nothing; it cannot draw Forms or AppKit controls.

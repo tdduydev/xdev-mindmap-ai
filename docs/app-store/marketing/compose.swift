@@ -74,11 +74,13 @@ func framedScreenshot(_ context: CGContext, _ image: CGImage, _ rect: CGRect, ra
     context.restoreGState()
 }
 
-func caption(_ context: CGContext, _ text: String, _ rect: CGRect, fontSize: CGFloat) {
+func caption(_ context: CGContext, _ text: String, _ rect: CGRect, fontSize: CGFloat, language: String) {
     let paragraph = NSMutableParagraphStyle()
     paragraph.alignment = .center
     paragraph.lineBreakMode = .byWordWrapping
-    let font = CTFontCreateWithName("SpaceGrotesk-SemiBold" as CFString, fontSize, nil)
+    // Space Grotesk has no Japanese glyphs; Hiragino Sans W6 is the system Japanese face of a similar weight.
+    let name = language == "ja" ? "HiraginoSans-W6" : "SpaceGrotesk-SemiBold"
+    let font = CTFontCreateWithName(name as CFString, fontSize, nil)
     let attributed = NSAttributedString(string: text, attributes: [
         .font: font,
         .foregroundColor: NSColor(calibratedRed: 0.12, green: 0.20, blue: 0.33, alpha: 1),
@@ -92,12 +94,13 @@ func caption(_ context: CGContext, _ text: String, _ rect: CGRect, fontSize: CGF
 
 let fontURL = root.appendingPathComponent("MindMapAI/Resources/Fonts/SpaceGrotesk-SemiBold.ttf")
 _ = CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, nil)
+let languages = ["en", "vi", "ja"]
 let portraitImage = load(portrait)
 let landscapeImage = load(landscape)
 
 for platform in ["iphone", "ipad"] {
     let size = platform == "iphone" ? CGSize(width: 1320, height: 2868) : CGSize(width: 2064, height: 2752)
-    for language in ["en", "vi"] {
+    for language in languages {
         let sourceFolder = shots.appendingPathComponent("raw/\(platform)/\(language)")
         for (index, name) in ["01-canvas", "02-ai-suggestions", "03-outline", "04-ask-map", "05-privacy"].enumerated() {
             let screenshot = load(sourceFolder.appendingPathComponent("\(name).png"))
@@ -112,13 +115,13 @@ for platform in ["iphone", "ipad"] {
             caption(context, captions[language]![name]!,
                 CGRect(x: 95, y: size.height - (platform == "iphone" ? 235 : 220),
                     width: size.width-190, height: 150),
-                fontSize: platform == "iphone" ? 77 : 100)
+                fontSize: platform == "iphone" ? 77 : 100, language: language)
             save(context, shots.appendingPathComponent("final/\(platform)/\(language)/\(name).png"))
         }
     }
 }
 
-for language in ["en", "vi"] {
+for language in languages {
     let folder = shots.appendingPathComponent("raw/mac/\(language)")
     for (index, name) in ["01-canvas", "02-ai-suggestions", "03-outline", "04-ask-map", "05-privacy"].enumerated() {
         let source = folder.appendingPathComponent("\(name).png")
@@ -134,7 +137,7 @@ for language in ["en", "vi"] {
             CGRect(x: (size.width-imageWidth)/2, y: 100,
                 width: imageWidth, height: imageHeight), radius: 28)
         caption(context, captions[language]![name]!,
-            CGRect(x: 180, y: 1570, width: size.width-360, height: 160), fontSize: 112)
+            CGRect(x: 180, y: 1570, width: size.width-360, height: 160), fontSize: 112, language: language)
         save(context, shots.appendingPathComponent("final/mac/\(language)/\(name).png"))
     }
 }

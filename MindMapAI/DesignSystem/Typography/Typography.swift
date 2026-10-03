@@ -59,7 +59,14 @@ struct ContentStyle: Hashable {
     }
 
     var font: Font {
+        #if os(macOS)
+        // No Dynamic Type to follow, so the fixed font with the Japanese cascade.
+        let font = ContentFont.font(postScriptName: face.postScriptName, size: size)
+        #else
+        // A CTFont cannot follow Dynamic Type; kanji here fall back as the
+        // system's languages say (Hiragino Sans when Japanese is among them).
         let font = Font.custom(face.postScriptName, size: size, relativeTo: textStyle)
+        #endif
         return tabularDigits ? font.monospacedDigit() : font
     }
 

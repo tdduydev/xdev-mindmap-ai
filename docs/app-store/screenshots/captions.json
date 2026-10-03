@@ -12,5 +12,12 @@
     "03-outline": "Mọi chi tiết đúng chỗ",
     "04-ask-map": "Hỏi sơ đồ điều bạn cần",
     "05-privacy": "Ý tưởng luôn thuộc về bạn"
+  },
+  "ja": {
+    "01-canvas": "アイデアを明確なプランに",
+    "02-ai-suggestions": "新しいアイデアを広げよう",
+    "03-outline": "細部まで、あるべき場所に",
+    "04-ask-map": "大切なことはマップに聞こう",
+    "05-privacy": "アイデアはあなただけのもの"
   }
 }
