@@ -1,6 +1,6 @@
 # ADR 0012: App Clip and Apple Watch app, without a backend
 
-- Status: proposed (MM-112, 2026-10-03); the product owner decided on 2026-10-03 to build both, free. Items marked [Đề xuất] wait for the product owner; items marked [Chưa kiểm chứng] wait for a test on a device or a source.
+- Status: accepted for building on 2026-10-03 (MM-112). The product owner chose both features, free, on 2026-10-03; the defaults marked [Đề xuất] stand until the product owner changes them, and items marked [Chưa kiểm chứng] wait for a device test or a source.
 - Date: 2026-10-03
 - Relates to: ADR 0001 (no backend), ADR 0005 (OS 26 minimum), ADR 0006 (one multiplatform target, macOS first), ADR 0011 (local model fallback)
 - Design: [app-clip.md](../app-clip.md) (FR-CLP-01..05), [watch.md](../watch.md) (FR-WCH-01..04)
