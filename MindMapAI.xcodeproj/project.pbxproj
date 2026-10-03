@@ -33,6 +33,13 @@
 		4D4D41770000000000000013 /* MLXGuidedGeneration in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41770000000000000003 /* MLXGuidedGeneration */; };
 		4D4D41770000000000000014 /* Tokenizers in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41770000000000000004 /* Tokenizers */; };
 		4D4D41770000000000000030 /* MindMapAIEvaluation in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41770000000000000031 /* MindMapAIEvaluation */; };
+		4D4D41116000000000000020 /* MindMapDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41116000000000000010 /* MindMapDomain */; };
+		4D4D41116000000000000021 /* MindMapGraph in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41116000000000000011 /* MindMapGraph */; };
+		4D4D41116000000000000022 /* MindMapPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41116000000000000012 /* MindMapPersistence */; };
+		4D4D41116000000000000023 /* MindMapInterchange in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41116000000000000013 /* MindMapInterchange */; };
+		4D4D41116000000000000024 /* MindMapSharing in Frameworks */ = {isa = PBXBuildFile; productRef = 4D4D41116000000000000014 /* MindMapSharing */; };
+		4D4D4111600000000000000C /* MindMapWatchWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4D4D4111600000000000003A /* MindMapWatchWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4D4D41116000000000000041 /* MindMapWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4D4D4111600000000000000A /* MindMapWatch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +64,20 @@
 			remoteGlobalIDString = 4D4D410000000000000B1140;
 			remoteInfo = MindMapShareExtension;
 		};
+		4D4D4111600000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D4D41000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D4D41116000000000000031;
+			remoteInfo = MindMapWatchWidgets;
+		};
+		4D4D41116000000000000042 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4D4D41000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D4D41116000000000000001;
+			remoteInfo = MindMapWatch;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -71,6 +92,28 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D4D4111600000000000000B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4D4D4111600000000000000C /* MindMapWatchWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D4D41116000000000000040 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				4D4D41116000000000000041 /* MindMapWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -78,6 +121,8 @@
 		4D4D41000000000000000018 /* MindMapAITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindMapAITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D4D41000000000000220002 /* MindMapAIUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindMapAIUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D4D410000000000000B1111 /* MindMapShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MindMapShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D4D4111600000000000000A /* MindMapWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MindMapWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D4D4111600000000000003A /* MindMapWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MindMapWatchWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -87,6 +132,20 @@
 				Info.plist,
 			);
 			target = 4D4D410000000000000B1140 /* MindMapShareExtension */;
+		};
+		4D4D41116000000000000009 /* Exceptions for "MindMapWatch" folder in "MindMapWatch" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4D4D41116000000000000001 /* MindMapWatch */;
+		};
+		4D4D41116000000000000039 /* Exceptions for "MindMapWatchWidgets" folder in "MindMapWatchWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4D4D41116000000000000031 /* MindMapWatchWidgets */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -117,6 +176,22 @@
 				4D4D410000000000000B1133 /* Exceptions for "MindMapShareExtension" folder in "MindMapShareExtension" target */,
 			);
 			path = MindMapShareExtension;
+			sourceTree = "<group>";
+		};
+		4D4D41116000000000000008 /* MindMapWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4D4D41116000000000000009 /* Exceptions for "MindMapWatch" folder in "MindMapWatch" target */,
+			);
+			path = MindMapWatch;
+			sourceTree = "<group>";
+		};
+		4D4D41116000000000000038 /* MindMapWatchWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4D4D41116000000000000039 /* Exceptions for "MindMapWatchWidgets" folder in "MindMapWatchWidgets" target */,
+			);
+			path = MindMapWatchWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -175,6 +250,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D4D41116000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D4D41116000000000000020 /* MindMapDomain in Frameworks */,
+				4D4D41116000000000000021 /* MindMapGraph in Frameworks */,
+				4D4D41116000000000000022 /* MindMapPersistence in Frameworks */,
+				4D4D41116000000000000023 /* MindMapInterchange in Frameworks */,
+				4D4D41116000000000000024 /* MindMapSharing in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D4D41116000000000000036 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -186,6 +280,8 @@
 				4D4D41000000000000220003 /* Shared */,
 				4D4D41000000000000220004 /* MindMapAIUITests */,
 				4D4D410000000000000B1132 /* MindMapShareExtension */,
+				4D4D41116000000000000008 /* MindMapWatch */,
+				4D4D41116000000000000038 /* MindMapWatchWidgets */,
 				4D4D41000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -197,6 +293,8 @@
 				4D4D41000000000000000018 /* MindMapAITests.xctest */,
 				4D4D41000000000000220002 /* MindMapAIUITests.xctest */,
 				4D4D410000000000000B1111 /* MindMapShareExtension.appex */,
+				4D4D4111600000000000000A /* MindMapWatch.app */,
+				4D4D4111600000000000003A /* MindMapWatchWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -211,11 +309,13 @@
 				4D4D41000000000000000007 /* Sources */,
 				4D4D41000000000000000008 /* Frameworks */,
 				4D4D41000000000000000009 /* Resources */,
+				4D4D41116000000000000040 /* Embed Watch Content */,
 				4D4D410000000000000B1131 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4D4D41116000000000000043 /* PBXTargetDependency */,
 				4D4D410000000000000B1137 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -321,6 +421,55 @@
 			productReference = 4D4D410000000000000B1111 /* MindMapShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		4D4D41116000000000000001 /* MindMapWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4D4D41116000000000000002 /* Build configuration list for PBXNativeTarget "MindMapWatch" */;
+			buildPhases = (
+				4D4D41116000000000000005 /* Sources */,
+				4D4D41116000000000000006 /* Frameworks */,
+				4D4D41116000000000000007 /* Resources */,
+				4D4D4111600000000000000B /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4D4D4111600000000000000E /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4D4D41116000000000000008 /* MindMapWatch */,
+			);
+			name = MindMapWatch;
+			packageProductDependencies = (
+				4D4D41116000000000000010 /* MindMapDomain */,
+				4D4D41116000000000000011 /* MindMapGraph */,
+				4D4D41116000000000000012 /* MindMapPersistence */,
+				4D4D41116000000000000013 /* MindMapInterchange */,
+				4D4D41116000000000000014 /* MindMapSharing */,
+			);
+			productName = MindMapWatch;
+			productReference = 4D4D4111600000000000000A /* MindMapWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4D4D41116000000000000031 /* MindMapWatchWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4D4D41116000000000000032 /* Build configuration list for PBXNativeTarget "MindMapWatchWidgets" */;
+			buildPhases = (
+				4D4D41116000000000000035 /* Sources */,
+				4D4D41116000000000000036 /* Frameworks */,
+				4D4D41116000000000000037 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4D4D41116000000000000038 /* MindMapWatchWidgets */,
+			);
+			name = MindMapWatchWidgets;
+			productName = MindMapWatchWidgets;
+			productReference = 4D4D4111600000000000003A /* MindMapWatchWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -343,6 +492,12 @@
 						TestTargetID = 4D4D41000000000000000006;
 					};
 					4D4D410000000000000B1140 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					4D4D41116000000000000001 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					4D4D41116000000000000031 = {
 						CreatedOnToolsVersion = 27.0;
 					};
 				};
@@ -371,6 +526,8 @@
 				4D4D4100000000000000001B /* MindMapAITests */,
 				4D4D41000000000000220008 /* MindMapAIUITests */,
 				4D4D410000000000000B1140 /* MindMapShareExtension */,
+				4D4D41116000000000000001 /* MindMapWatch */,
+				4D4D41116000000000000031 /* MindMapWatchWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -398,6 +555,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4D4D410000000000000B1136 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D4D41116000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D4D41116000000000000037 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -435,6 +606,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4D4D41116000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4D4D41116000000000000035 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -452,6 +637,17 @@
 			isa = PBXTargetDependency;
 			target = 4D4D410000000000000B1140 /* MindMapShareExtension */;
 			targetProxy = 4D4D410000000000000B1130 /* PBXContainerItemProxy */;
+		};
+		4D4D4111600000000000000E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4D4D41116000000000000031 /* MindMapWatchWidgets */;
+			targetProxy = 4D4D4111600000000000000D /* PBXContainerItemProxy */;
+		};
+		4D4D41116000000000000043 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilter = ios;
+			target = 4D4D41116000000000000001 /* MindMapWatch */;
+			targetProxy = 4D4D41116000000000000042 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -879,6 +1075,136 @@
 			};
 			name = Release;
 		};
+		4D4D41116000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(MINDMAP_WATCH_ENTITLEMENTS_$(MINDMAP_ICLOUD))";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MindMapWatch/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = asia.xdev.mindmapai;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.0;
+				MINDMAP_ICLOUD_CONDITION_YES = MINDMAP_ICLOUD;
+				MINDMAP_WATCH_ENTITLEMENTS_NO = "";
+				MINDMAP_WATCH_ENTITLEMENTS_YES = "Entitlements/MindMapWatch+iCloud.entitlements";
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(MINDMAP_ICLOUD_CONDITION_$(MINDMAP_ICLOUD))";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		4D4D41116000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(MINDMAP_WATCH_ENTITLEMENTS_$(MINDMAP_ICLOUD))";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MindMapWatch/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = asia.xdev.mindmapai;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.0;
+				MINDMAP_ICLOUD_CONDITION_YES = MINDMAP_ICLOUD;
+				MINDMAP_WATCH_ENTITLEMENTS_NO = "";
+				MINDMAP_WATCH_ENTITLEMENTS_YES = "Entitlements/MindMapWatch+iCloud.entitlements";
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(MINDMAP_ICLOUD_CONDITION_$(MINDMAP_ICLOUD))";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		4D4D41116000000000000033 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MindMapWatchWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.watchkitapp.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		4D4D41116000000000000034 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MindMapWatchWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "MindMap AI";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 xDev";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = asia.xdev.mindmapai.watchkitapp.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -923,6 +1249,24 @@
 			buildConfigurations = (
 				4D4D410000000000000B1141 /* Debug */,
 				4D4D410000000000000B1142 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4D4D41116000000000000002 /* Build configuration list for PBXNativeTarget "MindMapWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D4D41116000000000000003 /* Debug */,
+				4D4D41116000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4D4D41116000000000000032 /* Build configuration list for PBXNativeTarget "MindMapWatchWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4D4D41116000000000000033 /* Debug */,
+				4D4D41116000000000000034 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1059,6 +1403,26 @@
 		4D4D41770000000000000031 /* MindMapAIEvaluation */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MindMapAIEvaluation;
+		};
+		4D4D41116000000000000010 /* MindMapDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapDomain;
+		};
+		4D4D41116000000000000011 /* MindMapGraph */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapGraph;
+		};
+		4D4D41116000000000000012 /* MindMapPersistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapPersistence;
+		};
+		4D4D41116000000000000013 /* MindMapInterchange */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapInterchange;
+		};
+		4D4D41116000000000000014 /* MindMapSharing */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MindMapSharing;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
