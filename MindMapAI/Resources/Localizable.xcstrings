@@ -15149,6 +15149,102 @@
           }
         }
       }
+    },
+    "Add Suggested Topics" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提案されたトピックを追加"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm chủ đề được đề xuất"
+          }
+        }
+      }
+    },
+    "Allow Suggestions" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提案を許可"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cho phép đề xuất"
+          }
+        }
+      }
+    },
+    "Connected apps can suggest new topics, labelled with the app’s name. Nothing is added until you accept, and apps can’t edit or delete anything." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連携中のAppが新しいトピックを提案できます。提案にはAppの名前が表示されます。採用するまで何も追加されず、Appは何も編集・削除できません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng đã kết nối có thể đề xuất chủ đề mới, có ghi tên ứng dụng. Không có gì được thêm cho tới khi bạn chấp nhận, và ứng dụng không thể sửa hay xoá gì."
+          }
+        }
+      }
+    },
+    "Suggested by %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@からの提案"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đề xuất từ %@"
+          }
+        }
+      }
+    },
+    "Suggested by %@, an AI app you connected. Nothing changes until you accept." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連携したAI Appの%@による提案です。採用するまで何も変更されません。"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đề xuất từ %@, một ứng dụng AI bạn đã kết nối. Sơ đồ không đổi cho tới khi bạn chấp nhận."
+          }
+        }
+      }
+    },
+    "New suggestions from %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@からの新しい提案"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có đề xuất mới từ %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

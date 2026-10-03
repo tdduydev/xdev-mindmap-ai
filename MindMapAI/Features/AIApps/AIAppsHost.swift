@@ -36,6 +36,7 @@ final class AIAppsHost {
 
     static let enabledKey = "mcp.enabled"
     static let portKey = "mcp.port"
+    static let allowSuggestionsKey = "mcp.allowSuggestions"
     static let defaultPort = MCPListener.defaultPort
     /// Below 1024 needs privileges the sandbox does not give.
     static let allowedPorts: ClosedRange<UInt16> = 1024...65535
@@ -43,6 +44,9 @@ final class AIAppsHost {
     private(set) var status: Status = .off
     private(set) var apps: [ConnectedApp] = []
     private(set) var isEnabled: Bool
+    /// Whether connected apps may propose topics (M5). Off by default, apart
+    /// from reading: a write, even one the person reviews, is a separate yes.
+    private(set) var allowsSuggestions: Bool
     private(set) var port: UInt16
     /// Set when the Keychain refused to read the tokens; the list then shows nothing.
     private(set) var keychainFailed = false
@@ -51,17 +55,27 @@ final class AIAppsHost {
     @ObservationIgnored private let store: any AIAppClientStore
     @ObservationIgnored private let access = MCPTokenList()
     @ObservationIgnored private let queries: MapQueries
+    /// Where proposals go; nil in tests that only read.
+    @ObservationIgnored private let openMaps: OpenMaps?
     @ObservationIgnored private let serverVersion: String
     @ObservationIgnored private var listener: MCPListener?
     @ObservationIgnored private var listenerStates: Task<Void, Never>?
     @ObservationIgnored private var started = false
 
-    init(queries: MapQueries, store: any AIAppClientStore, defaults: UserDefaults = AppDefaults.store, serverVersion: String = AIAppsHost.appVersion) {
+    init(
+        queries: MapQueries,
+        store: any AIAppClientStore,
+        openMaps: OpenMaps? = nil,
+        defaults: UserDefaults = AppDefaults.store,
+        serverVersion: String = AIAppsHost.appVersion
+    ) {
         self.queries = queries
+        self.openMaps = openMaps
         self.store = store
         self.defaults = defaults
         self.serverVersion = serverVersion
         isEnabled = defaults.bool(forKey: Self.enabledKey)
+        allowsSuggestions = defaults.bool(forKey: Self.allowSuggestionsKey)
         port = Self.storedPort(in: defaults)
     }
 
@@ -95,6 +109,13 @@ final class AIAppsHost {
         isEnabled = enabled
         defaults.set(enabled, forKey: Self.enabledKey)
         if enabled { listen() } else { closePort() }
+    }
+
+    /// Applies to the next call; suggestions already on a map stay for review.
+    func setAllowsSuggestions(_ allowed: Bool) {
+        guard allowed != allowsSuggestions else { return }
+        allowsSuggestions = allowed
+        defaults.set(allowed, forKey: Self.allowSuggestionsKey)
     }
 
     /// False for a port outside `allowedPorts`, which is not stored.
@@ -143,10 +164,22 @@ final class AIAppsHost {
         queries: queries,
         access: access,
         configuration: .init(serverVersion: serverVersion),
+        proposals: openMaps == nil ? nil : ProposalReceiver { [weak self] proposal in
+            self?.receive(proposal) ?? .notAllowed
+        },
         onActivity: { [weak self] activity in
             Task { @MainActor in self?.record(activity) }
         }
     )
+
+    /// A `propose_topics` call that passed the server's checks. The switch is
+    /// read per call, so turning it off refuses the next proposal at once.
+    func receive(_ proposal: MCPProposal) -> MCPProposalOutcome {
+        guard allowsSuggestions, let openMaps else { return .notAllowed }
+        let outcome = openMaps.propose(proposal)
+        Log.mcp.info("Proposal from \(proposal.client.name, privacy: .private): \(proposal.topics.count) topics, \(String(describing: outcome), privacy: .public)")
+        return outcome
+    }
 
     func record(_ activity: MCPServer.Activity) {
         guard let index = apps.firstIndex(where: { $0.id == activity.client.id }) else { return }
@@ -192,6 +225,15 @@ final class AIAppsHost {
 
     static var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+    }
+}
+
+/// Hands proposals from the server's tasks to the host on the main actor.
+nonisolated private struct ProposalReceiver: MCPProposalReceiver {
+    let deliver: @MainActor @Sendable (MCPProposal) -> MCPProposalOutcome
+
+    func receive(_ proposal: MCPProposal) async -> MCPProposalOutcome {
+        await deliver(proposal)
     }
 }
 

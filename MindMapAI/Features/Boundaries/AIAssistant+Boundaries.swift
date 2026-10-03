@@ -91,6 +91,7 @@ extension AIAssistant {
         guard boundarySuggestions != nil else { return }
         boundarySuggestions = nil
         onSuggestionsChange?()
+        scheduleWaitingAppSuggestion()
     }
 
     private func clearAllSuggestionsForBoundaries() {

@@ -29,6 +29,10 @@ public struct MCPProposal: Sendable, Hashable {
     /// Who proposed it, for "Suggested by Claude Code".
     public let client: MCPClient
 
+    /// [Đề xuất] Proposals waiting on one map, besides the one on show,
+    /// before the tool tells the model to stop.
+    public static let maximumWaiting = 3
+
     public init(mapID: MapID, parentID: NodeID, topics: [Topic], client: MCPClient) {
         self.mapID = mapID
         self.parentID = parentID
@@ -46,7 +50,7 @@ public enum MCPProposalOutcome: Sendable, Hashable {
     case waiting
     /// Allow Suggestions is off in Settings ▸ AI Apps.
     case notAllowed
-    /// The map already has `MapTools.maximumWaitingProposals` waiting.
+    /// The map already has `MCPProposal.maximumWaiting` waiting.
     case tooManyWaiting
 }
 
@@ -62,8 +66,6 @@ extension MapTools {
     static let maximumProposedTopics = 20
     static let maximumTitleLength = 200
     static let maximumNoteLength = 2_000
-    /// [Đề xuất] Proposals waiting on one map before the tool says to stop.
-    public static let maximumWaitingProposals = 3
 
     // MARK: propose_topics
 
@@ -95,7 +97,7 @@ extension MapTools {
         case .notAllowed:
             return .failure("The person has not allowed AI apps to suggest topics. They can turn on Allow Suggestions in MindMap AI ▸ Settings ▸ AI Apps; until then only reading works.")
         case .tooManyWaiting:
-            return .failure("This map already has \(Self.maximumWaitingProposals) proposals waiting for review. Wait for the person to accept or discard them before proposing more.")
+            return .failure("This map already has \(MCPProposal.maximumWaiting) proposals waiting for review. Wait for the person to accept or discard them before proposing more.")
         }
     }
 

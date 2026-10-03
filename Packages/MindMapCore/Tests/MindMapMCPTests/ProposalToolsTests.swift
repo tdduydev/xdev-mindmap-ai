@@ -80,7 +80,7 @@ struct ProposalToolsTests {
         await receiver.answer(.tooManyWaiting)
         let full = try await harness.call("propose_topics", arguments(plan, under: "Thiết kế", topics))
         #expect(full.isError)
-        #expect(full.text.contains("already has \(MapTools.maximumWaitingProposals) proposals waiting"))
+        #expect(full.text.contains("already has \(MCPProposal.maximumWaiting) proposals waiting"))
     }
 
     @Test func badProposalsAreToolErrorsAndNeverReachTheApp() async throws {

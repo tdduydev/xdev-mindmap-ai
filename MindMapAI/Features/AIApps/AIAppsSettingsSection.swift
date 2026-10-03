@@ -69,6 +69,13 @@ private struct AIAppsSettingsContent: View {
         }
 
         Section {
+            Toggle("Allow Suggestions", isOn: Binding(get: { host.allowsSuggestions }, set: { host.setAllowsSuggestions($0) }))
+                .accessibilityIdentifier(AccessibilityID.Settings.aiAppsAllowSuggestions)
+        } footer: {
+            Text("Connected apps can suggest new topics, labelled with the app’s name. Nothing is added until you accept, and apps can’t edit or delete anything.")
+        }
+
+        Section {
             if host.keychainFailed {
                 Text("Couldn’t read the connected apps from the Keychain.")
                     .foregroundStyle(.secondary)
