@@ -81,31 +81,33 @@ private struct AIAppsSettingsContent: View {
             }
             Button("Add App…") { addingApp = true }
                 .accessibilityIdentifier(AccessibilityID.Settings.aiAppsAdd)
+                // On the one row that is always there: a modifier on a Section
+                // goes to each of its rows, one sheet per row on one binding (MM-92).
+                .sheet(isPresented: $addingApp) {
+                    AddAIAppSheet(host: host)
+                }
+                .confirmationDialog(
+                    revokeTitle,
+                    isPresented: Binding(get: { revoking != nil }, set: { if !$0 { revoking = nil } }),
+                    presenting: revoking
+                ) { app in
+                    Button("Revoke", role: .destructive) { revoke(app) }
+                    Button("Cancel", role: .cancel) {}
+                } message: { app in
+                    Text("\(app.name) can no longer read your maps. To connect it again, add it again and paste the new setup.")
+                }
+                .alert(
+                    "Couldn’t Revoke Access",
+                    isPresented: Binding(get: { failed != nil }, set: { if !$0 { failed = nil } })
+                ) {
+                    Button("OK") {}
+                } message: {
+                    Text("The app can no longer read your maps, but its token is still in the Keychain. Try again after reopening MindMap AI.")
+                }
         } header: {
             Text("Connected Apps")
         } footer: {
             Text("MindMap AI must be open for AI apps to read your maps. Each app gets its own token, so you can revoke one without the others.")
-        }
-        .sheet(isPresented: $addingApp) {
-            AddAIAppSheet(host: host)
-        }
-        .confirmationDialog(
-            revokeTitle,
-            isPresented: Binding(get: { revoking != nil }, set: { if !$0 { revoking = nil } }),
-            presenting: revoking
-        ) { app in
-            Button("Revoke", role: .destructive) { revoke(app) }
-            Button("Cancel", role: .cancel) {}
-        } message: { app in
-            Text("\(app.name) can no longer read your maps. To connect it again, add it again and paste the new setup.")
-        }
-        .alert(
-            "Couldn’t Revoke Access",
-            isPresented: Binding(get: { failed != nil }, set: { if !$0 { failed = nil } })
-        ) {
-            Button("OK") {}
-        } message: {
-            Text("The app can no longer read your maps, but its token is still in the Keychain. Try again after reopening MindMap AI.")
         }
     }
 
