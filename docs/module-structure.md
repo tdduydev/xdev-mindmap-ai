@@ -17,7 +17,7 @@ MindMapAI.xcodeproj
 ├─ MindMapAI/                 app target (macOS, iPadOS, iOS): App/, Features/<Feature>/, Resources
 ├─ MindMapShareExtension/     ✓ MM-11, macOS and iOS
 ├─ MindMapClip/               App Clip, iOS and iPadOS (planned, MM-114, [[app-clip]])
-├─ MindMapWatch/              watchOS app, and MindMapWatchWidgets for complications (planned, MM-116, [[watch]])
+├─ MindMapWatch/              watchOS app, and MindMapWatchWidgets for complications (✓ MM-116, [[watch]])
 ├─ MindMapAITests/            hosted app tests on macOS
 ├─ MindMapAIUITests/          XCUITest, macOS and iOS Simulator; pages and launcher ([[testing]])
 └─ Shared/                    AccessibilityID, UITestLaunch: compiled into the app and the UI tests

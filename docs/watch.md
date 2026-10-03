@@ -2,6 +2,14 @@
 
 Design from MM-112 (ADR 0012) for FR-WCH-01..04. MM-116 builds it, after iCloud sync is on (MM-100). [Đề xuất] marks a choice the product owner has not confirmed. [Chưa kiểm chứng] marks an Apple behaviour no source or test confirms yet.
 
+## As built (MM-116)
+
+- **Targets:** `MindMapWatch` (single-target watchOS 26 app, `asia.xdev.mindmapai.watchkitapp`, folder `MindMapWatch/`) embeds `MindMapWatchWidgets` (`asia.xdev.mindmapai.watchkitapp.widgets`). The iOS app embeds the watch app in `Watch/` through an "Embed Watch Content" phase with `platformFilter = ios`, so the Mac build is unchanged. Shared scheme `MindMapWatch`.
+- **Core:** `InboxCapture` and `ReadOnlyTopic` in `MindMapSharing` (`InboxCapture.swift`). `InboxCapture.addIdea(_:inboxTitle:)` reads the Inbox ID from an `InboxMapIDStore`, adds through `QuickCapture.addIdea(_:to:)` (one `InsertOutlineCommand`, origin `.user`, saved change set), and makes a new Inbox when the stored one is missing or in Recently Deleted. `UbiquitousInboxStore` keeps the ID under `inbox.mapID` in `NSUbiquitousKeyValueStore`. No new `GraphCommand`, no schema change. `Package.swift` adds `.watchOS(.v26)`; the watch links Domain, Graph, Persistence, Interchange and Sharing (Persistence pulls in AICore, Interchange pulls in Images; both build for watchOS).
+- **iCloud:** like the app, the watch target signs with `Entitlements/MindMapWatch+iCloud.entitlements` (CloudKit container, key-value store `$(TeamIdentifierPrefix)asia.xdev.mindmapai`, `aps-environment`) only when `MINDMAP_ICLOUD=YES`, which also opens the store with `.appContainer`. ci.sh builds without it, so the Simulator build keeps the store on the watch. "iCloud Is Off" shows when the build has no iCloud or `FileManager.ubiquityIdentityToken` is nil.
+- **Not done yet:** Background Modes ▸ Remote notifications (set it with the Xcode capability once the leader's profile is installed, so the key Xcode writes is the right one for watchOS); the size measurement on a real watch; the key-value sharing check between phone and watch on devices; a watchOS UI test (no watchOS Simulator runtime on the Mac mini on 2026-10-03); Settings ▸ Inbox Map on the phone and Mac.
+- **Capture asks for time** with `ProcessInfo.performExpiringActivity` while it saves; whether that is enough after the wrist drops is not checked on a device [Chưa kiểm chứng].
+
 ## What it does
 
 1. **Capture an idea** (FR-WCH-01): one button opens a text field. watchOS offers dictation, Scribble and the keyboard there. Each idea becomes one topic under the central topic of the Inbox map. A haptic and "Added to Inbox" confirm it. Saved on the watch at once, so it is never lost offline.

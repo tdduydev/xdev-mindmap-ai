@@ -59,9 +59,14 @@ final class WatchModel {
         guard let inbox else { return .failed }
         let title = String(localized: "Inbox", comment: "Title of the map that collects ideas captured on the watch.")
         // The wrist may drop right after Done; ask for a little time so the
-        // save finishes before the app is suspended.
-        let activity = ProcessInfo.processInfo.beginActivity(options: .userInitiated, reason: "Saving an idea")
-        defer { ProcessInfo.processInfo.endActivity(activity) }
+        // save finishes before the app is suspended. The activity lasts as
+        // long as its block, so the block waits for the save.
+        let saved = DispatchSemaphore(value: 0)
+        ProcessInfo.processInfo.performExpiringActivity(withReason: "Saving an idea") { expired in
+            guard !expired else { return }
+            _ = saved.wait(timeout: .now() + WatchLimits.saveTimeout)
+        }
+        defer { saved.signal() }
         do {
             try await inbox.addIdea(idea, inboxTitle: title)
             WKInterfaceDevice.current().play(.success)
@@ -75,7 +80,9 @@ final class WatchModel {
     }
 }
 
-enum WatchLimits {
+nonisolated enum WatchLimits {
     /// FR-WCH-02 [Đề xuất]: enough to find a recent map without scrolling long.
     static let recentMaps = 20
+    /// Longer than any save should take; the system may end the time sooner.
+    static let saveTimeout: TimeInterval = 20
 }
