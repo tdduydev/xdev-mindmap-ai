@@ -27,3 +27,7 @@ scripts/out/
 .codex/
 .agents/skills/hive-leader/
 .claude/settings.json
+
+# MM-48 helper spike build output
+Prototypes/MCPHelperSpike/out/
+Prototypes/MCPHelperSpike/logs/
