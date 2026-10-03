@@ -18,7 +18,8 @@
 # separate keychain (~/Library/Keychains/mindmap-build.keychain-db, password in
 # ~/.appstoreconnect/signing/keychain.pass) and the "MindMap AI Mac App Store"
 # provisioning profiles of the app and of the Share Extension ("... iOS App Store"
-# for iOS). The archive itself is signed with the Apple Development identity in
+# for iOS, plus "MindMap AI Watch App Store" and "MindMap AI Watch Widgets App
+# Store" for the watch app the iOS app embeds, MM-116). The archive itself is signed with the Apple Development identity in
 # the same keychain, since the App Group entitlement cannot be signed ad hoc.
 # docs/release.md explains how they were made.
 set -euo pipefail
@@ -116,6 +117,11 @@ $( [[ $platform == macos ]] && echo '  <key>installerSigningCertificate</key><st
   <dict>
     <key>asia.xdev.mindmapai</key><string>MindMap AI $profile_suffix</string>
     <key>asia.xdev.mindmapai.share</key><string>MindMap AI Share $profile_suffix</string>
+$( [[ $platform == ios ]] && cat <<'WATCH'
+    <key>asia.xdev.mindmapai.watchkitapp</key><string>MindMap AI Watch App Store</string>
+    <key>asia.xdev.mindmapai.watchkitapp.widgets</key><string>MindMap AI Watch Widgets App Store</string>
+WATCH
+)
   </dict>
   <key>uploadSymbols</key><true/>
   <key>manageAppVersionAndBuildNumber</key><false/>

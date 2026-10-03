@@ -1,0 +1,41 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Add Idea" : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ý tưởng"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アイデアを追加"
+          }
+        }
+      }
+    },
+    "Add an idea to your Inbox map." : {
+      "localizations" : {
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thêm ý tưởng vào sơ đồ Hộp ý tưởng."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "受信箱マップにアイデアを追加します。"
+          }
+        }
+      }
+    },
+    "MindMap AI" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.0"
+}
