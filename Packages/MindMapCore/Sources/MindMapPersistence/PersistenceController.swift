@@ -41,8 +41,16 @@ public enum PersistenceController {
     /// on in both, so what is written while sync is off goes up once it is on.
     public static func makeContainer(at location: Location = .standard, sync: Sync = .off) throws -> ModelContainer {
         let schema = Schema(versionedSchema: CurrentSchema.self)
+        let configuration = try configuration(at: location, sync: sync, schema: schema)
+        return try ModelContainer(for: schema, migrationPlan: MindMapMigrationPlan.self, configurations: configuration)
+    }
+
+    /// Split from `makeContainer` so tests can check that turning sync on
+    /// points at the store 1.0 wrote, without opening CloudKit (which stops
+    /// an unentitled process).
+    static func configuration(at location: Location, sync: Sync, schema: Schema) throws -> ModelConfiguration {
         let database = sync.database
-        let configuration = switch location {
+        return switch location {
         case .standard:
             standardConfiguration(schema: schema, database: database)
         case .file(let url):
@@ -52,7 +60,6 @@ public enum PersistenceController {
         case .inMemory:
             ModelConfiguration("MindMapAI", schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         }
-        return try ModelContainer(for: schema, migrationPlan: MindMapMigrationPlan.self, configurations: configuration)
     }
 
     /// Where `.standard` keeps the store: the app's own container.

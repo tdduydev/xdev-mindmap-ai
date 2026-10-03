@@ -102,13 +102,22 @@ public actor SwiftDataMapRepository: MapRepository {
             predicate: #Predicate { $0.deletedAt == nil },
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
-        return try modelContext.fetch(descriptor).map(\.domainValue)
+        return Self.oneEach(try modelContext.fetch(descriptor).map(\.domainValue))
     }
 
     public func fetchDeletedMaps() async throws -> [MindMap] {
-        try deletedMapRecords()
+        Self.oneEach(try deletedMapRecords()
             .map(\.domainValue)
-            .sorted { ($0.deletedAt ?? .distantPast) > ($1.deletedAt ?? .distantPast) }
+            .sorted { ($0.deletedAt ?? .distantPast) > ($1.deletedAt ?? .distantPast) })
+    }
+
+    /// Two devices that both hold a map from before sync (a 1.0 library
+    /// restored from a backup onto a second device) each send it up as its
+    /// own record, so the same map ID can arrive twice. The library shows it
+    /// once, the first in the given order; the next save folds the records.
+    private static func oneEach(_ maps: [MindMap]) -> [MindMap] {
+        var seen = Set<MapID>()
+        return maps.filter { seen.insert($0.id).inserted }
     }
 
     public func loadGraph(for mapID: MapID) async throws -> GraphState? {
