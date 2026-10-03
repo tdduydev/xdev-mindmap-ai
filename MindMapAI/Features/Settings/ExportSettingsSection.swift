@@ -42,6 +42,9 @@ struct ExportSettingsSection: View {
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Settings.pngResolution)
+            // On one row: on the Section, each row would present its own paywall
+            // on one binding (MM-90, MM-92).
+            .proChoicePaywall($paywall)
             Picker("PDF Pages", selection: Binding(get: { pageMode }, set: choose)) {
                 ForEach(PDFPageMode.allCases) { mode in
                     ProChoiceLabel(title: mode.title, isLocked: isLocked(mode.requiredFeature))
@@ -69,7 +72,6 @@ struct ExportSettingsSection: View {
                 Text("Background applies to PNG and PDF. Automatic uses the usual paper of your region.")
             }
         }
-        .proChoicePaywall($paywall)
     }
 
     private func choose(_ scale: ImageScale) {
